@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -64,8 +63,6 @@ public class WaypointRenderer implements WorldRenderer {
             return;
         }
         try {
-            // 允许路径点透过方块渲染
-            RenderSystem.disableDepthTest();
             // 绘制图标
             drawIcon(renderContext, matrixStack, vec3d, camera);
         } catch (RuntimeException e) {

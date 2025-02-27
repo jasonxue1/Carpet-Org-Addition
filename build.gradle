@@ -2,7 +2,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 plugins {
-    id 'fabric-loom' version '1.9-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'maven-publish'
 }
 
@@ -33,7 +33,7 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     // fabric-carpet
     // modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
-    modImplementation files("lib/fabric-carpet-25w07a-1.4.167+v250213.jar")
+    modImplementation files("lib/fabric-carpet-25w09a-1.4.168+v250226.jar")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
     testImplementation(group: 'junit', name: 'junit', version: junit_version)

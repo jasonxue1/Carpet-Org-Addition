@@ -6,7 +6,6 @@ import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.collection.DefaultedList;
@@ -26,11 +25,11 @@ public class SimulatePlayerInventory implements Inventory {
     }
 
     public static SimulatePlayerInventory of(NbtCompound nbt, MinecraftServer server) {
-        NbtList nbtList = nbt.getList("Inventory", NbtElement.COMPOUND_TYPE);
+        NbtList nbtList = nbt.getList("Inventory").orElseThrow();
         SimulatePlayerInventory inventory = new SimulatePlayerInventory();
         for (int i = 0; i < nbtList.size(); i++) {
-            NbtCompound nbtCompound = nbtList.getCompound(i);
-            int j = nbtCompound.getByte("Slot") & 255;
+            NbtCompound nbtCompound = nbtList.getCompound(i).orElseThrow();
+            int j = nbtCompound.getByte("Slot").orElseThrow() & 255;
             ItemStack itemStack = ItemStack.fromNbt(server.getRegistryManager(), nbtCompound).orElse(ItemStack.EMPTY);
             if (j < inventory.main.size()) {
                 inventory.main.set(j, itemStack);

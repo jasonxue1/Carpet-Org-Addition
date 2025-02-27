@@ -1,7 +1,7 @@
 package org.carpetorgaddition.client.util;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.gl.ShaderProgramLayer;
+import net.minecraft.client.gl.ShaderPipeline;
 import net.minecraft.client.render.*;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -24,8 +24,8 @@ public class ClientRenderUtils {
         SEE_THROUGH_LINE = RenderLayer.of(
                 "see_through_line",
                 1536,
-                ShaderProgramLayer
-                        .create(ShaderProgramLayersAccessor.getRenderTypeLines())
+                ShaderPipeline
+                        .builder(ShaderProgramLayersAccessor.getRenderTypeLines())
                         .id(Identifier.of(CarpetOrgAddition.MOD_ID, "see_through_line"))
                         .depthTest(DepthTestState.NO_DEPTH_TEST)
                         .create(),

@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -34,7 +33,7 @@ public class LineRenderer {
         Vec3d cameraPos = camera.getPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
-        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.LINES);
+        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
         Vec3d relativize = this.from.relativize(this.to);
         bufferBuilder.vertex(matrix4f, (float) this.from.getX(), (float) this.from.getY(), (float) this.from.getZ())
                 .color(this.color.red(), this.color.green(), this.color.blue(), this.color.alpha())
@@ -42,16 +41,7 @@ public class LineRenderer {
         bufferBuilder.vertex(matrix4f, (float) this.to.getX(), (float) this.to.getY(), (float) this.to.getZ())
                 .color(this.color.red(), this.color.green(), this.color.blue(), this.color.alpha())
                 .normal(peek, (float) relativize.getX(), (float) relativize.getY(), (float) relativize.getZ());
-        RenderSystem.enableDepthTest();
-        RenderSystem.disableCull();
-        RenderSystem.enableBlend();
-        RenderSystem.depthMask(false);
-        RenderSystem.lineWidth(3F);
-        ClientRenderUtils.draw(RenderLayer.getDebugLineStrip(2.0), bufferBuilder.end());
-        RenderSystem.depthMask(true);
-        RenderSystem.disableBlend();
-        RenderSystem.enableCull();
-        RenderSystem.disableDepthTest();
+        ClientRenderUtils.draw(RenderLayer.getLines(), bufferBuilder.end());
         matrixStack.pop();
     }
 

@@ -1,6 +1,5 @@
 package org.carpetorgaddition.debug.client.render;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
@@ -187,12 +186,7 @@ public class HudDebugRendererRegister {
     }
 
     public static void register() {
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> {
-                    RenderSystem.enableDepthTest();
-                    renders.forEach(renderer -> renderer.render(drawContext, tickCounter));
-                    RenderSystem.disableDepthTest();
-                }
-        );
+        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renders.forEach(renderer -> renderer.render(drawContext, tickCounter)));
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (DebugSettings.HUDInformationDisplay && screen instanceof HandledScreen<?> handledScreen) {
                 DefaultedList<Slot> slots = handledScreen.getScreenHandler().slots;

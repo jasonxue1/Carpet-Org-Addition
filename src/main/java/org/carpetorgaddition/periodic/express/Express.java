@@ -363,12 +363,12 @@ public class Express implements Comparable<Express> {
      * 从NBT读取快递信息
      */
     public static Express readNbt(MinecraftServer server, NbtCompound nbt) {
-        String sender = nbt.getString("sender");
-        String recipient = nbt.getString("recipient");
-        boolean cancel = nbt.getBoolean("cancel");
-        ItemStack stack = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound("item")).orElse(ItemStack.EMPTY);
-        int id = nbt.getInt("id");
-        int[] times = nbt.getIntArray("time");
+        String sender = nbt.getString("sender").orElseThrow();
+        String recipient = nbt.getString("recipient").orElseThrow();
+        boolean cancel = nbt.getBoolean("cancel").orElseThrow();
+        ItemStack stack = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound("item").orElseThrow()).orElse(ItemStack.EMPTY);
+        int id = nbt.getInt("id").orElseThrow();
+        int[] times = nbt.getIntArray("time").orElseThrow();
         LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
         Express express = new Express(server, sender, recipient, stack, id, localDateTime);
         express.cancel = cancel;

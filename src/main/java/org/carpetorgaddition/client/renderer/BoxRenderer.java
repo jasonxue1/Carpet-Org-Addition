@@ -60,43 +60,17 @@ public class BoxRenderer {
         Vec3d cameraPos = camera.getPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
-        // 启用半透明渲染
-        RenderSystem.enableBlend();
-        // 禁用剔除
-        RenderSystem.disableCull();
-        //noinspection StatementWithEmptyBody
-        if (this.seeThroughFace) {
-            // 允许填充框透过方块渲染（不需要执行任何代码，这里默认就是禁用深度测试）
-        } else {
-            // 阻止填充框透过方块渲染
-            RenderSystem.enableDepthTest();
-        }
-        // 避免面与面之间互相遮挡造成颜色错误
-        RenderSystem.depthMask(false);
         // 渲染填充框
         BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         this.drawFillBox(bufferBuilder, matrix4f, minX, minY, minZ, maxX, maxY, maxZ);
-        ClientRenderUtils.draw(RenderLayer.getDebugTriangleFan(), bufferBuilder.end());
-        RenderSystem.depthMask(true);
-        if (this.seeThroughLine) {
-            // 允许填充框透过方块渲染
-            RenderSystem.disableDepthTest();
-        } else {
-            // 阻止填充框透过方块渲染
-            RenderSystem.enableDepthTest();
-        }
+        ClientRenderUtils.draw(RenderLayer.getDebugStructureQuads(), bufferBuilder.end());
         // 渲染框线
         BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
         this.drawLineBox(builder, entry, minX, minY, minZ, maxX, maxY, maxZ);
         // 加粗框线
         RenderSystem.lineWidth(2F);
-        ClientRenderUtils.draw(ClientRenderUtils.SEE_THROUGH_LINE, builder.end());
-        // 启用剔除
-        RenderSystem.enableCull();
-        // 禁用半透明渲染
-        RenderSystem.disableBlend();
-        // 允许透过方块渲染
-        RenderSystem.enableDepthTest();
+        RenderLayer renderLayer = this.seeThroughLine ? ClientRenderUtils.SEE_THROUGH_LINE : RenderLayer.getLines();
+        ClientRenderUtils.draw(renderLayer, builder.end());
         matrixStack.pop();
     }
 

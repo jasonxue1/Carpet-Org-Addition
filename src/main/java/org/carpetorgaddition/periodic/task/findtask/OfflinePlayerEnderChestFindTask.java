@@ -5,7 +5,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
@@ -34,8 +33,8 @@ public class OfflinePlayerEnderChestFindTask extends OfflinePlayerFindTask {
     @Override
     protected Inventory getInventory(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
-        if (nbt.contains("EnderItems", NbtElement.LIST_TYPE)) {
-            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.player.getRegistryManager());
+        if (nbt.contains("EnderItems")) {
+            inventory.readNbtList(nbt.getList("EnderItems").orElseThrow(), this.player.getRegistryManager());
             return inventory;
         } else {
             return ImmutableInventory.EMPTY;
