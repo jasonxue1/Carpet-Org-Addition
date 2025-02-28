@@ -53,6 +53,7 @@ public class Translate {
         Gson gson = new GsonBuilder().enableComplexMapKeySerialization().create();
         Map<String, String> translate = gson.fromJson(translateJson, new TypeToken<Map<String, String>>() {
         }.getType());
+        // TODO 线程安全问题
         TRANSLATE.put(CarpetSettings.language, translate);
         return translate;
     }

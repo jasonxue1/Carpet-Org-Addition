@@ -26,7 +26,7 @@ public class BlockPosNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (this.terminate()) {
+        if (this.shouldTerminate()) {
             this.clear();
             return;
         }
@@ -47,7 +47,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     }
 
     @Override
-    protected boolean terminate() {
+    protected boolean shouldTerminate() {
         // 玩家与目的地在同一维度
         if (this.player.getServerWorld().equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos) <= 8) {

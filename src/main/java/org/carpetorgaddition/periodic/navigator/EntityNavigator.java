@@ -36,7 +36,7 @@ public class EntityNavigator extends AbstractNavigator {
     }
 
     public void tick() {
-        if (this.terminate()) {
+        if (this.shouldTerminate()) {
             this.clear();
             return;
         }
@@ -69,7 +69,7 @@ public class EntityNavigator extends AbstractNavigator {
      * @return 此导航器是否需要停止
      */
     @Override
-    protected boolean terminate() {
+    protected boolean shouldTerminate() {
         if (this.isContinue) {
             return false;
         }

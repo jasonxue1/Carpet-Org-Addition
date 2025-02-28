@@ -50,7 +50,7 @@ public class ExpressManager {
             }
             Express express = Express.readNbt(server, nbt);
             // 快递对象物品为空，删除对应的文件
-            if (express.complete()) {
+            if (express.isComplete()) {
                 express.delete();
                 continue;
             }
@@ -81,7 +81,7 @@ public class ExpressManager {
      * 每个游戏刻删除已经寄件完成的快递
      */
     public void tick() {
-        this.expresses.removeIf(Express::complete);
+        this.expresses.removeIf(Express::isComplete);
     }
 
     /**

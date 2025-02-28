@@ -195,7 +195,7 @@ public class WorldUtils {
      * @return 两个维度ID是否分别表示不同的世界
      * @throws InvalidIdentifierException 如果维度ID不合法
      */
-    public static boolean differentWorld(String world1, String world2) {
+    public static boolean isDifferentWorld(String world1, String world2) {
         return !Identifier.of(world1).equals(Identifier.of(world2));
     }
 

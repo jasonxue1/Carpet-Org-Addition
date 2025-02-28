@@ -42,7 +42,7 @@ public abstract class AbstractNavigator {
      *
      * @return 导航是否需要结束
      */
-    protected abstract boolean terminate();
+    protected abstract boolean shouldTerminate();
 
     /**
      * @return 此导航器的浅拷贝副本

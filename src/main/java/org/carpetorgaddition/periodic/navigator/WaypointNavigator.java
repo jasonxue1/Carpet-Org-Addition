@@ -32,7 +32,7 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (terminate()) {
+        if (shouldTerminate()) {
             this.clear();
             return;
         }
@@ -72,7 +72,7 @@ public class WaypointNavigator extends AbstractNavigator {
     }
 
     @Override
-    public boolean terminate() {
+    public boolean shouldTerminate() {
         if (Objects.equals(WorldUtils.getDimensionId(this.player.getWorld()), this.waypointDimension)
                 && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪

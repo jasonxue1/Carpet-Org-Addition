@@ -22,7 +22,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
 
     @Override
     public void tick() {
-        if (this.terminate()) {
+        if (this.shouldTerminate()) {
             this.clear();
             return;
         }

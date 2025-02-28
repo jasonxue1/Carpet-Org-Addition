@@ -337,7 +337,7 @@ public class Express implements Comparable<Express> {
     /**
      * 完成寄件
      */
-    public boolean complete() {
+    public boolean isComplete() {
         return this.express.isEmpty();
     }
 
@@ -424,12 +424,12 @@ public class Express implements Comparable<Express> {
 
     @Override
     public boolean equals(Object obj) {
-        if (this.complete()) {
+        if (this.isComplete()) {
             return false;
         }
         if (this.getClass() == obj.getClass()) {
             Express other = (Express) obj;
-            if (other.complete()) {
+            if (other.isComplete()) {
                 return false;
             }
             return this.id == other.id;

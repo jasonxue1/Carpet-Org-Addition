@@ -162,7 +162,7 @@ public class WaypointRenderer implements WorldRenderer {
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
         MutableText text = TextUtils.createText(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (WorldUtils.differentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
+        if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
             text = TextUtils.toItalic(text);
         }
         // 获取文本宽度
