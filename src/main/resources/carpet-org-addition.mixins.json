@@ -13,8 +13,6 @@
     "debug.HandledScreenAccessor",
     "debug.PhantomSpawnerMixin",
     "debug.PlayerEntityMixin",
-    "event.ServerPlayerEntityMixin",
-    "event.carpet.LoggerRegistryMixin",
     "logger.FishingBobberEntityMixin",
     "logger.FluidBlockMixin",
     "logger.HUDControllerMixin",
@@ -101,7 +99,8 @@
     "util.MinecraftServerMixin",
     "util.PlayerManagerMixin",
     "util.ServerPlayerEntityMixin",
-    "util.ServerPlayNetworkHandlerMixin"
+    "util.ServerPlayNetworkHandlerMixin",
+    "util.carpet.LoggerRegistryMixin"
   ],
   "client": [
     "debug.ScreenAccessor",
