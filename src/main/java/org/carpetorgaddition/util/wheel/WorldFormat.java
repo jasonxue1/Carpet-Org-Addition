@@ -70,6 +70,20 @@ public class WorldFormat {
     /**
      * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
      *
+     * @param fileName  文件对象的文件名
+     * @param extension 如果文件名没有扩展名，则自动添加当前参数为扩展名
+     */
+    public File file(String fileName, String extension) {
+        String end = extension.startsWith(".") ? extension : "." + extension;
+        if (fileName.endsWith(end)) {
+            return new File(this.directory, fileName);
+        }
+        return new File(this.directory, fileName + end);
+    }
+
+    /**
+     * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
+     *
      * @param fileName 文件名，如果没有扩展名，则自动添加json作为扩展名
      */
     @Deprecated(forRemoval = true)

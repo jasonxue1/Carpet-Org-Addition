@@ -15,10 +15,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.constant.TextConstants;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -323,14 +320,14 @@ public class Express implements Comparable<Express> {
      * 将快递信息保存到本地文件
      */
     public void save() throws IOException {
-        NbtIo.write(this.writeNbt(this.server), this.worldFormat.jsonFile(this.getId() + ".nbt").toPath());
+        NbtIo.write(this.writeNbt(this.server), this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
     /**
      * 删除已经完成的快递
      */
     public void delete() {
-        File file = this.worldFormat.getJsonFile(this.getId() + ".nbt");
+        File file = this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION);
         if (file.delete()) {
             return;
         }

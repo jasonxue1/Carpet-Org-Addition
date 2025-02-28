@@ -37,7 +37,8 @@ public class LocationsCommand {
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                         .executes(context -> addWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
                 .then(CommandManager.literal("list")
-                        .executes(context -> listWayPoint(context, null)).then(CommandManager.argument("filter", StringArgumentType.string())
+                        .executes(context -> listWayPoint(context, null))
+                        .then(CommandManager.argument("filter", StringArgumentType.string())
                                 .executes(context -> listWayPoint(context, StringArgumentType.getString(context, "filter")))))
                 .then(CommandManager.literal("supplement")
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -84,7 +85,7 @@ public class LocationsCommand {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         // 检查文件是否已存在
-        if (worldFormat.fileExists(name)) {
+        if (worldFormat.file(name + IOUtils.JSON_EXTENSION).exists()) {
             throw CommandUtils.createException("carpet.commands.locations.add.fail.already_exists", name);
         }
         // 创建一个路径点对象
@@ -215,7 +216,7 @@ public class LocationsCommand {
         //获取路径点文件对象
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
         // 获取路径点文件的对象
-        File file = worldFormat.jsonFile(name);
+        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
         //从本地文件删除路径点
         if (file.delete()) {
             // 成功删除

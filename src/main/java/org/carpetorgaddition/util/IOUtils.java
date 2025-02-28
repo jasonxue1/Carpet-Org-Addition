@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 
 public class IOUtils {
     public static final String JSON_EXTENSION = ".json";
+    public static final String NBT_EXTENSION = ".nbt";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private IOUtils() {

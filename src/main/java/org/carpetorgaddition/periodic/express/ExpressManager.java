@@ -12,6 +12,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.constant.TextConstants;
@@ -108,7 +109,7 @@ public class ExpressManager {
             express.checkRecipientPermission();
         }
         // 将快递信息写入本地文件
-        NbtIo.write(express.writeNbt(this.server), this.worldFormat.jsonFile(express.getId() + ".nbt").toPath());
+        NbtIo.write(express.writeNbt(this.server), this.worldFormat.file(express.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
     public Stream<Express> stream() {
