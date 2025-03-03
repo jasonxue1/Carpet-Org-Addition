@@ -49,7 +49,6 @@ public class DebugRuleRegistrar implements CarpetExtension {
             }
             this.parse(field, debugRule);
         }
-        Translations.updateLanguage();
     }
 
     private void parse(Field field, DebugRule debugRule) {

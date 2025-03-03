@@ -5,7 +5,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.carpetorgaddition.translate.Translate;
+import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -245,7 +245,7 @@ public class TextUtils {
      * @return 可翻译文本
      */
     public static MutableText translate(String key, Object... obj) {
-        String value = Translate.getTranslateValue(key);
+        String value = Translation.getTranslateValue(key);
         return Text.translatableWithFallback(key, value, obj);
     }
 }
