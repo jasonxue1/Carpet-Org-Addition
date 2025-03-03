@@ -210,7 +210,7 @@ _对方块的破坏和交互同样有效_<br/>
 
 ### 击退棒(knockbackStick)
 
-可以给木棍附魔击退
+可以使用铁砧给木棍附魔击退
 
 - 类型：`布尔值`
 - 默认值：`false`
@@ -691,12 +691,39 @@ _同时安装锂（Lithium）时，此规则与漏斗计数器等功能不兼容
 - 参考选项：`true`，`false`
 - 分类：`Org`，`生存`
 
-### 立即应用工具效果(applyToolEffectsImmediately)
+### 记录玩家命令(recordPlayerCommand)
 
-修复切换工具后挖掘速度不会立即生效
+在服务器控制台输出玩家执行的命令
 
 - 类型：`布尔值`
 - 默认值：`false`
 - 参考选项：`true`，`false`
-- 分类：`Org`，`生存`
+- 分类：`Org`，`命令`
+
+### 保护类魔咒兼容(protectionEnchantmentCompatible)
+
+允许保护类魔咒共存
+
+- 类型：`布尔值`
+- 默认值：`false`
+- 参考选项：`true`，`false`
+- 分类：`Org`，`特性`
+
+### 伤害类魔咒兼容(damageEnchantmentCompatible)
+
+允许伤害类魔咒共存
+
+- 类型：`布尔值`
+- 默认值：`false`
+- 参考选项：`true`，`false`
+- 分类：`Org`，`特性`
+
+### /finder最大反馈数量(finderCommandMaxFeedbackCount)
+
+控制/finder命令的最大反馈数量
+
+- 类型：`整数`
+- 默认值：`10`
+- 参考选项：`10`，`15`，`20`，`25`
+- 分类：`Org`，`命令`
 
