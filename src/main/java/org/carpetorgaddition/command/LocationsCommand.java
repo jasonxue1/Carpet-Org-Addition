@@ -67,8 +67,11 @@ public class LocationsCommand {
     public static SuggestionProvider<ServerCommandSource> suggestion() {
         return (context, builder) -> {
             WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
-            return CommandSource.suggestMatching(worldFormat.toImmutableFileList().stream().map(File::getName)
-                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION)).map(IOUtils::removeJsonExtension)
+            return CommandSource.suggestMatching(worldFormat.toImmutableFileList()
+                    .stream()
+                    .map(File::getName)
+                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION))
+                    .map(s -> IOUtils.removeExtension(s, IOUtils.JSON_EXTENSION))
                     .map(StringArgumentType::escapeIfRequired), builder);
         };
     }
@@ -129,7 +132,7 @@ public class LocationsCommand {
                 optional = Waypoint.load(server, name);
             } catch (IOException | NullPointerException e) {
                 //无法解析坐标
-                CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeJsonExtension(name), e);
+                CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeExtension(name), e);
                 continue;
             }
             // 显示路径点

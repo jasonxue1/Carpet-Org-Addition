@@ -153,7 +153,7 @@ public class PlayerManagerCommand {
         return (context, builder) -> CommandSource.suggestMatching(new WorldFormat(context.getSource().getServer(),
                 FakePlayerSerial.PLAYER_DATA).toImmutableFileList().stream()
                 .filter(file -> file.getName().endsWith(IOUtils.JSON_EXTENSION))
-                .map(file -> IOUtils.removeJsonExtension(file.getName()))
+                .map(file -> IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION))
                 .map(StringArgumentType::escapeIfRequired), builder);
     }
 

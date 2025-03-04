@@ -82,10 +82,9 @@ public class Waypoint {
         // 创建一个文件用来标记是否已经完成移动
         File flagFile = new File(file, "MOVED");
         if (flagFile.exists()) {
-            // 如果这个文件存在，说明路径点在之前已经替换过了，方法之间结束
+            // 如果这个文件存在，说明路径点在之前已经替换过了，方法直接结束
             return;
         }
-        // 文件夹必须存在（如果file.isDirectory()成立，那file.exists()一定也成立）
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
@@ -96,7 +95,7 @@ public class Waypoint {
                         Waypoint waypoint = new Waypoint(location, f.getName());
                         waypoint.save(server);
                     } catch (IOException e) {
-                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeJsonExtension(f.getName()));
+                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeExtension(f.getName(), IOUtils.JSON_EXTENSION));
                     }
                 }
             }

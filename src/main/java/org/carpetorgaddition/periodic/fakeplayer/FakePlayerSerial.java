@@ -99,7 +99,7 @@ public class FakePlayerSerial {
     public FakePlayerSerial(WorldFormat worldFormat, String name) throws IOException {
         JsonObject json = IOUtils.loadJson(worldFormat.file(name, IOUtils.JSON_EXTENSION));
         // 玩家名
-        this.fakePlayerName = IOUtils.removeJsonExtension(name);
+        this.fakePlayerName = IOUtils.removeExtension(name, IOUtils.JSON_EXTENSION);
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3d(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -291,7 +291,7 @@ public class FakePlayerSerial {
 
     private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerial serial) {
         // 添加快捷命令
-        String playerName = IOUtils.removeJsonExtension(file.getName());
+        String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
         String onlineCommand = "/playerManager spawn " + playerName;
         String offlineCommand = "/player " + playerName + " kill";
         MutableText mutableText = TextUtils.appendAll(
@@ -325,7 +325,7 @@ public class FakePlayerSerial {
             try {
                 fakePlayerSerial = new FakePlayerSerial(worldFormat, file.getName());
             } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeJsonExtension(file.getName()), e);
+                CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION), e);
                 continue;
             }
             if (fakePlayerSerial.autologin) {

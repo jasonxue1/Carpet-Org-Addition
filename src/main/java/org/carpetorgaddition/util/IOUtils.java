@@ -188,4 +188,18 @@ public class IOUtils {
         }
         return fileName;
     }
+
+    public static String removeExtension(String fileName) {
+        int index = fileName.lastIndexOf(".");
+        return (index == -1 ? fileName : fileName.substring(0, index)).toUpperCase(Locale.ROOT);
+    }
+
+    public static String removeExtension(String fileName, String extension) {
+        String fineNameLowerCase = fileName.toLowerCase(Locale.ROOT);
+        String extensionNameLowerCase = (extension.startsWith(".") ? extension : "." + extension).toLowerCase(Locale.ROOT);
+        if (fineNameLowerCase.endsWith(extensionNameLowerCase)) {
+            return removeExtension(fileName);
+        }
+        return fileName;
+    }
 }
