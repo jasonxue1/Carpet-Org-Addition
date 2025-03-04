@@ -103,19 +103,19 @@ public class OfflinePlayerFindTask extends ServerTask {
     }
 
     // 创建虚拟线程
-    private void createVirtualThread(File file) {
+    private void createVirtualThread(File unsafe) {
         this.threadCount.getAndIncrement();
         Thread.ofVirtual().start(() -> {
             try {
-                File fileCopy = this.tempFileDirectory.file(file.getName());
+                File deletableFile = this.tempFileDirectory.file(unsafe.getName());
                 // 复制文件，避免影响源文件
-                IOUtils.copyFile(file, fileCopy);
-                findItem(fileCopy);
+                IOUtils.copyFile(unsafe, deletableFile);
+                findItem(deletableFile);
                 // 删除临时文件
-                if (fileCopy.delete()) {
+                if (deletableFile.delete()) {
                     return;
                 }
-                CarpetOrgAddition.LOGGER.warn("未成功删除临时文件{}", fileCopy.getName());
+                CarpetOrgAddition.LOGGER.warn("未成功删除临时文件{}", deletableFile.getName());
             } finally {
                 this.threadCount.getAndDecrement();
             }
