@@ -36,11 +36,11 @@ public class CustomSettingsManager {
      */
     @NotNull
     public static SettingsManager getSettingManager() {
-        if (CarpetServer.settingsManager == null) {
-            CarpetOrgAddition.LOGGER.error("自定义规则加载得太早了");
-            throw new IllegalStateException();
-        }
         if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER) {
+            if (CarpetServer.settingsManager == null) {
+                CarpetOrgAddition.LOGGER.error("自定义规则加载得太早了");
+                throw new IllegalStateException();
+            }
             JsonObject json;
             try {
                 json = IOUtils.loadJson(SETTINGS_MANAGER_CONFIG);
