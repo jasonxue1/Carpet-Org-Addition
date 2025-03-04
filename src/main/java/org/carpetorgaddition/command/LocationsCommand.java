@@ -68,7 +68,7 @@ public class LocationsCommand {
         return (context, builder) -> {
             WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
             return CommandSource.suggestMatching(worldFormat.toImmutableFileList().stream().map(File::getName)
-                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION)).map(IOUtils::removeExtension)
+                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION)).map(IOUtils::removeJsonExtension)
                     .map(StringArgumentType::escapeIfRequired), builder);
         };
     }
@@ -78,6 +78,9 @@ public class LocationsCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
+        if (IOUtils.isValidFileName(name)) {
+            throw CommandUtils.createException("carpet.command.file.name.valid");
+        }
         if (blockPos == null) {
             blockPos = player.getBlockPos();
         }
@@ -126,7 +129,7 @@ public class LocationsCommand {
                 optional = Waypoint.load(server, name);
             } catch (IOException | NullPointerException e) {
                 //无法解析坐标
-                CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeExtension(name), e);
+                CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeJsonExtension(name), e);
                 continue;
             }
             // 显示路径点

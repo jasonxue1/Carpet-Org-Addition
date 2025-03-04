@@ -96,7 +96,7 @@ public class Waypoint {
                         Waypoint waypoint = new Waypoint(location, f.getName());
                         waypoint.save(server);
                     } catch (IOException e) {
-                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeExtension(f.getName()));
+                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeJsonExtension(f.getName()));
                     }
                 }
             }

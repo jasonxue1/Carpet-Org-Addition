@@ -5,11 +5,22 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.Objects;
 
 public class IOUtils {
     public static final String JSON_EXTENSION = ".json";
     public static final String NBT_EXTENSION = ".nbt";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    /**
+     * 不能包含在文件名中的字符
+     */
+    public static final String INVALID_FILENAME_CHARS = "\\/:*?\"<>|";
+    public static final String[] WINDOWS_RESERVED_NAME = {
+            "CON", "PRN", "AUX",
+            "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
+    };
 
     private IOUtils() {
     }
@@ -107,6 +118,32 @@ public class IOUtils {
     }
 
     /**
+     * 检查文件名称是否有效
+     */
+    public static boolean isValidFileName(String fileName) {
+        // 不允许以“.”开头，因为这样的文件名可能被视为隐藏文件
+        if (fileName.startsWith(".")) {
+            return true;
+        }
+        // 不能是Windows保留文件名
+        int index = fileName.indexOf(".");
+        String substring = (index == -1 ? fileName : fileName.substring(0, index)).toUpperCase(Locale.ROOT);
+        for (String str : WINDOWS_RESERVED_NAME) {
+            if (Objects.equals(str, substring)) {
+                return true;
+            }
+        }
+        // 文件名包含无效字符
+        for (int i = 0; i < IOUtils.INVALID_FILENAME_CHARS.length(); i++) {
+            char c = IOUtils.INVALID_FILENAME_CHARS.charAt(i);
+            if (fileName.contains(String.valueOf(c))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 根据键获取json中对应的值，如果不存在，返回默认值
      *
      * @param defaultValue 如果为获取到值，返回默认值
@@ -144,7 +181,8 @@ public class IOUtils {
     /**
      * 删除文件扩展名
      */
-    public static String removeExtension(String fileName) {
+    @Deprecated(forRemoval = true)
+    public static String removeJsonExtension(String fileName) {
         if (fileName.endsWith(JSON_EXTENSION)) {
             return fileName.substring(0, fileName.lastIndexOf("."));
         }

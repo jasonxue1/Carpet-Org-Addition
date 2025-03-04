@@ -250,6 +250,7 @@
   "carpet.command.text.click.here": "[这里]",
   "carpet.command.text.click.input": "单击输入\"%s\"",
   "carpet.command.text.click.run": "单击执行\"%s\"",
+  "carpet.command.file.name.valid": "无效的文件名称",
   "carpet.commands.finder.timeout": "任务超时",
   "carpet.commands.finder.block.too_much_blocks": "周围%s过多，无法统计",
   "carpet.commands.finder.block.not_found_block": "在指定范围内找不到%s",
