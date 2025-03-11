@@ -7,7 +7,10 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.rule.Hidden;
 import org.carpetorgaddition.rule.Removed;
 import org.carpetorgaddition.rule.validator.*;
-import org.carpetorgaddition.rule.value.*;
+import org.carpetorgaddition.rule.value.BetterTotemOfUndying;
+import org.carpetorgaddition.rule.value.CanHighlightBlockPos;
+import org.carpetorgaddition.rule.value.QuickSettingFakePlayerCraft;
+import org.carpetorgaddition.rule.value.ReusableSmithingTemplate;
 
 @SuppressWarnings("CanBeFinal")
 public class CarpetOrgAdditionSettings {
@@ -56,19 +59,9 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean disableOpenOrWaterDetection = false;
 
-    // 幽匿尖啸体放置时状态
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean sculkShriekerCanSummon = false;
-
     // 创造玩家免疫/kill
     @Rule(categories = {ORG, RuleCategory.CREATIVE})
     public static boolean creativeImmuneKill = false;
-
-    // 掉落物不消失
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean itemNeverDespawn = false;
 
     // 滑翔时不能对方块使用烟花
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
@@ -106,16 +99,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean disableDamageImmunity = false;
 
-    // 干草捆完全抵消摔落伤害
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean hayBlockCompleteOffsetFall = false;
-
-    // 蓝冰上不能刷怪
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean blueIceCanSpawn = false;
-
     // 禁止蝙蝠生成
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean disableBatCanSpawn = false;
@@ -139,21 +122,6 @@ public class CarpetOrgAdditionSettings {
     // 强化激流
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean riptideIgnoreWeather = false;
-
-    // 禁止猪灵僵尸化
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean disablePiglinZombify = false;
-
-    // 禁止村民女巫化
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    @Removed
-    public static boolean disableVillagerWitch = false;
-
-    // 禁止铁傀儡攻击玩家
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean disableIronGolemAttackPlayer = false;
 
     // 将镐作为基岩的有效采集工具
     @Rule(categories = {ORG, RuleCategory.FEATURE})
@@ -342,11 +310,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static QuickSettingFakePlayerCraft quickSettingFakePlayerCraft = QuickSettingFakePlayerCraft.FALSE;
 
-    // 湿海绵立即干燥
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.SURVIVAL})
-    public static WetSpongeImmediatelyDry wetSpongeImmediatelyDry = WetSpongeImmediatelyDry.FALSE;
-
     // 假玩家死亡不掉落
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean fakePlayerKeepInventory = false;
@@ -383,11 +346,6 @@ public class CarpetOrgAdditionSettings {
     // 信标世界高度
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean beaconWorldHeight = false;
-
-    // 生物是否可以捡起物品
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static MobWhetherOrNotCanPickItem mobWhetherOrNotCanPickItem = MobWhetherOrNotCanPickItem.VANILLA;
 
     // 可高亮方块坐标
     @Rule(categories = {ORG, RuleCategory.SURVIVAL, RuleCategory.CLIENT})
