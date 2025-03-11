@@ -3,6 +3,7 @@ package org.carpetorgaddition.util;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.patches.FakeClientConnection;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.SharedConstants;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.NetworkSide;
@@ -93,6 +94,13 @@ public class GameUtils {
         String name = throwable.getClass().getSimpleName();
         String message = throwable.getMessage();
         return message == null ? name : name + ": " + message;
+    }
+
+    /**
+     * @return 当前游戏的NBT数据版本
+     */
+    public static int getNbtDataVersion() {
+        return SharedConstants.getGameVersion().getSaveVersion().getId();
     }
 
     /**

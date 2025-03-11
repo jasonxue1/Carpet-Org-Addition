@@ -2,7 +2,6 @@ package org.carpetorgaddition.periodic.express;
 
 import carpet.utils.CommandHelper;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.SharedConstants;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -354,7 +353,7 @@ public class Express implements Comparable<Express> {
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
         nbt.putIntArray("time", args);
         nbt.put("item", this.express.encode(server.getRegistryManager(), new NbtCompound()));
-        nbt.putInt("DataVersion", SharedConstants.getGameVersion().getSaveVersion().getId());
+        nbt.putInt("DataVersion", GameUtils.getNbtDataVersion());
         return nbt;
     }
 

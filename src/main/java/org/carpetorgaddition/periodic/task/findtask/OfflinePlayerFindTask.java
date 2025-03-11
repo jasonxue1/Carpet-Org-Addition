@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.task.findtask;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.datafixers.DataFixer;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
@@ -19,6 +20,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.periodic.task.ServerTask;
+import org.carpetorgaddition.util.GameUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
@@ -107,15 +109,24 @@ public class OfflinePlayerFindTask extends ServerTask {
         this.threadCount.getAndIncrement();
         Thread.ofVirtual().start(() -> {
             try {
-                File deletableFile = this.tempFileDirectory.file(unsafe.getName());
-                // 复制文件，避免影响源文件
-                IOUtils.copyFile(unsafe, deletableFile);
-                findItem(deletableFile);
-                // 删除临时文件
-                if (deletableFile.delete()) {
-                    return;
+                NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+                int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
+                if (version == GameUtils.getNbtDataVersion()) {
+                    findItem(unsafe, maybeOldNbt, version, false);
+                } else {
+                    // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响
+                    File deletableFile = this.tempFileDirectory.file(unsafe.getName());
+                    // 复制文件，避免影响源文件
+                    IOUtils.copyFile(unsafe, deletableFile);
+                    findItem(deletableFile, maybeOldNbt, version, true);
+                    // 删除临时文件
+                    if (deletableFile.delete()) {
+                        return;
+                    }
+                    CarpetOrgAddition.LOGGER.warn("未成功删除临时文件{}", deletableFile.getName());
                 }
-                CarpetOrgAddition.LOGGER.warn("未成功删除临时文件{}", deletableFile.getName());
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.warn("无法从文件读取玩家数据：", e);
             } finally {
                 this.threadCount.getAndDecrement();
             }
@@ -123,7 +134,7 @@ public class OfflinePlayerFindTask extends ServerTask {
     }
 
     // 查找物品
-    private void findItem(File file) {
+    private void findItem(File file, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
         String uuid = file.getName().split("\\.")[0];
         // 获取玩家配置文件
         Optional<GameProfile> optional;
@@ -140,16 +151,9 @@ public class OfflinePlayerFindTask extends ServerTask {
                 return;
             }
             // 从玩家NBT读取物品栏
-            NbtCompound nbt;
-            try {
-                NbtCompound maybeOldNbt = NbtIo.readCompressed(file.toPath(), NbtSizeTracker.ofUnlimitedBytes());
-                int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
-                // 看起来这个方法并没有将新的NBT重新写入文件，这是否意味着它不会对源文件产生影响？
-                nbt = DataFixTypes.PLAYER.update(this.server.getDataFixer(), maybeOldNbt, version);
-            } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.warn("无法从文件读取玩家数据：", e);
-                return;
-            }
+            DataFixer dataFixer = this.server.getDataFixer();
+            // 看起来这个方法并没有将新的NBT重新写入文件，这是否意味着它不会对源文件产生影响？
+            NbtCompound nbt = needToUpgrade ? DataFixTypes.PLAYER.update(dataFixer, maybeOldNbt, version) : maybeOldNbt;
             // 统计物品栏物品
             Inventory inventory = getInventory(nbt);
             ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
