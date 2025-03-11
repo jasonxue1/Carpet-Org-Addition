@@ -130,7 +130,7 @@ public class OfflinePlayerFindTask extends ServerTask {
         try {
             optional = userCache.getByUuid(UUID.fromString(uuid));
         } catch (IllegalArgumentException e) {
-            CarpetOrgAddition.LOGGER.warn("无法根据文件名{}解析UUID", file.getName(), e);
+            CarpetOrgAddition.LOGGER.warn("无法从文件名解析UUID，正在忽略文件：{}", file.getName());
             return;
         }
         if (optional.isPresent()) {
@@ -231,15 +231,14 @@ public class OfflinePlayerFindTask extends ServerTask {
     // 发送每一条反馈
     private void sendEveryFeedback(Result result) {
         // 获取玩家名，并添加UUID悬停提示
-        MutableText playerName = TextUtils.createText(result.gameProfile.getName());
-        playerName = TextUtils.hoverText(playerName, TextUtils.createText("UUID:" + result.gameProfile.getId().toString()));
-        playerName = TextUtils.setColor(playerName, Formatting.GRAY);
+        String name = result.gameProfile.getName();
+        MutableText text = TextUtils.createText("UUID:" + result.gameProfile.getId().toString());
         // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
         Text count = result.statistics().getCountText();
         MessageUtils.sendMessage(
                 this.context,
                 "carpet.commands.finder.item.offline_player.each",
-                playerName,
+                TextUtils.copy(name, name, text, Formatting.GRAY),
                 this.getInventoryName(),
                 count
         );
