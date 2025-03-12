@@ -1,8 +1,12 @@
 package org.carpetorgaddition.client.util;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.gl.ShaderPipeline;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.BuiltBuffer;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.mixin.util.MultiPhaseParametersBuilderAccessor;
@@ -24,11 +28,11 @@ public class ClientRenderUtils {
         SEE_THROUGH_LINE = RenderLayer.of(
                 "see_through_line",
                 1536,
-                ShaderPipeline
+                RenderPipeline
                         .builder(ShaderProgramLayersAccessor.getRenderTypeLines())
-                        .id(Identifier.of(CarpetOrgAddition.MOD_ID, "see_through_line"))
-                        .depthTest(DepthTestState.NO_DEPTH_TEST)
-                        .create(),
+                        .withLocation(Identifier.of(CarpetOrgAddition.MOD_ID, "see_through_line"))
+                        .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                        .build(),
                 accessor.invokerBuild(false)
         );
     }

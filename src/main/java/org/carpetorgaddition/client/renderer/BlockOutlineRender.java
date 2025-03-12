@@ -1,5 +1,6 @@
 package org.carpetorgaddition.client.renderer;
 
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
@@ -35,7 +36,7 @@ public class BlockOutlineRender {
         if (voxelShape.isEmpty()) {
             return;
         }
-        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.LINES);
+        BufferBuilder bufferBuilder = this.tessellator.method_60827(VertexFormat.DrawMode.LINES, VertexFormats.LINE_COLOR_NORMAL);
         Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
         Vec3d cameraPos = camera.getPos();
         matrixStack.push();
