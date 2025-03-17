@@ -234,7 +234,7 @@ public class XpTransferCommand {
     }
 
     /**
-     * 根据经验等级和经验值计算总经验值<br/>
+     * 根据经验等级和经验值计算总经验值<br>
      *
      * @param level 经验等级
      * @param xp    经验值

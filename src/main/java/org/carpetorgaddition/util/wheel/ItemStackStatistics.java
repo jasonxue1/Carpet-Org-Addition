@@ -39,7 +39,7 @@ public class ItemStackStatistics {
     }
 
     /**
-     * 统计物品栏内指定物品的数量<br/>
+     * 统计物品栏内指定物品的数量<br>
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      */
     public void statistics(Inventory inventory) {
@@ -47,7 +47,7 @@ public class ItemStackStatistics {
     }
 
     /**
-     * 统计物品栏内指定物品的数量<br/>
+     * 统计物品栏内指定物品的数量<br>
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      *
      * @param isNestingInventory 当前物品栏是否是潜影盒或收纳袋内部的物品栏

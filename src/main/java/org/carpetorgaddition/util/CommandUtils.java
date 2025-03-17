@@ -74,7 +74,7 @@ public class CommandUtils {
     }
 
     /**
-     * 判断指定玩家是否为假玩家，如果不是会直接抛出异常。<br/>
+     * 判断指定玩家是否为假玩家，如果不是会直接抛出异常。<br>
      *
      * @param fakePlayer 要检查是否为假玩家的玩家对象
      * @throws CommandSyntaxException 如果指定玩家不是假玩家抛出异常

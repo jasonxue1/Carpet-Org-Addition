@@ -52,24 +52,21 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 丢弃物品<br/>
-     * 将要丢弃的物品堆栈对象复制一份并丢出，然后将原本的物品堆栈对象删除，在容器中，使用这种方式丢弃物品不会更新比较器，如果是工作台的输出槽，也不会自动清空合成槽内的物品，因此，不建议使用本方法操作GUI
+     * 将要丢弃的物品堆栈对象复制一份并丢出，然后将原本的物品堆栈对象删除
      *
      * @param player    当前要丢弃物品的玩家
      * @param itemStack 要丢弃的物品堆栈对象
+     * @apiNote 此方法不应用于丢弃GUI中的物品，因为这不会触发{@link ScreenHandler#onSlotClick}的行为
      */
     public static void dropItem(EntityPlayerMPFake player, ItemStack itemStack) {
-        player.dropItem(itemStack.copy(), false, false);
-        itemStack.setCount(0);
+        player.dropItem(itemStack.copyAndEmpty(), false, false);
     }
 
     /**
-     * 模拟Ctrl+Q丢弃物品<br/>
-     * 如果当前槽位索引为0，表示按Ctrl+Q丢弃0索引槽位的物品<br/>
-     * 使用这种方式丢弃物品可以更新比较器，如果需要丢出一些功能方块输出槽位的物品，例如工作台或切石机的输出槽位，应该使用本方法，因为这会同时清除合成槽位的物品
+     * 模拟Ctrl+Q丢弃物品
      *
      * @param screenHandler 假玩家当前打开的GUI
-     * @param slotIndex     假玩家当前操作槽位的索引
+     * @param slotIndex     假玩家当前操作槽位的索引，如果为0，表示按Ctrl+Q丢弃0索引槽位的物品
      * @param player        当前操作的假玩家
      */
     public static void throwItem(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
@@ -103,7 +100,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 模拟光标拾取并丢出物品，作用与{@link #throwItem(ScreenHandler, int, EntityPlayerMPFake)}模拟Ctrl+Q丢出物品类似，但是可能有些GUI的槽位不能使用Ctrl+Q丢弃物品，这时可以尝试使用本方法
+     * 模拟光标拾取并丢出物品，作用与{@link #throwItem(ScreenHandler, int, EntityPlayerMPFake)}模拟Ctrl+Q丢出物品类似
      *
      * @param screenHandler 玩家当前打开的GUI
      * @param slotIndex     玩家当前操作的索引
@@ -115,8 +112,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 通过模拟光标拾取放置物品来快速移动物品，如果光标在拾取物品前有物品，则先丢弃该物品，用这种方式移动物品比模拟按住Shift键移动和使用数字键移动更加灵活，因为它可以在任意两个槽位之间移动，但是这种移动方式需要点击插槽两次，比另外两种略微浪费资源，有条件时也可以使用另外两种<br/>
-     * 此方法受到规则{@link CarpetOrgAdditionSettings#fakePlayerCraftKeepItem}影响，会先判断当前物品是否不能移动，然后再进行移动物品操作
+     * 通过模拟光标拾取放置物品来快速移动物品，此方法受到规则{@link CarpetOrgAdditionSettings#fakePlayerCraftKeepItem}影响，会先判断当前物品是否不能移动，然后再进行移动物品操作
      *
      * @param screenHandler 玩家当前打开的GUI
      * @param fromIndex     玩家拿取物品槽位的索引索引
@@ -174,13 +170,11 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 使用循环一个个丢弃槽位中的物品<br/>
-     * 如果有些功能方块的输出槽位既不能使用Ctrl+Q丢弃，也不能使用鼠标拿起再丢弃，如切石机的输出槽，那么可以尝试使用本方法，使用时，应先确定确实不能使用上述两种方法进行丢弃，相比前面两种只需要一次操作的方法，本方法需要多次丢弃物品，这会更加消耗性能，增加游戏卡顿，因此，当前两种方法可用时，应使用前两种
+     * 使用循环一个个丢弃槽位中的物品
      *
      * @param screenHandler 玩家当前打开的GUI
      * @param slotIndex     玩家当前操作槽位的索引
      * @param player        当前操作该GUI的玩家
-     * @apiNote 请勿在工作台输出槽中使用此方法丢弃物品
      */
     @SuppressWarnings("unused")
     public static void loopThrowItem(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
@@ -202,7 +196,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 比较并丢出槽位物品<br/>
+     * 比较并丢出槽位物品<br>
      * 如果槽位上的物品与预期物品相同，则丢出槽位上的物品
      *
      * @apiNote 本方法用来丢弃村民交易槽位上的物品
@@ -242,7 +236,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 丢弃光标上的物品<br/>
+     * 丢弃光标上的物品<br>
      * 该物品是玩家鼠标光标上正在被拎起的物品，它会影响玩家对GUI的其它操作，在进行其他操作如向光标上放置物品前应先丢弃光标上的物品
      *
      * @param screenHandler 玩家当前打开的GUI
@@ -268,7 +262,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 将光标上的物品放置在槽位中<br/>
+     * 将光标上的物品放置在槽位中<br>
      * 此方法不会检查对应槽位上有没有物品，因此使用该方法前应保证要放置物品的槽位上没有物品
      *
      * @param screenHandler 玩家当前打开的GUI
@@ -283,6 +277,7 @@ public class FakePlayerUtils {
      * 保持与GCA（假人背包）的兼容，防止丢出GCA的物品
      */
     public static boolean isGcaItem(ItemStack itemStack) {
+        // TODO 检查Gca是否被安装
         NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
         if (component == null) {
             return false;
@@ -300,7 +295,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 将合适的物品移动到主手
+     * 将合适的物品移动到指定手
      *
      * @return 是否移动成功
      */

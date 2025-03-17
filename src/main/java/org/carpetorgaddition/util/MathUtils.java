@@ -61,7 +61,7 @@ public class MathUtils {
     }
 
     /**
-     * 在集合中从近到远排序<br/>
+     * 在集合中从近到远排序<br>
      *
      * @param blockPos   源方块坐标
      * @param o1BlockPos 要在集合中添加的方块坐标
