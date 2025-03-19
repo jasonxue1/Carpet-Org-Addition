@@ -34,7 +34,7 @@ public class LineRenderer {
         Vec3d cameraPos = camera.getPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
-        BufferBuilder bufferBuilder = this.tessellator.method_60827(VertexFormat.DrawMode.LINES, VertexFormats.LINE_COLOR_NORMAL);
+        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
         Vec3d relativize = this.from.relativize(this.to);
         bufferBuilder.vertex(matrix4f, (float) this.from.getX(), (float) this.from.getY(), (float) this.from.getZ())
                 .color(this.color.red(), this.color.green(), this.color.blue(), this.color.alpha())

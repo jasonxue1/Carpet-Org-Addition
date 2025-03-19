@@ -36,7 +36,7 @@ public class BlockOutlineRender {
         if (voxelShape.isEmpty()) {
             return;
         }
-        BufferBuilder bufferBuilder = this.tessellator.method_60827(VertexFormat.DrawMode.LINES, VertexFormats.LINE_COLOR_NORMAL);
+        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
         Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
         Vec3d cameraPos = camera.getPos();
         matrixStack.push();

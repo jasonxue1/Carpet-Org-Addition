@@ -62,11 +62,11 @@ public class BoxRenderer {
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
         // 渲染填充框
-        BufferBuilder bufferBuilder = this.tessellator.method_60827(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
+        BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         this.drawFillBox(bufferBuilder, matrix4f, minX, minY, minZ, maxX, maxY, maxZ);
         ClientRenderUtils.draw(RenderLayer.getDebugStructureQuads(), bufferBuilder.end());
         // 渲染框线
-        BufferBuilder builder = Tessellator.getInstance().method_60827(VertexFormat.DrawMode.LINES, VertexFormats.LINE_COLOR_NORMAL);
+        BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
         this.drawLineBox(builder, entry, minX, minY, minZ, maxX, maxY, maxZ);
         // 加粗框线
         RenderSystem.lineWidth(2F);
