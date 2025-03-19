@@ -89,6 +89,12 @@ runClient {
     jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
 }
 
+loom {
+    runConfigs.named("client") {
+        programArgs(["--username", "Player789"])
+    }
+}
+
 // configure the maven publication
 publishing {
     publications {
