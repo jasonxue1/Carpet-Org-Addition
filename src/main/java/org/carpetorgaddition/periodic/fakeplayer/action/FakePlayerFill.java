@@ -30,6 +30,10 @@ public class FakePlayerFill {
             }
             if ((allItem || itemStack.isOf(item))) {
                 if (screenHandler instanceof ShulkerBoxScreenHandler && !itemStack.getItem().canBeNested()) {
+                    // 丢弃不能放入潜影盒的物品
+                    if (context.isDropOther()) {
+                        FakePlayerUtils.throwItem(screenHandler, index, fakePlayer);
+                    }
                     continue;
                 }
                 // 模拟按住Shift键移动物品
@@ -37,6 +41,8 @@ public class FakePlayerFill {
                     fakePlayer.onHandledScreenClosed();
                     return;
                 }
+            } else if (context.isDropOther()) {
+                FakePlayerUtils.throwItem(screenHandler, index, fakePlayer);
             }
         }
     }

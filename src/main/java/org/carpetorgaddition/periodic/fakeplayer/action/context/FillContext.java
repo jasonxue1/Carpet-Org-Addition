@@ -13,8 +13,8 @@ import java.util.ArrayList;
 
 public class FillContext extends AbstractActionContext {
     private static final String ITEM = "item";
-    private static final String ALL_ITEM = "allItem";
-    public static final FillContext FILL_ALL = new FillContext(null, true);
+    public static final String ALL_ITEM = "allItem";
+    public static final String DROP_OTHER = "dropOther";
     /**
      * 要向潜影盒填充的物品
      */
@@ -23,19 +23,19 @@ public class FillContext extends AbstractActionContext {
      * 是否向潜影盒内填充任意物品并忽略{@link FillContext#item}（本身就不能放入潜影盒的物品不会被填充）
      */
     private final boolean allItem;
+    private final boolean dropOther;
 
-    public FillContext(Item item, boolean allItem) {
+    public FillContext(Item item, boolean allItem, boolean dropOther) {
         this.item = item;
         this.allItem = allItem;
+        this.dropOther = dropOther;
     }
 
     public static FillContext load(JsonObject json) {
         boolean allItem = json.get(ALL_ITEM).getAsBoolean();
-        if (allItem) {
-            return new FillContext(null, true);
-        }
-        Item item = ItemStackPredicate.stringAsItem(json.get(ITEM).getAsString());
-        return new FillContext(item, false);
+        boolean dropOther = !json.has(DROP_OTHER) || json.get(DROP_OTHER).getAsBoolean();
+        Item item = allItem ? null : ItemStackPredicate.stringAsItem(json.get(ITEM).getAsString());
+        return new FillContext(item, allItem, dropOther);
     }
 
     @Override
@@ -46,6 +46,7 @@ public class FillContext extends AbstractActionContext {
             json.addProperty(ITEM, Registries.ITEM.getId(this.item).toString());
         }
         json.addProperty(ALL_ITEM, this.allItem);
+        json.addProperty(DROP_OTHER, this.dropOther);
         return json;
     }
 
@@ -70,5 +71,9 @@ public class FillContext extends AbstractActionContext {
 
     public boolean isAllItem() {
         return allItem;
+    }
+
+    public boolean isDropOther() {
+        return this.dropOther;
     }
 }
