@@ -15,6 +15,7 @@ import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
+// TODO 改为面向对象设计
 public class FakePlayerCraft {
     // 最大循环次数
     private static final int MAX_LOOP_COUNT = 1200;

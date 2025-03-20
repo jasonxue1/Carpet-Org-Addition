@@ -21,6 +21,8 @@ import org.carpetorgaddition.util.constant.TextConstants;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class SendMessageCommand {
+    // TODO 将location子命令重命名为here并移动至/locations
+    // TODO 将item子命令重命名为show移动至/mail
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
         dispatcher.register(CommandManager.literal("sendMessage")
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandSendMessage))

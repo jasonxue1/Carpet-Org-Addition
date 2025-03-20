@@ -20,9 +20,11 @@ public abstract class AbstractValidator<T> extends Validator<T> {
     }
 
     @Override
-    public T validate(@Nullable ServerCommandSource serverCommandSource, CarpetRule<T> carpetRule, T newValue, String userInput) {
+    public T validate(@Nullable ServerCommandSource source, CarpetRule<T> carpetRule, T newValue, String userInput) {
         T result = validate(newValue) ? newValue : null;
-        onChange(serverCommandSource, result);
+        if (result != null) {
+            onChange(source, result);
+        }
         return result;
     }
 
@@ -53,8 +55,8 @@ public abstract class AbstractValidator<T> extends Validator<T> {
      * 当规则被更改时调用
      *
      * @param source   规则值的修改者，如果在规则同步期间调用，可能为{@code null}
-     * @param newValue 规则的新值，如果为{@code null}，表示规则没有被修改
+     * @param newValue 规则的新值
      */
-    public void onChange(@Nullable ServerCommandSource source, @Nullable T newValue) {
+    public void onChange(@Nullable ServerCommandSource source, T newValue) {
     }
 }

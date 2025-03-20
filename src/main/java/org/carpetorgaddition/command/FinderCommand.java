@@ -61,6 +61,7 @@ public class FinderCommand {
      */
     public static final String TIME_OUT = "carpet.commands.finder.timeout";
 
+    // TODO 在搜索离线玩家物品的命令反馈中添加按钮以便一键召唤假玩家
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
         dispatcher.register(CommandManager.literal("finder")
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandFinder))

@@ -23,6 +23,7 @@ public class TranslateTest {
     private final List<String> enValue;
     private final ArrayList<String> notRuleKey = new ArrayList<>();
 
+    // TODO 规则移除后翻译键未删除
     public TranslateTest() throws FileNotFoundException {
         BufferedReader enReader = new BufferedReader(new FileReader("src/main/resources/assets/carpet-org-addition/lang/en_us.json"));
         BufferedReader zhReader = new BufferedReader(new FileReader("src/main/resources/assets/carpet-org-addition/lang/zh_cn.json"));

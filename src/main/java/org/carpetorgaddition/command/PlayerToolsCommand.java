@@ -29,6 +29,7 @@ import org.carpetorgaddition.util.screen.PlayerInventoryScreenHandler;
 
 @SuppressWarnings("SameReturnValue")
 public class PlayerToolsCommand {
+    // TODO 将inventory子命令移动至/player并添加规则控制，同时尝试支持真玩家
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("playerTools")
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerTools))
