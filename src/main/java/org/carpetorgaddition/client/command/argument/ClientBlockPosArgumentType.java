@@ -7,29 +7,17 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.CoordinateArgument;
 import net.minecraft.command.argument.Vec3ArgumentType;
-import net.minecraft.command.argument.serialize.ConstantArgumentSerializer;
 import net.minecraft.server.command.CommandManager;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import org.carpetorgaddition.CarpetOrgAddition;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class ClientBlockPosArgumentType implements ArgumentType<BlockPos> {
-    private static final Identifier IDENTIFIER = Identifier.of(CarpetOrgAddition.MOD_ID, "client_block_pos");
-
-    public static void register() {
-        ArgumentTypeRegistry.registerArgumentType(IDENTIFIER,
-                ClientBlockPosArgumentType.class,
-                ConstantArgumentSerializer.of(ClientBlockPosArgumentType::new));
-    }
-
     private static final Collection<String> EXAMPLES = List.of("0 0 0");
 
     private ClientBlockPosArgumentType() {

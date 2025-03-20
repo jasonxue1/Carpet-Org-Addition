@@ -14,6 +14,13 @@ import org.carpetorgaddition.util.fakeplayer.FakePlayerActionManager;
 import org.carpetorgaddition.util.fakeplayer.actiondata.CraftingTableCraftData;
 import org.carpetorgaddition.util.fakeplayer.actiondata.InventoryCraftData;
 import org.carpetorgaddition.util.matcher.ItemMatcher;
+import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerAction;
+import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerCraftRecipeInterface;
+import org.carpetorgaddition.periodic.fakeplayer.action.context.CraftingTableCraftContext;
+import org.carpetorgaddition.periodic.fakeplayer.action.context.InventoryCraftContext;
+import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
 public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implements UnavailableSlotSyncInterface {
     /**
@@ -53,7 +60,7 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
             items[i] = craftingInventory.getStack(i).getItem();
         }
         // 设置假玩家合成动作
-        setCraftAction(items, FakePlayerActionInterface.getManager(fakePlayer));
+        setCraftAction(items, GenericFetcherUtils.getFakePlayerActionManager(fakePlayer));
         // 关闭GUI后，使用父类的方法让物品回到玩家背包
         super.onClosed(player);
     }
@@ -62,20 +69,20 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     private void setCraftAction(Item[] items, FakePlayerActionManager actionManager) {
         // 如果能在2x2合成格中合成，优先使用2x2
         if (canInventoryCraft(items, 0, 1, 2, 5, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFT, createData(items, 3, 4, 6, 7));
+            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 3, 4, 6, 7));
         } else if (canInventoryCraft(items, 0, 3, 6, 7, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFT, createData(items, 1, 2, 4, 5));
+            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 1, 2, 4, 5));
         } else if (canInventoryCraft(items, 2, 5, 6, 7, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFT, createData(items, 0, 1, 3, 4));
+            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 0, 1, 3, 4));
         } else if (canInventoryCraft(items, 0, 1, 2, 3, 6)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFT, createData(items, 4, 5, 7, 8));
+            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 4, 5, 7, 8));
         } else {
             //将假玩家动作设置为3x3合成
-            ItemMatcher[] itemMatchersArr = new ItemMatcher[9];
-            for (int i = 0; i < itemMatchersArr.length; i++) {
-                itemMatchersArr[i] = new ItemMatcher(items[i]);
+            ItemStackPredicate[] predicates = new ItemStackPredicate[9];
+            for (int i = 0; i < predicates.length; i++) {
+                predicates[i] = new ItemStackPredicate(items[i]);
             }
-            actionManager.setAction(FakePlayerAction.CRAFTING_TABLE_CRAFT, new CraftingTableCraftData(itemMatchersArr));
+            actionManager.setAction(FakePlayerAction.CRAFTING_TABLE_CRAFT, new CraftingTableCraftContext(predicates));
         }
     }
 
@@ -91,13 +98,13 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     }
 
     // 创建合成数据
-    private InventoryCraftData createData(Item[] items, int... indices) {
-        ItemMatcher[] matchers = new ItemMatcher[4];
+    private InventoryCraftContext createData(Item[] items, int... indices) {
+        ItemStackPredicate[] predicates = new ItemStackPredicate[4];
         // 这里的index并不是indices里保存的元素
         for (int index = 0; index < 4; index++) {
-            matchers[index] = new ItemMatcher(items[indices[index]]);
+            predicates[index] = new ItemStackPredicate(items[indices[index]]);
         }
-        return new InventoryCraftData(matchers);
+        return new InventoryCraftContext(predicates);
     }
 
     @Override

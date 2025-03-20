@@ -85,6 +85,10 @@ jar {
     }
 }
 
+runClient {
+    jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
+}
+
 // configure the maven publication
 publishing {
     publications {
