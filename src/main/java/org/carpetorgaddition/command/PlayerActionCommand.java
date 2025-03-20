@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -49,9 +50,11 @@ public class PlayerActionCommand {
                                 .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(commandRegistryAccess))
                                         .executes(context -> setClean(context, false))))
                         .then(CommandManager.literal("fill")
-                                .executes(context -> setFill(context, true))
+                                .executes(context -> setFill(context, true, true))
                                 .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(commandRegistryAccess))
-                                        .executes(context -> setFill(context, false))))
+                                        .executes(context -> setFill(context, false, true))
+                                        .then(CommandManager.argument(FillContext.DROP_OTHER, BoolArgumentType.bool())
+                                                .executes(context -> setFill(context, false, BoolArgumentType.getBool(context, FillContext.DROP_OTHER))))))
                         .then(CommandManager.literal("stop")
                                 .executes(PlayerActionCommand::setStop))
                         .then(CommandManager.literal("craft")
@@ -154,16 +157,11 @@ public class PlayerActionCommand {
     }
 
     // 设置填充潜影盒
-    private static int setFill(CommandContext<ServerCommandSource> context, boolean allItem) throws CommandSyntaxException {
+    private static int setFill(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-        if (allItem) {
-            // 向潜影盒内填充任意物品
-            actionManager.setAction(FakePlayerAction.FILL, FillContext.FILL_ALL);
-        } else {
-            Item item = ItemStackArgumentType.getItemStackArgument(context, "filter").getItem();
-            actionManager.setAction(FakePlayerAction.FILL, new FillContext(item, false));
-        }
+        Item item = allItem ? null : ItemStackArgumentType.getItemStackArgument(context, "filter").getItem();
+        actionManager.setAction(FakePlayerAction.FILL, new FillContext(item, allItem, dropOther));
         return 1;
     }
 
