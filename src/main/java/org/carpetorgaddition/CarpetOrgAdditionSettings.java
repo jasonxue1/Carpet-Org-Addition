@@ -35,7 +35,7 @@ public class CarpetOrgAdditionSettings {
     }
 
     public static final String ORG = "Org";
-    public static final String Hidden = "Hidden";
+    public static final String HIDDEN = "Hidden";
 
     // 制作物品分身
     @Rule(
@@ -423,17 +423,17 @@ public class CarpetOrgAdditionSettings {
 
     // 立即应用工具效果
     @Hidden
-    @Rule(categories = {ORG, Hidden, RuleCategory.BUGFIX})
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.BUGFIX})
     public static boolean applyToolEffectsImmediately = false;
 
     // 强制补货
     @Hidden
-    @Rule(categories = {ORG, Hidden})
+    @Rule(categories = {ORG, HIDDEN})
     public static boolean forceRestock = false;
 
     // 自动同步玩家状态
     @Hidden
-    @Rule(categories = {ORG, Hidden})
+    @Rule(categories = {ORG, HIDDEN})
     public static boolean autoSyncPlayerStatus = false;
 
     // 记录玩家命令
