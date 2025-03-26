@@ -144,6 +144,7 @@ public class OfflinePlayerFindTask extends ServerTask {
             CarpetOrgAddition.LOGGER.warn("无法从文件名解析UUID，正在忽略文件：{}", file.getName());
             return;
         }
+        // TODO 提示被跳过的玩家
         if (optional.isPresent()) {
             GameProfile gameProfile = optional.get();
             // 不从在线玩家物品栏查找物品

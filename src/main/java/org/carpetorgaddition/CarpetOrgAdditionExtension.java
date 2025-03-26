@@ -19,6 +19,7 @@ import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
 import org.carpetorgaddition.util.wheel.Translation;
+import org.carpetorgaddition.util.wheel.UUIDNameMappingTable;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +38,8 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         } else {
             settingManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
         }
+        UUIDNameMappingTable mappingTable = UUIDNameMappingTable.getInstance();
+        mappingTable.init();
     }
 
     @Nullable
@@ -54,7 +57,21 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayerEntity player) {
+        // TODO 记录玩家名称与UUID的映射关系，用于从离线玩家身上查找物品
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
+        clearKnockback(player);
+        // 提示玩家接收快递
+        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.server).getExpressManager();
+        expressManager.promptToReceive(player);
+        // 加载假玩家安全挂机
+        PlayerManagerCommand.loadSafeAfk(player);
+        UUIDNameMappingTable.getInstance().put(player.getGameProfile());
+    }
+
+    /**
+     * 清除击退效果
+     */
+    private static void clearKnockback(ServerPlayerEntity player) {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback && player instanceof EntityPlayerMPFake) {
             // 清除速度
             player.setVelocity(Vec3d.ZERO);
@@ -65,11 +82,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
             // 清除负面效果
             player.getStatusEffects().removeIf(effect -> effect.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL);
         }
-        // 提示玩家接收快递
-        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.server).getExpressManager();
-        expressManager.promptToReceive(player);
-        // 加载假玩家安全挂机
-        PlayerManagerCommand.loadSafeAfk(player);
     }
 
     // 服务器启动时调用
@@ -83,6 +95,11 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录
         FakePlayerSerial.autoLogin(server);
+    }
+
+    @Override
+    public void onServerClosed(MinecraftServer server) {
+        UUIDNameMappingTable.getInstance().save();
     }
 
     @Override

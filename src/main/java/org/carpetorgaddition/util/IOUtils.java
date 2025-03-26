@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util;
 
 import com.google.gson.*;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -12,6 +13,7 @@ public class IOUtils {
     public static final String JSON_EXTENSION = ".json";
     public static final String NBT_EXTENSION = ".nbt";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final File CONFIGURE_DIRECTORY = new File("./config/" + CarpetOrgAddition.MOD_NAME_LOWER_CASE);
     /**
      * 不能包含在文件名中的字符
      */
@@ -141,6 +143,12 @@ public class IOUtils {
             }
         }
         return false;
+    }
+
+    public static File createConfigFile(String fileName) {
+        File file = new File(CONFIGURE_DIRECTORY, fileName);
+        createFileIfNotExists(file);
+        return file;
     }
 
     /**
