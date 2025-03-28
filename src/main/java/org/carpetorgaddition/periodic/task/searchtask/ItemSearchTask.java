@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;
@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class ItemFindTask extends ServerTask {
+public class ItemSearchTask extends ServerTask {
     private final World world;
     private final SelectionArea selectionArea;
     private final CommandContext<ServerCommandSource> context;
@@ -50,7 +50,7 @@ public class ItemFindTask extends ServerTask {
     private final ItemStackPredicate predicate;
     private final ArrayList<Result> results = new ArrayList<>();
 
-    public ItemFindTask(World world, ItemStackPredicate predicate, SelectionArea selectionArea, CommandContext<ServerCommandSource> context) {
+    public ItemSearchTask(World world, ItemStackPredicate predicate, SelectionArea selectionArea, CommandContext<ServerCommandSource> context) {
         this.world = world;
         this.selectionArea = selectionArea;
         this.findState = FindState.BLOCK;
@@ -224,7 +224,7 @@ public class ItemFindTask extends ServerTask {
     @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
-            return Objects.equals(this.context.getSource().getPlayer(), ((ItemFindTask) obj).context.getSource().getPlayer());
+            return Objects.equals(this.context.getSource().getPlayer(), ((ItemSearchTask) obj).context.getSource().getPlayer());
         }
         return false;
     }

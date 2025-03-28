@@ -11,8 +11,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class CustomSettingsManager {
-    public static final String CONFIG_PATH = "./config/%s".formatted(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
-    private static final File SETTINGS_MANAGER_CONFIG = new File(CONFIG_PATH, "settings_manager.json");
+    private static final File SETTINGS_MANAGER_CONFIG = IOUtils.createConfigFile("settings_manager.json");
 
     public static void initSettingsManagerConfigs() {
         if (SETTINGS_MANAGER_CONFIG.isFile()) {

@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
@@ -18,11 +18,11 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.util.ArrayList;
 
-public class TradeItemFindTask extends AbstractTradeFindTask {
+public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final MutableText treadName;
 
-    public TradeItemFindTask(World world, SelectionArea selectionArea, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
+    public TradeItemSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
         super(world, selectionArea, sourcePos, context);
         this.predicate = predicate;
         this.treadName = predicate.toText().copy();

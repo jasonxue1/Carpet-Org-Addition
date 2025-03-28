@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
@@ -15,7 +15,7 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.util.*;
 
-public abstract class AbstractTradeFindTask extends ServerTask {
+public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final World world;
     protected final SelectionArea selectionArea;
     protected final BlockPos sourcePos;
@@ -40,7 +40,7 @@ public abstract class AbstractTradeFindTask extends ServerTask {
      */
     protected int tradeCount;
 
-    public AbstractTradeFindTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context) {
+    public AbstractTradeSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context) {
         this.world = world;
         this.selectionArea = selectionArea;
         this.sourcePos = sourcePos;
@@ -186,7 +186,7 @@ public abstract class AbstractTradeFindTask extends ServerTask {
 
     @Override
     public boolean equals(Object o) {
-        if (o instanceof AbstractTradeFindTask that) {
+        if (o instanceof AbstractTradeSearchTask that) {
             return Objects.equals(context, that.context);
         }
         return false;

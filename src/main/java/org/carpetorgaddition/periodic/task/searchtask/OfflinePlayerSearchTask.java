@@ -1,7 +1,6 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.inventory.Inventory;
@@ -27,6 +26,7 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
+import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 
 import java.io.File;
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class OfflinePlayerFindTask extends ServerTask {
+public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * 当前虚拟线程的数量
      */
@@ -49,10 +49,14 @@ public class OfflinePlayerFindTask extends ServerTask {
      */
     private final AtomicInteger itemCount = new AtomicInteger();
     /**
+     * 被跳过的玩家数量
+     */
+    private final AtomicInteger skipCount = new AtomicInteger();
+    /**
      * 在已找到的物品中，是否包含在嵌套的容器中找到的物品
      */
     private final AtomicBoolean shulkerBox = new AtomicBoolean(false);
-    private final CommandContext<ServerCommandSource> context;
+    private final ServerCommandSource source;
     private final UserCache userCache;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
@@ -64,18 +68,13 @@ public class OfflinePlayerFindTask extends ServerTask {
     private final ArrayList<Result> list = new ArrayList<>();
     private final WorldFormat tempFileDirectory;
 
-    public OfflinePlayerFindTask(
-            CommandContext<ServerCommandSource> context,
-            UserCache userCache,
-            ServerPlayerEntity player,
-            File[] files
-    ) {
-        this.context = context;
-        this.predicate = new ItemStackPredicate(context, "itemStack");
-        this.userCache = userCache;
-        this.player = player;
-        this.server = player.server;
-        this.files = files;
+    public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
+        this.source = context.source();
+        this.predicate = context.predicate();
+        this.userCache = context.userCache();
+        this.player = context.player();
+        this.server = this.player.server;
+        this.files = context.files();
         this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
     }
 
@@ -112,13 +111,13 @@ public class OfflinePlayerFindTask extends ServerTask {
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
                 if (version == GameUtils.getNbtDataVersion()) {
-                    findItem(unsafe, maybeOldNbt, version, false);
+                    searchItem(unsafe, maybeOldNbt, version, false);
                 } else {
                     // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响
                     File deletableFile = this.tempFileDirectory.file(unsafe.getName());
                     // 复制文件，避免影响源文件
                     IOUtils.copyFile(unsafe, deletableFile);
-                    findItem(deletableFile, maybeOldNbt, version, true);
+                    searchItem(deletableFile, maybeOldNbt, version, true);
                     // 删除临时文件
                     if (deletableFile.delete()) {
                         return;
@@ -134,45 +133,48 @@ public class OfflinePlayerFindTask extends ServerTask {
     }
 
     // 查找物品
-    private void findItem(File file, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
-        String uuid = file.getName().split("\\.")[0];
-        // 获取玩家配置文件
-        Optional<GameProfile> optional;
+    private void searchItem(File file, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
+        String uuidString = file.getName().split("\\.")[0];
+        UUID uuid;
         try {
-            optional = userCache.getByUuid(UUID.fromString(uuid));
+            uuid = UUID.fromString(uuidString);
         } catch (IllegalArgumentException e) {
             CarpetOrgAddition.LOGGER.warn("无法从文件名解析UUID，正在忽略文件：{}", file.getName());
             return;
         }
-        // TODO 提示被跳过的玩家
-        if (optional.isPresent()) {
-            GameProfile gameProfile = optional.get();
-            // 不从在线玩家物品栏查找物品
-            if (this.server.getPlayerManager().getPlayer(gameProfile.getName()) != null) {
-                return;
-            }
-            // 从玩家NBT读取物品栏
-            DataFixer dataFixer = this.server.getDataFixer();
-            // 看起来这个方法并没有将新的NBT重新写入文件，这是否意味着它不会对源文件产生影响？
-            NbtCompound nbt = needToUpgrade ? DataFixTypes.PLAYER.update(dataFixer, maybeOldNbt, version) : maybeOldNbt;
-            // 统计物品栏物品
-            Inventory inventory = getInventory(nbt);
-            ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
-            statistics.statistics(inventory);
-            if (statistics.getSum() == 0) {
-                return;
-            }
-            this.itemCount.addAndGet(statistics.getSum());
-            if (statistics.hasNestingItem()) {
-                this.shulkerBox.set(true);
-            }
-            Result result = new Result(gameProfile, statistics);
-            try {
-                this.lock.lock();
-                this.list.add(result);
-            } finally {
-                this.lock.unlock();
-            }
+        // 获取玩家配置文件
+        UuidNameMappingTable table = UuidNameMappingTable.getInstance();
+        Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);
+        if (optional.isEmpty()) {
+            this.skipCount.incrementAndGet();
+            return;
+        }
+        GameProfile gameProfile = optional.get();
+        // 不从在线玩家物品栏查找物品
+        if (this.server.getPlayerManager().getPlayer(gameProfile.getName()) != null) {
+            return;
+        }
+        // 从玩家NBT读取物品栏
+        DataFixer dataFixer = this.server.getDataFixer();
+        // 看起来这个方法并没有将新的NBT重新写入文件，这是否意味着它不会对源文件产生影响？
+        NbtCompound nbt = needToUpgrade ? DataFixTypes.PLAYER.update(dataFixer, maybeOldNbt, version) : maybeOldNbt;
+        // 统计物品栏物品
+        Inventory inventory = getInventory(nbt);
+        ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
+        statistics.statistics(inventory);
+        if (statistics.getSum() == 0) {
+            return;
+        }
+        this.itemCount.addAndGet(statistics.getSum());
+        if (statistics.hasNestingItem()) {
+            this.shulkerBox.set(true);
+        }
+        Result result = new Result(gameProfile, statistics);
+        try {
+            this.lock.lock();
+            this.list.add(result);
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -185,7 +187,7 @@ public class OfflinePlayerFindTask extends ServerTask {
     private void sendFeedback() {
         if (this.list.isEmpty()) {
             MessageUtils.sendMessage(
-                    this.context,
+                    this.source,
                     "carpet.commands.finder.item.offline_player.not_found",
                     this.getInventoryName(),
                     this.predicate.toText()
@@ -226,7 +228,13 @@ public class OfflinePlayerFindTask extends ServerTask {
                     this.predicate.toText()
             );
         }
-        MessageUtils.sendMessage(this.context.getSource(), TextUtils.hoverText(message, hoverPrompt));
+        MessageUtils.sendMessage(this.source, TextUtils.hoverText(message, hoverPrompt));
+        int skip = this.skipCount.get();
+        if (skip != 0) {
+            MutableText translate = TextUtils.translate("carpet.commands.finder.item.offline_player.skip", skip);
+            MutableText grayItalic = TextUtils.toGrayItalic(translate);
+            MessageUtils.sendMessage(this.source, grayItalic);
+        }
         for (int i = 0; i < Math.min(this.list.size(), CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount); i++) {
             Result result = this.list.get(i);
             sendEveryFeedback(result);
@@ -241,7 +249,7 @@ public class OfflinePlayerFindTask extends ServerTask {
         // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
         Text count = result.statistics().getCountText();
         MessageUtils.sendMessage(
-                this.context,
+                this.source,
                 "carpet.commands.finder.item.offline_player.each",
                 TextUtils.copy(name, name, text, Formatting.GRAY),
                 this.getInventoryName(),
@@ -266,7 +274,7 @@ public class OfflinePlayerFindTask extends ServerTask {
     @Override
     public boolean equals(Object o) {
         if (getClass() == o.getClass()) {
-            return Objects.equals(player, ((OfflinePlayerFindTask) o).player);
+            return Objects.equals(player, ((OfflinePlayerSearchTask) o).player);
         }
         return false;
     }

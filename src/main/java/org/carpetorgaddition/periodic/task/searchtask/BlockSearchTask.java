@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class BlockFindTask extends ServerTask {
+public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
     private final SelectionArea selectionArea;
     protected final CommandContext<ServerCommandSource> context;
@@ -39,7 +39,7 @@ public class BlockFindTask extends ServerTask {
     private final FinderCommand.BlockPredicate blockPredicate;
     private final ArrayList<Result> results = new ArrayList<>();
 
-    public BlockFindTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
         this.world = world;
         this.sourcePos = sourcePos;
         this.selectionArea = selectionArea;
@@ -180,7 +180,7 @@ public class BlockFindTask extends ServerTask {
     @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
-            return Objects.equals(this.context.getSource().getPlayer(), ((BlockFindTask) obj).context.getSource().getPlayer());
+            return Objects.equals(this.context.getSource().getPlayer(), ((BlockSearchTask) obj).context.getSource().getPlayer());
         }
         return false;
     }

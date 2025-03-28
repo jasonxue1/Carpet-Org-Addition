@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,8 +12,8 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.constant.TextConstants;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
-public class MayAffectWorldEaterBlockFindTask extends BlockFindTask {
-    public MayAffectWorldEaterBlockFindTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
+public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
+    public MayAffectWorldEaterBlockSearchTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
         super(world, sourcePos, selectionArea, context, blockPredicate);
     }
 

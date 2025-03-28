@@ -30,7 +30,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.task.ServerTask;
-import org.carpetorgaddition.periodic.task.findtask.*;
+import org.carpetorgaddition.periodic.task.searchtask.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.constant.TextConstants;
@@ -78,34 +78,34 @@ public class FinderCommand {
                                                                 .executes(FinderCommand::areaBlockFinder)))))))
                 .then(CommandManager.literal("item")
                         .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
-                                .executes(context -> findItem(context, 64))
+                                .executes(context -> searchItem(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
-                                        .executes(context -> findItem(context, IntegerArgumentType.getInteger(context, "range"))))
+                                        .executes(context -> searchItem(context, IntegerArgumentType.getInteger(context, "range"))))
                                 .then(CommandManager.literal("from")
                                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                                 .then(CommandManager.literal("to")
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(FinderCommand::areaItemFinder))))
                                         .then(CommandManager.literal("offline_player")
-                                                .executes(FinderCommand::findItemFromOfflinePlayer)
+                                                .executes(FinderCommand::searchItemFromOfflinePlayer)
                                                 .then(CommandManager.literal("inventory")
-                                                        .executes(FinderCommand::findItemFromOfflinePlayer))
+                                                        .executes(FinderCommand::searchItemFromOfflinePlayer))
                                                 .then(CommandManager.literal("ender_chest")
-                                                        .executes(FinderCommand::findItemFromOfflinePlayerEnderChest))))))
+                                                        .executes(FinderCommand::searchItemFromOfflinePlayerEnderChest))))))
                 .then(CommandManager.literal("trade")
                         .then(CommandManager.literal("item")
                                 .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
-                                        .executes(context -> findTradeItem(context, 64))
+                                        .executes(context -> searchTradeItem(context, 64))
                                         .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                                 .suggests(suggestionDefaultDistance())
-                                                .executes(context -> findTradeItem(context, IntegerArgumentType.getInteger(context, "range"))))))
+                                                .executes(context -> searchTradeItem(context, IntegerArgumentType.getInteger(context, "range"))))))
                         .then(CommandManager.literal("enchanted_book")
                                 .then(CommandManager.argument("enchantment", RegistryEntryReferenceArgumentType.registryEntry(commandRegistryAccess, RegistryKeys.ENCHANTMENT))
-                                        .executes(context -> findEnchantedBookTrade(context, 64))
+                                        .executes(context -> searchEnchantedBookTrade(context, 64))
                                         .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                                 .suggests(suggestionDefaultDistance())
-                                                .executes(context -> findEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
+                                                .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(CommandManager.literal("worldEater")
                         .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
@@ -118,7 +118,7 @@ public class FinderCommand {
     }
 
     // 物品查找
-    private static int findItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private static int searchItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
@@ -126,7 +126,7 @@ public class FinderCommand {
         BlockPos sourceBlockPos = player.getBlockPos();
         // 查找周围容器中的物品
         World world = player.getWorld();
-        ItemFindTask task = new ItemFindTask(world, predicate, new SelectionArea(world, sourceBlockPos, range), context);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, new SelectionArea(world, sourceBlockPos, range), context);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -140,23 +140,23 @@ public class FinderCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
         SelectionArea selectionArea = new SelectionArea(from, to);
-        ItemFindTask task = new ItemFindTask(player.getWorld(), predicate, selectionArea, context);
+        ItemSearchTask task = new ItemSearchTask(player.getWorld(), predicate, selectionArea, context);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
     // 从离线玩家身上查找物品
-    private static int findItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        findItemFromOfflinePlayer(context, false);
+    private static int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        searchItemFromOfflinePlayer(context, false);
         return 1;
     }
 
-    private static int findItemFromOfflinePlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        findItemFromOfflinePlayer(context, true);
+    private static int searchItemFromOfflinePlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        searchItemFromOfflinePlayer(context, true);
         return 0;
     }
 
-    private static void findItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest) throws CommandSyntaxException {
+    private static void searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         File[] files = player.server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
         if (files == null) {
@@ -167,10 +167,12 @@ public class FinderCommand {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }
         ServerTask task;
+        ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
+        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files, false);
         if (enderChest) {
-            task = new OfflinePlayerEnderChestFindTask(context, userCache, player, files);
+            task = new OfflinePlayerEnderChestSearchTask(argument);
         } else {
-            task = new OfflinePlayerFindTask(context, userCache, player, files);
+            task = new OfflinePlayerSearchTask(argument);
         }
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
     }
@@ -186,7 +188,7 @@ public class FinderCommand {
         ServerWorld world = player.getServerWorld();
         SelectionArea selectionArea = new SelectionArea(world, sourceBlockPos, range);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
-        BlockFindTask task = new BlockFindTask(world, sourceBlockPos, selectionArea, context, predicate);
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, selectionArea, context, predicate);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -202,7 +204,7 @@ public class FinderCommand {
         ServerWorld world = player.getServerWorld();
         SelectionArea selectionArea = new SelectionArea(from, to);
         BlockBlockPredicate predicate = new BlockBlockPredicate();
-        MayAffectWorldEaterBlockFindTask task = new MayAffectWorldEaterBlockFindTask(world, sourceBlockPos, selectionArea, context, predicate);
+        MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, selectionArea, context, predicate);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 0;
     }
@@ -218,13 +220,13 @@ public class FinderCommand {
         SelectionArea selectionArea = new SelectionArea(from, to);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         // 添加查找任务
-        BlockFindTask task = new BlockFindTask(player.getServerWorld(), player.getBlockPos(), selectionArea, context, predicate);
+        BlockSearchTask task = new BlockSearchTask(player.getServerWorld(), player.getBlockPos(), selectionArea, context, predicate);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
     // 准备根据物品查找交易项
-    private static int findTradeItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private static int searchTradeItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家对象
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取要匹配的物品
@@ -234,14 +236,14 @@ public class FinderCommand {
         World world = player.getWorld();
         // 查找范围
         SelectionArea area = new SelectionArea(world, sourcePos, range);
-        TradeItemFindTask task = new TradeItemFindTask(world, area, sourcePos, predicate, context);
+        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context);
         // 向任务管理器添加任务
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
     // 准备查找出售指定附魔书的村民
-    private static int findEnchantedBookTrade(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private static int searchEnchantedBookTrade(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取需要查找的附魔
@@ -251,7 +253,7 @@ public class FinderCommand {
         World world = player.getWorld();
         // 查找范围
         SelectionArea area = new SelectionArea(world, sourcePos, range);
-        TradeEnchantedBookFindTask task = new TradeEnchantedBookFindTask(world, area, sourcePos, context, enchantment);
+        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context, enchantment);
         // 向任务管理器添加任务
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;

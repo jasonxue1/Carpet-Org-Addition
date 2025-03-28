@@ -18,6 +18,9 @@ public class IOUtils {
      * 不能包含在文件名中的字符
      */
     public static final String INVALID_FILENAME_CHARS = "\\/:*?\"<>|";
+    /**
+     * Windows保留文件名
+     */
     public static final String[] WINDOWS_RESERVED_NAME = {
             "CON", "PRN", "AUX", "NUL",
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",

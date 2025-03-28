@@ -1,29 +1,18 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.UserCache;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 
-import java.io.File;
-
 @SuppressWarnings("JavadocReference")
-public class OfflinePlayerEnderChestFindTask extends OfflinePlayerFindTask {
-    public OfflinePlayerEnderChestFindTask(
-            CommandContext<ServerCommandSource> context,
-            UserCache userCache,
-            ServerPlayerEntity player,
-            File[] files
-    ) {
-        super(context, userCache, player, files);
+public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
+    public OfflinePlayerEnderChestSearchTask(OfflinePlayerItemSearchContext context) {
+        super(context);
     }
 
     /**

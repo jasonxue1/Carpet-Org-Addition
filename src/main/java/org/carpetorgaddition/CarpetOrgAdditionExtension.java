@@ -19,7 +19,7 @@ import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
 import org.carpetorgaddition.util.wheel.Translation;
-import org.carpetorgaddition.util.wheel.UUIDNameMappingTable;
+import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,7 +38,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         } else {
             settingManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
         }
-        UUIDNameMappingTable mappingTable = UUIDNameMappingTable.getInstance();
+        UuidNameMappingTable mappingTable = UuidNameMappingTable.getInstance();
         mappingTable.init();
     }
 
@@ -65,7 +65,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
-        UUIDNameMappingTable.getInstance().put(player.getGameProfile());
+        UuidNameMappingTable.getInstance().put(player.getGameProfile());
     }
 
     /**
@@ -99,7 +99,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     @Override
     public void onServerClosed(MinecraftServer server) {
-        UUIDNameMappingTable.getInstance().save();
+        UuidNameMappingTable.getInstance().save();
     }
 
     @Override

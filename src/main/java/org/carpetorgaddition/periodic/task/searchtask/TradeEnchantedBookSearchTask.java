@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.findtask;
+package org.carpetorgaddition.periodic.task.searchtask;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.enchantment.Enchantment;
@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TradeEnchantedBookFindTask extends AbstractTradeFindTask {
+public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final MutableText treadName;
     private final Enchantment enchantment;
 
-    public TradeEnchantedBookFindTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
+    public TradeEnchantedBookSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
         super(world, selectionArea, sourcePos, context);
         // 获取附魔名称，不带等级
         MutableText text = EnchantmentUtils.getName(enchantment);
