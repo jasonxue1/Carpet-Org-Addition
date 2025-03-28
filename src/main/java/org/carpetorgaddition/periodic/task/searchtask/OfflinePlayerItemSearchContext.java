@@ -13,6 +13,6 @@ public record OfflinePlayerItemSearchContext(
         UserCache userCache,
         ServerPlayerEntity player,
         File[] files,
-        boolean displayUnknown
+        boolean showUnknown
 ) {
 }

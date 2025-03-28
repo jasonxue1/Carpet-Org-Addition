@@ -2,7 +2,9 @@ package org.carpetorgaddition.command;
 
 import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -38,6 +40,7 @@ import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.io.File;
+import java.util.Locale;
 
 public class FinderCommand {
     /**
@@ -87,12 +90,7 @@ public class FinderCommand {
                                                 .then(CommandManager.literal("to")
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(FinderCommand::areaItemFinder))))
-                                        .then(CommandManager.literal("offline_player")
-                                                .executes(FinderCommand::searchItemFromOfflinePlayer)
-                                                .then(CommandManager.literal("inventory")
-                                                        .executes(FinderCommand::searchItemFromOfflinePlayer))
-                                                .then(CommandManager.literal("ender_chest")
-                                                        .executes(FinderCommand::searchItemFromOfflinePlayerEnderChest))))))
+                                        .then(offlinePlayerItemSearchNode()))))
                 .then(CommandManager.literal("trade")
                         .then(CommandManager.literal("item")
                                 .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
@@ -111,6 +109,19 @@ public class FinderCommand {
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                 .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                         .executes(FinderCommand::mayAffectWorldEater)))));
+    }
+
+    private static LiteralArgumentBuilder<ServerCommandSource> offlinePlayerItemSearchNode() {
+        LiteralArgumentBuilder<ServerCommandSource> literal = CommandManager.literal("offline_player");
+        literal.executes(context -> searchItemFromOfflinePlayer(context, false, false));
+        for (OfflinePlayerInventoryType value : OfflinePlayerInventoryType.values()) {
+            boolean isEnderChest = (value == OfflinePlayerInventoryType.ENDER_CHEST);
+            literal.then(CommandManager.literal(value.name().toLowerCase(Locale.ROOT))
+                    .executes(context -> searchItemFromOfflinePlayer(context, isEnderChest, false))
+                    .then(CommandManager.argument("showUnknown", BoolArgumentType.bool())
+                            .executes(context -> searchItemFromOfflinePlayer(context, isEnderChest, BoolArgumentType.getBool(context, "showUnknown")))));
+        }
+        return literal;
     }
 
     private static SuggestionProvider<ServerCommandSource> suggestionDefaultDistance() {
@@ -146,17 +157,7 @@ public class FinderCommand {
     }
 
     // 从离线玩家身上查找物品
-    private static int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        searchItemFromOfflinePlayer(context, false);
-        return 1;
-    }
-
-    private static int searchItemFromOfflinePlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        searchItemFromOfflinePlayer(context, true);
-        return 0;
-    }
-
-    private static void searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest) throws CommandSyntaxException {
+    private static int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest, boolean showUnknown) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         File[] files = player.server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
         if (files == null) {
@@ -168,13 +169,14 @@ public class FinderCommand {
         }
         ServerTask task;
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files, false);
+        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files, showUnknown);
         if (enderChest) {
             task = new OfflinePlayerEnderChestSearchTask(argument);
         } else {
             task = new OfflinePlayerSearchTask(argument);
         }
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        return 1;
     }
 
     // 方块查找
@@ -331,5 +333,10 @@ public class FinderCommand {
         public MutableText getName() {
             return TextUtils.translate("carpet.commands.finder.may_affect_world_eater_block.name");
         }
+    }
+
+    private enum OfflinePlayerInventoryType {
+        INVENTORY,
+        ENDER_CHEST
     }
 }

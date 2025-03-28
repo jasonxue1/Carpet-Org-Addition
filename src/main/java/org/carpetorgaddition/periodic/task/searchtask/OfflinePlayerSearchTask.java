@@ -62,6 +62,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final MinecraftServer server;
     private final File[] files;
     private final ItemStackPredicate predicate;
+    private final boolean showUnknown;
     private State taksState = State.START;
     // synchronized会导致虚拟线程被锁定吗？还能不能使用并发集合？
     private final ReentrantLock lock = new ReentrantLock();
@@ -75,6 +76,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.player = context.player();
         this.server = this.player.server;
         this.files = context.files();
+        this.showUnknown = context.showUnknown();
         this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
     }
 
@@ -145,9 +147,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
         // 获取玩家配置文件
         UuidNameMappingTable table = UuidNameMappingTable.getInstance();
         Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);
+        boolean unknownPlayer = false;
         if (optional.isEmpty()) {
-            this.skipCount.incrementAndGet();
-            return;
+            if (this.showUnknown) {
+                optional = Optional.of(new GameProfile(uuid, "[Unknown]"));
+                unknownPlayer = true;
+            } else {
+                this.skipCount.incrementAndGet();
+                return;
+            }
         }
         GameProfile gameProfile = optional.get();
         // 不从在线玩家物品栏查找物品
@@ -169,7 +177,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (statistics.hasNestingItem()) {
             this.shulkerBox.set(true);
         }
-        Result result = new Result(gameProfile, statistics);
+        Result result = new Result(gameProfile, statistics, unknownPlayer);
         try {
             this.lock.lock();
             this.list.add(result);
@@ -231,6 +239,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         MessageUtils.sendMessage(this.source, TextUtils.hoverText(message, hoverPrompt));
         int skip = this.skipCount.get();
         if (skip != 0) {
+            // 如果this.unknownPlayer为true，那么代码不应该执行到这里
             MutableText translate = TextUtils.translate("carpet.commands.finder.item.offline_player.skip", skip);
             MutableText grayItalic = TextUtils.toGrayItalic(translate);
             MessageUtils.sendMessage(this.source, grayItalic);
@@ -248,13 +257,16 @@ public class OfflinePlayerSearchTask extends ServerTask {
         MutableText text = TextUtils.createText("UUID:" + result.gameProfile.getId().toString());
         // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
         Text count = result.statistics().getCountText();
-        MessageUtils.sendMessage(
-                this.source,
+        MutableText translate = TextUtils.translate(
                 "carpet.commands.finder.item.offline_player.each",
                 TextUtils.copy(name, name, text, Formatting.GRAY),
                 this.getInventoryName(),
                 count
         );
+        if (result.isUnknown()) {
+            translate = TextUtils.toStrikethrough(translate);
+        }
+        MessageUtils.sendMessage(this.source, translate);
     }
 
     protected Text getInventoryName() {
@@ -284,7 +296,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return Objects.hashCode(player);
     }
 
-    private record Result(GameProfile gameProfile, ItemStackStatistics statistics) {
+    private record Result(GameProfile gameProfile, ItemStackStatistics statistics, boolean isUnknown) {
     }
 
     private enum State {

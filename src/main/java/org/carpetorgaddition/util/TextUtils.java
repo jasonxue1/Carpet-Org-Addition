@@ -5,8 +5,8 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.util.wheel.Translation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -200,6 +200,13 @@ public class TextUtils {
      */
     public static MutableText toGrayItalic(MutableText mutableText) {
         return toItalic(setColor(mutableText, Formatting.GRAY));
+    }
+
+    /**
+     * 为一段文本添加删除线
+     */
+    public static MutableText toStrikethrough(MutableText mutableText) {
+        return mutableText.styled(style -> style.withStrikethrough(true));
     }
 
     /**
