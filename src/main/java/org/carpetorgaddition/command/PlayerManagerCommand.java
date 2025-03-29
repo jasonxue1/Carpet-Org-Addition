@@ -34,7 +34,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -205,7 +205,7 @@ public class PlayerManagerCommand {
                     "carpet.commands.playerManager.safeafk.successfully_set_up",
                     fakePlayer.getDisplayName(),
                     threshold,
-                    TextConstants.clickRun(command)
+                    TextProvider.clickRun(command)
             );
         }
         return (int) threshold;
@@ -247,7 +247,7 @@ public class PlayerManagerCommand {
             }
         } else {
             String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
-            MutableText command = TextConstants.clickRun("/playerManager safeafk set " + fakePlayer.getName().getString() + " -1 true");
+            MutableText command = TextProvider.clickRun("/playerManager safeafk set " + fakePlayer.getName().getString() + " -1 true");
             MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
         }
         return 1;
@@ -542,7 +542,7 @@ public class PlayerManagerCommand {
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextConstants.tickToTime(tick), TextConstants.tickToRealTime(tick));
+        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
         if (optional.isEmpty()) {
             // 添加上线任务
             WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerial.PLAYER_DATA);
@@ -577,7 +577,7 @@ public class PlayerManagerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextConstants.tickToTime(tick), TextConstants.tickToRealTime(tick));
+        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
         ServerTaskManager manager = ServerPeriodicTaskManager.getManager(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))

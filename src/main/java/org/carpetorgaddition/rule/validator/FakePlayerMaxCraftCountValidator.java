@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.constant.RuleValidatorConstants;
+import org.carpetorgaddition.util.provider.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerMaxCraftCountValidator extends AbstractValidator<Integer> {
@@ -17,6 +17,6 @@ public class FakePlayerMaxCraftCountValidator extends AbstractValidator<Integer>
 
     @Override
     public @NotNull Text errorMessage() {
-        return RuleValidatorConstants.greaterThanOrEqualOrNumber(MIN_CRAFT_COUNT, -1);
+        return RuleValidatorProvider.greaterThanOrEqualOrNumber(MIN_CRAFT_COUNT, -1);
     }
 }

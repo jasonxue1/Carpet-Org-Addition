@@ -10,7 +10,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayedLoginTask extends PlayerScheduleTask {
@@ -58,7 +58,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     // 获取带有悬停提示的时间
     private @NotNull MutableText getDisplayTime() {
-        return TextUtils.hoverText(TextConstants.tickToTime(this.delayed), TextConstants.tickToRealTime(this.delayed));
+        return TextUtils.hoverText(TextProvider.tickToTime(this.delayed), TextProvider.tickToRealTime(this.delayed));
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.screen.PlayerEnderChestScreenHandler;
 import org.carpetorgaddition.util.screen.PlayerInventoryScreenHandler;
 
@@ -117,7 +117,7 @@ public class PlayerToolsCommand {
         // 发送命令反馈
         MessageUtils.sendMessage(source, "carpet.commands.playerTools.pos", fakePlayer.getDisplayName(),
                 getDimensionText(fakePlayer.getWorld()).getString(),
-                TextConstants.blockPos(new BlockPos(fakePlayer.getBlockPos()), Formatting.GREEN));
+                TextProvider.blockPos(new BlockPos(fakePlayer.getBlockPos()), Formatting.GREEN));
         // 如果命令执行者是玩家，返回距离假玩家的位置
         ServerPlayerEntity player = source.getPlayer();
         if (player != null) {

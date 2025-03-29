@@ -10,7 +10,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.dimension.DimensionTypes;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
@@ -139,19 +139,19 @@ public class Location {
         MutableText mutableText = null;
         switch (locType) {
             case OVERWORLD -> mutableText = TextUtils.translate("carpet.commands.locations.text.overworld",
-                    TextConstants.blockPos(getOverworldPos(), Formatting.GREEN));
+                    TextProvider.blockPos(getOverworldPos(), Formatting.GREEN));
             case OVERWORLD_AND_THE_NETHER ->
                     mutableText = TextUtils.translate("carpet.commands.locations.text.overworld_and_the_nether",
-                            TextConstants.blockPos(getOverworldPos(), Formatting.GREEN),
-                            TextConstants.blockPos(getTheNetherPos(), Formatting.RED));
+                            TextProvider.blockPos(getOverworldPos(), Formatting.GREEN),
+                            TextProvider.blockPos(getTheNetherPos(), Formatting.RED));
             case THE_NETHER -> mutableText = TextUtils.translate("carpet.commands.locations.text.the_nether",
-                    TextConstants.blockPos(getTheNetherPos(), Formatting.RED));
+                    TextProvider.blockPos(getTheNetherPos(), Formatting.RED));
             case THE_NETHER_AND_OVERWORLD ->
                     mutableText = TextUtils.translate("carpet.commands.locations.text.the_nether_and_overworld",
-                            TextConstants.blockPos(getTheNetherPos(), Formatting.RED),
-                            TextConstants.blockPos(getOverworldPos(), Formatting.GREEN));
+                            TextProvider.blockPos(getTheNetherPos(), Formatting.RED),
+                            TextProvider.blockPos(getOverworldPos(), Formatting.GREEN));
             case THE_END -> mutableText = TextUtils.translate("carpet.commands.locations.text.the_end",
-                    TextConstants.blockPos(getTheEndPos(), Formatting.DARK_PURPLE));
+                    TextProvider.blockPos(getTheEndPos(), Formatting.DARK_PURPLE));
         }
         if (illustrate != null) {
             mutableText = TextUtils.hoverText(name, illustrate).append(mutableText);

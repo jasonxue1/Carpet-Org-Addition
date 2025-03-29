@@ -1,10 +1,10 @@
-package org.carpetorgaddition.util.constant;
+package org.carpetorgaddition.util.provider;
 
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.TextUtils;
 
 @SuppressWarnings("unused")
-public class RuleValidatorConstants {
+public class RuleValidatorProvider {
     /**
      * 值必须大于%s
      */

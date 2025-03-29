@@ -15,7 +15,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
@@ -29,7 +29,7 @@ public class FluidBlockMixin {
                 FunctionLogger logger = Loggers.getObsidianLogger();
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     if (logger.isSubscribed(player)) {
-                        MutableText text = TextConstants.blockPos(pos, WorldUtils.getColor(world));
+                        MutableText text = TextProvider.blockPos(pos, WorldUtils.getColor(world));
                         MessageUtils.sendMessage(player, "carpet.logger.obsidian.generate", text);
                     }
                 }

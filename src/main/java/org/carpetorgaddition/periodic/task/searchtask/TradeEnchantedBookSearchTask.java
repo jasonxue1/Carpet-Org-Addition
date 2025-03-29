@@ -16,7 +16,7 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
             // 获取交易名称
             MutableText enchantmentName = EnchantmentUtils.getName(enchantment, level);
             return TextUtils.translate("carpet.commands.finder.trade.enchanted_book.each",
-                    TextConstants.blockPos(this.villagerPos(), Formatting.GREEN), villagerName, getIndexArray(this.list), enchantmentName);
+                    TextProvider.blockPos(this.villagerPos(), Formatting.GREEN), villagerName, getIndexArray(this.list), enchantmentName);
         }
 
         @Override

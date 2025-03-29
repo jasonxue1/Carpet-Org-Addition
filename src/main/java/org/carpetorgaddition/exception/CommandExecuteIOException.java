@@ -10,7 +10,7 @@ public class CommandExecuteIOException extends RuntimeException {
     // 创建异常，并将异常信息写入日志
     public static CommandExecuteIOException of(Throwable throwable) {
         CommandExecuteIOException exception = new CommandExecuteIOException(throwable);
-        CarpetOrgAddition.LOGGER.error("IO异常", throwable);
+        CarpetOrgAddition.LOGGER.error("IO异常：", throwable);
         return exception;
     }
 }

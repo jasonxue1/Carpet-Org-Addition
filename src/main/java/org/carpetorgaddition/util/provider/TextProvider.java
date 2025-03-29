@@ -1,4 +1,4 @@
-package org.carpetorgaddition.util.constant;
+package org.carpetorgaddition.util.provider;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-public class TextConstants {
+public class TextProvider {
     /**
      * 主世界
      */
@@ -83,6 +83,7 @@ public class TextConstants {
     /**
      * 单击输入"{@code 命令}"
      */
+    @SuppressWarnings("unused")
     public static MutableText clickInput(String command) {
         return TextUtils.translate("carpet.command.text.click.input", command);
     }

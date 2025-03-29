@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.constant.RuleValidatorConstants;
+import org.carpetorgaddition.util.provider.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 // 最大方块交互距离校验
@@ -18,6 +18,6 @@ public class MaxBlockPlaceDistanceValidator extends AbstractValidator<Double> {
 
     @Override
     public @NotNull Text errorMessage() {
-        return RuleValidatorConstants.betweenTwoNumberOrNumber(0, (int) MAX_VALUE, -1);
+        return RuleValidatorProvider.betweenTwoNumberOrNumber(0, (int) MAX_VALUE, -1);
     }
 }

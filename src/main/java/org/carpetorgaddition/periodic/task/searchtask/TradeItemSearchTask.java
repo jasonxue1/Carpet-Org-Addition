@@ -12,7 +12,7 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
@@ -63,7 +63,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
                 // 村民或流浪商人的名称
                 MutableText villagerName = merchant.getName().copy();
                 return TextUtils.translate("carpet.commands.finder.trade.item.each",
-                        TextConstants.blockPos(blockPos, Formatting.GREEN), villagerName, getIndexArray(list));
+                        TextProvider.blockPos(blockPos, Formatting.GREEN), villagerName, getIndexArray(list));
             }
 
             @Override

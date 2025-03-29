@@ -24,9 +24,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * 所有的映射关系，保证不常上线的玩家名也能获取。
  * </p>
  * <p>
- * Mojang提供了根据玩家名称获取对应UUID的API，但是不能根据UUID获取玩家名称，当然，即使提供了
- * 也很有可能无法使用，因为服务器可能存在着非正版玩家，并且如果找不到名称的玩家可能会狠多，如果每个
- * 都去查询，Mojang也不会同时处理这么多的请求。而第三方的API可能更新不及时，也无法解决非正版玩家的问题。
+ * Mojang提供了根据玩家UUID获取玩家名称的API，但是这对服务器中的非正版玩家无能为力，
+ * 并且如果找不到名称的玩家狠多，如果每个都去查询，Mojang也不会同时处理这么多的请求。
  * </p>
  * <p>
  * 本类用于记录每个上线过的玩家UUID与玩家名称的对应关系，它在所有世界中共享，但是并不能彻底解决以上问题：
@@ -40,12 +39,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * </p>
  *
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
+ * @see <a href="https://api.minecraftservices.com/minecraft/profile/lookup/%s">Mojang提供的根据玩家UUID查询玩家名的API</a>
  */
 public class UuidNameMappingTable {
     private final HashMap<UUID, String> hashMap = new HashMap<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final File config = IOUtils.createConfigFile("uuid_name_mapping.txt");
     private static final UuidNameMappingTable MAPPING_TABLE = new UuidNameMappingTable();
+    public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
 
     private UuidNameMappingTable() {
     }
@@ -125,6 +126,7 @@ public class UuidNameMappingTable {
             } catch (IllegalArgumentException e) {
                 continue;
             }
+            // TODO 逻辑错误：line.substring(index)应index+1
             String playerName = line.substring(index).strip();
             if (playerName.isEmpty()) {
                 continue;

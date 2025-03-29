@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.constant.RuleValidatorConstants;
+import org.carpetorgaddition.util.provider.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 // 设置基岩硬度校验
@@ -16,6 +16,6 @@ public class BedrockHardnessValidator extends AbstractValidator<Float> {
 
     @Override
     public @NotNull Text errorMessage() {
-        return RuleValidatorConstants.greaterThanOrEqualOrNumber(0, -1);
+        return RuleValidatorProvider.greaterThanOrEqualOrNumber(0, -1);
     }
 }

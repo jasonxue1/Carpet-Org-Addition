@@ -9,7 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
 public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
@@ -21,7 +21,7 @@ public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
         return TextUtils.translate(
                 "carpet.commands.finder.may_affect_world_eater_block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
-                TextConstants.blockPos(blockPos, Formatting.GREEN),
+                TextProvider.blockPos(blockPos, Formatting.GREEN),
                 this.world.getBlockState(blockPos).getBlock().getName()
         );
     }

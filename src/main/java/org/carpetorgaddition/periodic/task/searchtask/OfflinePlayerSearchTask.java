@@ -24,6 +24,7 @@ import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.SimulatePlayerInventory;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
@@ -264,7 +265,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 count
         );
         if (result.isUnknown()) {
-            translate = TextUtils.toStrikethrough(translate);
+            MutableText hover = TextUtils.appendAll(
+                    TextUtils.translate("carpet.commands.finder.item.offline_player.query.name"), "\n",
+                    TextUtils.setColor(
+                            TextUtils.translate("carpet.commands.finder.item.offline_player.query.non_authentic"),
+                            Formatting.RED
+                    ));
+            MutableText command = TextUtils.command(
+                    TextUtils.createText("[\uD83D\uDD0D]"),
+                    CommandProvider.queryPlayerName(result.gameProfile().getId()),
+                    hover, Formatting.AQUA, false
+            );
+            translate = TextUtils.appendAll(TextUtils.toStrikethrough(translate), " ", command);
         }
         MessageUtils.sendMessage(this.source, translate);
     }

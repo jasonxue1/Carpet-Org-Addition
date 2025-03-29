@@ -9,7 +9,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockPosNavigator extends AbstractNavigator {
@@ -32,11 +32,11 @@ public class BlockPosNavigator extends AbstractNavigator {
         }
         MutableText text;
         if (this.player.getWorld().equals(this.world)) {
-            MutableText in = TextConstants.simpleBlockPos(this.blockPos);
+            MutableText in = TextProvider.simpleBlockPos(this.blockPos);
             MutableText distance = TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), in, distance);
         } else {
-            text = TextUtils.appendAll(WorldUtils.getDimensionName(this.world), TextConstants.simpleBlockPos(this.blockPos));
+            text = TextUtils.appendAll(WorldUtils.getDimensionName(this.world), TextProvider.simpleBlockPos(this.blockPos));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

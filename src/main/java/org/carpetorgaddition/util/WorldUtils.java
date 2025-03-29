@@ -15,7 +15,7 @@ import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -158,9 +158,9 @@ public class WorldUtils {
     public static Text getDimensionName(World world) {
         String dimension = WorldUtils.getDimensionId(world);
         return switch (dimension) {
-            case OVERWORLD -> TextConstants.OVERWORLD;
-            case THE_NETHER -> TextConstants.THE_NETHER;
-            case THE_END -> TextConstants.THE_END;
+            case OVERWORLD -> TextProvider.OVERWORLD;
+            case THE_NETHER -> TextProvider.THE_NETHER;
+            case THE_END -> TextProvider.THE_END;
             default -> TextUtils.createText(dimension);
         };
     }

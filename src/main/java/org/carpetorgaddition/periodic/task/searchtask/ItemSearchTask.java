@@ -21,7 +21,7 @@ import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
 import org.carpetorgaddition.util.wheel.SelectionArea;
@@ -233,7 +233,7 @@ public class ItemSearchTask extends ServerTask {
         private MutableText toText() {
             return TextUtils.translate(
                     "carpet.commands.finder.item.each",
-                    TextConstants.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(blockPos, Formatting.GREEN),
                     containerName,
                     statistics.getCountText()
             );

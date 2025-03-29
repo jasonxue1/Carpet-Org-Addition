@@ -17,7 +17,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 
 @SuppressWarnings("SpellCheckingInspection")
 public class SendMessageCommand {
@@ -79,16 +79,16 @@ public class SendMessageCommand {
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
             case "minecraft:overworld" -> TextUtils.translate("carpet.commands.sendMessage.location.overworld",
-                    player.getDisplayName(), TextConstants.blockPos(blockPos, Formatting.GREEN),
-                    TextConstants.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
             case "minecraft:the_nether" -> TextUtils.translate("carpet.commands.sendMessage.location.the_nether",
-                    player.getDisplayName(), TextConstants.blockPos(blockPos, Formatting.RED),
-                    TextConstants.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
             case "minecraft:the_end" -> TextUtils.translate("carpet.commands.sendMessage.location.the_end",
-                    player.getDisplayName(), TextConstants.blockPos(blockPos, Formatting.DARK_PURPLE));
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE));
             default -> TextUtils.translate("carpet.commands.sendMessage.location.default",
                     player.getDisplayName(), WorldUtils.getDimensionId(player.getWorld()),
-                    TextConstants.blockPos(blockPos, null));
+                    TextProvider.blockPos(blockPos, null));
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
         return 1;

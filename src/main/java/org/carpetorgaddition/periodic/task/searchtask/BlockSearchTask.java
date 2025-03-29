@@ -14,7 +14,7 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.util.ArrayList;
@@ -174,7 +174,7 @@ public class BlockSearchTask extends ServerTask {
     protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
         return TextUtils.translate("carpet.commands.finder.block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
-                TextConstants.blockPos(blockPos, Formatting.GREEN));
+                TextProvider.blockPos(blockPos, Formatting.GREEN));
     }
 
     @Override

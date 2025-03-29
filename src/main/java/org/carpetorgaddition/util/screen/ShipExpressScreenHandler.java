@@ -16,7 +16,7 @@ import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 
@@ -114,23 +114,23 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             break;
         }
         Text playerName = this.targetPlayer.getDisplayName();
-        MutableText command = TextConstants.clickRun("/mail cancel");
+        MutableText command = TextProvider.clickRun("/mail cancel");
         Object[] args = switch (onlyOneKind) {
             case 0 -> {
-                MutableText itemCount = TextConstants.itemCount(count, firstStack.getMaxCount());
+                MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
                 yield new Object[]{playerName, itemCount, firstStack.toHoverableText(), command};
             }
             case 1 -> {
                 // 物品名称
                 Text hoverableText = firstStack.getItem().getDefaultStack().toHoverableText();
                 // 物品堆叠数
-                MutableText itemCount = TextConstants.itemCount(count, firstStack.getMaxCount());
+                MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
                 yield new Object[]{playerName, itemCount, hoverableText, command};
             }
             case 2 -> {
                 // 不显示物品堆叠组数，但鼠标悬停可以显示物品栏
                 MutableText itemText = TextUtils.translate("carpet.command.item.item");
-                yield new Object[]{playerName, count, TextConstants.inventory(itemText, inventory), command};
+                yield new Object[]{playerName, count, TextProvider.inventory(itemText, inventory), command};
             }
             default -> throw new IllegalStateException();
         };
@@ -138,7 +138,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
         MessageUtils.sendMessage(this.sourcePlayer, "carpet.commands.mail.sending.multiple", args);
         // 向物品接收者发送消息
         MessageUtils.sendMessage(this.targetPlayer, "carpet.commands.mail.receive.multiple",
-                this.sourcePlayer.getDisplayName(), args[1], args[2], TextConstants.clickRun("/mail receive"));
+                this.sourcePlayer.getDisplayName(), args[1], args[2], TextProvider.clickRun("/mail receive"));
         Express.playXpOrbPickupSound(this.targetPlayer);
         Express.checkRecipientPermission(this.sourcePlayer, this.targetPlayer);
         // 日志输出

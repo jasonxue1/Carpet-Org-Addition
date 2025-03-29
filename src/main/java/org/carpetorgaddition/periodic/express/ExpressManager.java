@@ -15,7 +15,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -70,7 +70,7 @@ public class ExpressManager {
             return;
         }
         for (Express express : list) {
-            MutableText clickRun = TextConstants.clickRun("/mail receive " + express.getId());
+            MutableText clickRun = TextProvider.clickRun("/mail receive " + express.getId());
             ItemStack stack = express.getExpress();
             MessageUtils.sendMessage(player, "carpet.commands.mail.prompt_receive",
                     stack.getCount(), stack.toHoverableText(), clickRun);
@@ -154,7 +154,7 @@ public class ExpressManager {
             MessageUtils.sendMessage(player, "carpet.commands.mail.receive.insufficient_capacity");
         } else {
             if (receive == total) {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.success", total, TextConstants.ITEM);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.success", total, TextProvider.ITEM);
             } else {
                 MessageUtils.sendMessage(player, "carpet.commands.mail.receive.partial_reception", receive, total - receive);
             }
@@ -203,7 +203,7 @@ public class ExpressManager {
             MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.insufficient_capacity");
         } else {
             if (cancel == total) {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", total, TextConstants.ITEM);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", total, TextProvider.ITEM);
             } else {
                 MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.partial_reception", cancel, total - cancel);
             }

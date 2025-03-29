@@ -18,7 +18,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.context.FakePlayerAction
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Annotation;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -152,7 +152,7 @@ public class FakePlayerSerial {
                 command = command + " \"" + this.annotation + "\"";
             }
             // 单击执行命令
-            MutableText clickResave = TextConstants.clickRun(command);
+            MutableText clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
             return -1;
         }
@@ -189,19 +189,19 @@ public class FakePlayerSerial {
                 MathUtils.numberToTwoDecimalString(this.pitch));
         // 维度
         build.appendTranslateLine("carpet.commands.playerManager.info.dimension", switch (this.dimension) {
-            case "minecraft:overworld", "overworld" -> TextConstants.OVERWORLD;
-            case "minecraft:the_nether", "the_nether" -> TextConstants.THE_NETHER;
-            case "minecraft:the_end", "the_end" -> TextConstants.THE_END;
+            case "minecraft:overworld", "overworld" -> TextProvider.OVERWORLD;
+            case "minecraft:the_nether", "the_nether" -> TextProvider.THE_NETHER;
+            case "minecraft:the_end", "the_end" -> TextProvider.THE_END;
             default -> TextUtils.createText(dimension);
         });
         // 游戏模式
         build.appendTranslateLine("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
         // 是否飞行
-        build.appendTranslateLine("carpet.commands.playerManager.info.flying", TextConstants.getBoolean(this.flying));
+        build.appendTranslateLine("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
         // 是否潜行
-        build.appendTranslateLine("carpet.commands.playerManager.info.sneaking", TextConstants.getBoolean(this.sneaking));
+        build.appendTranslateLine("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
         // 是否自动登录
-        build.appendTranslate("carpet.commands.playerManager.info.autologin", TextConstants.getBoolean(this.autologin));
+        build.appendTranslate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
         if (this.interactiveAction.hasAction()) {
             build.newLine().append(this.interactiveAction.toText());
         }
