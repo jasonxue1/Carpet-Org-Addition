@@ -26,6 +26,7 @@ import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.screen.ShipExpressScreenHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -177,13 +178,13 @@ public class MailCommand {
         if (express.isRecipient(player)) {
             text = TextUtils.createText("[R]");
             // 点击接收
-            TextUtils.command(text, "/mail receive " + express.getId(), null, Formatting.AQUA, false);
+            TextUtils.command(text, CommandProvider.receiveExpress(express.getId()), null, Formatting.AQUA, false);
             list.add(TextUtils.translate("carpet.commands.mail.list.receive"));
             list.add(TextUtils.createEmpty());
         } else if (express.isSender(player)) {
             text = TextUtils.createText("[C]");
             // 点击撤回
-            TextUtils.command(text, "/mail cancel " + express.getId(), null, Formatting.AQUA, false);
+            TextUtils.command(text, CommandProvider.cancelExpress(express.getId()), null, Formatting.AQUA, false);
             list.add(TextUtils.translate("carpet.commands.mail.list.sending"));
             list.add(TextUtils.createEmpty());
         } else {

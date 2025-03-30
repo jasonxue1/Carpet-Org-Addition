@@ -16,6 +16,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -112,11 +113,11 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        MutableText cancelText = TextProvider.clickRun("/mail cancel " + this.getId());
+        MutableText cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId()));
         Object[] senderArray = {recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextUtils.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
-        MutableText receiveText = TextProvider.clickRun("/mail receive " + this.getId());
+        MutableText receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId()));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
         MessageUtils.sendMessage(recipientPlayer, TextUtils.translate("carpet.commands.mail.sending.recipient", recipientArray));
         // 在接收者位置播放音效

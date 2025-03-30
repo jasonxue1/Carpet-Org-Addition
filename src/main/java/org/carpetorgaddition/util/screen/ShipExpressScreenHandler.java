@@ -16,9 +16,10 @@ import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 
 import java.io.IOException;
 
@@ -111,10 +112,11 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
                 continue;
             }
             onlyOneKind = 2;
+            // TODO 可能导致数量统计错误
             break;
         }
         Text playerName = this.targetPlayer.getDisplayName();
-        MutableText command = TextProvider.clickRun("/mail cancel");
+        MutableText command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
         Object[] args = switch (onlyOneKind) {
             case 0 -> {
                 MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
@@ -138,7 +140,9 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
         MessageUtils.sendMessage(this.sourcePlayer, "carpet.commands.mail.sending.multiple", args);
         // 向物品接收者发送消息
         MessageUtils.sendMessage(this.targetPlayer, "carpet.commands.mail.receive.multiple",
-                this.sourcePlayer.getDisplayName(), args[1], args[2], TextProvider.clickRun("/mail receive"));
+                this.sourcePlayer.getDisplayName(), args[1], args[2],
+                TextProvider.clickRun(CommandProvider.receiveAllExpress())
+        );
         Express.playXpOrbPickupSound(this.targetPlayer);
         Express.checkRecipientPermission(this.sourcePlayer, this.targetPlayer);
         // 日志输出

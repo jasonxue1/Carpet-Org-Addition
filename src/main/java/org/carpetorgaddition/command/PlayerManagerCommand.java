@@ -34,6 +34,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
@@ -199,7 +200,7 @@ public class PlayerManagerCommand {
                 throw CommandExecuteIOException.of(e);
             }
         } else {
-            String command = "/playerManager safeafk set " + fakePlayer.getName().getString() + " " + threshold + " true";
+            String command = CommandProvider.setupSafeAfkPermanentlyChange(fakePlayer, threshold);
             MessageUtils.sendMessage(
                     context,
                     "carpet.commands.playerManager.safeafk.successfully_set_up",
@@ -247,7 +248,7 @@ public class PlayerManagerCommand {
             }
         } else {
             String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
-            MutableText command = TextProvider.clickRun("/playerManager safeafk set " + fakePlayer.getName().getString() + " -1 true");
+            MutableText command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
             MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
         }
         return 1;

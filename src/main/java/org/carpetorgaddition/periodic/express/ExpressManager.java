@@ -15,6 +15,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -70,7 +71,7 @@ public class ExpressManager {
             return;
         }
         for (Express express : list) {
-            MutableText clickRun = TextProvider.clickRun("/mail receive " + express.getId());
+            MutableText clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
             ItemStack stack = express.getExpress();
             MessageUtils.sendMessage(player, "carpet.commands.mail.prompt_receive",
                     stack.getCount(), stack.toHoverableText(), clickRun);

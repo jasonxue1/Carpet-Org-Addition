@@ -21,6 +21,7 @@ import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -69,7 +70,7 @@ public class WanderingTraderManagerMixin {
                     TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN));
             // 带点击导航的消息
             MutableText command = TextUtils.command(TextUtils.translate("carpet.logger.wanderingTrader.message.navigate"),
-                    "/navigate uuid \"" + trader.getUuid().toString() + "\"",
+                    CommandProvider.navigateToUuidEntity(trader.getUuid()),
                     TextUtils.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()),
                     Formatting.AQUA, false);
             MutableText canClickMessage = TextUtils.translate("carpet.logger.wanderingTrader.message.click",

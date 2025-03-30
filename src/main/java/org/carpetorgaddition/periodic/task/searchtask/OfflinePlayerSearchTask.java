@@ -272,6 +272,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
                             Formatting.RED
                     ));
             MutableText command = TextUtils.command(
+                    // 一个Unicode字符集中的放大镜字符，这在原版游戏中看起来并没有什么问题
+                    // 但是在其他字体（例如服务器控制台的字体）下会显得有些格格不入，这还是首次在游戏中使用Emoji字符
                     TextUtils.createText("[\uD83D\uDD0D]"),
                     CommandProvider.queryPlayerName(result.gameProfile().getId()),
                     hover, Formatting.AQUA, false

@@ -18,6 +18,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.context.FakePlayerAction
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Annotation;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -146,11 +147,7 @@ public class FakePlayerSerial {
         // 玩家数据是否已存在
         boolean exists = file.exists();
         if (exists && !resave) {
-            String command = "/playerManager resave " + name;
-            // 在命令参数后面追加注释
-            if (this.annotation.hasContent()) {
-                command = command + " \"" + this.annotation + "\"";
-            }
+            String command = CommandProvider.playerManagerResave(name, this.annotation);
             // 单击执行命令
             MutableText clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
@@ -292,8 +289,8 @@ public class FakePlayerSerial {
     private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerial serial) {
         // 添加快捷命令
         String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
-        String onlineCommand = "/playerManager spawn " + playerName;
-        String offlineCommand = "/player " + playerName + " kill";
+        String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
+        String offlineCommand = CommandProvider.killFakePlayer(playerName);
         MutableText mutableText = TextUtils.appendAll(
                 TextUtils.command(TextUtils.createText("[↑]"), onlineCommand, online, Formatting.GREEN, false), " ",
                 TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",

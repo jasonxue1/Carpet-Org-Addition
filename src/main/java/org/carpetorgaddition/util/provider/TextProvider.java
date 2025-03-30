@@ -14,6 +14,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class TextProvider {
+    private TextProvider() {
+    }
+
     /**
      * 主世界
      */
@@ -60,13 +63,13 @@ public class TextProvider {
             case FALSE -> pos;
             case OMMC -> {
                 MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, "/highlightWaypoint " + WorldUtils.toPosString(blockPos),
+                TextUtils.command(highlight, CommandProvider.highlightWaypointByOmmc(blockPos),
                         TextUtils.translate("ommc.highlight_waypoint.tooltip"), color, false);
                 yield TextUtils.appendAll(pos, highlight);
             }
             case DEFAULT -> {
                 MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, "/highlight " + WorldUtils.toPosString(blockPos),
+                TextUtils.command(highlight, CommandProvider.highlightWaypoint(blockPos),
                         TextUtils.translate("carpet.client.commands.highlight"), color, false);
                 yield TextUtils.appendAll(pos, highlight);
             }

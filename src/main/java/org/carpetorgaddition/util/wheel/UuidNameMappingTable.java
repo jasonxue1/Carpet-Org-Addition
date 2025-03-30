@@ -39,13 +39,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * </p>
  *
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
- * @see <a href="https://api.minecraftservices.com/minecraft/profile/lookup/%s">Mojang提供的根据玩家UUID查询玩家名的API</a>
  */
 public class UuidNameMappingTable {
     private final HashMap<UUID, String> hashMap = new HashMap<>();
+    /**
+     * 集合可能被多个线程同时访问
+     */
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final File config = IOUtils.createConfigFile("uuid_name_mapping.txt");
     private static final UuidNameMappingTable MAPPING_TABLE = new UuidNameMappingTable();
+    /**
+     * Mojang提供的根据玩家UUID查询玩家名的API
+     */
     public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
 
     private UuidNameMappingTable() {

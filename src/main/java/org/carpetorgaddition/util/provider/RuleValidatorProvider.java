@@ -5,6 +5,9 @@ import org.carpetorgaddition.util.TextUtils;
 
 @SuppressWarnings("unused")
 public class RuleValidatorProvider {
+    private RuleValidatorProvider() {
+    }
+
     /**
      * 值必须大于%s
      */
