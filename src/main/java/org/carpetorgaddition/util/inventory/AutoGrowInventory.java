@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
  */
 public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
     @NotNull
-    private SimpleInventory inventory = new SimpleInventory(16);
+    private SimpleInventory inventory = new SimpleInventory(27);
     private int growCount = 0;
 
     public AutoGrowInventory() {
