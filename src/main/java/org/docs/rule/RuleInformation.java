@@ -118,6 +118,7 @@ public class RuleInformation {
         for (String category : this.categories) {
             stringJoiner.add("`" + switch (category) {
                 case CarpetOrgAdditionSettings.ORG -> "Org";
+                case CarpetOrgAdditionSettings.HIDDEN -> "隐藏";
                 case RuleCategory.BUGFIX -> "漏洞修复";
                 case RuleCategory.SURVIVAL -> "生存";
                 case RuleCategory.CREATIVE -> "创造";
