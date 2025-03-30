@@ -89,7 +89,6 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
 
     // 发送命令反馈
     public void sendFeedback(AutoGrowInventory inventory) {
-        int count = 0;
         ItemStack firstStack = inventory.getStack(0);
         // 定义变量记录查找状态
         // 如果为0，表示物品栏里只有一种物品，并且NBT也相同
@@ -101,7 +100,6 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             if (stack.isEmpty()) {
                 continue;
             }
-            count += stack.getCount();
             // 比较物品和物品NBT
             if (onlyOneKind != 0 && ItemStack.areEqual(firstStack, stack)) {
                 continue;
@@ -112,11 +110,11 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
                 continue;
             }
             onlyOneKind = 2;
-            // TODO 可能导致数量统计错误
             break;
         }
         Text playerName = this.targetPlayer.getDisplayName();
         MutableText command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
+        int count = inventory.count();
         Object[] args = switch (onlyOneKind) {
             case 0 -> {
                 MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());

@@ -103,6 +103,17 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
         return this.tryAddStack(itemStack);
     }
 
+    /**
+     * @return 物品栏中物品的总数
+     */
+    public int count() {
+        int count = 0;
+        for (ItemStack itemStack : this) {
+            count += itemStack.getCount();
+        }
+        return count;
+    }
+
     @NotNull
     @Override
     public Iterator<ItemStack> iterator() {
