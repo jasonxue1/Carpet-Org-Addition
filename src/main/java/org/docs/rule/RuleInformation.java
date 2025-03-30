@@ -7,7 +7,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import java.lang.reflect.Field;
 import java.util.StringJoiner;
 
-class RuleInformation {
+public class RuleInformation {
     private final Field field;
     private final String name;
     private final String docs;
