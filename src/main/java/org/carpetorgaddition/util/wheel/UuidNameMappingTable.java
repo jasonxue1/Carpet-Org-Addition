@@ -115,19 +115,17 @@ public class UuidNameMappingTable {
     private void loadFromFile(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
-            int index = line.indexOf('=');
-            if (index == -1) {
+            String[] split = line.split("=");
+            if (split.length != 2) {
                 continue;
             }
             UUID uuid;
-            String uuidString = line.substring(0, index).strip();
             try {
-                uuid = UUID.fromString(uuidString);
+                uuid = UUID.fromString(split[0].strip());
             } catch (IllegalArgumentException e) {
                 continue;
             }
-            // TODO 逻辑错误：line.substring(index)应index+1
-            String playerName = line.substring(index).strip();
+            String playerName = split[1].strip();
             if (playerName.isEmpty()) {
                 continue;
             }
