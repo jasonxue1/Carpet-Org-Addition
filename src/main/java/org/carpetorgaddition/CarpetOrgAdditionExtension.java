@@ -57,7 +57,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayerEntity player) {
-        // TODO 记录玩家名称与UUID的映射关系，用于从离线玩家身上查找物品
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
