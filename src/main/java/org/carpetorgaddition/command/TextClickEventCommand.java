@@ -5,6 +5,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -30,7 +31,7 @@ public class TextClickEventCommand {
      * 一个只有一个线程并且阻塞队列为空的线程池
      */
     private static final ThreadPoolExecutor QUERY_PLAYER_NAME_THREAD_POOL = new ThreadPoolExecutor(
-            1,
+            0,
             1,
             60,
             TimeUnit.SECONDS,
@@ -77,8 +78,9 @@ public class TextClickEventCommand {
             return;
         }
         table.put(uuid, name);
-        // TODO 发送消息的代码是线程安全的吗？
-        MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.success", uuid.toString(), name);
+        MinecraftServer server = context.getSource().getServer();
+        // 在服务器线程发送命令反馈
+        server.execute(() -> MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.success", uuid.toString(), name));
     }
 
     /**
