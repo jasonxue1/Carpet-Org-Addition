@@ -53,6 +53,7 @@ public class TextClickEventCommand {
             Optional<String> optional = table.get(uuid);
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
+                // TODO 更改UUID文本颜色
                 MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.success", uuid.toString(), optional.get());
             } else {
                 // 本地不存在，从Mojang API获取
