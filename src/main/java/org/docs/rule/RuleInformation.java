@@ -35,11 +35,11 @@ public class RuleInformation {
         sb.append("### ").append(this.name).append("(").append(this.field.getName()).append(")\n");
         sb.append("\n");
         // 规则描述
-        sb.append(this.docs).append(this.hasExtra() ? "<br/>\n" : "\n");
+        sb.append(this.docs).append(this.hasExtra() ? "<br>\n" : "\n");
         // 规则扩展描述
         if (this.hasExtra()) {
             for (String extra : this.extra) {
-                sb.append("_").append(extra).append("_<br/>\n");
+                sb.append("_").append(extra).append("_<br>\n");
             }
             sb.append("\n");
         } else {
