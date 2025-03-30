@@ -102,7 +102,7 @@ public class MailCommand {
         SimpleInventory inventory = new SimpleInventory(27);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inv, player)
                 -> new ShipExpressScreenHandler(i, inv, sourcePlayer, targetPlayer, inventory),
-                TextUtils.translate("carpet.commands.multiple.gui"));
+                TextUtils.translate("carpet.commands.mail.multiple.gui"));
         sourcePlayer.openHandledScreen(screen);
         return 1;
     }

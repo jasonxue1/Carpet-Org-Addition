@@ -53,7 +53,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
         }
         // 快递接收者可能在发送者发送快递时退出游戏
         if (this.targetPlayer.isRemoved()) {
-            MessageUtils.sendErrorMessage(this.sourcePlayer.getCommandSource(), "carpet.commands.multiple.no_player");
+            MessageUtils.sendErrorMessage(this.sourcePlayer.getCommandSource(), "carpet.commands.mail.multiple.no_player");
             // 将GUI中的物品放回玩家物品栏
             this.dropInventory(this.sourcePlayer, this.inventory);
             return;
@@ -80,7 +80,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
                 expressManager.putNoMessage(express);
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("批量发送物品时遇到意外错误", e);
-                MessageUtils.sendErrorMessage(this.sourcePlayer.getCommandSource(), e, "carpet.commands.multiple.error");
+                MessageUtils.sendErrorMessage(this.sourcePlayer.getCommandSource(), e, "carpet.commands.mail.multiple.error");
                 return;
             }
         }
