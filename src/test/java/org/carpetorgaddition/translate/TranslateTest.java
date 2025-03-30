@@ -27,7 +27,7 @@ public class TranslateTest {
      * 比较中英文翻译的键的内容和顺序是否完全相同
      */
     @Test
-    public void compareKey() {
+    public void keyTest() {
         List<String> zhKey = this.parsers.get(ZH_CN).listOtherTranslate().stream().map(Entry::key).toList();
         List<String> enKey = this.parsers.get(EN_US).listOtherTranslate().stream().map(Entry::key).toList();
         // 中英文翻译的差异
@@ -73,7 +73,7 @@ public class TranslateTest {
      * 检查中英文翻译值占位符的个数是否一致
      */
     @Test
-    public void compareValue() {
+    public void valueTest() {
         List<String> zhValue = this.parsers.get(ZH_CN).listOtherTranslate().stream().map(Entry::value).toList();
         List<String> enValue = this.parsers.get(EN_US).listOtherTranslate().stream().map(Entry::value).toList();
         int size = zhValue.size();
@@ -110,7 +110,7 @@ public class TranslateTest {
      * 检查是否包含未使用的翻译键
      */
     @Test
-    public void checkUsage() throws IOException {
+    public void usageTest() throws IOException {
         File rootPath = new File("src/main/java/org/carpetorgaddition");
         Counter<String> counter = new Counter<>();
         List<String> keys = this.parsers.get(ZH_CN)
@@ -170,7 +170,7 @@ public class TranslateTest {
      * 检查是否有未使用的规则翻译键
      */
     @Test
-    public void checkRuleKeyUsage() {
+    public void ruleKeyUsageTest() {
         Set<String> set = this.parsers.get(ZH_CN).listAllRule();
         List<String> list = Arrays.stream(CarpetOrgAdditionSettings.class.getDeclaredFields()).map(Field::getName).toList();
         if (set.size() == list.size()) {
@@ -192,7 +192,7 @@ public class TranslateTest {
      * 检查英文翻译中是否包含中文字符
      */
     @Test
-    public void checkChineseCharacter() {
+    public void chineseCharacterTest() {
         List<Entry> list = this.parsers.get(EN_US).listAll();
         StringJoiner sj = new StringJoiner("\n", "英文翻译中不应包含中文字符：\n", "");
         boolean hasChineseCharacter = false;
