@@ -8,7 +8,7 @@ public class CarpetOrgAdditionTest {
      * 检查构建时Java的版本，构建时Java版本应等于Minecraft支持的最低Java版本
      */
     @Test
-    public void javaVersionTest() {
+    public void testJavaVersion() {
         Assert.assertEquals("请使用jdk21构建", 21, Runtime.version().version().getFirst().intValue());
     }
 }

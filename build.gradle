@@ -35,7 +35,7 @@ dependencies {
     modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
-    testImplementation(group: 'junit', name: 'junit', version: junit_version)
+    testImplementation("junit:junit:${project.junit_version}")
 }
 
 processResources {
