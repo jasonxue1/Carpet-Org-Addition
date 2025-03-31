@@ -1,4 +1,4 @@
-package org.docs.rule;
+package org.util.docs.rule;
 
 import carpet.api.settings.Rule;
 import carpet.api.settings.RuleCategory;

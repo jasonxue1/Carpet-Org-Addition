@@ -113,3 +113,8 @@ publishing {
         // retrieving dependencies.
     }
 }
+
+// 在构建jar时排除org.util包
+jar {
+    exclude "org/util/**"
+}

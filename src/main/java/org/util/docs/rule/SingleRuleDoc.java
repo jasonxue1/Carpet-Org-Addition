@@ -1,4 +1,4 @@
-package org.docs.rule;
+package org.util.docs.rule;
 
 import java.awt.*;
 import java.awt.datatransfer.*;

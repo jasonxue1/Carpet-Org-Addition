@@ -1,4 +1,4 @@
-package org.docs.rule;
+package org.util.docs.rule;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
