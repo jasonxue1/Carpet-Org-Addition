@@ -139,6 +139,7 @@
   "carpet.command.text.click.here": "[here]",
   "carpet.command.text.click.input": "Click to input \"%s\"",
   "carpet.command.text.click.run": "Click to execute\"%s\"",
+  "carpet.command.text.click.login": "Click join",
   "carpet.command.file.name.valid": "Invalid file name",
   "carpet.command.url.parse.fail": "The specified string could not be parsed into a valid URL",
   "carpet.command.api.mojang_api.connection.fail": "Failed to establish a connection to the Mojang API",

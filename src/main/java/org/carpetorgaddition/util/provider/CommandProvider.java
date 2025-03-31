@@ -62,7 +62,14 @@ public class CommandProvider {
     }
 
     /**
-     * 使一名假玩家退出游戏
+     * 生成一名假玩家
+     */
+    public static String spawnFakePlayer(String playerName) {
+        return "/player %s spawn".formatted(playerName);
+    }
+
+    /**
+     * 让一名假玩家退出游戏
      */
     public static String killFakePlayer(String playerName) {
         return "/player %s kill".formatted(playerName);

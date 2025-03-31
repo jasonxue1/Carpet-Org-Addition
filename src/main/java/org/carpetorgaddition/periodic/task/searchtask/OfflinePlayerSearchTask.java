@@ -255,17 +255,30 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private void sendEveryFeedback(Result result) {
         // 获取玩家名，并添加UUID悬停提示
         String name = result.gameProfile.getName();
-        MutableText text = TextUtils.createText("UUID:" + result.gameProfile.getId().toString());
+        String uuid = result.gameProfile().getId().toString();
+        // 悬停提示
+        Text hover = TextUtils.appendAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextUtils.translate("chat.copy.click"));
         // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
         Text count = result.statistics().getCountText();
+        MutableText playerName;
+        if (result.isUnknown()) {
+            playerName = TextUtils.copy(name, name, hover, Formatting.GRAY);
+        } else {
+            // 添加单击上线按钮
+            String command = CommandProvider.spawnFakePlayer(result.gameProfile().getName());
+            MutableText clickLogin = TextUtils.translate("carpet.command.text.click.login");
+            Text button = TextUtils.command(TextUtils.createText("[↑]"), command, clickLogin, Formatting.AQUA);
+            playerName = TextUtils.appendAll(TextUtils.copy(name, uuid, hover, Formatting.GRAY), button);
+        }
         MutableText translate = TextUtils.translate(
                 "carpet.commands.finder.item.offline_player.each",
-                TextUtils.copy(name, name, text, Formatting.GRAY),
+                playerName,
                 this.getInventoryName(),
                 count
         );
         if (result.isUnknown()) {
-            MutableText hover = TextUtils.appendAll(
+            // 添加搜索按钮
+            MutableText button = TextUtils.appendAll(
                     TextUtils.translate("carpet.commands.finder.item.offline_player.query.name"), "\n",
                     TextUtils.setColor(
                             TextUtils.translate("carpet.commands.finder.item.offline_player.query.non_authentic"),
@@ -276,7 +289,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     // 但是在其他字体（例如服务器控制台的字体）下会显得有些格格不入，这还是首次在游戏中使用Emoji字符
                     TextUtils.createText("[\uD83D\uDD0D]"),
                     CommandProvider.queryPlayerName(result.gameProfile().getId()),
-                    hover, Formatting.AQUA, false
+                    button, Formatting.AQUA, false
             );
             translate = TextUtils.appendAll(TextUtils.toStrikethrough(translate), " ", command);
         }

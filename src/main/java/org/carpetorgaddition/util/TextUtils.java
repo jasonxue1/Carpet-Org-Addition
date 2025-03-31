@@ -87,6 +87,14 @@ public class TextUtils {
         return text;
     }
 
+    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText) {
+        return command(text, command, hoverText, null, false);
+    }
+
+    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText, @Nullable Formatting color) {
+        return command(text, command, hoverText, color, false);
+    }
+
     /**
      * 获取一个可以单击执行命令的可变文本组件
      *
