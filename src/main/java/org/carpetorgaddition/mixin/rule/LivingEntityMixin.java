@@ -52,12 +52,23 @@ public abstract class LivingEntityMixin {
     }
 
     //禁用伤害免疫
+    @SuppressWarnings("UnresolvedMixinReference")
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
         if (CarpetOrgAdditionSettings.disableDamageImmunity) {
             return 0;
         }
         return original.call(instance);
+    }
+
+    // 不死图腾无敌时间
+    @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseTotem(Lnet/minecraft/entity/damage/DamageSource;)Z"))
+    private boolean setInvincibleTime(LivingEntity instance, DamageSource source, Operation<Boolean> original) {
+        boolean call = original.call(instance, source);
+        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime && call) {
+            instance.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
+        }
+        return call;
     }
 
     // 增强不死图腾

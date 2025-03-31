@@ -193,6 +193,8 @@
   "carpet.rule.damageEnchantmentCompatible.desc": "允许伤害类魔咒共存",
   "carpet.rule.finderCommandMaxFeedbackCount.name": "/finder最大反馈数量",
   "carpet.rule.finderCommandMaxFeedbackCount.desc": "控制/finder命令的最大反馈数量",
+  "carpet.rule.totemOfUndyingInvincibleTime.name": "不死图腾无敌时间",
+  "carpet.rule.totemOfUndyingInvincibleTime.desc": "不死图腾触发后获得2秒的抗性提升V效果",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.validate.invalid_value": "规则“%s”值无效：%s",

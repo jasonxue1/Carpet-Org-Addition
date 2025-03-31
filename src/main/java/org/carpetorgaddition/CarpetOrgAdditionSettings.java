@@ -456,4 +456,9 @@ public class CarpetOrgAdditionSettings {
             strict = false
     )
     public static int finderCommandMaxFeedbackCount = 10;
+
+    // 不死图腾无敌时间
+    @Hidden
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.SURVIVAL})
+    public static boolean totemOfUndyingInvincibleTime = false;
 }

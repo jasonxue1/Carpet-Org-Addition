@@ -108,6 +108,7 @@
   "carpet.rule.protectionEnchantmentCompatible.desc": "Allow all protection enchantments to be compatible",
   "carpet.rule.damageEnchantmentCompatible.desc": "Allow all damage enchantments to be compatible",
   "carpet.rule.finderCommandMaxFeedbackCount.desc": "Control the maximum number of feedback for the /finder command",
+  "carpet.rule.totemOfUndyingInvincibleTime.desc": "After activation, the Totem of Undying grants 2 seconds of Resistance V effect",
   "carpet.rule.message.disableRespawnBlocksExplode": "Respawn blocks explosion is disabled",
   "carpet.rule.message.CCEUpdateSuppression": "You cannot open the shulkerbox for update surpression",
   "carpet.rule.validate.invalid_value": "Wrong value %s for: %s",
