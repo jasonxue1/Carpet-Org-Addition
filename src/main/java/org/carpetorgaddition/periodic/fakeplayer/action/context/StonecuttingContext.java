@@ -13,6 +13,7 @@ import net.minecraft.screen.StonecutterScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
@@ -84,8 +85,8 @@ public class StonecuttingContext extends AbstractActionContext {
                     (button + 1)));
             // 将切石机当前的状态的信息添加到集合
             list.add(TextUtils.appendAll("    ",
-                    getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getStack()), " -> ",
-                    getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getStack())));
+                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getStack()), " -> ",
+                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getStack())));
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
             list.add(TextUtils.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",

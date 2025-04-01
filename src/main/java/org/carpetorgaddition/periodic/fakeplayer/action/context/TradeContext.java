@@ -6,6 +6,7 @@ import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.village.TradeOffer;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerTrade;
 import org.carpetorgaddition.util.TextUtils;
 
@@ -57,9 +58,9 @@ public class TradeContext extends AbstractActionContext {
             TradeOffer tradeOffer = merchantScreenHandler.getRecipes().get(index);
             // 将交易的物品和价格添加到集合中
             list.add(TextUtils.appendAll("    ",
-                    getWithCountHoverText(tradeOffer.getDisplayedFirstBuyItem()), " ",
-                    getWithCountHoverText(tradeOffer.getDisplayedSecondBuyItem()), " -> ",
-                    getWithCountHoverText(tradeOffer.getSellItem())));
+                    FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedFirstBuyItem()), " ",
+                    FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedSecondBuyItem()), " -> ",
+                    FakePlayerUtils.getWithCountHoverText(tradeOffer.getSellItem())));
             // 如果当前交易已被锁定，将交易已锁定的消息添加到集合，然后直接结束方法并返回集合
             if (tradeOffer.isDisabled()) {
                 list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.disabled"));
@@ -68,9 +69,9 @@ public class TradeContext extends AbstractActionContext {
             // 将“交易状态”文本信息添加到集合中
             list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.state"));
             list.add(TextUtils.appendAll("    ",
-                    getWithCountHoverText(merchantScreenHandler.getSlot(0).getStack()), " ",
-                    getWithCountHoverText(merchantScreenHandler.getSlot(1).getStack()), " -> ",
-                    getWithCountHoverText(merchantScreenHandler.getSlot(2).getStack())));
+                    FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(0).getStack()), " ",
+                    FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(1).getStack()), " -> ",
+                    FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(2).getStack())));
         } else {
             // 将假玩家没有打开交易界面的消息添加到集合中
             list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.no_villager", fakePlayer.getDisplayName()));

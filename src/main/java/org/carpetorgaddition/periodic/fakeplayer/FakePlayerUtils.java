@@ -7,11 +7,16 @@ import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.registry.Registries;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Direction;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -47,6 +52,8 @@ public class FakePlayerUtils {
      * 模拟Ctrl+Q丢弃物品
      */
     public static final int THROW_CTRL_Q = 1;
+    // 最大循环次数
+    public static final int MAX_LOOP_COUNT = 1200;
 
     private FakePlayerUtils() {
     }
@@ -334,5 +341,57 @@ public class FakePlayerUtils {
         ItemStack temp = fakePlayer.getStackInHand(Hand.OFF_HAND);
         fakePlayer.setStackInHand(Hand.OFF_HAND, fakePlayer.getStackInHand(Hand.MAIN_HAND));
         fakePlayer.setStackInHand(Hand.MAIN_HAND, temp);
+    }
+
+    /**
+     * 获取物品堆栈的可变文本形式：物品名称*堆叠数量
+     */
+    public static MutableText getWithCountHoverText(ItemStack itemStack) {
+        if (itemStack.isEmpty()) {
+            return TextUtils.hoverText(Text.literal("[A]"), TextUtils.appendAll(Items.AIR.getName()), Formatting.DARK_GRAY);
+        }
+        // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
+        String capitalizeFirstLetter = getInitial(itemStack);
+        return TextUtils.hoverText(
+                Text.literal(capitalizeFirstLetter),
+                TextUtils.appendAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
+                null
+        );
+    }
+
+    /**
+     * 获取物品ID的首字母，然后转为大写，再放进中括号里
+     */
+    public static String getInitial(ItemStack itemStack) {
+        // 将物品名称的字符串切割为命名空间（如果有）和物品id
+        String name = Registries.ITEM.getId(itemStack.getItem()).toString();
+        String[] split = name.split(":");
+        // 获取数组的索引，如果有命名空间，返回1索引，否则返回0索引，即舍弃命名空间
+        int index = (split.length == 1) ? 0 : 1;
+        // 获取物品id的首字母，然后大写
+        return "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
+    }
+
+    /**
+     * 是否应该因为合成次数过多而停止合成
+     *
+     * @param craftCount 当前合成次数
+     * @return 是否应该停止
+     */
+    public static boolean shouldStop(int craftCount) {
+        if (CarpetOrgAdditionSettings.fakePlayerMaxCraftCount < 0) {
+            return false;
+        }
+        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount;
+    }
+
+    /**
+     * 假玩家停止物品合成操作，并广播停止合成的消息
+     *
+     * @param source       发送消息的消息源
+     * @param playerMPFake 需要停止操作的假玩家
+     */
+    public static void stopCraftAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake) {
+        stopAction(source, playerMPFake, "carpet.commands.playerAction.craft");
     }
 }

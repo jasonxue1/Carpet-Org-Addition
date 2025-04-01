@@ -8,6 +8,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.screen.AnvilScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
@@ -58,9 +59,9 @@ public class RenameContext extends AbstractActionContext {
         if (fakePlayer.currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
             // 将铁砧GUI上的物品信息添加到集合
             list.add(TextUtils.appendAll("    ",
-                    getWithCountHoverText(anvilScreenHandler.getSlot(0).getStack()), " ",
-                    getWithCountHoverText(anvilScreenHandler.getSlot(1).getStack()), " -> ",
-                    getWithCountHoverText(anvilScreenHandler.getSlot(2).getStack())));
+                    FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(0).getStack()), " ",
+                    FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(1).getStack()), " -> ",
+                    FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(2).getStack())));
         } else {
             // 将假玩家没有打开铁砧的信息添加到集合
             list.add(TextUtils.translate("carpet.commands.playerAction.info.rename.no_anvil",

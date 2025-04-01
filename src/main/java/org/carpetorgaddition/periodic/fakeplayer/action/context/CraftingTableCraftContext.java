@@ -7,6 +7,7 @@ import net.minecraft.item.Items;
 import net.minecraft.screen.CraftingScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -78,7 +79,7 @@ public class CraftingTableCraftContext extends AbstractActionContext {
                 .blank().append(this.predicates[4].getInitialUpperCase())
                 .blank().append(this.predicates[5].getInitialUpperCase());
         if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(AbstractActionContext.getWithCountHoverText(craftOutput));
+            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
         }
         list.add(builder.toLine());
         // 配方第三排
@@ -93,22 +94,22 @@ public class CraftingTableCraftContext extends AbstractActionContext {
     private void addCraftGridState(CraftingScreenHandler currentScreenHandler, ArrayList<MutableText> list) {
         // 合成格第一排
         list.add(TextUtils.appendAll(
-                "    ", getWithCountHoverText(currentScreenHandler.getSlot(1).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(2).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(3).getStack())
+                "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(1).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(2).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(3).getStack())
         ));
         // 合成格第二排和输出槽
         list.add(TextUtils.appendAll(
-                "    ", getWithCountHoverText(currentScreenHandler.getSlot(4).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(5).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(6).getStack()),
-                " -> ", getWithCountHoverText(currentScreenHandler.getSlot(0).getStack())
+                "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(4).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(5).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(6).getStack()),
+                " -> ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(0).getStack())
         ));
         // 合成格第三排
         list.add(TextUtils.appendAll(
-                "    ", getWithCountHoverText(currentScreenHandler.getSlot(7).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(8).getStack()),
-                " ", getWithCountHoverText(currentScreenHandler.getSlot(9).getStack())
+                "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(7).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(8).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(9).getStack())
         ));
     }
 

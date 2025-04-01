@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -73,7 +74,7 @@ public class InventoryCraftContext extends AbstractActionContext {
                 .indentation().append(this.predicates[2].getInitialUpperCase())
                 .blank().append(this.predicates[3].getInitialUpperCase());
         if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(AbstractActionContext.getWithCountHoverText(craftOutput));
+            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
         }
         list.add(builder.toLine());
     }
@@ -82,14 +83,14 @@ public class InventoryCraftContext extends AbstractActionContext {
     private void addCraftGridState(ArrayList<MutableText> list, PlayerScreenHandler playerScreenHandler) {
         // 合成格第一排
         list.add(TextUtils.appendAll(
-                "    ", getWithCountHoverText(playerScreenHandler.getSlot(1).getStack()),
-                " ", getWithCountHoverText(playerScreenHandler.getSlot(2).getStack())
+                "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(1).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(2).getStack())
         ));
         // 合成格第二排和输出槽
         list.add(TextUtils.appendAll(
-                "    ", getWithCountHoverText(playerScreenHandler.getSlot(3).getStack()),
-                " ", getWithCountHoverText(playerScreenHandler.getSlot(4).getStack()),
-                " -> ", getWithCountHoverText(playerScreenHandler.getSlot(0).getStack())
+                "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(3).getStack()),
+                " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(4).getStack()),
+                " -> ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(0).getStack())
         ));
     }
 

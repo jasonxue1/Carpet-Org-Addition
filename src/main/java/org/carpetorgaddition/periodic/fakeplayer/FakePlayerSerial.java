@@ -14,7 +14,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.FakePlayerActionSerial;
+import org.carpetorgaddition.periodic.fakeplayer.action.context.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
@@ -77,7 +77,7 @@ public class FakePlayerSerial {
     /**
      * 假玩家自动动作
      */
-    private final FakePlayerActionSerial autoAction;
+    private final FakePlayerActionSerializer autoAction;
 
     public FakePlayerSerial(EntityPlayerMPFake fakePlayer) {
         this.fakePlayerName = fakePlayer.getName().getString();
@@ -89,7 +89,7 @@ public class FakePlayerSerial {
         this.flying = fakePlayer.getAbilities().flying;
         this.sneaking = fakePlayer.isSneaking();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
-        this.autoAction = new FakePlayerActionSerial(fakePlayer);
+        this.autoAction = new FakePlayerActionSerializer(fakePlayer);
     }
 
     public FakePlayerSerial(EntityPlayerMPFake fakePlayer, String annotation) {
@@ -128,9 +128,9 @@ public class FakePlayerSerial {
         }
         // 假玩家动作，自动合成自动交易等
         if (json.has("script_action")) {
-            this.autoAction = new FakePlayerActionSerial(json.get("script_action").getAsJsonObject());
+            this.autoAction = new FakePlayerActionSerializer(json.get("script_action").getAsJsonObject());
         } else {
-            this.autoAction = FakePlayerActionSerial.NO_ACTION;
+            this.autoAction = FakePlayerActionSerializer.NO_ACTION;
         }
     }
 

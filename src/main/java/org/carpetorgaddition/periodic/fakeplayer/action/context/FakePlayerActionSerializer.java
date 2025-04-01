@@ -10,23 +10,23 @@ import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
 
-public class FakePlayerActionSerial {
+public class FakePlayerActionSerializer {
     private final FakePlayerAction action;
     private final AbstractActionContext context;
-    public static final FakePlayerActionSerial NO_ACTION = new FakePlayerActionSerial();
+    public static final FakePlayerActionSerializer NO_ACTION = new FakePlayerActionSerializer();
 
-    private FakePlayerActionSerial() {
+    private FakePlayerActionSerializer() {
         this.action = FakePlayerAction.STOP;
         this.context = StopContext.STOP;
     }
 
-    public FakePlayerActionSerial(EntityPlayerMPFake fakePlayer) {
+    public FakePlayerActionSerializer(EntityPlayerMPFake fakePlayer) {
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         this.action = actionManager.getAction();
         this.context = actionManager.getActionContext();
     }
 
-    public FakePlayerActionSerial(JsonObject json) {
+    public FakePlayerActionSerializer(JsonObject json) {
         for (FakePlayerAction value : FakePlayerAction.values()) {
             String serializedName = value.getSerializedName();
             if (json.has(serializedName)) {

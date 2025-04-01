@@ -1,0 +1,42 @@
+package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+
+import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonObject;
+import net.minecraft.text.MutableText;
+import org.carpetorgaddition.util.TextUtils;
+
+import java.util.ArrayList;
+
+public final class StopAction extends AbstractPlayerAction {
+    public StopAction(EntityPlayerMPFake fakePlayer) {
+        super(fakePlayer);
+    }
+
+    @Override
+    public void tick() {
+        // 什么也不做
+    }
+
+    @Override
+    public ArrayList<MutableText> info() {
+        ArrayList<MutableText> list = new ArrayList<>();
+        // 直接将假玩家没有任何动作的信息加入集合然后返回
+        list.add(TextUtils.translate("carpet.commands.playerAction.info.stop", fakePlayer.getDisplayName()));
+        return list;
+    }
+
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject();
+    }
+
+    @Override
+    public MutableText getDisplayName() {
+        return TextUtils.translate("carpet.commands.playerAction.action.stop");
+    }
+
+    @Override
+    public String getSerializedName() {
+        return "stop";
+    }
+}
