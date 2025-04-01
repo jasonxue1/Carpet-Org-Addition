@@ -15,29 +15,33 @@ import java.util.*;
 /**
  * 读取一个包含一系列玩家名称的文件，获取每一个玩家的UUID
  */
-public class CalculatePlayerUuid {
-    private static final HashSet<String> players = new HashSet<>();
-    private static int sum;
-    private static final PrintWriter print;
+public class PlayerUuidQuerier {
+    private final HashSet<String> players = new HashSet<>();
+    private final int sum;
+    private final PrintWriter print;
     // 防止控制台乱码
-    private static final PrintWriter console = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
-    private static long time = System.currentTimeMillis();
+    private long lastQueryTime = System.currentTimeMillis();
+    private static final PrintWriter CONSOLE = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-    static {
-        try {
-            print = new PrintWriter(new FileOutputStream("build/tmp/result.txt"), true, StandardCharsets.UTF_8);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+    private PlayerUuidQuerier(File input, File output) throws IOException {
+        BufferedReader reader = new BufferedReader(new FileReader(input));
+        this.print = new PrintWriter(new FileOutputStream(output), true, StandardCharsets.UTF_8);
+        String line;
+        while ((line = reader.readLine()) != null) {
+            this.players.add(line);
         }
+        this.sum = this.players.size();
     }
 
     public static void main(String[] args) throws IOException {
-        init();
-        start();
+        File input = new File("lib/queryplayeruuid/players.txt");
+        File output = new File("lib/queryplayeruuid/result.txt");
+        PlayerUuidQuerier querier = new PlayerUuidQuerier(input, output);
+        querier.start();
     }
 
-    private static void start() {
+    private void start() {
         MutableInt ordinal = new MutableInt(0);
         while (true) {
             rest();
@@ -68,7 +72,7 @@ public class CalculatePlayerUuid {
     /**
      * 将正版玩家UUID和名称写入文件
      */
-    private static boolean writeOnlineUuid(String name, List<GameProfile> list, MutableInt ordinal) {
+    private boolean writeOnlineUuid(String name, List<GameProfile> list, MutableInt ordinal) {
         for (GameProfile gameProfile : list) {
             if (name.equalsIgnoreCase(gameProfile.getName())) {
                 ordinal.increment();
@@ -79,7 +83,7 @@ public class CalculatePlayerUuid {
         return false;
     }
 
-    private static void write(int ordinal, boolean isOnline, GameProfile gameProfile) {
+    private void write(int ordinal, boolean isOnline, GameProfile gameProfile) {
         String formatted = "正在查询第%s个玩家，总数:%s，剩余:%s，进度:%.2f%%; %s\t %s".formatted(
                 ordinal, sum,
                 sum - ordinal,
@@ -87,38 +91,29 @@ public class CalculatePlayerUuid {
                 (isOnline ? "正版" : "离线"),
                 gameProfile.getName()
         );
-        console.println(formatted);
+        CONSOLE.println(formatted);
         print.println(gameProfile.getId() + "=" + gameProfile.getName());
     }
 
     /**
      * 保证每秒只发送一条请求
      */
-    private static void rest() {
+    private void rest() {
         while (true) {
             long l = System.currentTimeMillis();
-            if (l - time < 1000) {
+            if (l - lastQueryTime < 1000) {
                 Thread.yield();
             } else {
-                time = l;
+                lastQueryTime = l;
                 return;
             }
         }
     }
 
-    public static void init() throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader("build/tmp/players.txt"));
-        String line;
-        while ((line = reader.readLine()) != null) {
-            players.add(line);
-        }
-        sum = players.size();
-    }
-
     /**
      * 尝试获取玩家的在线UUID
      */
-    public static List<GameProfile> tryGetOnlineUuid(String[] names) {
+    private List<GameProfile> tryGetOnlineUuid(String[] names) {
         if (names.length == 0 || names.length > 10) {
             throw new IllegalArgumentException();
         }
@@ -132,7 +127,7 @@ public class CalculatePlayerUuid {
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
             sendRequestBody(connection, names);
-            jsonArray = parseJson(connection);
+            jsonArray = receiveResponse(connection);
         } catch (Exception e) {
             return List.of();
         }
@@ -151,7 +146,7 @@ public class CalculatePlayerUuid {
     /**
      * 发送请求体
      */
-    private static void sendRequestBody(HttpURLConnection connection, String[] names) throws IOException {
+    private void sendRequestBody(HttpURLConnection connection, String[] names) throws IOException {
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()));
         String json = GSON.toJson(names);
         try (writer) {
@@ -162,7 +157,7 @@ public class CalculatePlayerUuid {
     /**
      * 解析UUID字符串
      */
-    private static String parseId(String id) {
+    private String parseId(String id) {
         String str1 = id.substring(0, 8);
         String str2 = id.substring(8, 12);
         String str3 = id.substring(12, 16);
@@ -172,9 +167,9 @@ public class CalculatePlayerUuid {
     }
 
     /**
-     * 解析json字符串
+     * 从服务器响应解析json字符串
      */
-    private static JsonArray parseJson(HttpURLConnection connection) throws IOException {
+    private JsonArray receiveResponse(HttpURLConnection connection) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
         StringBuilder sb = new StringBuilder();
         try (reader) {
@@ -189,7 +184,7 @@ public class CalculatePlayerUuid {
     /**
      * 获取玩家的离线UUID
      */
-    private static UUID generateOfflineUuid(String name) {
+    private UUID generateOfflineUuid(String name) {
         return Uuids.getOfflinePlayerUuid(name);
     }
 }
