@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -7,7 +7,7 @@ import net.minecraft.text.MutableText;
 import java.util.ArrayList;
 
 public abstract class AbstractPlayerAction {
-    protected final EntityPlayerMPFake fakePlayer;
+    protected EntityPlayerMPFake fakePlayer;
 
     public AbstractPlayerAction(EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
@@ -33,15 +33,24 @@ public abstract class AbstractPlayerAction {
      */
     public abstract MutableText getDisplayName();
 
-    /**
-     * 获取序列化名称
-     */
-    public abstract String getSerializedName();
+    public abstract ActionSerializeType getActionSerializeType();
 
     /**
      * 当前动作是否是隐藏的
      */
     public boolean isHidden() {
         return false;
+    }
+
+    public boolean isStop() {
+        return false;
+    }
+
+    public EntityPlayerMPFake getFakePlayer() {
+        return fakePlayer;
+    }
+
+    public void setFakePlayer(EntityPlayerMPFake fakePlayer) {
+        this.fakePlayer = fakePlayer;
     }
 }

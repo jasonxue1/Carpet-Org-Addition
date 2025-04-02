@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonArray;
@@ -19,9 +19,9 @@ import org.carpetorgaddition.util.TextUtils;
 import java.util.ArrayList;
 
 public class ItemSortingAction extends AbstractPlayerAction {
-    private static final String ITEM = "item";
-    private static final String THIS_VEC = "thisVec";
-    private static final String OTHER_VEC = "otherVec";
+    public static final String ITEM = "item";
+    public static final String THIS_VEC = "thisVec";
+    public static final String OTHER_VEC = "otherVec";
     /**
      * 要分拣的物品
      */
@@ -157,7 +157,7 @@ public class ItemSortingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "sorting";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.SORTING;
     }
 }

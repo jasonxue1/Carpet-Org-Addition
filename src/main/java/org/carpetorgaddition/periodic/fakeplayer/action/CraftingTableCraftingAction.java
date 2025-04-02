@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -230,7 +230,7 @@ public class CraftingTableCraftingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "crafting_table_craft";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.CRAFTING_TABLE_CRAFT;
     }
 }

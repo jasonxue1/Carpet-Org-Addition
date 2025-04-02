@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -16,8 +16,8 @@ import org.carpetorgaddition.util.TextUtils;
 import java.util.ArrayList;
 
 public class CleanContainerAction extends AbstractPlayerAction {
-    private static final String ITEM = "item";
-    private static final String ALL_ITEM = "allItem";
+    public static final String ITEM = "item";
+    public static final String ALL_ITEM = "allItem";
     /**
      * 要从潜影盒中丢出的物品
      */
@@ -94,7 +94,7 @@ public class CleanContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "clean";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.CLEAN;
     }
 }

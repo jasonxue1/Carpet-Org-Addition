@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.stream.IntStream;
 
 public class FillContainerAction extends AbstractPlayerAction {
-    private static final String ITEM = "item";
+    public static final String ITEM = "item";
     public static final String ALL_ITEM = "allItem";
     public static final String DROP_OTHER = "dropOther";
     /**
@@ -122,7 +122,7 @@ public class FillContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "fill";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.FILL;
     }
 }

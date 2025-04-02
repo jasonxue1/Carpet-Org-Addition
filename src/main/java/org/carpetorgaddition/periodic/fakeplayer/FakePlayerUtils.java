@@ -20,8 +20,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Direction;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerAction;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.StopContext;
+import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -88,7 +87,7 @@ public class FakePlayerUtils {
      * @param key          停止操作时在聊天栏输出的内容的翻译键
      */
     public static void stopAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake, String key, Object... obj) {
-        GenericFetcherUtils.getFakePlayerActionManager(playerMPFake).setAction(FakePlayerAction.STOP, StopContext.STOP);
+        GenericFetcherUtils.getFakePlayerActionManager(playerMPFake).setAction(StopAction.INSTANCE);
         MessageUtils.broadcastMessage(
                 source.getServer(),
                 TextUtils.appendAll(playerMPFake.getDisplayName(), ": ", TextUtils.translate(key, obj))

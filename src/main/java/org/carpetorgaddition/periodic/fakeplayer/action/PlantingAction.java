@@ -1,6 +1,8 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.item.ItemStack;
@@ -9,6 +11,7 @@ import net.minecraft.item.ToolItem;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.text.MutableText;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
@@ -20,35 +23,45 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.FarmContext;
 import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
+import java.util.ArrayList;
 import java.util.function.Predicate;
 
-public class FakePlayerFarm {
-    public static void farm(FarmContext context, EntityPlayerMPFake fakePlayer) {
+public class PlantingAction extends AbstractPlayerAction {
+    /**
+     * 当前正在采集的农作物
+     */
+    private BlockPos cropPos;
+
+    public PlantingAction(EntityPlayerMPFake fakePlayer) {
+        super(fakePlayer);
+    }
+
+    @Override
+    public void tick() {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
-            BlockPos cropPos = context.getCropPos();
             // 继续挖掘之前未挖掘完成的方块
-            if (cropPos != null && !breakBlock(fakePlayer, cropPos, context)) {
+            if (this.cropPos != null && !breakBlock(this.cropPos)) {
                 return;
             }
             // 根据副手的物品是什么来决定种植什么农作物
-            ItemStack cropsItem = fakePlayer.getOffHandStack();
+            ItemStack cropsItem = this.fakePlayer.getOffHandStack();
             // 获取当前种植的是什么类型的农作物
             FarmType farmType = FarmType.getFarmType(cropsItem);
             if (farmType == FarmType.NONE) {
                 return;
             }
             // 获取玩家交互距离内的所有方块
-            double range = fakePlayer.getBlockInteractionRange();
+            double range = this.fakePlayer.getBlockInteractionRange();
             // 限制交互距离，减少卡顿
-            Box box = new Box(fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
+            Box box = new Box(this.fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
             SelectionArea area = new SelectionArea(box);
             for (BlockPos blockPos : area) {
-                if (fakePlayer.canInteractWithBlockAt(blockPos, 0)) {
-                    if (tryFarm(fakePlayer, blockPos, farmType, cropsItem, context)) {
+                if (this.fakePlayer.canInteractWithBlockAt(blockPos, 0)) {
+                    if (tryPlanting(blockPos, farmType, cropsItem)) {
                         continue;
                     }
                     break;
@@ -62,40 +75,39 @@ public class FakePlayerFarm {
      *
      * @return 是否应该继续本tick种植
      */
-    private static boolean tryFarm(EntityPlayerMPFake fakePlayer, BlockPos blockPos, FarmType farmType, ItemStack cropsItem, FarmContext context) {
+    private boolean tryPlanting(BlockPos blockPos, FarmType farmType, ItemStack cropsItem) {
         return switch (farmType) {
-            case CROPS -> plantingCrops(fakePlayer, cropsItem, blockPos, context);
-            case BAMBOO -> plantingBamboo(fakePlayer, blockPos, context);
+            case CROPS -> this.plantingCrops(cropsItem, blockPos);
+            case BAMBOO -> this.plantingBamboo(blockPos);
             default -> true;
         };
     }
-
 
     /**
      * 种植常规的农作物，小麦、土豆、胡萝卜，甜菜，以及火把花，瓶子草
      *
      * @return 是否需要继续循环
      */
-    private static boolean plantingCrops(EntityPlayerMPFake fakePlayer, ItemStack itemStack, BlockPos blockPos, FarmContext context) {
-        World world = fakePlayer.getWorld();
+    private boolean plantingCrops(ItemStack itemStack, BlockPos blockPos) {
+        World world = this.fakePlayer.getWorld();
         if (!world.getBlockState(blockPos).isOf(Blocks.FARMLAND)) {
             return true;
         }
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        PlayerScreenHandler screenHandler = this.fakePlayer.playerScreenHandler;
         // 种子是否足够
         boolean thereAreManySeeds = true;
         // 玩家手上的种子太少，需要补货
-        if (itemStack.getCount() <= 1 && !fakePlayer.isCreative()) {
+        if (itemStack.getCount() <= 1 && !this.fakePlayer.isCreative()) {
             Predicate<ItemStack> predicate = stack -> ItemStack.areItemsAndComponentsEqual(itemStack, stack);
             // 尝试补货
-            thereAreManySeeds = replenishment(fakePlayer, screenHandler.slots.size() - 1, predicate);
+            thereAreManySeeds = replenishment(screenHandler.slots.size() - 1, predicate);
         }
         BlockPos upPos = blockPos.up();
         BlockState blockState = world.getBlockState(upPos);
         // 如果耕地上方方块是空气，种植农作物
         if (thereAreManySeeds && blockState.isAir()) {
             // 种植农作物
-            plant(fakePlayer, world, itemStack, blockPos, upPos);
+            planting(world, itemStack, blockPos, upPos);
         }
         // 种植农作物后，收集或催熟
         Block block = blockState.getBlock();
@@ -104,30 +116,30 @@ public class FakePlayerFarm {
             // 农作物已经成熟，收集农作物，火把花不能直接用isMature方法判断是否成熟
             if (cropBlock.isMature(blockState) && !(cropBlock instanceof TorchflowerBlock)) {
                 // 收集农作物（破坏方块）
-                return breakBlock(fakePlayer, upPos, context);
+                return this.breakBlock(upPos);
             } else {
-                fertilize(fakePlayer, world, upPos);
+                this.fertilize(world, upPos);
             }
         } else if (block instanceof PitcherCropBlock pitcherCropBlock) {
             // 处理瓶子草
             // 判断瓶子草是否可以施肥，如果可以，就施肥，否则瓶子草可能已经成熟，破坏瓶子草
             if (pitcherCropBlock.isFertilizable(world, upPos, blockState)) {
                 // 施肥
-                fertilize(fakePlayer, world, upPos);
+                this.fertilize(world, upPos);
             } else {
                 // 收集瓶子草
-                return breakBlock(fakePlayer, upPos, context);
+                return this.breakBlock(upPos);
             }
         } else if (block == Blocks.TORCHFLOWER) {
             // 收集火把花
-            return breakBlock(fakePlayer, upPos, context);
+            return this.breakBlock(upPos);
         }
         return true;
     }
 
     // 种植竹子
-    private static boolean plantingBamboo(EntityPlayerMPFake fakePlayer, BlockPos plantablePos, FarmContext context) {
-        World world = fakePlayer.getWorld();
+    private boolean plantingBamboo(BlockPos plantablePos) {
+        World world = this.fakePlayer.getWorld();
         // 是否可以种植竹子
         if (!world.getBlockState(plantablePos).isIn(BlockTags.BAMBOO_PLANTABLE_ON)
                 // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉
@@ -150,7 +162,7 @@ public class FakePlayerFarm {
         Block block = blockState.getBlock();
         if (block instanceof BambooShootBlock && world.getBlockState(bambooPos.up()).isAir()) {
             // 竹笋方块，如果上方没有方块阻挡，直接使用骨粉
-            fertilize(fakePlayer, world, bambooPos);
+            this.fertilize(world, bambooPos);
         } else if (block instanceof BambooBlock bambooBlock) {
             // 判断竹子是否可以施肥
             if (bambooBlock.isFertilizable(world, bambooPos, blockState)) {
@@ -178,7 +190,7 @@ public class FakePlayerFarm {
                     if (hasAir) {
                         // 如果上方连续的空气方块数量大于等于3，则可以使用骨粉
                         if (airCount >= 3) {
-                            fertilize(fakePlayer, world, bambooPos);
+                            this.fertilize(world, bambooPos);
                             break;
                         } else if (tempBlockState.isOf(Blocks.BAMBOO)) {
                             // 如果上方连续的空气方块数量小于3，不能施肥，跳出循环
@@ -192,80 +204,78 @@ public class FakePlayerFarm {
                          * 1.如果第16格是竹子，则代码会在上面检查airCount>=3时，条件不会成立，会进入else if判断然后跳出循环，代码不会执行到这里
                          * 2.如果第16格是空气，那么15格16格是空气，17格超出了竹子的最大生长高度所以一定也是空气，连续3格空气，可以施肥。
                          */
-                        fertilize(fakePlayer, world, bambooPos);
+                        this.fertilize(world, bambooPos);
                     }
                 }
             } else {
                 // 竹子已生长到最大高度，破坏竹子
-                return useToolBreakBlock(fakePlayer, bambooPos.up(), context);
+                return useToolBreakBlock(bambooPos.up());
             }
         }
         return true;
     }
 
     // 种植
-    private static void plant(EntityPlayerMPFake fakePlayer, World world, ItemStack itemStack, BlockPos blockPos, BlockPos lookPos) {
+    private void planting(World world, ItemStack itemStack, BlockPos blockPos, BlockPos lookPos) {
         // 让假玩家看向该位置（这不是必须的）
-        fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, lookPos.toCenterPos());
+        this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, lookPos.toCenterPos());
         BlockHitResult hitResult = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, lookPos, false);
-        fakePlayer.interactionManager.interactBlock(fakePlayer, world, itemStack, Hand.OFF_HAND, hitResult);
+        this.fakePlayer.interactionManager.interactBlock(this.fakePlayer, world, itemStack, Hand.OFF_HAND, hitResult);
         // 摆动手
-        fakePlayer.swingHand(Hand.OFF_HAND, true);
+        this.fakePlayer.swingHand(Hand.OFF_HAND, true);
     }
 
     // 撒骨粉催熟
-    private static void fertilize(EntityPlayerMPFake fakePlayer, World world, BlockPos upPos) {
+    private void fertilize(World world, BlockPos upPos) {
         Predicate<ItemStack> predicate = stack -> stack.isOf(Items.BONE_MEAL);
         // 要求玩家身上有骨粉
-        if (FakePlayerUtils.replenishment(fakePlayer, predicate)) {
-            ItemStack itemStack = fakePlayer.getMainHandStack();
+        if (FakePlayerUtils.replenishment(this.fakePlayer, predicate)) {
+            ItemStack itemStack = this.fakePlayer.getMainHandStack();
             if (itemStack.getCount() > 1
-                    || fakePlayer.isCreative()
-                    || replenishment(fakePlayer, fakePlayer.getInventory().selectedSlot + 36, predicate)) {
+                    || this.fakePlayer.isCreative()
+                    || replenishment(this.fakePlayer.getInventory().selectedSlot + 36, predicate)) {
                 // 如果手上有多余一个的骨粉，就使用骨粉
                 Vec3d centerPos = upPos.toCenterPos();
                 // 让假玩家看向该位置（这不是必须的）
-                fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, centerPos);
+                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, centerPos);
                 // 使用骨粉
                 BlockHitResult hitResult = new BlockHitResult(centerPos, Direction.DOWN, upPos, true);
-                fakePlayer.interactionManager.interactBlock(fakePlayer, world, itemStack, Hand.MAIN_HAND, hitResult);
+                this.fakePlayer.interactionManager.interactBlock(this.fakePlayer, world, itemStack, Hand.MAIN_HAND, hitResult);
                 // 摆动手
-                fakePlayer.swingHand(Hand.MAIN_HAND, true);
+                this.fakePlayer.swingHand(Hand.MAIN_HAND, true);
             }
         }
     }
-
 
     /**
      * 收集农作物，创造模式下不会受限于方块挖掘冷却
      *
      * @return 是否完成挖掘
      */
-    private static boolean breakBlock(EntityPlayerMPFake fakePlayer, BlockPos pos, FarmContext context) {
+    private boolean breakBlock(BlockPos pos) {
         BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
         boolean breakBlock = breakManager.breakBlock(pos, Direction.DOWN, !fakePlayer.isCreative());
-        context.setCropPos(breakBlock ? null : pos);
+        this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
-
 
     /**
      * 使用工具破坏硬度大于0的方块
      *
      * @return 是否完成挖掘
      */
-    private static boolean useToolBreakBlock(EntityPlayerMPFake fakePlayer, BlockPos pos, FarmContext context) {
+    private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
-        FakePlayerUtils.replenishment(fakePlayer, itemStack -> itemStack.getItem() instanceof ToolItem);
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
+        FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> itemStack.getItem() instanceof ToolItem);
+        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
         boolean breakBlock = breakManager.breakBlock(pos, Direction.DOWN);
-        context.setCropPos(breakBlock ? null : pos);
+        this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
 
     // 自动补货，返回值表示是否补货成功
-    private static boolean replenishment(EntityPlayerMPFake fakePlayer, int slotIndex, Predicate<ItemStack> predicate) {
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+    private boolean replenishment(int slotIndex, Predicate<ItemStack> predicate) {
+        PlayerScreenHandler screenHandler = this.fakePlayer.playerScreenHandler;
         DefaultedList<Slot> slots = screenHandler.slots;
         // 遍历玩家物品栏，找到需要的物品
         for (int index = 5; index < slots.size() - 1; index++) {
@@ -277,9 +287,9 @@ public class FakePlayerFarm {
             if (predicate.test(itemStack)) {
                 // 如果物品的堆叠数已经是最大值，就移动一半，否则移动所有
                 if (itemStack.getCount() == itemStack.getMaxCount()) {
-                    FakePlayerUtils.pickupAndMoveHalfItemStack(screenHandler, index, slotIndex, fakePlayer);
+                    FakePlayerUtils.pickupAndMoveHalfItemStack(screenHandler, index, slotIndex, this.fakePlayer);
                 } else {
-                    FakePlayerUtils.pickupAndMoveItemStack(screenHandler, index, slotIndex, fakePlayer);
+                    FakePlayerUtils.pickupAndMoveItemStack(screenHandler, index, slotIndex, this.fakePlayer);
                 }
                 return true;
             }
@@ -287,7 +297,32 @@ public class FakePlayerFarm {
         return false;
     }
 
-    public enum FarmType {
+    @Override
+    public ArrayList<MutableText> info() {
+        return Lists.newArrayList(TextUtils.translate("carpet.commands.playerAction.info.farm", this.fakePlayer.getDisplayName()));
+    }
+
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject();
+    }
+
+    @Override
+    public MutableText getDisplayName() {
+        return TextUtils.translate("carpet.commands.playerAction.action.farm");
+    }
+
+    @Override
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.PLANTING;
+    }
+
+    @Override
+    public boolean isHidden() {
+        return true;
+    }
+
+    private enum FarmType {
         /**
          * 种植普通农作物，小麦、土豆、胡萝卜，甜菜，以及火把花，瓶子草
          */
@@ -320,3 +355,6 @@ public class FakePlayerFarm {
         }
     }
 }
+
+
+

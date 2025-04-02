@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -16,8 +16,8 @@ import org.carpetorgaddition.util.TextUtils;
 import java.util.ArrayList;
 
 public class RenameAction extends AbstractPlayerAction {
-    private static final String ITEM = "item";
-    private static final String NEW_NAME = "new_name";
+    public static final String ITEM = "item";
+    public static final String NEW_NAME = "new_name";
     /**
      * 要进行重命名的物品
      */
@@ -152,7 +152,7 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "rename";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.RENAME;
     }
 }

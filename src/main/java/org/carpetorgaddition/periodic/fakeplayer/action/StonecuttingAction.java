@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -24,8 +24,8 @@ import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import java.util.ArrayList;
 
 public class StonecuttingAction extends AbstractPlayerAction {
-    private static final String ITEM = "item";
-    private static final String BUTTON = "button";
+    public static final String ITEM = "item";
+    public static final String BUTTON = "button";
     /**
      * 要使用切石机切制的物品
      */
@@ -209,7 +209,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "stonecutting";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.STONECUTTING;
     }
 }

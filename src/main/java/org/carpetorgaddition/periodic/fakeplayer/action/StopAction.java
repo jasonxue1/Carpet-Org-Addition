@@ -1,14 +1,17 @@
-package org.carpetorgaddition.periodic.fakeplayer.action.temp;
+package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.util.TextUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 public final class StopAction extends AbstractPlayerAction {
-    public StopAction(EntityPlayerMPFake fakePlayer) {
+    public static final StopAction INSTANCE = new StopAction(null);
+
+    public StopAction(@Nullable EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
     }
 
@@ -36,7 +39,7 @@ public final class StopAction extends AbstractPlayerAction {
     }
 
     @Override
-    public String getSerializedName() {
-        return "stop";
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.STOP;
     }
 }

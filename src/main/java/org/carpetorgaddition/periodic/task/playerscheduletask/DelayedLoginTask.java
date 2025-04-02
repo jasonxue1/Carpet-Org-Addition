@@ -7,7 +7,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -15,10 +15,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class DelayedLoginTask extends PlayerScheduleTask {
     private final MinecraftServer server;
-    FakePlayerSerial serial;
+    FakePlayerSerializer serial;
     private long delayed;
 
-    public DelayedLoginTask(MinecraftServer server, FakePlayerSerial serial, long delayed) {
+    public DelayedLoginTask(MinecraftServer server, FakePlayerSerializer serial, long delayed) {
         this.server = server;
         this.serial = serial;
         this.delayed = delayed;

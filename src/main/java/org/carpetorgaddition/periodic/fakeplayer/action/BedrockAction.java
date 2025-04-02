@@ -1,6 +1,9 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.google.common.collect.Lists;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
 import net.minecraft.block.piston.PistonBehavior;
@@ -8,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
+import net.minecraft.text.MutableText;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -19,39 +23,52 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.BreakBedrockContext;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-public class FakePlayerBreakBedrock {
-    public static void breakBedrock(BreakBedrockContext context, EntityPlayerMPFake fakePlayer) {
-        World world = fakePlayer.getWorld();
-        context.removeIf(destructor -> {
+public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockAction.BedrockDestructor> {
+    private final HashSet<BedrockDestructor> hashSet = new HashSet<>();
+    private final SelectionArea selectionArea;
+
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
+        super(fakePlayer);
+        this.selectionArea = new SelectionArea(from, to);
+    }
+
+    @Override
+    public void tick() {
+        World world = this.fakePlayer.getWorld();
+        this.removeIf(destructor -> {
             if (destructor.getState() == State.COMPLETE) {
                 return true;
             }
             if (world.getBlockState(destructor.getBedrockPos()).isOf(Blocks.BEDROCK)) {
-                return !fakePlayer.canInteractWithBlockAt(destructor.getBedrockPos(), 0.0);
+                return !this.fakePlayer.canInteractWithBlockAt(destructor.getBedrockPos(), 0.0);
             }
             return destructor.getState() != State.CLEAN_PISTON;
         });
-        double range = fakePlayer.getBlockInteractionRange();
-        Box box = new Box(fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
+        double range = this.fakePlayer.getBlockInteractionRange();
+        Box box = new Box(this.fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
         SelectionArea area = new SelectionArea(box);
         for (BlockPos blockPos : area) {
             if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)
-                    && fakePlayer.canInteractWithBlockAt(blockPos, 0.0)
-                    && context.contains(blockPos)) {
-                context.add(new BedrockDestructor(blockPos));
+                    && this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0)
+                    && this.contains(blockPos)) {
+                this.add(new BedrockDestructor(blockPos));
             }
         }
-        for (BedrockDestructor destructor : context) {
+        for (BedrockDestructor destructor : this) {
             int loopCount = 0;
             loop:
             while (true) {
@@ -59,7 +76,7 @@ public class FakePlayerBreakBedrock {
                 if (loopCount > 10) {
                     throw new InfiniteLoopException();
                 }
-                StepResult stepResult = start(destructor, fakePlayer, context);
+                StepResult stepResult = start(destructor);
                 switch (stepResult) {
                     case COMPLETION -> {
                         break loop;
@@ -74,12 +91,12 @@ public class FakePlayerBreakBedrock {
         }
     }
 
-    private static StepResult start(BedrockDestructor destructor, EntityPlayerMPFake fakePlayer, BreakBedrockContext context) {
+    private StepResult start(BedrockDestructor destructor) {
         BlockPos bedrockPos = destructor.getBedrockPos();
         switch (destructor.getState()) {
             case PLACE_THE_PISTON_FACING_UP -> {
-                if (hasMaterial(fakePlayer)) {
-                    StepResult stepResult = placePiston(fakePlayer, bedrockPos);
+                if (hasMaterial()) {
+                    StepResult stepResult = placePiston(bedrockPos);
                     if (stepResult == StepResult.CONTINUE) {
                         destructor.nextStep();
                     } else {
@@ -91,7 +108,7 @@ public class FakePlayerBreakBedrock {
                 }
             }
             case PLACE_AND_ACTIVATE_THE_LEVER -> {
-                StepResult stepResult = placeAndActivateTheLever(destructor, fakePlayer, context);
+                StepResult stepResult = placeAndActivateTheLever(destructor);
                 if (stepResult == StepResult.CONTINUE) {
                     destructor.nextStep();
                 } else {
@@ -101,7 +118,7 @@ public class FakePlayerBreakBedrock {
                 return StepResult.COMPLETION;
             }
             case PISTON_BREAK_BEDROCK -> {
-                StepResult stepResult = pistonBreakBedrock(destructor, fakePlayer);
+                StepResult stepResult = pistonBreakBedrock(destructor);
                 switch (stepResult) {
                     // 基岩破除，结束当前位置
                     case COMPLETION -> {
@@ -120,7 +137,7 @@ public class FakePlayerBreakBedrock {
                 }
             }
             case CLEAN_PISTON -> {
-                if (cleanPiston(fakePlayer, bedrockPos.up())) {
+                if (cleanPiston(bedrockPos.up())) {
                     // 活塞挖掘完毕，执行下一步
                     destructor.nextStep();
                 } else {
@@ -137,12 +154,12 @@ public class FakePlayerBreakBedrock {
     /**
      * @return 玩家是否有足够的材料
      */
-    private static boolean hasMaterial(EntityPlayerMPFake fakePlayer) {
+    private boolean hasMaterial() {
         int pistonCount = 0;
         int levelCount = 0;
         // 遍历物品栏和副手，不遍历盔甲槽
-        ArrayList<ItemStack> list = new ArrayList<>(fakePlayer.getInventory().main);
-        list.addAll(fakePlayer.getInventory().offHand);
+        ArrayList<ItemStack> list = new ArrayList<>(this.fakePlayer.getInventory().main);
+        list.addAll(this.fakePlayer.getInventory().offHand);
         for (ItemStack itemStack : list) {
             if (itemStack.isOf(Items.PISTON)) {
                 pistonCount += itemStack.getCount();
@@ -161,11 +178,11 @@ public class FakePlayerBreakBedrock {
      *
      * @return 是否放置成功
      */
-    private static StepResult placePiston(EntityPlayerMPFake fakePlayer, BlockPos bedrockPos) {
-        World world = fakePlayer.getWorld();
+    private StepResult placePiston(BlockPos bedrockPos) {
+        World world = this.fakePlayer.getWorld();
         BlockPos up = bedrockPos.up(1);
         BlockState blockState = world.getBlockState(up);
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
+        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
         boolean isPiston = false;
         //noinspection StatementWithEmptyBody
         if (isReplaceableBlock(blockState)) {
@@ -174,7 +191,7 @@ public class FakePlayerBreakBedrock {
         } else if (blockState.isOf(Blocks.PISTON)) {
             // 当方块已经是活塞了，不需要再次放置
             isPiston = true;
-        } else if (canMine(fakePlayer, blockState, world, up)) {
+        } else if (canMine(blockState, world, up)) {
             return tickBreakBlock(breakManager, up);
         } else {
             return StepResult.COMPLETION;
@@ -191,18 +208,18 @@ public class FakePlayerBreakBedrock {
                 return StepResult.CONTINUE;
             }
             // 放置活塞
-            if (placePiston(fakePlayer, bedrockPos, Direction.UP).isAccepted()) {
+            if (placePiston(bedrockPos, Direction.UP).isAccepted()) {
                 return StepResult.CONTINUE;
             }
             return StepResult.COMPLETION;
-        } else if (canMine(fakePlayer, blockState, world, up)) {
+        } else if (canMine(blockState, world, up)) {
             return tickBreakBlock(breakManager, up);
         } else {
             return StepResult.COMPLETION;
         }
     }
 
-    private static boolean canMine(EntityPlayerMPFake fakePlayer, BlockState blockState, World world, BlockPos blockPos) {
+    private boolean canMine(BlockState blockState, World world, BlockPos blockPos) {
         if (blockState.isAir()) {
             return true;
         }
@@ -222,7 +239,7 @@ public class FakePlayerBreakBedrock {
         if (isPiston || blockState.isOf(Blocks.PISTON_HEAD)) {
             return false;
         }
-        return blockState.getHardness(world, blockPos) != -1 && BlockBreakManager.canBreak(fakePlayer, blockPos);
+        return blockState.getHardness(world, blockPos) != -1 && BlockBreakManager.canBreak(this.fakePlayer, blockPos);
     }
 
     /**
@@ -230,10 +247,10 @@ public class FakePlayerBreakBedrock {
      *
      * @return 拉杆是否放置并激活成功
      */
-    private static StepResult placeAndActivateTheLever(BedrockDestructor destructor, EntityPlayerMPFake fakePlayer, BreakBedrockContext context) {
+    private StepResult placeAndActivateTheLever(BedrockDestructor destructor) {
         BlockPos bedrockPos = destructor.getBedrockPos();
-        World world = fakePlayer.getWorld();
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
+        World world = this.fakePlayer.getWorld();
+        ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
         Direction direction = null;
         for (Direction value : MathUtils.HORIZONTAL) {
             BlockPos offset = bedrockPos.offset(value);
@@ -242,7 +259,7 @@ public class FakePlayerBreakBedrock {
                 direction = value;
                 continue;
             }
-            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
+            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
             if (blockState.isOf(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
                 if (blockState.get(WallMountedBlock.FACE) != BlockFace.WALL) {
@@ -255,7 +272,7 @@ public class FakePlayerBreakBedrock {
                             continue;
                         }
                         // 激活拉杆
-                        interactionLever(fakePlayer, offset);
+                        interactionLever(offset);
                     } else {
                         // 拉杆正确的附着在了基岩上，但是拉杆不止一个
                         return tickBreakBlock(breakManager, offset);
@@ -263,13 +280,13 @@ public class FakePlayerBreakBedrock {
                 } else {
                     BlockPos supportBlockPos = offset.offset(blockState.get(LeverBlock.FACING), -1);
                     // 拉杆附着在了另一个基岩上
-                    if (world.getBlockState(supportBlockPos).isOf(Blocks.BEDROCK) && context.contains(supportBlockPos)) {
+                    if (world.getBlockState(supportBlockPos).isOf(Blocks.BEDROCK) && this.contains(supportBlockPos)) {
                         continue;
                     }
                     // 拉杆附着在了墙上，但不是当前要破坏的基岩方块
                     return tickBreakBlock(breakManager, offset);
                 }
-            } else if (canMine(fakePlayer, blockState, world, offset)) {
+            } else if (canMine(blockState, world, offset)) {
                 return tickBreakBlock(breakManager, offset);
             }
         }
@@ -290,13 +307,13 @@ public class FakePlayerBreakBedrock {
             // 当前位置下方是移动的活塞
             return StepResult.COMPLETION;
         }
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
-        FakePlayerUtils.look(fakePlayer, direction.getOpposite());
+        FakePlayerUtils.replenishment(this.fakePlayer, Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
+        FakePlayerUtils.look(this.fakePlayer, direction.getOpposite());
         BlockHitResult hitResult = new BlockHitResult(bedrockPos.toCenterPos(), direction, bedrockPos, false);
         // 放置拉杆
-        interactionManager.interactBlock(fakePlayer, world, fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        interactionManager.interactBlock(this.fakePlayer, world, this.fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
         // 再次单击激活拉杆
-        interactionLever(fakePlayer, offset);
+        interactionLever(offset);
         destructor.setLeverPos(offset);
         return StepResult.CONTINUE;
     }
@@ -306,7 +323,7 @@ public class FakePlayerBreakBedrock {
      *
      * @return 当前方块是否是可直接替换的
      */
-    private static boolean isReplaceableBlock(BlockState blockState) {
+    private boolean isReplaceableBlock(BlockState blockState) {
         if (blockState.isAir()) {
             return true;
         }
@@ -323,16 +340,16 @@ public class FakePlayerBreakBedrock {
     /**
      * 破除基岩
      */
-    private static StepResult pistonBreakBedrock(BedrockDestructor destructor, EntityPlayerMPFake fakePlayer) {
+    private StepResult pistonBreakBedrock(BedrockDestructor destructor) {
         BlockPos bedrockPos = destructor.getBedrockPos();
         BlockPos up = bedrockPos.up();
         // 基岩上方方块是活塞
-        World world = fakePlayer.getWorld();
+        World world = this.fakePlayer.getWorld();
         BlockState blockState = world.getBlockState(up);
         if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
-            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
+            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
             // 先切换工具，再计算剩余挖掘时间
-            switchTool(blockState, world, up, fakePlayer);
+            switchTool(blockState, world, up);
             // 计算剩余挖掘时间
             int currentTime = breakManager.getCurrentBreakingTime(up);
             if (currentTime == 1) {
@@ -342,15 +359,15 @@ public class FakePlayerBreakBedrock {
                 if (leverState.isOf(Blocks.LEVER)) {
                     if (leverState.get(LeverBlock.POWERED)) {
                         // 关闭附着在基岩上的拉杆
-                        interactionLever(fakePlayer, leverPos);
+                        interactionLever(leverPos);
                     }
                     // 关闭周围可能激活活塞的拉杆
-                    closeTheSurroundingLevers(up, fakePlayer);
+                    closeTheSurroundingLevers(up);
                     destructor.setLeverPos(null);
                     // 继续挖掘，此时活塞应该会挖掘完毕
                     breakBlock(breakManager, up, false);
                     // 放置一个朝下的活塞，这个活塞会破坏掉基岩
-                    if (placePiston(fakePlayer, bedrockPos, Direction.DOWN).isAccepted()) {
+                    if (placePiston(bedrockPos, Direction.DOWN).isAccepted()) {
                         return StepResult.COMPLETION;
                     }
                 }
@@ -366,15 +383,15 @@ public class FakePlayerBreakBedrock {
     /**
      * 关闭周围所有可能激活活塞的拉杆
      */
-    private static void closeTheSurroundingLevers(BlockPos pistonPos, EntityPlayerMPFake fakePlayer) {
-        World world = fakePlayer.getWorld();
+    private void closeTheSurroundingLevers(BlockPos pistonPos) {
+        World world = this.fakePlayer.getWorld();
         Consumer<BlockPos> consumer = blockPos -> {
             BlockState blockState = world.getBlockState(blockPos);
             if (blockState.isAir()) {
                 return;
             }
             if (blockState.isOf(Blocks.LEVER) && blockState.get(LeverBlock.POWERED)) {
-                interactionLever(fakePlayer, blockPos);
+                interactionLever(blockPos);
             }
         };
         for (Direction direction : MathUtils.HORIZONTAL) {
@@ -401,22 +418,22 @@ public class FakePlayerBreakBedrock {
         BlockPos up = pistonPos.up(3);
         BlockState upBlockState = world.getBlockState(up);
         if (upBlockState.isOf(Blocks.LEVER) && upBlockState.get(LeverBlock.POWERED) && upBlockState.get(LeverBlock.FACE) == BlockFace.FLOOR) {
-            interactionLever(fakePlayer, up);
+            interactionLever(up);
         }
         // 活塞下方第二格可能放着朝上的拉杆
         BlockPos down = pistonPos.down(2);
         BlockState downBlockState = world.getBlockState(down);
         if (downBlockState.isOf(Blocks.LEVER) && downBlockState.get(LeverBlock.POWERED) && downBlockState.get(LeverBlock.FACE) == BlockFace.CEILING) {
-            interactionLever(fakePlayer, down);
+            interactionLever(down);
         }
     }
 
     /**
      * 挖掘掉破完基岩后留下的活塞
      */
-    private static boolean cleanPiston(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
-        BlockState blockState = fakePlayer.getWorld().getBlockState(blockPos);
+    private boolean cleanPiston(BlockPos blockPos) {
+        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
+        BlockState blockState = this.fakePlayer.getWorld().getBlockState(blockPos);
         if (blockState.isAir()) {
             return true;
         }
@@ -430,7 +447,7 @@ public class FakePlayerBreakBedrock {
         return true;
     }
 
-    private static StepResult tickBreakBlock(BlockBreakManager breakManager, BlockPos blockPos) {
+    private StepResult tickBreakBlock(BlockBreakManager breakManager, BlockPos blockPos) {
         return breakBlock(breakManager, blockPos, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
     }
 
@@ -440,20 +457,20 @@ public class FakePlayerBreakBedrock {
      * @param switchTool 是否需要切换工具
      * @return 是否破坏成功
      */
-    private static boolean breakBlock(BlockBreakManager breakManager, BlockPos blockPos, boolean switchTool) {
+    private boolean breakBlock(BlockBreakManager breakManager, BlockPos blockPos, boolean switchTool) {
         EntityPlayerMPFake player = breakManager.getPlayer();
         World world = player.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
-            switchTool(blockState, world, blockPos, player);
+            switchTool(blockState, world, blockPos);
         }
         return breakManager.breakBlock(blockPos, Direction.DOWN, false);
     }
 
-    private static void switchTool(BlockState blockState, World world, BlockPos blockPos, EntityPlayerMPFake player) {
-        boolean replenishment = FakePlayerUtils.replenishment(player, itemStack -> {
-            if (player.isCreative()) {
-                return itemStack.getItem().canMine(blockState, world, blockPos, player);
+    private void switchTool(BlockState blockState, World world, BlockPos blockPos) {
+        boolean replenishment = FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> {
+            if (this.fakePlayer.isCreative()) {
+                return itemStack.getItem().canMine(blockState, world, blockPos, this.fakePlayer);
             }
             if (itemStack.isEmpty()) {
                 return false;
@@ -468,36 +485,97 @@ public class FakePlayerBreakBedrock {
             return;
         }
         // 工具没有切换成功，使用其他物品替换手上工具以避免工具损坏
-        FakePlayerUtils.replenishment(player, itemStack -> !isDamaged(itemStack));
+        FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> !isDamaged(itemStack));
     }
 
     /**
      * @return 指定物品是否是低耐久且有经验修补的物品
      */
-    private static boolean isDamaged(ItemStack itemStack) {
+    private boolean isDamaged(ItemStack itemStack) {
         return itemStack.isDamageable() && itemStack.getMaxDamage() - itemStack.getDamage() <= 10 && EnchantmentUtils.canRepairWithXp(itemStack);
     }
 
     /**
      * 放置活塞
      */
-    private static ActionResult placePiston(EntityPlayerMPFake fakePlayer, BlockPos bedrockPos, Direction direction) {
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
+    private ActionResult placePiston(BlockPos bedrockPos, Direction direction) {
+        ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
         // 看向与活塞相反的方向
-        FakePlayerUtils.look(fakePlayer, direction.getOpposite());
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
+        FakePlayerUtils.look(this.fakePlayer, direction.getOpposite());
+        FakePlayerUtils.replenishment(this.fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
         // 放置活塞
         BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(bedrockPos, 1.0), direction, bedrockPos.up(), false);
-        return interactionManager.interactBlock(fakePlayer, fakePlayer.getWorld(), fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        return interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
     }
 
     /**
      * 单击一次拉杆
      */
-    private static void interactionLever(EntityPlayerMPFake fakePlayer, BlockPos leverPos) {
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
+    private void interactionLever(BlockPos leverPos) {
+        ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
         BlockHitResult hitResult = new BlockHitResult(leverPos.toCenterPos(), Direction.UP, leverPos, false);
-        interactionManager.interactBlock(fakePlayer, fakePlayer.getWorld(), fakePlayer.getMainHandStack(), Hand.MAIN_HAND, hitResult);
+        interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getMainHandStack(), Hand.MAIN_HAND, hitResult);
+    }
+
+
+    public void add(BedrockDestructor destructor) {
+        this.hashSet.add(destructor);
+    }
+
+    public void removeIf(Predicate<BedrockDestructor> predicate) {
+        this.hashSet.removeIf(predicate);
+    }
+
+    public boolean contains(BlockPos blockPos) {
+        return this.selectionArea.contains(blockPos);
+    }
+
+    public boolean isEmpty() {
+        return this.hashSet.isEmpty();
+    }
+
+    @Override
+    public ArrayList<MutableText> info() {
+        return Lists.newArrayList(TextUtils.translate("carpet.commands.playerAction.info.bedrock", fakePlayer.getDisplayName()));
+    }
+
+    @Override
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        BlockPos minBlockPos = this.selectionArea.getMinBlockPos();
+        JsonArray from = new JsonArray();
+        from.add(minBlockPos.getX());
+        from.add(minBlockPos.getY());
+        from.add(minBlockPos.getZ());
+        json.add("from", from);
+        BlockPos maxBlockPos = this.selectionArea.getMaxBlockPos();
+        JsonArray to = new JsonArray();
+        to.add(maxBlockPos.getX());
+        to.add(maxBlockPos.getY());
+        to.add(maxBlockPos.getZ());
+        json.add("to", to);
+        return json;
+    }
+
+    @Override
+    public MutableText getDisplayName() {
+        return TextUtils.translate("carpet.commands.playerAction.action.bedrock");
+    }
+
+    @Override
+    public ActionSerializeType getActionSerializeType() {
+        return ActionSerializeType.BEDROCK;
+    }
+
+    @Override
+    public boolean isHidden() {
+        return true;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<BedrockDestructor> iterator() {
+        return this.hashSet.iterator();
     }
 
     public static class BedrockDestructor {

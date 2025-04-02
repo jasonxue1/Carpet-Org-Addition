@@ -24,7 +24,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLogoutTask;
@@ -152,7 +152,7 @@ public class PlayerManagerCommand {
     // 自动补全玩家名
     private static SuggestionProvider<ServerCommandSource> defaultSuggests() {
         return (context, builder) -> CommandSource.suggestMatching(new WorldFormat(context.getSource().getServer(),
-                FakePlayerSerial.PLAYER_DATA).toImmutableFileList().stream()
+                FakePlayerSerializer.PLAYER_DATA).toImmutableFileList().stream()
                 .filter(file -> file.getName().endsWith(IOUtils.JSON_EXTENSION))
                 .map(file -> IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION))
                 .map(StringArgumentType::escapeIfRequired), builder);
@@ -336,8 +336,8 @@ public class PlayerManagerCommand {
 
     // 列出每一个玩家
     private static int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
-        int count = FakePlayerSerial.list(context, worldFormat, filter);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
+        int count = FakePlayerSerializer.list(context, worldFormat, filter);
         if (count == 0) {
             // 没有玩家被列出
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
@@ -349,8 +349,8 @@ public class PlayerManagerCommand {
     // 保存假玩家数据
     private static int savePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerSerial fakePlayerSerial = new FakePlayerSerial(fakePlayer);
-        savePlayer(context, fakePlayerSerial, fakePlayer, resave);
+        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer);
+        savePlayer(context, fakePlayerSerializer, fakePlayer, resave);
         return 1;
     }
 
@@ -358,19 +358,19 @@ public class PlayerManagerCommand {
     private static int withAnnotationSavePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         String annotation = StringArgumentType.getString(context, "annotation");
-        FakePlayerSerial fakePlayerSerial = new FakePlayerSerial(fakePlayer, annotation);
-        return savePlayer(context, fakePlayerSerial, fakePlayer, resave);
+        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer, annotation);
+        return savePlayer(context, fakePlayerSerializer, fakePlayer, resave);
     }
 
     // 设置注释
     private static int setAnnotation(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         // 修改注释
         String annotation = remove ? null : StringArgumentType.getString(context, "annotation");
-        FakePlayerSerial serial;
+        FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerial(worldFormat, name);
+            serial = new FakePlayerSerializer(worldFormat, name);
             serial.setAnnotation(annotation);
             // 将玩家信息重新保存的本地文件
             serial.save(context, true);
@@ -392,12 +392,12 @@ public class PlayerManagerCommand {
 
     // 设置自动登录
     private static int setAutoLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         String name = StringArgumentType.getString(context, "name");
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
-        FakePlayerSerial serial;
+        FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerial(worldFormat, name);
+            serial = new FakePlayerSerializer(worldFormat, name);
             // 设置自动登录
             serial.setAutologin(autologin);
             serial.save(context, true);
@@ -416,9 +416,9 @@ public class PlayerManagerCommand {
     }
 
     // 保存玩家
-    private static int savePlayer(CommandContext<ServerCommandSource> context, FakePlayerSerial fakePlayerSerial, EntityPlayerMPFake fakePlayer, boolean resave) throws CommandSyntaxException {
+    private static int savePlayer(CommandContext<ServerCommandSource> context, FakePlayerSerializer fakePlayerSerializer, EntityPlayerMPFake fakePlayer, boolean resave) throws CommandSyntaxException {
         try {
-            int result = fakePlayerSerial.save(context, resave);
+            int result = fakePlayerSerializer.save(context, resave);
             if (result == 0) {
                 // 首次保存
                 MessageUtils.sendMessage(context.getSource(),
@@ -440,9 +440,9 @@ public class PlayerManagerCommand {
     // 生成假玩家
     private static int spawnPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         try {
-            FakePlayerSerial serial = new FakePlayerSerial(worldFormat, name);
+            FakePlayerSerializer serial = new FakePlayerSerializer(worldFormat, name);
             // 生成假玩家
             serial.spawn(context.getSource().getServer());
         } catch (FileNotFoundException e) {
@@ -456,7 +456,7 @@ public class PlayerManagerCommand {
 
     // 删除玩家信息
     private static int delete(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         String name = StringArgumentType.getString(context, "name");
         File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
         // 文件存在且文件删除成功
@@ -546,10 +546,10 @@ public class PlayerManagerCommand {
         MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
         if (optional.isEmpty()) {
             // 添加上线任务
-            WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerial.PLAYER_DATA);
-            FakePlayerSerial serial;
+            WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
+            FakePlayerSerializer serial;
             try {
-                serial = new FakePlayerSerial(worldFormat, name);
+                serial = new FakePlayerSerializer(worldFormat, name);
             } catch (IOException e) {
                 throw CommandUtils.createException("carpet.commands.playerManager.schedule.read_file");
             }

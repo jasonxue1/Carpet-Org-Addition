@@ -14,7 +14,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.FakePlayerActionSerializer;
+import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
 
-public class FakePlayerSerial {
+public class FakePlayerSerializer {
     public static final String PLAYER_DATA = "player_data";
     /**
      * 玩家名称
@@ -79,7 +79,7 @@ public class FakePlayerSerial {
      */
     private final FakePlayerActionSerializer autoAction;
 
-    public FakePlayerSerial(EntityPlayerMPFake fakePlayer) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.fakePlayerName = fakePlayer.getName().getString();
         this.playerPos = fakePlayer.getPos();
         this.yaw = fakePlayer.getYaw();
@@ -92,12 +92,12 @@ public class FakePlayerSerial {
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
     }
 
-    public FakePlayerSerial(EntityPlayerMPFake fakePlayer, String annotation) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String annotation) {
         this(fakePlayer);
         this.annotation.setAnnotation(annotation);
     }
 
-    public FakePlayerSerial(WorldFormat worldFormat, String name) throws IOException {
+    public FakePlayerSerializer(WorldFormat worldFormat, String name) throws IOException {
         JsonObject json = IOUtils.loadJson(worldFormat.file(name, IOUtils.JSON_EXTENSION));
         // 玩家名
         this.fakePlayerName = IOUtils.removeExtension(name, IOUtils.JSON_EXTENSION);
@@ -274,7 +274,7 @@ public class FakePlayerSerial {
         List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
         for (File file : jsonFileList) {
             try {
-                FakePlayerSerial serial = new FakePlayerSerial(worldFormat, file.getName());
+                FakePlayerSerializer serial = new FakePlayerSerializer(worldFormat, file.getName());
                 if (filter.test(serial.annotation.getAnnotation()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
                     eachPlayer(context, file, online, offline, serial);
                     count++;
@@ -286,7 +286,7 @@ public class FakePlayerSerial {
         return count;
     }
 
-    private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerial serial) {
+    private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
         // 添加快捷命令
         String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
         String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
@@ -314,19 +314,19 @@ public class FakePlayerSerial {
     }
 
     private static void tryAutoLogin(MinecraftServer server, ServerTaskManager manager) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
         List<File> files = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
         int count = server.getCurrentPlayerCount();
         for (File file : files) {
-            FakePlayerSerial fakePlayerSerial;
+            FakePlayerSerializer fakePlayerSerializer;
             try {
-                fakePlayerSerial = new FakePlayerSerial(worldFormat, file.getName());
+                fakePlayerSerializer = new FakePlayerSerializer(worldFormat, file.getName());
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION), e);
                 continue;
             }
-            if (fakePlayerSerial.autologin) {
-                manager.addTask(new DelayedLoginTask(server, fakePlayerSerial, 1));
+            if (fakePlayerSerializer.autologin) {
+                manager.addTask(new DelayedLoginTask(server, fakePlayerSerializer, 1));
                 count++;
                 // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                 if (count >= server.getMaxPlayerCount() - 1) {
