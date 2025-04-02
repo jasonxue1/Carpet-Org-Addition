@@ -18,11 +18,11 @@ public class FakePlayerActionManager {
     public void tick() {
         try {
             // 根据假玩家动作类型执行动作
-            this.action.tick();
+            this.action.execute();
         } catch (RuntimeException e) {
             // 将错误信息写入日志
             CarpetOrgAddition.LOGGER.error(
-                    "{}在执行动作“{}”时遇到意外错误:",
+                    "{}在执行“{}”时遇到意外错误:",
                     this.fakePlayer.getName().getString(),
                     this.getAction().getClass().getSimpleName(),
                     e
@@ -42,8 +42,8 @@ public class FakePlayerActionManager {
     // 从另一个玩家浅拷贝此动作管理器
     public void setActionFromOldPlayer(EntityPlayerMPFake oldPlayer) {
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(oldPlayer);
-        // TODO 数据拷贝问题
         this.setAction(actionManager.getAction());
+        this.action.setFakePlayer(this.fakePlayer);
     }
 
     @NotNull

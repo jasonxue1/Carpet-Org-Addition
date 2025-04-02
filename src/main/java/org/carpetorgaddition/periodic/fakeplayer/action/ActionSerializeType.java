@@ -70,12 +70,12 @@ public enum ActionSerializeType {
      * 在生存模式物品栏合成物品
      */
     INVENTORY_CRAFTING(json -> {
-        ItemStackPredicate[] itemStackPredicates = new ItemStackPredicate[4];
-        for (int i = 0; i < itemStackPredicates.length; i++) {
+        ItemStackPredicate[] predicates = new ItemStackPredicate[4];
+        for (int i = 0; i < predicates.length; i++) {
             String item = json.get(String.valueOf(i)).getAsString();
-            itemStackPredicates[i] = ItemStackPredicate.load(item);
+            predicates[i] = ItemStackPredicate.load(item);
         }
-        return new InventoryCraftingAction(null, itemStackPredicates);
+        return new InventoryCraftingAction(null, predicates);
     }),
     /**
      * 自动重命名物品
@@ -108,7 +108,7 @@ public enum ActionSerializeType {
     /**
      * 自动种植
      */
-    PLANTING(json -> new FishingAction(null)),
+    PLANTING(json -> new PlantingAction(null)),
     /**
      * 自动破基岩
      */

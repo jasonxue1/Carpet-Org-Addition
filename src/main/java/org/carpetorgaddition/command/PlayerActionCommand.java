@@ -91,7 +91,7 @@ public class PlayerActionCommand {
                                         .executes(PlayerActionCommand::useGuiSetStonecutting)))
                         .then(CommandManager.literal("fishing")
                                 .executes(PlayerActionCommand::setFishing))
-                        .then(CommandManager.literal("farm")
+                        .then(CommandManager.literal("planting")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .executes(PlayerActionCommand::setPlanting))
                         .then(CommandManager.literal("bedrock")

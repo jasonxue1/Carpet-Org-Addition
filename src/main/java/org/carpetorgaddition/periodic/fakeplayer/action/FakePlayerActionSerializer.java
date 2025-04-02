@@ -3,7 +3,6 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -23,12 +22,16 @@ public class FakePlayerActionSerializer {
 
     public FakePlayerActionSerializer(JsonObject json) {
         for (ActionSerializeType value : ActionSerializeType.values()) {
-            if (json.has(value.getSerializedName())) {
-                this.action = value.deserialize(json);
-                return;
+            String serializedName = value.getSerializedName();
+            if (json.has(serializedName)) {
+                AbstractPlayerAction deserialize = value.deserialize(json.getAsJsonObject(serializedName));
+                if (deserialize.isValid()) {
+                    this.action = deserialize;
+                    return;
+                }
+                break;
             }
         }
-        CarpetOrgAddition.LOGGER.warn("无效的玩家动作数据");
         this.action = StopAction.INSTANCE;
     }
 
@@ -36,7 +39,7 @@ public class FakePlayerActionSerializer {
      * 让假玩家开始执行动作
      */
     public void startAction(@NotNull EntityPlayerMPFake fakePlayer) {
-        if (this == NO_ACTION) {
+        if (this == NO_ACTION || this.action.isStop()) {
             return;
         }
         if (this.action.getFakePlayer() == null) {

@@ -3,6 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
+import org.carpetorgaddition.CarpetOrgAddition;
 
 import java.util.ArrayList;
 
@@ -11,6 +12,14 @@ public abstract class AbstractPlayerAction {
 
     public AbstractPlayerAction(EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
+    }
+
+    public final void execute() {
+        if (this.isValid()) {
+            this.tick();
+        } else {
+            throw new IllegalStateException();
+        }
     }
 
     /**
@@ -40,6 +49,13 @@ public abstract class AbstractPlayerAction {
      */
     public boolean isHidden() {
         return false;
+    }
+
+    public boolean isValid() {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            return true;
+        }
+        return !this.isHidden();
     }
 
     public boolean isStop() {

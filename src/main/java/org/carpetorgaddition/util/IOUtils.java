@@ -204,7 +204,7 @@ public class IOUtils {
 
     public static String removeExtension(String fileName) {
         int index = fileName.lastIndexOf(".");
-        return (index == -1 ? fileName : fileName.substring(0, index)).toUpperCase(Locale.ROOT);
+        return index == -1 ? fileName : fileName.substring(0, index);
     }
 
     public static String removeExtension(String fileName, String extension) {

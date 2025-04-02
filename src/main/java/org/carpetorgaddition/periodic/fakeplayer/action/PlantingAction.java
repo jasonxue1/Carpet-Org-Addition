@@ -355,6 +355,3 @@ public class PlantingAction extends AbstractPlayerAction {
         }
     }
 }
-
-
-
