@@ -46,8 +46,6 @@
   "carpet.rule.villagerHeal.desc": "村民每4秒回复1生命值",
   "carpet.rule.fakePlayerHeal.name": "假玩家回血",
   "carpet.rule.fakePlayerHeal.desc": "假玩家每2秒回复1生命值",
-  "carpet.rule.commandPlayerTools.name": "假玩家工具",
-  "carpet.rule.commandPlayerTools.desc": "启用/playerTools命令用来提供一些假玩家相关的辅助工具",
   "carpet.rule.maxBlockPlaceDistanceReferToEntity.name": "最大方块放置距离适用于实体",
   "carpet.rule.maxBlockPlaceDistanceReferToEntity.desc": "玩家可以选中最大方块交互距离内的实体",
   "carpet.rule.knockbackStick.name": "击退棒",

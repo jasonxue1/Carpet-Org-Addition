@@ -132,13 +132,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean fakePlayerHeal = false;
 
-    // 假玩家工具命令
-    @Rule(
-            categories = {ORG, RuleCategory.COMMAND},
-            options = {"true", "false", "ops", "0", "1", "2", "3", "4"}
-    )
-    public static String commandPlayerTools = "false";
-
     // 最大方块交互距离适用于实体
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean maxBlockPlaceDistanceReferToEntity = false;
