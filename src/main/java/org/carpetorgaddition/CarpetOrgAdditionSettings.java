@@ -156,13 +156,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.COMMAND})
     public static boolean openSeedPermissions = false;
 
-    // 发送消息命令
-    @Rule(
-            categories = {ORG, RuleCategory.COMMAND},
-            options = {"true", "false", "ops", "0", "1", "2", "3", "4"}
-    )
-    public static String commandSendMessage = "ops";
-
     // 开放/carpet命令权限
     @Rule(categories = {ORG, RuleCategory.COMMAND, RuleCategory.CLIENT})
     public static boolean openCarpetPermissions = false;

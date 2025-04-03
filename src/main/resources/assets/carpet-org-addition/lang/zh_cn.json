@@ -60,8 +60,6 @@
   "carpet.rule.CCEUpdateSuppression.extra.3": "可以用来制作更新抑制器的潜影盒被发射器放置时会移除自定义名称",
   "carpet.rule.openSeedPermissions.name": "开放/seed命令权限",
   "carpet.rule.openSeedPermissions.desc": "允许无权限玩家在服务器使用/seed命令",
-  "carpet.rule.commandSendMessage.name": "发送可复制文本",
-  "carpet.rule.commandSendMessage.desc": "启用/sendMessage命令发送一些可复制消息或链接",
   "carpet.rule.openCarpetPermissions.name": "开放/carpet命令权限",
   "carpet.rule.openCarpetPermissions.desc": "仅在单人游戏中有效，允许在无作弊的单人游戏中使用/carpet命令",
   "carpet.rule.openGameRulePermissions.name": "开放/gamerule命令权限",

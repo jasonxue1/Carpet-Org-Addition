@@ -13,10 +13,12 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
@@ -60,7 +62,9 @@ public class LocationsCommand {
                                 .suggests(suggestion())
                                 .executes(context -> setWayPoint(context, null))
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-                                        .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos")))))));
+                                        .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
+                .then(CommandManager.literal("here")
+                        .executes(LocationsCommand::sendSelfLocation)));
     }
 
     // 用来自动补全路径点名称
@@ -255,6 +259,27 @@ public class LocationsCommand {
         } catch (IOException | NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.locations.set.io", fileName);
         }
+        return 1;
+    }
+
+    //发送自己的位置
+    public static int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        BlockPos blockPos = player.getBlockPos();
+        MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
+            case "minecraft:overworld" -> TextUtils.translate("carpet.commands.sendMessage.location.overworld",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
+            case "minecraft:the_nether" -> TextUtils.translate("carpet.commands.sendMessage.location.the_nether",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
+            case "minecraft:the_end" -> TextUtils.translate("carpet.commands.sendMessage.location.the_end",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE));
+            default -> TextUtils.translate("carpet.commands.sendMessage.location.default",
+                    player.getDisplayName(), WorldUtils.getDimensionId(player.getWorld()),
+                    TextProvider.blockPos(blockPos, null));
+        };
+        MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
         return 1;
     }
 }

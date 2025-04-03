@@ -33,7 +33,6 @@
   "carpet.rule.CCEUpdateSuppression.extra.2": "If the rule value is a different string, the shulker box named that string can be used to make an update suppressor",
   "carpet.rule.CCEUpdateSuppression.extra.3": "Placing a shulker box for update suppression via dispenser removes its custom name",
   "carpet.rule.openSeedPermissions.desc": "Allow players without permission to use /seed command",
-  "carpet.rule.commandSendMessage.desc": "Enable /sendMessage command for sending copiable message or urls",
   "carpet.rule.openCarpetPermissions.desc": "Allow /carpet in command singleplayer game",
   "carpet.rule.openGameRulePermissions.desc": "Allow players without permission to use /gamerule command",
   "carpet.rule.openVillagerInventory.desc": "Allow to open villager inventory when sneaking",
