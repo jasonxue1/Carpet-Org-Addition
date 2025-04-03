@@ -8,6 +8,7 @@
     "command.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
+    "command.carpet.PlayerCommandMixin",
     "compat.fabricapi.AbstractChanneledNetworkAddonInvoker",
     "compat.fabricapi.AbstractNetworkAddonMixin",
     "debug.HandledScreenAccessor",

@@ -253,6 +253,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 发送每一条反馈
     private void sendEveryFeedback(Result result) {
+        // TODO 能找到名称的玩家单击复制玩家名，否则复制UUID
         // 获取玩家名，并添加UUID悬停提示
         String name = result.gameProfile.getName();
         String uuid = result.gameProfile().getId().toString();

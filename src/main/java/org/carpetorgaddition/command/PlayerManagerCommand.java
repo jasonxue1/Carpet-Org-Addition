@@ -489,7 +489,7 @@ public class PlayerManagerCommand {
                     throw CommandUtils.createException("argument.entity.notfound.player");
                 } else {
                     // 目标玩家不是假玩家
-                    CommandUtils.checkFakePlayer(player);
+                    CommandUtils.assertFakePlayer(player);
                 }
                 manager.addTask(new ReLoginTask(name, interval, server, player.getServerWorld().getRegistryKey(), context));
             } else {
