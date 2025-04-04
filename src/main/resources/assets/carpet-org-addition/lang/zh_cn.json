@@ -268,7 +268,7 @@
   "carpet.commands.itemshadowing.main_hand_is_empty": "主手为空",
   "carpet.commands.itemshadowing.off_hand_not_empty": "副手不为空",
   "carpet.commands.itemshadowing.broadcast": "%s制作了一个%s的物品分身",
-  "carpet.commands.killMe": "%s自杀了",
+  "carpet.commands.killMe.suicide": "%s残酷地结束了自己的生命",
   "carpet.commands.locations.text.overworld": "位于主世界: %s",
   "carpet.commands.locations.text.overworld_and_the_nether": "位于主世界: %s(下界: %s)",
   "carpet.commands.locations.text.the_nether": "位于下界: %s",

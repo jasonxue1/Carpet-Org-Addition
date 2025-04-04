@@ -20,6 +20,10 @@ public class CarpetOrgAdditionSettings {
      */
     public static final ThreadLocal<Boolean> shulkerBoxStackCountChanged = ThreadLocal.withInitial(() -> true);
     /**
+     * 玩家是否正在执行{@code /killMe}命令
+     */
+    public static final ThreadLocal<Boolean> committingSuicide = ThreadLocal.withInitial(() -> false);
+    /**
      * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
      */
     public static final ThreadLocal<ServerPlayerEntity> blockBreaking = new ThreadLocal<>();

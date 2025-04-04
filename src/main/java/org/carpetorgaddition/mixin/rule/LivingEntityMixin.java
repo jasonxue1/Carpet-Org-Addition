@@ -52,7 +52,6 @@ public abstract class LivingEntityMixin {
     }
 
     //禁用伤害免疫
-    @SuppressWarnings("UnresolvedMixinReference")
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
         if (CarpetOrgAdditionSettings.disableDamageImmunity) {

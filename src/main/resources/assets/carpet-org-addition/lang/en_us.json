@@ -182,7 +182,7 @@
   "carpet.commands.itemshadowing.main_hand_is_empty": "Main hand is empty",
   "carpet.commands.itemshadowing.off_hand_not_empty": "Offhand isn't empty",
   "carpet.commands.itemshadowing.broadcast": "%s has made a shadow item of %s",
-  "carpet.commands.killMe": "%s has killed itselves",
+  "carpet.commands.killMe.suicide": "%s brutally ended their own life",
   "carpet.commands.locations.text.overworld": "Overworld: %s",
   "carpet.commands.locations.text.overworld_and_the_nether": "Overworld: %s(Nether: %s)",
   "carpet.commands.locations.text.the_nether": "Nether: %s",
