@@ -12,7 +12,7 @@ public class FakePlayerActionSerializer {
     public static final FakePlayerActionSerializer NO_ACTION = new FakePlayerActionSerializer();
 
     private FakePlayerActionSerializer() {
-        this.action = StopAction.INSTANCE;
+        this.action = new StopAction(null);
     }
 
     public FakePlayerActionSerializer(EntityPlayerMPFake fakePlayer) {
@@ -24,7 +24,8 @@ public class FakePlayerActionSerializer {
         for (ActionSerializeType value : ActionSerializeType.values()) {
             String serializedName = value.getSerializedName();
             if (json.has(serializedName)) {
-                AbstractPlayerAction deserialize = value.deserialize(json.getAsJsonObject(serializedName));
+                JsonObject actionJson = json.getAsJsonObject(serializedName);
+                AbstractPlayerAction deserialize = value.deserialize(actionJson);
                 if (deserialize.isValid()) {
                     this.action = deserialize;
                     return;
@@ -32,7 +33,7 @@ public class FakePlayerActionSerializer {
                 break;
             }
         }
-        this.action = StopAction.INSTANCE;
+        this.action = new StopAction(null);
     }
 
     /**
@@ -67,7 +68,7 @@ public class FakePlayerActionSerializer {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         if (this.action.isHidden()) {
-            StopAction stopAction = StopAction.INSTANCE;
+            StopAction stopAction = new StopAction(null);
             json.add(stopAction.getActionSerializeType().getSerializedName(), stopAction.toJson());
         } else {
             json.add(this.action.getActionSerializeType().getSerializedName(), this.action.toJson());

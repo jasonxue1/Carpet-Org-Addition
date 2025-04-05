@@ -3,39 +3,28 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
 import java.util.ArrayList;
 
-public class CleanContainerAction extends AbstractPlayerAction {
+public class EmptyTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
-    public static final String ALL_ITEM = "allItem";
-    /**
-     * 要从潜影盒中丢出的物品
-     */
-    private final Item item;
-    /**
-     * 是否忽略{@link CleanContainerAction#item}，并清空潜影盒内的所有物品
-     */
-    private final boolean allItem;
+    private final ItemStackPredicate predicate;
 
-    public CleanContainerAction(EntityPlayerMPFake fakePlayer, Item item, boolean allItem) {
+    public EmptyTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate) {
         super(fakePlayer);
-        this.item = item;
-        this.allItem = allItem;
+        this.predicate = ItemStackPredicate.ofNotEmpty(predicate);
     }
 
     @Override
     public void tick() {
-        Item item = this.allItem ? null : this.item;
         ScreenHandler screenHandler = fakePlayer.currentScreenHandler;
         if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
             return;
@@ -50,7 +39,7 @@ public class CleanContainerAction extends AbstractPlayerAction {
             if (itemStack.isEmpty() || FakePlayerUtils.isGcaItem(itemStack)) {
                 continue;
             }
-            if (this.allItem || itemStack.isOf(item)) {
+            if (this.predicate.test(itemStack)) {
                 // 丢弃一组物品
                 FakePlayerUtils.throwItem(screenHandler, index, fakePlayer);
             }
@@ -62,29 +51,16 @@ public class CleanContainerAction extends AbstractPlayerAction {
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        if (this.item != null) {
-            // 要清空的物品
-            json.addProperty(ITEM, Registries.ITEM.getId(this.item).toString());
-        }
-        json.addProperty(ALL_ITEM, this.allItem);
+        json.addProperty(ITEM, this.predicate.toString());
         return json;
     }
 
     @Override
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
-        if (this.allItem) {
-            // 将玩家清空潜影盒的信息添加到集合
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.clean.item",
-                    this.fakePlayer.getDisplayName(),
-                    Items.SHULKER_BOX.getName()));
-        } else {
-            // 将玩家清空潜影盒的信息添加到集合
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.clean.designated_item",
-                    this.fakePlayer.getDisplayName(),
-                    Items.SHULKER_BOX.getName(),
-                    this.item.getName()));
-        }
+        Text text = this.predicate.toText();
+        Text playerName = this.fakePlayer.getDisplayName();
+        list.add(TextUtils.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
         return list;
     }
 
@@ -95,6 +71,6 @@ public class CleanContainerAction extends AbstractPlayerAction {
 
     @Override
     public ActionSerializeType getActionSerializeType() {
-        return ActionSerializeType.CLEAN;
+        return ActionSerializeType.EMPTY_THE_CONTAINER;
     }
 }

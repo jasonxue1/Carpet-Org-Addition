@@ -83,14 +83,14 @@ public class FakePlayerUtils {
      * 让假玩家停止当前的操作
      *
      * @param source       用来获取玩家管理器对象，然后通过玩家管理器发送消息，source本身不需要发送消息
-     * @param playerMPFake 要停止操作的假玩家
+     * @param fakePlayer 要停止操作的假玩家
      * @param key          停止操作时在聊天栏输出的内容的翻译键
      */
-    public static void stopAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake, String key, Object... obj) {
-        GenericFetcherUtils.getFakePlayerActionManager(playerMPFake).setAction(StopAction.INSTANCE);
+    public static void stopAction(ServerCommandSource source, EntityPlayerMPFake fakePlayer, String key, Object... obj) {
+        GenericFetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(
                 source.getServer(),
-                TextUtils.appendAll(playerMPFake.getDisplayName(), ": ", TextUtils.translate(key, obj))
+                TextUtils.appendAll(fakePlayer.getDisplayName(), ": ", TextUtils.translate(key, obj))
         );
     }
 

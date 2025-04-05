@@ -9,10 +9,11 @@ import org.jetbrains.annotations.NotNull;
 public class FakePlayerActionManager {
     private final EntityPlayerMPFake fakePlayer;
     @NotNull
-    private AbstractPlayerAction action = StopAction.INSTANCE;
+    private AbstractPlayerAction action;
 
     public FakePlayerActionManager(EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
+        this.action = new StopAction(this.fakePlayer);
     }
 
     public void tick() {
@@ -56,6 +57,6 @@ public class FakePlayerActionManager {
     }
 
     public void stop() {
-        this.setAction(StopAction.INSTANCE);
+        this.setAction(new StopAction(this.fakePlayer));
     }
 }

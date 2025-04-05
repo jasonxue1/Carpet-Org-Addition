@@ -34,41 +34,41 @@ import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import java.util.Arrays;
 
 public class PlayerActionCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         dispatcher.register(CommandManager.literal("playerAction")
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .then(CommandManager.literal("sorting")
-                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(commandRegistryAccess))
+                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
                                         .then(CommandManager.argument("this", Vec3ArgumentType.vec3())
                                                 .then(CommandManager.argument("other", Vec3ArgumentType.vec3())
                                                         .executes(PlayerActionCommand::setSorting)))))
                         .then(CommandManager.literal("clean")
-                                .executes(context -> setClean(context, true))
-                                .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(commandRegistryAccess))
-                                        .executes(context -> setClean(context, false))))
+                                .executes(context -> setEmptyTheContainer(context, true))
+                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
+                                        .executes(context -> setEmptyTheContainer(context, false))))
                         .then(CommandManager.literal("fill")
-                                .executes(context -> setFill(context, true, true))
-                                .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(commandRegistryAccess))
-                                        .executes(context -> setFill(context, false, true))
+                                .executes(context -> setFillTheContainer(context, true, true))
+                                .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(access))
+                                        .executes(context -> setFillTheContainer(context, false, true))
                                         .then(CommandManager.argument(FillContainerAction.DROP_OTHER, BoolArgumentType.bool())
-                                                .executes(context -> setFill(context, false, BoolArgumentType.getBool(context, FillContainerAction.DROP_OTHER))))))
+                                                .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillContainerAction.DROP_OTHER))))))
                         .then(CommandManager.literal("stop")
                                 .executes(PlayerActionCommand::setStop))
                         .then(CommandManager.literal("craft")
                                 .then(CommandManager.literal("one")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
                                                 .executes(PlayerActionCommand::setOneCraft)))
                                 .then(CommandManager.literal("nine")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
                                                 .executes(PlayerActionCommand::setNineCraft)))
                                 .then(CommandManager.literal("four")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
                                                 .executes(PlayerActionCommand::setFourCraft)))
                                 .then(CommandManager.literal("crafting_table")
-                                        .then(registerItemPredicateNode(9, commandRegistryAccess, PlayerActionCommand::setCraftingTableCraft)))
+                                        .then(registerItemPredicateNode(9, access, PlayerActionCommand::setCraftingTableCraft)))
                                 .then(CommandManager.literal("inventory")
-                                        .then(registerItemPredicateNode(4, commandRegistryAccess, PlayerActionCommand::setInventoryCraft)))
+                                        .then(registerItemPredicateNode(4, access, PlayerActionCommand::setInventoryCraft)))
                                 .then(CommandManager.literal("gui")
                                         .executes(PlayerActionCommand::openFakePlayerCraftGui)))
                         .then(CommandManager.literal("trade")
@@ -79,12 +79,12 @@ public class PlayerActionCommand {
                         .then(CommandManager.literal("info")
                                 .executes(PlayerActionCommand::getAction))
                         .then(CommandManager.literal("rename")
-                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(commandRegistryAccess))
+                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
                                         .then(CommandManager.argument("name", StringArgumentType.string())
                                                 .executes(PlayerActionCommand::setRename))))
                         .then(CommandManager.literal("stonecutting")
                                 .then(CommandManager.literal("item")
-                                        .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(commandRegistryAccess))
+                                        .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
                                                 .then(CommandManager.argument("button", IntegerArgumentType.integer(1))
                                                         .executes(PlayerActionCommand::setStonecutting))))
                                 .then(CommandManager.literal("gui")
@@ -140,22 +140,17 @@ public class PlayerActionCommand {
         return 1;
     }
 
-    // 设置清空潜影盒
-    private static int setClean(CommandContext<ServerCommandSource> context, boolean allItem) throws CommandSyntaxException {
+    // 设置清空容器
+    private static int setEmptyTheContainer(CommandContext<ServerCommandSource> context, boolean allItem) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-        if (allItem) {
-            // 设置清空潜影盒内的所有物品，不需要获取Item对象
-            actionManager.setAction(new CleanContainerAction(fakePlayer, null, true));
-        } else {
-            Item item = ItemStackArgumentType.getItemStackArgument(context, "filter").getItem();
-            actionManager.setAction(new CleanContainerAction(fakePlayer, item, false));
-        }
+        ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
+        actionManager.setAction(new EmptyTheContainerAction(fakePlayer, predicate));
         return 1;
     }
 
-    // 设置填充潜影盒
-    private static int setFill(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
+    // 设置填充容器
+    private static int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         Item item = allItem ? null : ItemStackArgumentType.getItemStackArgument(context, "filter").getItem();
@@ -315,7 +310,11 @@ public class PlayerActionCommand {
     private static int getAction(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-        MessageUtils.sendListMessage(context.getSource(), actionManager.getAction().info());
+        AbstractPlayerAction action = actionManager.getAction();
+        if (action.getFakePlayer() == null) {
+            action.setFakePlayer(fakePlayer);
+        }
+        MessageUtils.sendListMessage(context.getSource(), action.info());
         return 1;
     }
 

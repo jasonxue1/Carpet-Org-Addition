@@ -370,7 +370,7 @@ public class PlayerManagerCommand {
         String annotation = remove ? null : StringArgumentType.getString(context, "annotation");
         FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerializer(worldFormat, name);
+            serial = FakePlayerSerializer.factory(worldFormat, name);
             serial.setAnnotation(annotation);
             // 将玩家信息重新保存的本地文件
             serial.save(context, true);
@@ -397,7 +397,7 @@ public class PlayerManagerCommand {
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
         FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerializer(worldFormat, name);
+            serial = FakePlayerSerializer.factory(worldFormat, name);
             // 设置自动登录
             serial.setAutologin(autologin);
             serial.save(context, true);
@@ -442,7 +442,7 @@ public class PlayerManagerCommand {
         String name = StringArgumentType.getString(context, "name");
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         try {
-            FakePlayerSerializer serial = new FakePlayerSerializer(worldFormat, name);
+            FakePlayerSerializer serial = FakePlayerSerializer.factory(worldFormat, name);
             // 生成假玩家
             serial.spawn(context.getSource().getServer());
         } catch (FileNotFoundException e) {
@@ -549,7 +549,7 @@ public class PlayerManagerCommand {
             WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
             FakePlayerSerializer serial;
             try {
-                serial = new FakePlayerSerializer(worldFormat, name);
+                serial = FakePlayerSerializer.factory(worldFormat, name);
             } catch (IOException e) {
                 throw CommandUtils.createException("carpet.commands.playerManager.schedule.read_file");
             }

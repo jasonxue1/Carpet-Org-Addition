@@ -38,6 +38,10 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     private final Predicate<ItemStack> predicate;
     private final String input;
     public static final ItemStackPredicate EMPTY = new ItemStackPredicate(Items.AIR);
+    /**
+     * 匹配任何非空气物品
+     */
+    public static final ItemStackPredicate WILDCARD = new ItemStackPredicate(itemStack -> !itemStack.isEmpty(), "*");
 
     public ItemStackPredicate(CommandContext<ServerCommandSource> context, String arguments) {
         for (ParsedCommandNode<ServerCommandSource> commandNode : context.getNodes()) {
@@ -87,6 +91,13 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         } catch (CommandSyntaxException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static ItemStackPredicate ofNotEmpty(ItemStackPredicate predicate) {
+        if (predicate.input.equals("*")) {
+            return WILDCARD;
+        }
+        return new ItemStackPredicate(itemStack -> !itemStack.isEmpty() && predicate.test(itemStack), predicate.input);
     }
 
     /**

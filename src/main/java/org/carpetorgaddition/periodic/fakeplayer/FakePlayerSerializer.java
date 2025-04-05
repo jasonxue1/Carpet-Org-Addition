@@ -13,6 +13,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.dataupdate.FakePlayerSerializeDataUpdater;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
@@ -33,6 +35,7 @@ import java.util.function.Predicate;
 
 public class FakePlayerSerializer {
     public static final String PLAYER_DATA = "player_data";
+    public static final String SCRIPT_ACTION = "script_action";
     /**
      * 玩家名称
      */
@@ -53,6 +56,9 @@ public class FakePlayerSerializer {
      * 俯仰角
      */
     private final float pitch;
+    /**
+     * 维度
+     */
     private final String dimension;
     /**
      * 游戏模式
@@ -97,10 +103,9 @@ public class FakePlayerSerializer {
         this.annotation.setAnnotation(annotation);
     }
 
-    public FakePlayerSerializer(WorldFormat worldFormat, String name) throws IOException {
-        JsonObject json = IOUtils.loadJson(worldFormat.file(name, IOUtils.JSON_EXTENSION));
+    private FakePlayerSerializer(JsonObject json, String fakePlayerName) {
         // 玩家名
-        this.fakePlayerName = IOUtils.removeExtension(name, IOUtils.JSON_EXTENSION);
+        this.fakePlayerName = fakePlayerName;
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3d(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -127,11 +132,31 @@ public class FakePlayerSerializer {
             this.interactiveAction = EntityPlayerActionPackSerial.NO_ACTION;
         }
         // 假玩家动作，自动合成自动交易等
-        if (json.has("script_action")) {
-            this.autoAction = new FakePlayerActionSerializer(json.get("script_action").getAsJsonObject());
+        if (json.has(SCRIPT_ACTION)) {
+            JsonObject scriptJson = json.get(SCRIPT_ACTION).getAsJsonObject();
+            this.autoAction = new FakePlayerActionSerializer(scriptJson);
         } else {
             this.autoAction = FakePlayerActionSerializer.NO_ACTION;
         }
+    }
+
+    public static FakePlayerSerializer factory(WorldFormat worldFormat, String nameOrFileName) throws IOException {
+        JsonObject json = IOUtils.loadJson(worldFormat.file(nameOrFileName, IOUtils.JSON_EXTENSION));
+        int version = DataUpdater.getVersion(json);
+        if (version != DataUpdater.VERSION) {
+            // 更新数据版本
+            // TODO 构建前移除测试代码
+            if (CarpetOrgAddition.IS_DEBUG) {
+                System.out.println(IOUtils.GSON.toJson(json));
+            }
+            FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
+            dataUpdater.update(json, version);
+            if (CarpetOrgAddition.IS_DEBUG) {
+                System.out.println(IOUtils.GSON.toJson(json));
+            }
+        }
+        String fakePlayerName = IOUtils.removeExtension(nameOrFileName, IOUtils.JSON_EXTENSION);
+        return new FakePlayerSerializer(json, fakePlayerName);
     }
 
     /**
@@ -214,6 +239,7 @@ public class FakePlayerSerializer {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
+        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
         // 玩家位置
         JsonObject pos = new JsonObject();
         pos.addProperty("x", this.playerPos.x);
@@ -240,7 +266,7 @@ public class FakePlayerSerializer {
         // 添加左键右键动作
         json.add("hand_action", interactiveAction.toJson());
         // 添加玩家动作
-        json.add("script_action", this.autoAction.toJson());
+        json.add(SCRIPT_ACTION, this.autoAction.toJson());
         return json;
     }
 
@@ -274,7 +300,7 @@ public class FakePlayerSerializer {
         List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
         for (File file : jsonFileList) {
             try {
-                FakePlayerSerializer serial = new FakePlayerSerializer(worldFormat, file.getName());
+                FakePlayerSerializer serial = factory(worldFormat, file.getName());
                 if (filter.test(serial.annotation.getAnnotation()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
                     eachPlayer(context, file, online, offline, serial);
                     count++;
@@ -320,7 +346,7 @@ public class FakePlayerSerializer {
         for (File file : files) {
             FakePlayerSerializer fakePlayerSerializer;
             try {
-                fakePlayerSerializer = new FakePlayerSerializer(worldFormat, file.getName());
+                fakePlayerSerializer = factory(worldFormat, file.getName());
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION), e);
                 continue;

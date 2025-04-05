@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 
 public final class StopAction extends AbstractPlayerAction {
+    @Deprecated(forRemoval = true)
     public static final StopAction INSTANCE = new StopAction(null);
 
     public StopAction(@Nullable EntityPlayerMPFake fakePlayer) {
@@ -24,13 +25,18 @@ public final class StopAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         // 直接将假玩家没有任何动作的信息加入集合然后返回
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.stop", fakePlayer.getDisplayName()));
+        list.add(TextUtils.translate("carpet.commands.playerAction.info.stop", this.fakePlayer.getDisplayName()));
         return list;
     }
 
     @Override
     public JsonObject toJson() {
         return new JsonObject();
+    }
+
+    @Override
+    public boolean isStop() {
+        return true;
     }
 
     @Override

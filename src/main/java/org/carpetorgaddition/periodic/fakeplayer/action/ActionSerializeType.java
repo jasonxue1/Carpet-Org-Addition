@@ -14,7 +14,7 @@ public enum ActionSerializeType {
     /**
      * 停止操作
      */
-    STOP(json -> StopAction.INSTANCE),
+    STOP(json -> new StopAction(null)),
     /**
      * 物品分拣
      */
@@ -38,13 +38,10 @@ public enum ActionSerializeType {
     /**
      * 清空潜影盒
      */
-    CLEAN(json -> {
-        boolean allItem = json.get(CleanContainerAction.ALL_ITEM).getAsBoolean();
-        if (allItem) {
-            return new CleanContainerAction(null, null, true);
-        }
-        Item item = ItemStackPredicate.stringAsItem(json.get(CleanContainerAction.ITEM).getAsString());
-        return new CleanContainerAction(null, item, false);
+    EMPTY_THE_CONTAINER(json -> {
+        String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
+        ItemStackPredicate predicate = ItemStackPredicate.load(item);
+        return new EmptyTheContainerAction(null, predicate);
     }),
     /**
      * 填充潜影盒

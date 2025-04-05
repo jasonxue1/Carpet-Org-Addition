@@ -86,7 +86,7 @@ jar {
 }
 
 runClient {
-   // jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
+    jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
 }
 
 loom {
