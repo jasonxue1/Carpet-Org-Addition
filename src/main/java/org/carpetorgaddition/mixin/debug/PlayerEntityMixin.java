@@ -20,10 +20,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class PlayerEntityMixin {
     @Inject(method = "interact", at = @At("HEAD"), cancellable = true)
     private void openInventory(Entity entity, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+        if (hand == Hand.OFF_HAND) {
+            return;
+        }
         ProductionEnvironmentError.assertDevelopmentEnvironment();
         if (DebugSettings.openFakePlayerInventory && entity instanceof EntityPlayerMPFake fakePlayer) {
             ServerCommandSource source = ((PlayerEntity) (Object) this).getCommandSource();
-            CommandUtils.execute(source, "playerTools %s inventory".formatted(fakePlayer.getName().getString()));
+            // TODO 提取字符串
+            CommandUtils.execute(source, "player %s inventory".formatted(fakePlayer.getName().getString()));
             cir.setReturnValue(ActionResult.SUCCESS);
         }
     }
