@@ -5,7 +5,7 @@
   "carpet.rule.setBedrockHardness.desc": "Set the hardness of bedrock",
   "carpet.rule.bindingCurseInvalidation.desc": "Enable player to take off armors with binding curse enchantments",
   "carpet.rule.disableOpenOrWaterDetection.desc": "Disable detection of open water in fishing, thus allowing fishing for treasures in any water",
-  "carpet.rule.creativeImmuneKill.desc": "Make player in creative mode immune to /kill command",
+  "carpet.rule.creativeImmuneKill.desc": "When enabled, this will prevent the /kill command from targeting players in Creative Mode or Spectator Mode",
   "carpet.rule.flyingUseOnBlockFirework.desc": "Limit fire rocket only to be used when flying",
   "carpet.rule.staringEndermanNotAngry.desc": "Disable enderman getting angry when player stares at them",
   "carpet.rule.farmlandPreventStepping.desc": "Prevent farmland from being trampled",

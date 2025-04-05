@@ -39,6 +39,7 @@
     "rule.FishingMixin",
     "rule.GameRuleCommandMixin",
     "rule.ItemMixin",
+    "rule.KillCommandMixin",
     "rule.LivingEntityMixin",
     "rule.MerchantScreenHandlerAccessor",
     "rule.NetworkThreadUtilsMixin",

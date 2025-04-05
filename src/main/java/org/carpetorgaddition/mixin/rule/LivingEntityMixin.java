@@ -38,19 +38,6 @@ public abstract class LivingEntityMixin {
     @Nullable
     protected abstract Map<EquipmentSlot, ItemStack> getEquipmentChanges();
 
-    //创造玩家免疫/kill
-    @Inject(method = "kill", at = @At("HEAD"), cancellable = true)
-    private void kill(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.creativeImmuneKill) {
-            LivingEntity livingEntity = (LivingEntity) (Object) this;
-            if (livingEntity instanceof PlayerEntity player) {
-                if (player.isCreative()) {
-                    ci.cancel();
-                }
-            }
-        }
-    }
-
     //禁用伤害免疫
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {

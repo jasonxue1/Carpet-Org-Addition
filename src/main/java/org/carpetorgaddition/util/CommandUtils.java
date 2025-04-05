@@ -74,6 +74,13 @@ public class CommandUtils {
     }
 
     /**
+     * @return 未找到实体
+     */
+    public static CommandSyntaxException createEntityNotFoundException() {
+        return EntityArgumentType.ENTITY_NOT_FOUND_EXCEPTION.create();
+    }
+
+    /**
      * @return 未找到玩家
      */
     public static CommandSyntaxException createPlayerNotFoundException() {

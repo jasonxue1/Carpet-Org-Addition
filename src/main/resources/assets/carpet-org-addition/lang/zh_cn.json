@@ -10,7 +10,7 @@
   "carpet.rule.disableOpenOrWaterDetection.name": "禁用钓鱼开放水域检测",
   "carpet.rule.disableOpenOrWaterDetection.desc": "玩家可以在封闭水域钓鱼并获得宝藏",
   "carpet.rule.creativeImmuneKill.name": "创造玩家免疫/kill",
-  "carpet.rule.creativeImmuneKill.desc": "创造模式的玩家不会被/kill命令杀死",
+  "carpet.rule.creativeImmuneKill.desc": "启用后会阻止/kill命令选中创造和旁观模式的玩家",
   "carpet.rule.flyingUseOnBlockFirework.name": "滑翔时不能在方块上使用烟花",
   "carpet.rule.flyingUseOnBlockFirework.desc": "烟花火箭只能用来飞行",
   "carpet.rule.staringEndermanNotAngry.name": "注视末影人眼睛时不激怒末影人",

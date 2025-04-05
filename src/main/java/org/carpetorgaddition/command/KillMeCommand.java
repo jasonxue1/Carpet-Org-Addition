@@ -10,7 +10,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 
-//自杀命令
+// 自杀命令
 public class KillMeCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("killMe")
@@ -18,7 +18,7 @@ public class KillMeCommand {
                 .executes(KillMeCommand::killMe));
     }
 
-    //玩家自杀
+    // 玩家自杀
     private static int killMe(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
