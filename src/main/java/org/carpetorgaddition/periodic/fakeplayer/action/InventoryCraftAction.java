@@ -18,13 +18,13 @@ import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
-public class InventoryCraftingAction extends AbstractPlayerAction {
+public class InventoryCraftAction extends AbstractPlayerAction {
     /**
      * 物品合成所使用的物品栏
      */
     private final ItemStackPredicate[] predicates = new ItemStackPredicate[4];
 
-    public InventoryCraftingAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate[] predicates) {
+    public InventoryCraftAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate[] predicates) {
         super(fakePlayer);
         if (predicates.length != 4) {
             throw new IllegalArgumentException();
@@ -205,6 +205,6 @@ public class InventoryCraftingAction extends AbstractPlayerAction {
 
     @Override
     public ActionSerializeType getActionSerializeType() {
-        return ActionSerializeType.INVENTORY_CRAFTING;
+        return ActionSerializeType.INVENTORY_CRAFT;
     }
 }

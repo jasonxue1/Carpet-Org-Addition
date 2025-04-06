@@ -39,17 +39,17 @@ public class PlayerActionCommand {
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .then(CommandManager.literal("sorting")
-                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
+                                .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
                                         .then(CommandManager.argument("this", Vec3ArgumentType.vec3())
                                                 .then(CommandManager.argument("other", Vec3ArgumentType.vec3())
-                                                        .executes(PlayerActionCommand::setSorting)))))
+                                                        .executes(PlayerActionCommand::setCategorize)))))
                         .then(CommandManager.literal("clean")
                                 .executes(context -> setEmptyTheContainer(context, true))
                                 .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
                                         .executes(context -> setEmptyTheContainer(context, false))))
                         .then(CommandManager.literal("fill")
                                 .executes(context -> setFillTheContainer(context, true, true))
-                                .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(access))
+                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
                                         .executes(context -> setFillTheContainer(context, false, true))
                                         .then(CommandManager.argument(FillTheContainerAction.DROP_OTHER, BoolArgumentType.bool())
                                                 .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER))))))
@@ -93,7 +93,7 @@ public class PlayerActionCommand {
                                 .executes(PlayerActionCommand::setFishing))
                         .then(CommandManager.literal("planting")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                                .executes(PlayerActionCommand::setPlanting))
+                                .executes(PlayerActionCommand::setPlant))
                         .then(CommandManager.literal("bedrock")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
@@ -127,16 +127,16 @@ public class PlayerActionCommand {
     }
 
     // 设置物品分拣
-    private static int setSorting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int setCategorize(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-        //获取要分拣的物品对象
-        Item item = ItemStackArgumentType.getItemStackArgument(context, "item").getItem();
-        //获取分拣物品要丢出的方向
+        // 获取要分拣的物品对象
+        ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
+        // 获取分拣物品要丢出的方向
         Vec3d thisVec = Vec3ArgumentType.getVec3(context, "this");
-        //获取非分拣物品要丢出的方向
+        // 获取非分拣物品要丢出的方向
         Vec3d otherVec = Vec3ArgumentType.getVec3(context, "other");
-        actionManager.setAction(new ItemSortingAction(fakePlayer, item, thisVec, otherVec));
+        actionManager.setAction(new ItemCategorizeAction(fakePlayer, predicate, thisVec, otherVec));
         return 1;
     }
 
@@ -164,7 +164,7 @@ public class PlayerActionCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], false);
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
-        actionManager.setAction(new InventoryCraftingAction(fakePlayer, predicates));
+        actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
 
@@ -174,7 +174,7 @@ public class PlayerActionCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], true);
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
-        actionManager.setAction(new InventoryCraftingAction(fakePlayer, predicates));
+        actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
 
@@ -187,7 +187,7 @@ public class PlayerActionCommand {
             // 获取每一个合成材料
             items[i - 1] = new ItemStackPredicate(context, "item" + i);
         }
-        actionManager.setAction(new InventoryCraftingAction(fakePlayer, items));
+        actionManager.setAction(new InventoryCraftAction(fakePlayer, items));
         return 1;
     }
 
@@ -197,7 +197,7 @@ public class PlayerActionCommand {
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[9], true);
-        actionManager.setAction(new CraftingTableCraftingAction(fakePlayer, predicates));
+        actionManager.setAction(new CraftingTableCraftAction(fakePlayer, predicates));
         return 1;
     }
 
@@ -209,7 +209,7 @@ public class PlayerActionCommand {
         for (int i = 1; i <= 9; i++) {
             items[i - 1] = new ItemStackPredicate(context, "item" + i);
         }
-        actionManager.setAction(new CraftingTableCraftingAction(fakePlayer, items));
+        actionManager.setAction(new CraftingTableCraftAction(fakePlayer, items));
         return 1;
     }
 
@@ -266,11 +266,11 @@ public class PlayerActionCommand {
     }
 
     // 设置自动种植
-    private static int setPlanting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int setPlant(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-            actionManager.setAction(new PlantingAction(fakePlayer));
+            actionManager.setAction(new PlantAction(fakePlayer));
             return 1;
         }
         return 0;

@@ -38,9 +38,12 @@ public class FakePlayerActionDataUpdater implements DataUpdater {
             return switch (key) {
                 case "clean" -> new Pair<>("empty_the_container", new EmptyTheContainerActionDataUpdater());
                 case "fill" -> new Pair<>("fill_the_container", new FillTheContainerActionDataUpdater());
-                default -> new Pair<>(key, DataUpdater.EMPTY);
+                case "inventory_crafting" -> new Pair<>("inventory_craft", DataUpdater.UNCHANGED);
+                case "sorting" -> new Pair<>("categorize", DataUpdater.UNCHANGED);
+                case "planting" -> new Pair<>("plant", DataUpdater.UNCHANGED);
+                default -> new Pair<>(key, DataUpdater.UNCHANGED);
             };
         }
-        return new Pair<>(key, DataUpdater.EMPTY);
+        return new Pair<>(key, DataUpdater.UNCHANGED);
     }
 }

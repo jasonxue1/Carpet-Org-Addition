@@ -10,9 +10,9 @@ import net.minecraft.screen.CraftingScreenHandler;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.slot.SlotActionType;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerCraftRecipeInterface;
+import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
-import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftingAction;
-import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftingAction;
+import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
@@ -77,7 +77,7 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
             for (int i = 0; i < predicates.length; i++) {
                 predicates[i] = new ItemStackPredicate(items[i]);
             }
-            actionManager.setAction(new CraftingTableCraftingAction(this.fakePlayer, predicates));
+            actionManager.setAction(new CraftingTableCraftAction(this.fakePlayer, predicates));
         }
     }
 
@@ -93,13 +93,13 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     }
 
     // 创建合成数据
-    private InventoryCraftingAction createData(Item[] items, int... indices) {
+    private InventoryCraftAction createData(Item[] items, int... indices) {
         ItemStackPredicate[] predicates = new ItemStackPredicate[4];
         // 这里的index并不是indices里保存的元素
         for (int index = 0; index < 4; index++) {
             predicates[index] = new ItemStackPredicate(items[indices[index]]);
         }
-        return new InventoryCraftingAction(this.fakePlayer, predicates);
+        return new InventoryCraftAction(this.fakePlayer, predicates);
     }
 
     @Override

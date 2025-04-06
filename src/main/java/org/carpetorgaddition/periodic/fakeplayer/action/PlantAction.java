@@ -30,13 +30,13 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
-public class PlantingAction extends AbstractPlayerAction {
+public class PlantAction extends AbstractPlayerAction {
     /**
      * 当前正在采集的农作物
      */
     private BlockPos cropPos;
 
-    public PlantingAction(EntityPlayerMPFake fakePlayer) {
+    public PlantAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
     }
 
@@ -314,7 +314,7 @@ public class PlantingAction extends AbstractPlayerAction {
 
     @Override
     public ActionSerializeType getActionSerializeType() {
-        return ActionSerializeType.PLANTING;
+        return ActionSerializeType.PLANT;
     }
 
     @Override

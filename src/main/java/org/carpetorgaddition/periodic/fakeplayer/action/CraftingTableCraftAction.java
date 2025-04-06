@@ -19,13 +19,13 @@ import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
-public class CraftingTableCraftingAction extends AbstractPlayerAction {
+public class CraftingTableCraftAction extends AbstractPlayerAction {
     /**
      * 合成配方
      */
     private final ItemStackPredicate[] predicates = new ItemStackPredicate[9];
 
-    public CraftingTableCraftingAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate[] predicates) {
+    public CraftingTableCraftAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate[] predicates) {
         super(fakePlayer);
         if (predicates.length != 9) {
             throw new IllegalArgumentException();

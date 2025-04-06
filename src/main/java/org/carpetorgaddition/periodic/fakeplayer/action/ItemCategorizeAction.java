@@ -5,9 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
@@ -15,17 +13,18 @@ import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
 import java.util.ArrayList;
 
-public class ItemSortingAction extends AbstractPlayerAction {
+public class ItemCategorizeAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
     public static final String THIS_VEC = "thisVec";
     public static final String OTHER_VEC = "otherVec";
     /**
      * 要分拣的物品
      */
-    private final Item item;
+    private final ItemStackPredicate predicate;
     /**
      * 如果当前物品是要分拣的物品，则将该物品向这个方向丢出
      */
@@ -35,9 +34,9 @@ public class ItemSortingAction extends AbstractPlayerAction {
      */
     private final Vec3d otherVec;
 
-    public ItemSortingAction(EntityPlayerMPFake fakePlayer, Item item, Vec3d thisVec, Vec3d otherVec) {
+    public ItemCategorizeAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate, Vec3d thisVec, Vec3d otherVec) {
         super(fakePlayer);
-        this.item = item;
+        this.predicate = predicate;
         this.thisVec = thisVec;
         this.otherVec = otherVec;
     }
@@ -54,7 +53,7 @@ public class ItemSortingAction extends AbstractPlayerAction {
                 continue;
             }
             //如果是要分拣的物品，就转向一边，否则转身向另一边
-            if (itemStack.getItem() == item) {
+            if (this.predicate.test(itemStack)) {
                 this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, thisVec);
             } else {
                 //丢弃潜影盒内的物品
@@ -99,7 +98,7 @@ public class ItemSortingAction extends AbstractPlayerAction {
                     break;
                 }
                 // 根据当前物品设置朝向
-                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, itemStack.isOf(item) ? this.thisVec : this.otherVec);
+                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.predicate.test(itemStack) ? this.thisVec : this.otherVec);
             }
             // 丢弃潜影盒内物品堆栈
             FakePlayerUtils.dropItem(this.fakePlayer, itemStack);
@@ -111,11 +110,11 @@ public class ItemSortingAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         // 获取要分拣的物品名称
-        Text itemName = this.item.getDefaultStack().toHoverableText();
+        Text itemName = this.predicate.toText();
         // 获取假玩家的显示名称
         Text fakeName = this.fakePlayer.getDisplayName();
         // 将假玩家正在分拣物品的消息添加到集合中
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.sorting.item", fakeName, itemName));
+        list.add(TextUtils.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
         // 获取分拣物品要丢出的方向
         MutableText thisPos = posText(this.thisVec.getX(), this.thisVec.getY(), this.thisVec.getZ());
         // 获取非分拣物品要丢出的方向
@@ -131,7 +130,7 @@ public class ItemSortingAction extends AbstractPlayerAction {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         // 要分拣的物品
-        json.addProperty(ITEM, Registries.ITEM.getId(this.item).toString());
+        json.addProperty(ITEM, this.predicate.toString());
         // 当前物品要丢弃的位置
         JsonArray thisVecJson = new JsonArray();
         thisVecJson.add(this.thisVec.x);
@@ -158,6 +157,6 @@ public class ItemSortingAction extends AbstractPlayerAction {
 
     @Override
     public ActionSerializeType getActionSerializeType() {
-        return ActionSerializeType.SORTING;
+        return ActionSerializeType.CATEGORIZE;
     }
 }

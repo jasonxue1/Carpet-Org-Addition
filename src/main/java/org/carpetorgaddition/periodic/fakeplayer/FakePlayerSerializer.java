@@ -150,9 +150,9 @@ public class FakePlayerSerializer {
                 System.out.println(IOUtils.GSON.toJson(json));
             }
             FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
-            dataUpdater.update(json, version);
+            JsonObject update = dataUpdater.update(json, version);
             if (CarpetOrgAddition.IS_DEBUG) {
-                System.out.println(IOUtils.GSON.toJson(json));
+                System.out.println(IOUtils.GSON.toJson(update));
             }
         }
         String fakePlayerName = IOUtils.removeExtension(nameOrFileName, IOUtils.JSON_EXTENSION);

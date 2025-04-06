@@ -18,22 +18,22 @@ public enum ActionSerializeType {
     /**
      * 物品分拣
      */
-    SORTING(json -> {
-        String id = json.get(ItemSortingAction.ITEM).getAsString();
-        Item item = ItemStackPredicate.stringAsItem(id);
-        JsonArray thisVecArray = json.get(ItemSortingAction.THIS_VEC).getAsJsonArray();
+    CATEGORIZE(json -> {
+        String item = json.get(ItemCategorizeAction.ITEM).getAsString();
+        ItemStackPredicate predicate = ItemStackPredicate.parse(item);
+        JsonArray thisVecArray = json.get(ItemCategorizeAction.THIS_VEC).getAsJsonArray();
         Vec3d thisVec = new Vec3d(
                 thisVecArray.get(0).getAsDouble(),
                 thisVecArray.get(1).getAsDouble(),
                 thisVecArray.get(2).getAsDouble()
         );
-        JsonArray otherVecArray = json.get(ItemSortingAction.OTHER_VEC).getAsJsonArray();
+        JsonArray otherVecArray = json.get(ItemCategorizeAction.OTHER_VEC).getAsJsonArray();
         Vec3d otherVec = new Vec3d(
                 otherVecArray.get(0).getAsDouble(),
                 otherVecArray.get(1).getAsDouble(),
                 otherVecArray.get(2).getAsDouble()
         );
-        return new ItemSortingAction(null, item, thisVec, otherVec);
+        return new ItemCategorizeAction(null, predicate, thisVec, otherVec);
     }),
     /**
      * 清空潜影盒
@@ -61,18 +61,18 @@ public enum ActionSerializeType {
             String item = json.get(String.valueOf(i)).getAsString();
             predicates[i] = ItemStackPredicate.parse(item);
         }
-        return new CraftingTableCraftingAction(null, predicates);
+        return new CraftingTableCraftAction(null, predicates);
     }),
     /**
      * 在生存模式物品栏合成物品
      */
-    INVENTORY_CRAFTING(json -> {
+    INVENTORY_CRAFT(json -> {
         ItemStackPredicate[] predicates = new ItemStackPredicate[4];
         for (int i = 0; i < predicates.length; i++) {
             String item = json.get(String.valueOf(i)).getAsString();
             predicates[i] = ItemStackPredicate.parse(item);
         }
-        return new InventoryCraftingAction(null, predicates);
+        return new InventoryCraftAction(null, predicates);
     }),
     /**
      * 自动重命名物品
@@ -105,7 +105,7 @@ public enum ActionSerializeType {
     /**
      * 自动种植
      */
-    PLANTING(json -> new PlantingAction(null)),
+    PLANT(json -> new PlantAction(null)),
     /**
      * 自动破基岩
      */

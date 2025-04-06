@@ -77,7 +77,7 @@ public class FinderCommand {
                                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                                 .then(CommandManager.literal("to")
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                                .executes(FinderCommand::areaBlockFinder)))))))
+                                                                .executes(FinderCommand::areaBlockSearch)))))))
                 .then(CommandManager.literal("item")
                         .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
                                 .executes(context -> searchItem(context, 64))
@@ -211,7 +211,7 @@ public class FinderCommand {
     }
 
     // 区域方块查找
-    private static int areaBlockFinder(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private static int areaBlockSearch(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
