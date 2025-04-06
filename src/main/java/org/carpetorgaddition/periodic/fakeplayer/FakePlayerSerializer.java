@@ -144,16 +144,9 @@ public class FakePlayerSerializer {
         JsonObject json = IOUtils.loadJson(worldFormat.file(nameOrFileName, IOUtils.JSON_EXTENSION));
         int version = DataUpdater.getVersion(json);
         if (version < DataUpdater.VERSION) {
-            // 更新数据版本
-            // TODO 构建前移除测试代码
-            if (CarpetOrgAddition.IS_DEBUG) {
-                System.out.println(IOUtils.GSON.toJson(json));
-            }
             FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
-            JsonObject update = dataUpdater.update(json, version);
-            if (CarpetOrgAddition.IS_DEBUG) {
-                System.out.println(IOUtils.GSON.toJson(update));
-            }
+            // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
+            json = dataUpdater.update(json, version);
         }
         String fakePlayerName = IOUtils.removeExtension(nameOrFileName, IOUtils.JSON_EXTENSION);
         return new FakePlayerSerializer(json, fakePlayerName);
