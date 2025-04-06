@@ -143,7 +143,7 @@ public class FakePlayerSerializer {
     public static FakePlayerSerializer factory(WorldFormat worldFormat, String nameOrFileName) throws IOException {
         JsonObject json = IOUtils.loadJson(worldFormat.file(nameOrFileName, IOUtils.JSON_EXTENSION));
         int version = DataUpdater.getVersion(json);
-        if (version != DataUpdater.VERSION) {
+        if (version < DataUpdater.VERSION) {
             // 更新数据版本
             // TODO 构建前移除测试代码
             if (CarpetOrgAddition.IS_DEBUG) {

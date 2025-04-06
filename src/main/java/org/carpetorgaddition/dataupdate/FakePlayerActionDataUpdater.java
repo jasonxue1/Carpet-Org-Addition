@@ -2,7 +2,6 @@ package org.carpetorgaddition.dataupdate;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.carpetorgaddition.periodic.fakeplayer.action.ActionSerializeType;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -16,11 +15,16 @@ public class FakePlayerActionDataUpdater implements DataUpdater {
             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
                 Map.Entry<String, JsonObject> newEntry = switch (entry.getKey()) {
                     case "clean" -> {
-                        DataUpdater updater = DataUpdater.dataUpdaterFactory(ActionSerializeType.EMPTY_THE_CONTAINER);
+                        EmptyTheContainerActionDataUpdater updater = new EmptyTheContainerActionDataUpdater();
                         JsonObject update = updater.update(entry.getValue().getAsJsonObject(), version);
                         yield Map.entry("empty_the_container", update);
                     }
-                    case "fill" -> Map.entry("fill_the_container", entry.getValue().getAsJsonObject());
+                    // TODO
+                    case "fill" -> {
+                        FillTheContainerActionDataUpdater dataUpdater = new FillTheContainerActionDataUpdater();
+                        JsonObject update = dataUpdater.update(entry.getValue().getAsJsonObject(), version);
+                        yield Map.entry("fill_the_container", update);
+                    }
                     default -> Map.entry(entry.getKey(), entry.getValue().getAsJsonObject());
                 };
                 entries.add(newEntry);

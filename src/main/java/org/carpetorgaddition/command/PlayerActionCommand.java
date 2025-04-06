@@ -51,8 +51,8 @@ public class PlayerActionCommand {
                                 .executes(context -> setFillTheContainer(context, true, true))
                                 .then(CommandManager.argument("filter", ItemStackArgumentType.itemStack(access))
                                         .executes(context -> setFillTheContainer(context, false, true))
-                                        .then(CommandManager.argument(FillContainerAction.DROP_OTHER, BoolArgumentType.bool())
-                                                .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillContainerAction.DROP_OTHER))))))
+                                        .then(CommandManager.argument(FillTheContainerAction.DROP_OTHER, BoolArgumentType.bool())
+                                                .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER))))))
                         .then(CommandManager.literal("stop")
                                 .executes(PlayerActionCommand::setStop))
                         .then(CommandManager.literal("craft")
@@ -153,8 +153,8 @@ public class PlayerActionCommand {
     private static int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
-        Item item = allItem ? null : ItemStackArgumentType.getItemStackArgument(context, "filter").getItem();
-        actionManager.setAction(new FillContainerAction(fakePlayer, item, allItem, dropOther));
+        ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
+        actionManager.setAction(new FillTheContainerAction(fakePlayer, predicate, dropOther));
         return 1;
     }
 

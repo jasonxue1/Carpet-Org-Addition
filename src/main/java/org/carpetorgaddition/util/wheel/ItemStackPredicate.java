@@ -49,7 +49,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 StringRange range = commandNode.getRange();
                 this.input = context.getInput().substring(range.getStart(), range.getEnd());
                 ItemStackPredicateArgument predicate = ItemPredicateArgumentType.getItemStackPredicate(context, arguments);
-                if (this.input.startsWith("*")) {
+                if (isWildcard(this.input)) {
                     this.predicate = itemStack -> !itemStack.isEmpty() && predicate.test(itemStack);
                 } else {
                     this.predicate = predicate;
@@ -82,7 +82,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         return this.predicate.test(itemStack);
     }
 
-    public static ItemStackPredicate load(String input) {
+    public static ItemStackPredicate parse(String input) {
         CommandRegistryAccessor accessor = (CommandRegistryAccessor) CarpetServer.minecraft_server.getCommandManager();
         CommandRegistryAccess commandRegistryAccess = accessor.getAccess();
         try {
@@ -94,10 +94,17 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     }
 
     public static ItemStackPredicate ofNotEmpty(ItemStackPredicate predicate) {
-        if (predicate.input.equals("*")) {
+        if (isWildcard(predicate.input)) {
             return WILDCARD;
         }
         return new ItemStackPredicate(itemStack -> !itemStack.isEmpty() && predicate.test(itemStack), predicate.input);
+    }
+
+    private static boolean isWildcard(String input) {
+        if ("*".equals(input)) {
+            return true;
+        }
+        return "*[]".equals(input.replace(" ", ""));
     }
 
     /**

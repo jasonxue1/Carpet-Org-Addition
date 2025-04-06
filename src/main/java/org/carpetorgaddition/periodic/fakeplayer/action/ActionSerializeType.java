@@ -40,17 +40,17 @@ public enum ActionSerializeType {
      */
     EMPTY_THE_CONTAINER(json -> {
         String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
-        ItemStackPredicate predicate = ItemStackPredicate.load(item);
+        ItemStackPredicate predicate = ItemStackPredicate.parse(item);
         return new EmptyTheContainerAction(null, predicate);
     }),
     /**
      * 填充潜影盒
      */
-    FILL(json -> {
-        boolean allItem = json.get(FillContainerAction.ALL_ITEM).getAsBoolean();
-        boolean dropOther = !json.has(FillContainerAction.DROP_OTHER) || json.get(FillContainerAction.DROP_OTHER).getAsBoolean();
-        Item item = allItem ? null : ItemStackPredicate.stringAsItem(json.get(FillContainerAction.ITEM).getAsString());
-        return new FillContainerAction(null, item, allItem, dropOther);
+    FILL_THE_CONTAINER(json -> {
+        boolean dropOther = !json.has(FillTheContainerAction.DROP_OTHER) || json.get(FillTheContainerAction.DROP_OTHER).getAsBoolean();
+        String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
+        ItemStackPredicate predicate = ItemStackPredicate.parse(item);
+        return new FillTheContainerAction(null, predicate, dropOther);
     }),
     /**
      * 在工作台合成物品
@@ -59,7 +59,7 @@ public enum ActionSerializeType {
         ItemStackPredicate[] predicates = new ItemStackPredicate[9];
         for (int i = 0; i < predicates.length; i++) {
             String item = json.get(String.valueOf(i)).getAsString();
-            predicates[i] = ItemStackPredicate.load(item);
+            predicates[i] = ItemStackPredicate.parse(item);
         }
         return new CraftingTableCraftingAction(null, predicates);
     }),
@@ -70,7 +70,7 @@ public enum ActionSerializeType {
         ItemStackPredicate[] predicates = new ItemStackPredicate[4];
         for (int i = 0; i < predicates.length; i++) {
             String item = json.get(String.valueOf(i)).getAsString();
-            predicates[i] = ItemStackPredicate.load(item);
+            predicates[i] = ItemStackPredicate.parse(item);
         }
         return new InventoryCraftingAction(null, predicates);
     }),

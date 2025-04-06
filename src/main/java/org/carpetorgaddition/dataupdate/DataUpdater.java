@@ -1,7 +1,6 @@
 package org.carpetorgaddition.dataupdate;
 
 import com.google.gson.JsonObject;
-import org.carpetorgaddition.periodic.fakeplayer.action.ActionSerializeType;
 
 @FunctionalInterface
 public interface DataUpdater {
@@ -15,12 +14,5 @@ public interface DataUpdater {
             return json.get(DATA_VERSION).getAsInt();
         }
         return 0;
-    }
-
-    static DataUpdater dataUpdaterFactory(ActionSerializeType type) {
-        return switch (type) {
-            case EMPTY_THE_CONTAINER -> new EmptyTheContainerActionDataUpdater();
-            default -> (json, version) -> json;
-        };
     }
 }
