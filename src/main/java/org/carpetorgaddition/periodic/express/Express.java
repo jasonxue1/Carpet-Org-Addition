@@ -15,6 +15,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -354,7 +355,7 @@ public class Express implements Comparable<Express> {
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
         nbt.putIntArray("time", args);
         nbt.put("item", this.express.encode(server.getRegistryManager(), new NbtCompound()));
-        nbt.putInt("DataVersion", GameUtils.getNbtDataVersion());
+        nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
         return nbt;
     }
 
