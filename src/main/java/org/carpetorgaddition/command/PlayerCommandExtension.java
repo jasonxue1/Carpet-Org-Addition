@@ -96,7 +96,7 @@ public class PlayerCommandExtension {
         Text fakePlayerName = fakePlayer.getDisplayName();
         Text playerName = player.getDisplayName();
         // 在聊天栏显示命令反馈
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerTools.tp.success", fakePlayerName, playerName);
+        MessageUtils.sendMessage(context.getSource(), "carpet.commands.player.tp.success", fakePlayerName, playerName);
         return 1;
     }
 
