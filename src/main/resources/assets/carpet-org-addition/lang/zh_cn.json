@@ -226,6 +226,7 @@
   "carpet.command.item.remainder": "%s个",
   "carpet.command.item.count": "%s组%s个",
   "carpet.command.item.item": "物品",
+  "carpet.command.item.predicate.wildcard": "任意物品",
   "carpet.command.text.click.here": "[这里]",
   "carpet.command.text.click.input": "单击输入\"%s\"",
   "carpet.command.text.click.run": "单击执行\"%s\"",

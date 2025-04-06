@@ -37,6 +37,7 @@ import java.util.function.Predicate;
 public class ItemStackPredicate implements Predicate<ItemStack> {
     private final Predicate<ItemStack> predicate;
     private final String input;
+    private final boolean isWildcard;
     public static final ItemStackPredicate EMPTY = new ItemStackPredicate(Items.AIR);
     /**
      * 匹配任何非空气物品
@@ -49,11 +50,8 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 StringRange range = commandNode.getRange();
                 this.input = context.getInput().substring(range.getStart(), range.getEnd());
                 ItemStackPredicateArgument predicate = ItemPredicateArgumentType.getItemStackPredicate(context, arguments);
-                if (isWildcard(this.input)) {
-                    this.predicate = itemStack -> !itemStack.isEmpty() && predicate.test(itemStack);
-                } else {
-                    this.predicate = predicate;
-                }
+                this.isWildcard = this.isWildcard(this.input);
+                this.predicate = this.isWildcard ? itemStack -> !itemStack.isEmpty() && predicate.test(itemStack) : predicate;
                 return;
             }
         }
@@ -63,11 +61,13 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     public ItemStackPredicate(Item item) {
         this.predicate = itemStack -> itemStack.isOf(item);
         this.input = Registries.ITEM.getId(item).toString();
+        this.isWildcard = false;
     }
 
     private ItemStackPredicate(Predicate<ItemStack> predicate, String input) {
-        this.predicate = predicate;
         this.input = input;
+        this.isWildcard = this.isWildcard(input);
+        this.predicate = this.isWildcard ? itemStack -> !itemStack.isEmpty() && predicate.test(itemStack) : predicate;
     }
 
     /**
@@ -93,14 +93,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
     }
 
-    public static ItemStackPredicate ofNotEmpty(ItemStackPredicate predicate) {
-        if (isWildcard(predicate.input)) {
-            return WILDCARD;
-        }
-        return new ItemStackPredicate(itemStack -> !itemStack.isEmpty() && predicate.test(itemStack), predicate.input);
-    }
-
-    private static boolean isWildcard(String input) {
+    private boolean isWildcard(String input) {
         if ("*".equals(input)) {
             return true;
         }
@@ -144,6 +137,9 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     public Text toText() throws InvalidIdentifierException {
         if (this.isEmpty()) {
             return Items.AIR.getName();
+        }
+        if (this.isWildcard) {
+            return TextUtils.translate("carpet.command.item.predicate.wildcard");
         }
         if (canConvertItem()) {
             Identifier identifier = Identifier.of(this.input);

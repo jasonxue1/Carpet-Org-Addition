@@ -20,7 +20,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
 
     public EmptyTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate) {
         super(fakePlayer);
-        this.predicate = ItemStackPredicate.ofNotEmpty(predicate);
+        this.predicate = predicate;
     }
 
     @Override

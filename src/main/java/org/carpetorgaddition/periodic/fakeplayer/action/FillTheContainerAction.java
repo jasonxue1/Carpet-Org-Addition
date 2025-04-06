@@ -15,7 +15,6 @@ import java.util.stream.IntStream;
 
 public class FillTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
-    public static final String ALL_ITEM = "allItem";
     public static final String DROP_OTHER = "dropOther";
     /**
      * 要向容器填充的物品
@@ -25,7 +24,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
 
     public FillTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate, boolean dropOther) {
         super(fakePlayer);
-        this.predicate = ItemStackPredicate.ofNotEmpty(predicate);
+        this.predicate = predicate;
         this.dropOther = dropOther;
     }
 
