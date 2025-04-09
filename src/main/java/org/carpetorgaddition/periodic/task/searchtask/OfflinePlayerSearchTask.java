@@ -87,7 +87,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             case START -> {
                 for (File file : files) {
                     if (file.getName().endsWith(".dat")) {
-                        createVirtualThread(file);
+                        this.createVirtualThread(file);
                     }
                 }
                 this.taksState = State.RUNTIME;
@@ -113,6 +113,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             try {
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
+                // TODO 不应使用等于：存档可能降级
                 if (version == GameUtils.getNbtDataVersion()) {
                     searchItem(unsafe, maybeOldNbt, version, false);
                 } else {
@@ -209,6 +210,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 this.getInventoryName()
         );
         MutableText message;
+        // TODO 鼠标悬停显示总人数
         Text count;
         if (this.predicate.canConvertItem()) {
             count = FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());

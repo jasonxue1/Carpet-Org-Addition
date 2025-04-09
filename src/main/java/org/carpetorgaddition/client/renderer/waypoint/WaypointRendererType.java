@@ -99,6 +99,7 @@ public enum WaypointRendererType {
             case HIGHLIGHT -> consumer.accept(HIGHLIGHT);
             // 请求服务器停止发送路径点更新数据包
             case NAVIGATOR -> {
+                // TODO 提取字符串
                 ClientCommandUtils.sendCommand("navigate stop");
                 consumer.accept(NAVIGATOR);
             }
