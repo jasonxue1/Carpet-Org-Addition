@@ -18,7 +18,7 @@ import org.carpetorgaddition.dataupdate.FakePlayerSerializeDataUpdater;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
-import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
+import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;

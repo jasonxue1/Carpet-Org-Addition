@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.searchtask;
+package org.carpetorgaddition.periodic.task.search;
 
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;

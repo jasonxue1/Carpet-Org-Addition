@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.searchtask;
+package org.carpetorgaddition.periodic.task.search;
 
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;

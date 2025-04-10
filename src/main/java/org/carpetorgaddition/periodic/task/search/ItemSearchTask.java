@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.searchtask;
+package org.carpetorgaddition.periodic.task.search;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;

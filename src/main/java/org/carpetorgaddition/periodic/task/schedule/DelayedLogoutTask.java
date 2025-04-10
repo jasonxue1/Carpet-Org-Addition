@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.playerscheduletask;
+package org.carpetorgaddition.periodic.task.schedule;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;

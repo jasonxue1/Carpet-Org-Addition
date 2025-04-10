@@ -1,4 +1,4 @@
-package org.carpetorgaddition.periodic.task.searchtask;
+package org.carpetorgaddition.periodic.task.search;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.DataFixer;
