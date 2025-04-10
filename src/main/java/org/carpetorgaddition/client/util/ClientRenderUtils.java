@@ -43,7 +43,7 @@ public class ClientRenderUtils {
     }
 
     public static void drawWaypoint(Identifier identifier, WorldRenderContext context) {
-        RenderLayer renderLayer = RenderLayer.getGuiTexturedOverlay(identifier);
+        RenderLayer renderLayer = RenderLayer.getFireScreenEffect(identifier);
         Matrix4f matrix4f = Objects.requireNonNull(context.matrixStack()).peek().getPositionMatrix();
         VertexConsumer vertexConsumer = Objects.requireNonNull(context.consumers()).getBuffer(renderLayer);
         vertexConsumer.vertex(matrix4f, -1F, -1F, 0F).texture(0F, 0F).color(-1);
