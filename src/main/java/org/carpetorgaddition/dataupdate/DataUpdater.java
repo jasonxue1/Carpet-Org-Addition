@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 
 @FunctionalInterface
 public interface DataUpdater {
+    // TODO 更改为小写下划线命名
     String DATA_VERSION = "DataVersion";
     int VERSION = 1;
     DataUpdater UNCHANGED = (json, version) -> json;

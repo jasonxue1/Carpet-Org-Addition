@@ -212,7 +212,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         MutableText message;
         // TODO 鼠标悬停显示总人数
         Text count;
-        if (this.predicate.canConvertItem()) {
+        if (this.predicate.isConvertible()) {
             count = FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
         } else {
             MutableText text = TextUtils.createText(Integer.toString(this.itemCount.get()));

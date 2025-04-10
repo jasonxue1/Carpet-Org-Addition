@@ -84,6 +84,7 @@ public class ItemStackStatistics {
      * @param nesting   该物品是否是从嵌套的容器中获取的
      */
     private void tally(ItemStack itemStack, boolean nesting) {
+        // TODO 即便谓词与潜影盒物品匹配也从潜影盒中查找物品
         if (this.predicate.test(itemStack)) {
             Item item = itemStack.getItem();
             int count = itemStack.getCount();

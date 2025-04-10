@@ -183,7 +183,7 @@ public class ItemSearchTask extends ServerTask {
     // 发送命令反馈
     private void feedback() {
         MutableText itemCount;
-        boolean canConvert = predicate.canConvertItem();
+        boolean canConvert = predicate.isConvertible();
         if (canConvert) {
             // 为数量添加鼠标悬停效果
             itemCount = FinderCommand.showCount(predicate.asItem().getDefaultStack(), this.count, this.shulkerBox);
