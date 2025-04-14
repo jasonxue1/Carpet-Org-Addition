@@ -220,7 +220,7 @@ public class FakePlayerSerializer {
         if (this.interactiveAction.hasAction()) {
             build.newLine().append(this.interactiveAction.toText());
         }
-        if (autoAction.hasAction()) {
+        if (this.autoAction.hasAction()) {
             build.newLine().append(this.autoAction.toText());
         }
         if (this.annotation.hasContent()) {

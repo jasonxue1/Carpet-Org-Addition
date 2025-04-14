@@ -53,7 +53,7 @@ public class FakePlayerActionSerializer {
     }
 
     public boolean hasAction() {
-        return this.action.isStop();
+        return !this.action.isStop();
     }
 
     public Text toText() {
