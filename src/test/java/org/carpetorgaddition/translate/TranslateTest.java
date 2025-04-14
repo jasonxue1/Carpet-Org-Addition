@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 public class TranslateTest {
     private static final String ZH_CN = "zh_cn";
     private static final String EN_US = "en_us";
+    private static final String PLACEHOLDER = "%(?:(\\d+)\\$)?([A-Za-z%]|$)";
     private final HashMap<String, TranslateParser> parsers = new HashMap<>();
 
     public TranslateTest() throws FileNotFoundException {
@@ -85,7 +86,7 @@ public class TranslateTest {
         for (int index = 0; index < size; index++) {
             String zhTranslate = zhValue.get(index);
             String enTranslate = enValue.get(index);
-            if (placeholderCount(zhTranslate) == placeholderCount(enValue.get(index))) {
+            if (substringCount(zhTranslate, PLACEHOLDER) == substringCount(enValue.get(index), PLACEHOLDER)) {
                 continue;
             }
             error.add(zhTranslate + " --- " + enTranslate);
@@ -97,8 +98,8 @@ public class TranslateTest {
     /**
      * @return 翻译中的占位符个数
      */
-    private int placeholderCount(String value) {
-        Matcher matcher = Pattern.compile("%(?:(\\d+)\\$)?([A-Za-z%]|$)").matcher(value);
+    private int substringCount(String value, String regex) {
+        Matcher matcher = Pattern.compile(regex).matcher(value);
         int count = 0;
         while (matcher.find()) {
             count++;
@@ -201,8 +202,31 @@ public class TranslateTest {
             if (value.contains("更新抑制器")) {
                 continue;
             }
-            Matcher matcher = Pattern.compile("[\\u4e00-\\u9fa5]").matcher(value);
+            Matcher matcher = Pattern.compile("[\\u4e00-\\u9fa5]|[，：（）]").matcher(value);
             if (matcher.find()) {
+                hasChineseCharacter = true;
+                sj.add(entry.toString());
+            }
+        }
+        Assert.assertFalse(sj.toString(), hasChineseCharacter);
+    }
+
+    /**
+     * 检查中文翻译中是否包含英文字符
+     */
+    @Test
+    public void testEnglishCharacter() {
+        List<Entry> list = this.parsers.get(ZH_CN).listAll();
+        StringJoiner sj = new StringJoiner("\n", "中文翻译中不应包含英文字符：\n", "");
+        boolean hasChineseCharacter = false;
+        for (Entry entry : list) {
+            String value = entry.value();
+            if (value.contains("Mismatch in destroy block pos: {} {}") || value.contains("Carpet Mod中符合“%s”的选项：:")) {
+                continue;
+            }
+            Matcher matcher = Pattern.compile("[,:()]").matcher(value);
+            // 中文冒号后不加空格
+            if (matcher.find() || value.contains("： ")) {
                 hasChineseCharacter = true;
                 sj.add(entry.toString());
             }
