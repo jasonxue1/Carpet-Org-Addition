@@ -3,6 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.item.Item;
@@ -53,6 +54,10 @@ public class FakePlayerUtils {
     public static final int THROW_CTRL_Q = 1;
     // 最大循环次数
     public static final int MAX_LOOP_COUNT = 1200;
+    /**
+     * 模组{@code gugle-carpet-addition}是否已加载
+     */
+    private static final boolean GCA_LOADED = FabricLoader.getInstance().isModLoaded("gca");
 
     private FakePlayerUtils() {
     }
@@ -82,9 +87,9 @@ public class FakePlayerUtils {
     /**
      * 让假玩家停止当前的操作
      *
-     * @param source       用来获取玩家管理器对象，然后通过玩家管理器发送消息，source本身不需要发送消息
+     * @param source     用来获取玩家管理器对象，然后通过玩家管理器发送消息，source本身不需要发送消息
      * @param fakePlayer 要停止操作的假玩家
-     * @param key          停止操作时在聊天栏输出的内容的翻译键
+     * @param key        停止操作时在聊天栏输出的内容的翻译键
      */
     public static void stopAction(ServerCommandSource source, EntityPlayerMPFake fakePlayer, String key, Object... obj) {
         GenericFetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
@@ -283,12 +288,14 @@ public class FakePlayerUtils {
      * 保持与GCA（假人背包）的兼容，防止丢出GCA的物品
      */
     public static boolean isGcaItem(ItemStack itemStack) {
-        // TODO 检查Gca是否被安装
-        NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
-        if (component == null) {
-            return false;
+        if (GCA_LOADED) {
+            NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+            if (component == null) {
+                return false;
+            }
+            return component.copyNbt().get("GcaClear") != null;
         }
-        return component.copyNbt().get("GcaClear") != null;
+        return false;
     }
 
     /**
