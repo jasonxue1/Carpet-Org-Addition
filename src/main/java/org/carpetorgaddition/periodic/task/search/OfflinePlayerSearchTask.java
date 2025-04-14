@@ -57,6 +57,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 在已找到的物品中，是否包含在嵌套的容器中找到的物品
      */
     private final AtomicBoolean shulkerBox = new AtomicBoolean(false);
+    /**
+     * 总的玩家数量
+     */
+    private int total = 0;
     private final ServerCommandSource source;
     private final UserCache userCache;
     protected final ServerPlayerEntity player;
@@ -88,6 +92,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 for (File file : files) {
                     if (file.getName().endsWith(".dat")) {
                         this.createVirtualThread(file);
+                        this.total++;
                     }
                 }
                 this.taksState = State.RUNTIME;
@@ -209,36 +214,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 "carpet.commands.finder.item.offline_player.prompt",
                 this.getInventoryName()
         );
-        MutableText message;
-        // TODO 鼠标悬停显示总人数
-        Text count;
-        if (this.predicate.isConvertible()) {
-            count = FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
-        } else {
-            MutableText text = TextUtils.createText(Integer.toString(this.itemCount.get()));
-            if (this.shulkerBox.get()) {
-                text = TextUtils.toItalic(text);
-            }
-            count = text;
-        }
-        if (this.list.size() > CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount) {
-            message = TextUtils.translate(
-                    "carpet.commands.finder.item.offline_player.limit",
-                    this.list.size(),
-                    this.getInventoryName(),
-                    count,
-                    this.predicate.toText(),
-                    CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount
-            );
-        } else {
-            message = TextUtils.translate(
-                    "carpet.commands.finder.item.offline_player",
-                    this.list.size(),
-                    this.getInventoryName(),
-                    count,
-                    this.predicate.toText()
-            );
-        }
+        Text itemCount = getItemCount();
+        Text numberOfPeople = getNumberOfPeople();
+        MutableText message = getFirstFeedback(numberOfPeople, itemCount);
         MessageUtils.sendMessage(this.source, TextUtils.hoverText(message, hoverPrompt));
         int skip = this.skipCount.get();
         if (skip != 0) {
@@ -253,9 +231,59 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
+    /**
+     * 获取首条反馈消息
+     */
+    private MutableText getFirstFeedback(Text numberOfPeople, Text itemCount) {
+        if (this.list.size() > CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount) {
+            return TextUtils.translate(
+                    "carpet.commands.finder.item.offline_player.limit",
+                    numberOfPeople,
+                    this.getInventoryName(),
+                    itemCount,
+                    this.predicate.toText(),
+                    CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount
+            );
+        } else {
+            return TextUtils.translate(
+                    "carpet.commands.finder.item.offline_player",
+                    numberOfPeople,
+                    this.getInventoryName(),
+                    itemCount,
+                    this.predicate.toText()
+            );
+        }
+    }
+
+    /**
+     * 获取物品数量文本
+     */
+    private Text getItemCount() {
+        if (this.predicate.isConvertible()) {
+            return FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
+        } else {
+            MutableText text = TextUtils.createText(Integer.toString(this.itemCount.get()));
+            return this.shulkerBox.get() ? TextUtils.toItalic(text) : text;
+        }
+    }
+
+    /**
+     * 获取玩家数量文本
+     */
+    private Text getNumberOfPeople() {
+        // 玩家总数的悬停提示
+        ArrayList<Text> peopleHover = new ArrayList<>();
+        peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.total", this.total));
+        peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.found", this.list.size()));
+        if (!this.showUnknown) {
+            peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.skipped", this.skipCount.get()));
+        }
+        // 玩家总数文本
+        return TextUtils.hoverText(TextUtils.createText(this.list.size()), TextUtils.appendList(peopleHover));
+    }
+
     // 发送每一条反馈
     private void sendEveryFeedback(Result result) {
-        // TODO 能找到名称的玩家单击复制玩家名，否则复制UUID
         // 获取玩家名，并添加UUID悬停提示
         String name = result.gameProfile.getName();
         String uuid = result.gameProfile().getId().toString();
@@ -265,13 +293,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Text count = result.statistics().getCountText();
         MutableText playerName;
         if (result.isUnknown()) {
-            playerName = TextUtils.copy(name, name, hover, Formatting.GRAY);
+            // 单击复制玩家UUID
+            playerName = TextUtils.copy(name, uuid, hover, Formatting.GRAY);
         } else {
             // 添加单击上线按钮
             String command = CommandProvider.spawnFakePlayer(result.gameProfile().getName());
             MutableText clickLogin = TextUtils.translate("carpet.command.text.click.login");
-            Text button = TextUtils.command(TextUtils.createText("[↑]"), command, clickLogin, Formatting.AQUA);
-            playerName = TextUtils.appendAll(TextUtils.copy(name, uuid, hover, Formatting.GRAY), button);
+            Text button = TextUtils.command(TextUtils.createText(" [↑]"), command, clickLogin, Formatting.GRAY);
+            // 单击复制玩家名
+            playerName = TextUtils.appendAll(TextUtils.copy("[" + name + "]", name, hover, Formatting.GRAY), button);
         }
         MutableText translate = TextUtils.translate(
                 "carpet.commands.finder.item.offline_player.each",

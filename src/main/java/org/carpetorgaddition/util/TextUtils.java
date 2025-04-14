@@ -5,6 +5,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.jetbrains.annotations.NotNull;
@@ -210,7 +211,7 @@ public class TextUtils {
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));
             if (i < list.size() - 1) {
-                result.append("\n");
+                result.append(TextProvider.NEW_LINE);
             }
         }
         return result;

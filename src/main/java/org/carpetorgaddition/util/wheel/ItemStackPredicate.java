@@ -179,7 +179,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         if (this.isConvertible()) {
             return Registries.ITEM.get(Identifier.of(this.input));
         }
-        throw new IllegalArgumentException();
+        throw new UnsupportedOperationException(this.input + " cannot be converted to item");
     }
 
     /**

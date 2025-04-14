@@ -14,6 +14,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public class TextProvider {
+    /**
+     * 换行
+     */
+    public static final Text NEW_LINE = TextUtils.createText("\n");
+
     private TextProvider() {
     }
 
