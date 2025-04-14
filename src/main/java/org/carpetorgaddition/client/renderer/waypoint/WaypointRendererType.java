@@ -3,6 +3,7 @@ package org.carpetorgaddition.client.renderer.waypoint;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 
 import java.util.function.Consumer;
 
@@ -99,8 +100,7 @@ public enum WaypointRendererType {
             case HIGHLIGHT -> consumer.accept(HIGHLIGHT);
             // 请求服务器停止发送路径点更新数据包
             case NAVIGATOR -> {
-                // TODO 提取字符串
-                ClientCommandUtils.sendCommand("navigate stop");
+                ClientCommandUtils.sendCommand(CommandProvider.stopNavigate());
                 consumer.accept(NAVIGATOR);
             }
         }

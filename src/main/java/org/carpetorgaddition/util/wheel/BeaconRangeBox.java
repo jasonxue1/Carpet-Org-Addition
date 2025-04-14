@@ -5,6 +5,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 
 public class BeaconRangeBox extends Box {
     public BeaconRangeBox(Box box) {
@@ -74,7 +75,7 @@ public class BeaconRangeBox extends Box {
             double y2 = vertices[v2Index + 1];
             double z2 = vertices[v2Index + 2];
             // 执行命令
-            CommandUtils.execute(player, "/particleLine " + x1 + " " + y1 + " " + z1 + " " + x2 + " " + y2 + " " + z2);
+            CommandUtils.execute(player, CommandProvider.drawParticleLine(x1, y1, z1, x2, y2, z2));
         }
     }
 

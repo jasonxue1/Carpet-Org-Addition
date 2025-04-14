@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util.provider;
 
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.util.wheel.Annotation;
 
@@ -108,5 +109,26 @@ public class CommandProvider {
      */
     public static String queryPlayerName(UUID uuid) {
         return "/textclickevent queryPlayerName %s".formatted(uuid.toString());
+    }
+
+    /**
+     * 停止导航
+     */
+    public static String stopNavigate() {
+        return "navigate stop";
+    }
+
+    /**
+     * 绘制粒子线
+     */
+    public static String drawParticleLine(double x1, double y1, double z1, double x2, double y2, double z2) {
+        return "particleLine " + x1 + " " + y1 + " " + z1 + " " + x2 + " " + y2 + " " + z2;
+    }
+
+    /**
+     * 打开玩家物品栏
+     */
+    public static String openPlayerInventory(PlayerEntity player) {
+        return "player %s inventory".formatted(player.getName().getString());
     }
 }

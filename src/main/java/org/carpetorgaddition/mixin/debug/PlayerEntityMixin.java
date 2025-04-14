@@ -10,6 +10,7 @@ import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.debug.OnlyDeveloped;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,8 +27,7 @@ public class PlayerEntityMixin {
         ProductionEnvironmentError.assertDevelopmentEnvironment();
         if (DebugSettings.openFakePlayerInventory && entity instanceof EntityPlayerMPFake fakePlayer) {
             ServerCommandSource source = ((PlayerEntity) (Object) this).getCommandSource();
-            // TODO 提取字符串
-            CommandUtils.execute(source, "player %s inventory".formatted(fakePlayer.getName().getString()));
+            CommandUtils.execute(source, CommandProvider.openPlayerInventory(fakePlayer));
             cir.setReturnValue(ActionResult.SUCCESS);
         }
     }
