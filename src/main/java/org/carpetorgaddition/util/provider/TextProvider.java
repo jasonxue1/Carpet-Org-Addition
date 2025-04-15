@@ -44,6 +44,10 @@ public class TextProvider {
      * 物品
      */
     public static final Text ITEM = TextUtils.translate("carpet.command.item.item");
+    /**
+     * 单击复制到剪贴板
+     */
+    public static final Text COPY_CLICK = Text.translatable("chat.copy.click");
 
     public static Text getBoolean(boolean value) {
         return value ? TRUE : FALSE;
@@ -59,7 +63,7 @@ public class TextProvider {
         //添加单击事件，复制方块坐标
         pos.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, WorldUtils.toPosString(blockPos))));
         //添加光标悬停事件：单击复制到剪贴板
-        pos.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextUtils.translate("chat.copy.click"))));
+        pos.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, COPY_CLICK)));
         if (color != null) {
             //修改文本颜色
             pos.styled(style -> style.withColor(color));

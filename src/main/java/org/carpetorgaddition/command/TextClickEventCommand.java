@@ -8,10 +8,13 @@ import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.util.Formatting;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 
 import java.io.BufferedReader;
@@ -53,8 +56,14 @@ public class TextClickEventCommand {
             Optional<String> optional = table.get(uuid);
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
-                // TODO 更改UUID文本颜色
-                MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.success", uuid.toString(), optional.get());
+                String playerUuid = uuid.toString();
+                String playerName = optional.get();
+                MessageUtils.sendMessage(
+                        context,
+                        "carpet.commands.textclickevent.queryPlayerName.success",
+                        TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
+                        TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
+                );
             } else {
                 // 本地不存在，从Mojang API获取
                 QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid, table));

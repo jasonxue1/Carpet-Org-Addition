@@ -25,6 +25,7 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
@@ -293,7 +294,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         String name = result.gameProfile.getName();
         String uuid = result.gameProfile().getId().toString();
         // 悬停提示
-        Text hover = TextUtils.appendAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextUtils.translate("chat.copy.click"));
+        Text hover = TextUtils.appendAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextProvider.COPY_CLICK);
         // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
         Text count = result.statistics().getCountText();
         MutableText playerName;
