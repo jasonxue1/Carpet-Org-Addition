@@ -118,6 +118,7 @@ public class FinderCommand {
 
     private static LiteralArgumentBuilder<ServerCommandSource> offlinePlayerItemSearchNode() {
         LiteralArgumentBuilder<ServerCommandSource> literal = CommandManager.literal("offline_player");
+        literal.requires(PermissionManager.register("finder.item.from.offline_player", PermissionLevel.PASS));
         literal.executes(context -> searchItemFromOfflinePlayer(context, false, false));
         for (OfflinePlayerInventoryType value : OfflinePlayerInventoryType.values()) {
             boolean isEnderChest = (value == OfflinePlayerInventoryType.ENDER_CHEST);
