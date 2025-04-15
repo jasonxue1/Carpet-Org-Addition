@@ -27,7 +27,7 @@ public enum WaypointRendererType {
     /**
      * 路径点消失时间
      */
-    private static final long VANISHING_TIME = 800L;
+    private static final long VANISHING_TIME = 400L;
 
     WaypointRendererType(Identifier identifier, long defaultDurationTime) {
         this.icon = identifier;
@@ -86,7 +86,7 @@ public enum WaypointRendererType {
         }
         // 让消失动画先慢后快
         float x = remainingTime / (float) VANISHING_TIME;
-        float cubic = x * x * x;
+        float cubic = x * x;
         // 消失动画（缩放）
         return scale * cubic;
     }
