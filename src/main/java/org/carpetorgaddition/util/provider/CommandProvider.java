@@ -3,6 +3,7 @@ package org.carpetorgaddition.util.provider;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.wheel.Annotation;
 
 import java.util.UUID;
@@ -108,7 +109,7 @@ public class CommandProvider {
      * 通过Mojang API查询玩家名称
      */
     public static String queryPlayerName(UUID uuid) {
-        return "/textclickevent queryPlayerName %s".formatted(uuid.toString());
+        return "/%s textclickevent queryPlayerName %s".formatted(CarpetOrgAddition.MOD_ID, uuid.toString());
     }
 
     /**
