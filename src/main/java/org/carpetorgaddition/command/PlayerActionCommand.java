@@ -12,6 +12,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.*;
+import net.minecraft.command.argument.ItemPredicateArgumentType.ItemStackPredicateArgument;
 import net.minecraft.item.Item;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
@@ -102,12 +103,14 @@ public class PlayerActionCommand {
     }
 
     // 注册物品谓词节点
-    private static RequiredArgumentBuilder<ServerCommandSource, ItemPredicateArgumentType.ItemStackPredicateArgument>
-    registerItemPredicateNode(int maxValue, CommandRegistryAccess commandBuildContext, Command<ServerCommandSource> function) {
-        RequiredArgumentBuilder<ServerCommandSource, ItemPredicateArgumentType.ItemStackPredicateArgument> result = null;
+    private static RequiredArgumentBuilder<ServerCommandSource, ItemStackPredicateArgument> registerItemPredicateNode(
+            int maxValue,
+            CommandRegistryAccess access,
+            Command<ServerCommandSource> function
+    ) {
+        RequiredArgumentBuilder<ServerCommandSource, ItemStackPredicateArgument> result = null;
         for (int i = maxValue; i >= 1; i--) {
-            RequiredArgumentBuilder<ServerCommandSource, ItemPredicateArgumentType.ItemStackPredicateArgument> nobe
-                    = CommandManager.argument("item" + i, ItemPredicateArgumentType.itemPredicate(commandBuildContext));
+            var nobe = CommandManager.argument("item" + i, ItemPredicateArgumentType.itemPredicate(access));
             if (result == null) {
                 result = nobe.executes(function);
             } else {
