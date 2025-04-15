@@ -27,7 +27,7 @@ public enum WaypointRendererType {
     /**
      * 路径点消失时间
      */
-    private static final long VANISHING_TIME = 400L;
+    private static final long VANISHING_TIME = 200L;
 
     WaypointRendererType(Identifier identifier, long defaultDurationTime) {
         this.icon = identifier;
