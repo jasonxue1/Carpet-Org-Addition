@@ -117,16 +117,11 @@ public class CarpetOrgAdditionCommand {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerUuid = uuid.toString();
                 String playerName = optional.get();
-                MessageUtils.sendMessage(
-                        context,
-                        "carpet.commands.textclickevent.queryPlayerName.success",
-                        TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
-                        TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
-                );
+                sendFeekback(context, playerUuid, playerName);
             } else {
                 // 本地不存在，从Mojang API获取
                 QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid, table));
-                MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.start");
+                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.start");
             }
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
@@ -149,7 +144,16 @@ public class CarpetOrgAdditionCommand {
         table.put(uuid, name);
         MinecraftServer server = context.getSource().getServer();
         // 在服务器线程发送命令反馈
-        server.execute(() -> MessageUtils.sendMessage(context, "carpet.commands.textclickevent.queryPlayerName.success", uuid.toString(), name));
+        server.execute(() -> sendFeekback(context, uuid.toString(), name));
+    }
+
+    private static void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
+        MessageUtils.sendMessage(
+                context,
+                "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.success",
+                TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
+                TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
+        );
     }
 
     /**
@@ -177,7 +181,7 @@ public class CarpetOrgAdditionCommand {
             input = connection.getInputStream();
             reader = new BufferedReader(new InputStreamReader(input));
         } catch (IOException e) {
-            throw CommandUtils.createException(e, "carpet.commands.textclickevent.queryPlayerName.fail", uuid.toString());
+            throw CommandUtils.createException(e, "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.fail", uuid.toString());
         }
         StringBuilder sb = new StringBuilder();
         try (reader) {
