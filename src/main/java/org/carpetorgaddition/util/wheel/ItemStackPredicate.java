@@ -50,7 +50,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     private ItemStackPredicate() {
         this.predicate = itemStack -> !itemStack.isEmpty();
         this.input = "*";
-        this.isWildcard = false;
+        this.isWildcard = true;
     }
 
     public ItemStackPredicate(CommandContext<ServerCommandSource> context, String arguments) {
