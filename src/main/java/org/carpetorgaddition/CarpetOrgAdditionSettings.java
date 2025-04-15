@@ -46,6 +46,7 @@ public class CarpetOrgAdditionSettings {
     public static String commandItemShadowing = "ops";
 
     // 设置基岩硬度
+    @Removed
     @Rule(
             categories = {ORG},
             validators = {BedrockHardnessValidator.class}
@@ -125,6 +126,7 @@ public class CarpetOrgAdditionSettings {
     public static boolean riptideIgnoreWeather = false;
 
     // 将镐作为基岩的有效采集工具
+    @Removed
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean pickaxeMinedBedrock = false;
 
