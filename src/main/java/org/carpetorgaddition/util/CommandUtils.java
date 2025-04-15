@@ -11,6 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 
+import java.io.IOException;
 import java.util.UUID;
 
 public class CommandUtils {
@@ -85,6 +86,13 @@ public class CommandUtils {
      */
     public static CommandSyntaxException createPlayerNotFoundException() {
         return EntityArgumentType.PLAYER_NOT_FOUND_EXCEPTION.create();
+    }
+
+    /**
+     * 创建IO错误的语法参数异常异常
+     */
+    public static CommandSyntaxException createIOErrorException(IOException e) {
+        return createException(e, "carpet.command.error.io");
     }
 
     /**

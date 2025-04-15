@@ -18,6 +18,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.util.wheel.Waypoint;
@@ -94,11 +95,13 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);
+        PermissionManager.load(server);
     }
 
     @Override
     public void onServerClosed(MinecraftServer server) {
         UuidNameMappingTable.getInstance().save();
+        PermissionManager.reset();
     }
 
     @Override

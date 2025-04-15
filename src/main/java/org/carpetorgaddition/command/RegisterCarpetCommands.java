@@ -35,5 +35,6 @@ public class RegisterCarpetCommands {
         MailCommand.register(dispatcher);
         // 文本单击事件命令
         TextClickEventCommand.register(dispatcher);
+        CarpetOrgAdditionCommand.register(dispatcher);
     }
 }

@@ -35,6 +35,8 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.permission.PermissionLevel;
+import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
@@ -68,6 +70,7 @@ public class FinderCommand {
         dispatcher.register(CommandManager.literal("finder")
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
+                        .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
                         .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(commandRegistryAccess))
                                 .executes(context -> blockFinder(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
@@ -79,6 +82,7 @@ public class FinderCommand {
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(FinderCommand::areaBlockSearch)))))))
                 .then(CommandManager.literal("item")
+                        .requires(PermissionManager.register("finder.item", PermissionLevel.PASS))
                         .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
                                 .executes(context -> searchItem(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
@@ -91,6 +95,7 @@ public class FinderCommand {
                                                                 .executes(FinderCommand::areaItemFinder))))
                                         .then(offlinePlayerItemSearchNode()))))
                 .then(CommandManager.literal("trade")
+                        .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
                         .then(CommandManager.literal("item")
                                 .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
                                         .executes(context -> searchTradeItem(context, 64))
@@ -105,6 +110,7 @@ public class FinderCommand {
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(CommandManager.literal("worldEater")
                         .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                        .requires(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS))
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                 .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                         .executes(FinderCommand::mayAffectWorldEater)))));

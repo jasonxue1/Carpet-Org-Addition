@@ -34,6 +34,8 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.permission.PermissionLevel;
+import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -80,6 +82,7 @@ public class PlayerManagerCommand {
                                 .then(CommandManager.argument("annotation", StringArgumentType.string())
                                         .executes(context -> setAnnotation(context, false)))))
                 .then(CommandManager.literal("autologin")
+                        .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .then(CommandManager.argument("autologin", BoolArgumentType.bool())
@@ -99,6 +102,7 @@ public class PlayerManagerCommand {
                                 .executes(PlayerManagerCommand::delete)))
                 .then(CommandManager.literal("schedule")
                         .then(CommandManager.literal("relogin")
+                                .requires(PermissionManager.register("playerManager.schedule.relogin", PermissionLevel.PASS))
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(reLoginTaskSuggests())
                                         .then(CommandManager.argument("interval", IntegerArgumentType.integer(1))

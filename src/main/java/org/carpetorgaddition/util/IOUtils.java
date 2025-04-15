@@ -217,6 +217,13 @@ public class IOUtils {
     }
 
     /**
+     * 记录一个IO错误，用来处理编译时异常
+     */
+    public static void loggerError(IOException e) {
+        CarpetOrgAddition.LOGGER.error("IO error occurred:", e);
+    }
+
+    /**
      * <p>懒加载该字段</p>
      * <p>
      * 在游戏中正常调用该成员变量并没有什么问题，但是如果在游戏外，例如单元测试的代码中，
