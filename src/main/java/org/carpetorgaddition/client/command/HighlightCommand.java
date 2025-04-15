@@ -21,7 +21,9 @@ public class HighlightCommand {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
                 dispatcher.register(ClientCommandManager.literal("highlight")
                         .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
-                                .executes(context -> highlight(context, WaypointRendererType.HIGHLIGHT.getDefaultDurationTime()))
+                                .executes(context -> highlight(context,
+                                        // 如果绑定了清除高亮路径点的快捷键，则永久显示
+                                        CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound() ? WaypointRendererType.HIGHLIGHT.getDefaultDurationTime() : -1L))
                                 .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
                                         .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
                                         .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L)))
@@ -33,8 +35,6 @@ public class HighlightCommand {
 
     // 高亮路径点
     private static int highlight(CommandContext<FabricClientCommandSource> context, long durationTime) {
-        // 如果绑定了清除高亮路径点的快捷键，则永久显示
-        durationTime = CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound() ? durationTime : -1L;
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
         // 获取旧路径点
