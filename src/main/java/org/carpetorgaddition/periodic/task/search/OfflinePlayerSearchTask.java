@@ -54,6 +54,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private final AtomicInteger skipCount = new AtomicInteger();
     /**
+     * 已忽略的玩家数量
+     */
+    private final AtomicInteger ignoreCount = new AtomicInteger();
+    /**
      * 在已找到的物品中，是否包含在嵌套的容器中找到的物品
      */
     private final AtomicBoolean shulkerBox = new AtomicBoolean(false);
@@ -118,8 +122,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
             try {
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
-                // TODO 不应使用等于：存档可能降级
-                if (version == GameUtils.getNbtDataVersion()) {
+                // 使用>=而不是==，因为存档可能降级
+                if (version >= GameUtils.getNbtDataVersion()) {
                     searchItem(unsafe, maybeOldNbt, version, false);
                 } else {
                     // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响
@@ -148,6 +152,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         try {
             uuid = UUID.fromString(uuidString);
         } catch (IllegalArgumentException e) {
+            this.ignoreCount.getAndIncrement();
             CarpetOrgAddition.LOGGER.warn("无法从文件名解析UUID，正在忽略文件：{}", file.getName());
             return;
         }
@@ -273,7 +278,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private Text getNumberOfPeople() {
         // 玩家总数的悬停提示
         ArrayList<Text> peopleHover = new ArrayList<>();
-        peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.total", this.total));
+        peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.total", this.total - this.ignoreCount.get()));
         peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.found", this.list.size()));
         if (!this.showUnknown) {
             peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.skipped", this.skipCount.get()));
