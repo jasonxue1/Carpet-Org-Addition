@@ -12,10 +12,10 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.permission.CommandPermission;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -28,10 +28,12 @@ public class CarpetOrgAdditionCommand {
                                 .suggests(suggestsNode())
                                 .then(CommandManager.argument("level", StringArgumentType.string())
                                         .suggests((context, builder) -> CommandSource.suggestMatching(PermissionLevel.listPermission(), builder))
-                                        .executes(CarpetOrgAdditionCommand::setLevel)))));
+                                        .executes(CarpetOrgAdditionCommand::setLevel))))
+                .then(CommandManager.literal("version")
+                        .executes(CarpetOrgAdditionCommand::version)));
     }
 
-    private static @NotNull SuggestionProvider<ServerCommandSource> suggestsNode() {
+    private static SuggestionProvider<ServerCommandSource> suggestsNode() {
         return (context, builder) -> CommandSource.suggestMatching(
                 PermissionManager.listNode().stream().map(StringArgumentType::escapeIfRequired),
                 builder
@@ -60,5 +62,15 @@ public class CarpetOrgAdditionCommand {
             throw CommandUtils.createIOErrorException(e);
         }
         return level.ordinal();
+    }
+
+    /**
+     * 显示模组版本
+     */
+    private static int version(CommandContext<ServerCommandSource> context) {
+        String name = CarpetOrgAddition.MOD_NAME;
+        String version = CarpetOrgAddition.METADATA.getVersion().getFriendlyString();
+        MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.version", name, version);
+        return 1;
     }
 }

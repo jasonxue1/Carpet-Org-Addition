@@ -466,6 +466,7 @@
   "carpet.commands.ruleSearch.feedback": "Carpet Mod中符合“%s”的选项：:",
   "carpet.commands.carpet-org-addition.permission.node.not_found": "命令权限节点不存在",
   "carpet.commands.carpet-org-addition.permission.value.invalid": "无效的命令权限等级",
+  "carpet.commands.carpet-org-addition.version": "%s的版本为：%s",
   "carpet.commands.player.tp.success": "将%s传送至%s",
   "carpet.logger.wanderingTrader.time.second": "%s秒",
   "carpet.logger.wanderingTrader.time.minutes": "%s分",
