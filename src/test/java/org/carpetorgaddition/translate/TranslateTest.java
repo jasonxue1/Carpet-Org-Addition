@@ -221,7 +221,7 @@ public class TranslateTest {
         boolean hasChineseCharacter = false;
         for (Entry entry : list) {
             String value = entry.value();
-            if (value.contains("Mismatch in destroy block pos: {} {}") || value.contains("Carpet Mod中符合“%s”的选项：:")) {
+            if (value.contains("Mismatch in destroy block pos: {} {}") || value.contains("Carpet Mod中符合“%s”的选项：:") || value.matches("%s \\([+\\-]%s\\) \\[%s->%s]")) {
                 continue;
             }
             Matcher matcher = Pattern.compile("[,:()]").matcher(value);

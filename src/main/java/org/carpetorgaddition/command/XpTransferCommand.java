@@ -11,13 +11,14 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.MathHelper;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 public class XpTransferCommand {
@@ -212,25 +213,29 @@ public class XpTransferCommand {
             int outputBeforeLevel,
             int outputCurrentLevel
     ) {
-        TextBuilder builder = new TextBuilder();
-        builder.append(inputPlayer.getDisplayName())
-                .appendString(" (+")
-                .appendNumber(inputCurrentLevel - inputBeforeLevel)
-                .appendString(") [")
-                .appendNumber(inputBeforeLevel)
-                .appendString("->")
-                .appendNumber(inputCurrentLevel)
-                .appendString("]")
-                .newLine()
-                .append(outputPlayer.getDisplayName())
-                .appendString(" (-")
-                .appendNumber(outputBeforeLevel - outputCurrentLevel)
-                .appendString(") [")
-                .appendNumber(outputBeforeLevel)
-                .appendString("->")
-                .appendNumber(outputCurrentLevel)
-                .appendString("]");
-        return builder.toLine();
+        return TextUtils.appendAll(
+                TextUtils.setColor(
+                        TextUtils.translate(
+                                "carpet.commands.xpTransfer.upgrade",
+                                inputPlayer.getDisplayName(),
+                                inputCurrentLevel - inputBeforeLevel,
+                                inputBeforeLevel,
+                                inputCurrentLevel
+                        ),
+                        Formatting.GREEN
+                ),
+                TextProvider.NEW_LINE,
+                TextUtils.setColor(
+                        TextUtils.translate(
+                                "carpet.commands.xpTransfer.degrade",
+                                outputPlayer.getDisplayName(),
+                                outputBeforeLevel - outputCurrentLevel,
+                                outputBeforeLevel,
+                                outputCurrentLevel
+                        ),
+                        Formatting.RED
+                )
+        );
     }
 
     /**

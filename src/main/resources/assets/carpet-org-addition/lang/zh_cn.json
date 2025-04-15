@@ -312,6 +312,8 @@
   "carpet.commands.xpTransfer.half": "将%s一半的经验共%s转移给%s",
   "carpet.commands.xpTransfer.point.fail": "%s没有这么多经验（%s>%s）",
   "carpet.commands.xpTransfer.point": "将%s的%s点经验转移给%s",
+  "carpet.commands.xpTransfer.upgrade": "%s (+%s) [%s->%s]",
+  "carpet.commands.xpTransfer.degrade": "%s (-%s) [%s->%s]",
   "carpet.commands.playerAction.info.stop": "%s没有任何动作",
   "carpet.commands.playerAction.info.craft.no_crafting_table": "%s没有打开%s",
   "carpet.commands.playerAction.info.craft.result": "%s正在合成%s：",
