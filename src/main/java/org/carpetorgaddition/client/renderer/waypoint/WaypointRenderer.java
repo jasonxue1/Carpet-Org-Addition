@@ -15,7 +15,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
@@ -53,6 +55,9 @@ public class WaypointRenderer implements WorldRenderer {
      */
     @Override
     public void render(WorldRenderContext renderContext) {
+        if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT) && this.renderType == WaypointRendererType.HIGHLIGHT) {
+            this.setFade();
+        }
         MatrixStack matrixStack = renderContext.matrixStack();
         MinecraftClient client = MinecraftClient.getInstance();
         Camera camera = client.gameRenderer.getCamera();
@@ -224,6 +229,9 @@ public class WaypointRenderer implements WorldRenderer {
      * 设置该路径点消失
      */
     public void setFade() {
+        if (this.fade) {
+            return;
+        }
         this.fade = true;
         this.fadeTime = System.currentTimeMillis();
     }

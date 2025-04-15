@@ -9,6 +9,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
@@ -32,6 +33,8 @@ public class HighlightCommand {
 
     // 高亮路径点
     private static int highlight(CommandContext<FabricClientCommandSource> context, long durationTime) {
+        // 如果绑定了清除高亮路径点的快捷键，则永久显示
+        durationTime = CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound() ? durationTime : -1L;
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
         // 获取旧路径点

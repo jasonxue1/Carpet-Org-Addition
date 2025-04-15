@@ -403,5 +403,6 @@
   "carpet.client.commands.dictionary.id": "%s the id is:%s",
   "carpet.client.commands.dictionary.multiple.id": "String matches %s objects:",
   "carpet.client.commands.dictionary.multiple.each": "- %s",
-  "carpet.client.render.waypoint.error": "An unexpected error was encountered while rendering the waypoint"
+  "carpet.client.render.waypoint.error": "An unexpected error was encountered while rendering the waypoint",
+  "carpet.client.key.keyboard.waypoint.clear": "Clear Highlight Waypoint"
 }

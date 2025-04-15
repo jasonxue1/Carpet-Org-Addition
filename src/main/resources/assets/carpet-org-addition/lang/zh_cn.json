@@ -489,5 +489,6 @@
   "carpet.client.commands.dictionary.id": "%s的ID是：%s",
   "carpet.client.commands.dictionary.multiple.id": "字符串与%s个对象匹配：",
   "carpet.client.commands.dictionary.multiple.each": "- %s",
-  "carpet.client.render.waypoint.error": "渲染路径点时遇到意外错误"
+  "carpet.client.render.waypoint.error": "渲染路径点时遇到意外错误",
+  "carpet.client.key.keyboard.waypoint.clear": "清除高亮路径点"
 }
