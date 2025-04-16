@@ -45,7 +45,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     @Nullable
     public static SettingsManager getCustomSettingManager() {
-        if (customSettingManager == null) {
+        if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER && customSettingManager == null) {
             try {
                 customSettingManager = CustomSettingsManager.getSettingManager();
             } catch (RuntimeException e) {
