@@ -3,6 +3,7 @@ package org.carpetorgaddition.client.renderer.waypoint;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 
 import java.util.function.Consumer;
 
@@ -26,7 +27,7 @@ public enum WaypointRendererType {
     /**
      * 路径点消失时间
      */
-    private static final long VANISHING_TIME = 800L;
+    private static final long VANISHING_TIME = 200L;
 
     WaypointRendererType(Identifier identifier, long defaultDurationTime) {
         this.icon = identifier;
@@ -85,7 +86,7 @@ public enum WaypointRendererType {
         }
         // 让消失动画先慢后快
         float x = remainingTime / (float) VANISHING_TIME;
-        float cubic = x * x * x;
+        float cubic = x * x;
         // 消失动画（缩放）
         return scale * cubic;
     }
@@ -99,7 +100,7 @@ public enum WaypointRendererType {
             case HIGHLIGHT -> consumer.accept(HIGHLIGHT);
             // 请求服务器停止发送路径点更新数据包
             case NAVIGATOR -> {
-                ClientCommandUtils.sendCommand("navigate stop");
+                ClientCommandUtils.sendCommand(CommandProvider.stopNavigate());
                 consumer.accept(NAVIGATOR);
             }
         }

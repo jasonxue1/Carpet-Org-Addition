@@ -23,8 +23,8 @@ public class SyncNavigateWaypointObserver extends AbstractValidator<Boolean> {
     }
 
     @Override
-    public void onChange(@Nullable ServerCommandSource source, @Nullable Boolean newValue) {
-        if (source == null || newValue == null) {
+    public void onChange(@Nullable ServerCommandSource source, Boolean newValue) {
+        if (source == null) {
             return;
         }
         List<AbstractNavigator> list = source.getServer().getPlayerManager().getPlayerList()

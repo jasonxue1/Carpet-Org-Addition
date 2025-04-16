@@ -9,10 +9,6 @@ public class RegisterCarpetCommands {
     public static void registerCarpetCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
         // 物品分身命令
         ItemShadowingCommand.register(dispatcher);
-        // 假玩家工具命令
-        PlayerToolsCommand.register(dispatcher);
-        // 发送消息命令
-        SendMessageCommand.register(dispatcher, commandRegistryAccess);
         // 苦力怕音效命令
         CreeperCommand.register(dispatcher);
         // 经验转移命令
@@ -37,5 +33,6 @@ public class RegisterCarpetCommands {
         NavigatorCommand.register(dispatcher);
         // 快递命令
         MailCommand.register(dispatcher);
+        CarpetOrgAdditionCommand.register(dispatcher);
     }
 }

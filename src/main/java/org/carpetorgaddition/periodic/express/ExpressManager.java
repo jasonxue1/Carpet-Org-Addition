@@ -7,15 +7,16 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
@@ -50,7 +51,7 @@ public class ExpressManager {
             }
             Express express = Express.readNbt(server, nbt);
             // 快递对象物品为空，删除对应的文件
-            if (express.complete()) {
+            if (express.isComplete()) {
                 express.delete();
                 continue;
             }
@@ -69,11 +70,10 @@ public class ExpressManager {
         if (list.isEmpty()) {
             return;
         }
-        ServerCommandSource source = player.getCommandSource();
         for (Express express : list) {
-            MutableText clickRun = TextConstants.clickRun("/mail receive " + express.getId());
+            MutableText clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
             ItemStack stack = express.getExpress();
-            MessageUtils.sendMessage(source, "carpet.commands.mail.prompt_receive",
+            MessageUtils.sendMessage(player, "carpet.commands.mail.prompt_receive",
                     stack.getCount(), stack.toHoverableText(), clickRun);
         }
     }
@@ -82,7 +82,7 @@ public class ExpressManager {
      * 每个游戏刻删除已经寄件完成的快递
      */
     public void tick() {
-        this.expresses.removeIf(Express::complete);
+        this.expresses.removeIf(Express::isComplete);
     }
 
     /**
@@ -110,7 +110,7 @@ public class ExpressManager {
             express.checkRecipientPermission();
         }
         // 将快递信息写入本地文件
-        NbtIo.write(express.writeNbt(this.server), this.worldFormat.file(express.getId() + ".nbt").toPath());
+        NbtIo.write(express.writeNbt(this.server), this.worldFormat.file(express.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
     public Stream<Express> stream() {
@@ -151,18 +151,17 @@ public class ExpressManager {
             }
             receive += result;
         }
-        ServerCommandSource source = player.getCommandSource();
         if (receive == 0) {
-            MessageUtils.sendMessage(source, "carpet.commands.mail.receive.insufficient_capacity");
+            MessageUtils.sendMessage(player, "carpet.commands.mail.receive.insufficient_capacity");
         } else {
             if (receive == total) {
-                MessageUtils.sendMessage(source, "carpet.commands.mail.receive.success", total, TextConstants.ITEM);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.success", total, TextProvider.ITEM);
             } else {
-                MessageUtils.sendMessage(source, "carpet.commands.mail.receive.partial_reception", receive, total - receive);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.partial_reception", receive, total - receive);
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            PlayerManager playerManager = source.getServer().getPlayerManager();
+            PlayerManager playerManager = player.server.getPlayerManager();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
                 MutableText message = getReceiveNotice(player, entry.getValue());
@@ -201,25 +200,24 @@ public class ExpressManager {
                 case FAIL -> 0;
             };
         }
-        ServerCommandSource source = player.getCommandSource();
         if (cancel == 0) {
-            MessageUtils.sendMessage(source, "carpet.commands.mail.cancel.insufficient_capacity");
+            MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.insufficient_capacity");
         } else {
             if (cancel == total) {
-                MessageUtils.sendMessage(source, "carpet.commands.mail.cancel.success", total, TextConstants.ITEM);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", total, TextProvider.ITEM);
             } else {
-                MessageUtils.sendMessage(source, "carpet.commands.mail.cancel.partial_reception", cancel, total - cancel);
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.partial_reception", cancel, total - cancel);
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
             Text message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
             for (String name : players) {
-                PlayerManager playerManager = source.getServer().getPlayerManager();
+                PlayerManager playerManager = player.server.getPlayerManager();
                 ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
                 if (receivePlayer == null) {
                     continue;
                 }
-                MessageUtils.sendMessage(receivePlayer.getCommandSource(), message);
+                MessageUtils.sendMessage(receivePlayer, message);
             }
         }
         return cancel;

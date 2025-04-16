@@ -6,7 +6,7 @@ import org.junit.Test;
 
 public class WorldFormatTest {
     @Test
-    public void getJsonElementTest() {
+    public void testJsonElement() {
         JsonObject json = new JsonObject();
         json.addProperty("aaa", "bbb");
         json.addProperty("Number1", 100);

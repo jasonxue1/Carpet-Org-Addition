@@ -25,7 +25,9 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.permission.PermissionLevel;
+import org.carpetorgaddition.util.permission.PermissionManager;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Waypoint;
 
 import java.io.IOException;
@@ -66,6 +68,7 @@ public class NavigatorCommand {
                 .then(CommandManager.literal("spawnpoint")
                         .executes(NavigatorCommand::navigateToSpawnPoint))
                 .then(CommandManager.literal("death")
+                        .requires(PermissionManager.register("navigate.death", PermissionLevel.PASS))
                         .executes(context -> navigateToLastDeathLocation(context, true))
                         .then(CommandManager.argument("player", EntityArgumentType.player())
                                 .executes(context -> navigateToLastDeathLocation(context, false)))));
@@ -163,7 +166,7 @@ public class NavigatorCommand {
         PlayerPeriodicTaskManager.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈
         MessageUtils.sendMessage(context, START_NAVIGATION, player.getDisplayName(),
-                TextConstants.blockPos(blockPos, WorldUtils.getColor(world)));
+                TextProvider.blockPos(blockPos, WorldUtils.getColor(world)));
         return 1;
     }
 

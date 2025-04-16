@@ -36,7 +36,7 @@ public class MixinTest {
 
     // 检查json文件
     @Test
-    public void mixinsJsonTest() {
+    public void testMixinsJson() {
         // 检查是否有重复元素
         HashMap<File, File> map = new HashMap<>();
         for (File file : this.mixinClass) {

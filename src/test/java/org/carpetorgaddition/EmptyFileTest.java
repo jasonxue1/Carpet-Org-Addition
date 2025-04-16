@@ -11,7 +11,7 @@ import java.io.IOException;
 public class EmptyFileTest {
     // 检查是否有空文件
     @Test
-    public void hasEmptyFile() throws IOException {
+    public void testEmptyFile() throws IOException {
         File file = new File("src/main/java/org/carpetorgaddition");
         this.traverse(file);
     }

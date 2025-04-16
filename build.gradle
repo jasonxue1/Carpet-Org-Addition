@@ -35,7 +35,7 @@ dependencies {
     modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
-    testImplementation(group: 'junit', name: 'junit', version: junit_version)
+    testImplementation("junit:junit:${project.junit_version}")
 }
 
 processResources {
@@ -89,6 +89,12 @@ runClient {
     jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
 }
 
+loom {
+    runConfigs.named("client") {
+        programArgs(["--username", "Player789"])
+    }
+}
+
 // configure the maven publication
 publishing {
     publications {
@@ -106,4 +112,9 @@ publishing {
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
     }
+}
+
+// 在构建jar时排除org.util包
+jar {
+    exclude "org/util/**"
 }

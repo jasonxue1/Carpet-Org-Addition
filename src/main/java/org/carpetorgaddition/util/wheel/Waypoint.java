@@ -13,7 +13,7 @@ import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,10 +82,9 @@ public class Waypoint {
         // 创建一个文件用来标记是否已经完成移动
         File flagFile = new File(file, "MOVED");
         if (flagFile.exists()) {
-            // 如果这个文件存在，说明路径点在之前已经替换过了，方法之间结束
+            // 如果这个文件存在，说明路径点在之前已经替换过了，方法直接结束
             return;
         }
-        // 文件夹必须存在（如果file.isDirectory()成立，那file.exists()一定也成立）
         if (file.isDirectory()) {
             File[] files = file.listFiles();
             if (files != null) {
@@ -96,7 +95,7 @@ public class Waypoint {
                         Waypoint waypoint = new Waypoint(location, f.getName());
                         waypoint.save(server);
                     } catch (IOException e) {
-                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeExtension(f.getName()));
+                        CarpetOrgAddition.LOGGER.warn("路径点[{}]移动失败", IOUtils.removeExtension(f.getName(), IOUtils.JSON_EXTENSION));
                     }
                 }
             }
@@ -131,14 +130,14 @@ public class Waypoint {
             json.addProperty("another_z", this.anotherBlockPos.getZ());
         }
         WorldFormat worldFormat = new WorldFormat(server, WAYPOINT);
-        File file = worldFormat.file(this.name);
+        File file = worldFormat.file(this.name + IOUtils.JSON_EXTENSION);
         IOUtils.saveJson(file, json);
     }
 
     // 从本地文件加载一个路径点对象
     public static Optional<Waypoint> load(MinecraftServer server, String name) throws IOException {
         WorldFormat worldFormat = new WorldFormat(server, WAYPOINT);
-        File file = worldFormat.getFile(name);
+        File file = worldFormat.file(name, IOUtils.JSON_EXTENSION);
         JsonObject json = IOUtils.loadJson(file);
         BlockPos blockPos;
         // 路径点的三个坐标
@@ -172,20 +171,20 @@ public class Waypoint {
         MutableText text = switch (this.dimension) {
             case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
                     ? TextUtils.translate("carpet.commands.locations.show.overworld",
-                    this.formatName(), TextConstants.blockPos(this.blockPos, Formatting.GREEN))
+                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN))
                     : TextUtils.translate("carpet.commands.locations.show.overworld_and_the_nether",
-                    this.formatName(), TextConstants.blockPos(this.blockPos, Formatting.GREEN),
-                    TextConstants.blockPos(this.anotherBlockPos, Formatting.RED));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(this.anotherBlockPos, Formatting.RED));
             case WorldUtils.THE_NETHER -> this.anotherBlockPos == null
                     ? TextUtils.translate("carpet.commands.locations.show.the_nether",
-                    this.formatName(), TextConstants.blockPos(this.blockPos, Formatting.RED))
+                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED))
                     : TextUtils.translate("carpet.commands.locations.show.the_nether_and_overworld",
-                    this.formatName(), TextConstants.blockPos(this.blockPos, Formatting.RED),
-                    TextConstants.blockPos(this.anotherBlockPos, Formatting.GREEN));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED),
+                    TextProvider.blockPos(this.anotherBlockPos, Formatting.GREEN));
             case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.show.the_end",
-                    this.formatName(), TextConstants.blockPos(this.blockPos, Formatting.DARK_PURPLE));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.DARK_PURPLE));
             default -> TextUtils.translate("carpet.commands.locations.show.custom_dimension",
-                    this.formatName(), this.dimension, TextConstants.blockPos(this.blockPos, Formatting.GREEN));
+                    this.formatName(), this.dimension, TextProvider.blockPos(this.blockPos, Formatting.GREEN));
         };
         MessageUtils.sendMessage(source, text);
     }

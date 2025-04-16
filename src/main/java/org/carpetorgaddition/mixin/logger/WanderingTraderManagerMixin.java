@@ -1,6 +1,6 @@
 package org.carpetorgaddition.mixin.logger;
 
-import carpet.logging.Logger;
+import carpet.logging.HUDLogger;
 import carpet.utils.CommandHelper;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -14,14 +14,15 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.WanderingTraderManager;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.logger.LoggerNames;
 import org.carpetorgaddition.logger.LoggerRegister;
+import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -62,18 +63,18 @@ public class WanderingTraderManagerMixin {
             if (server == null) {
                 return;
             }
-            Logger logger = LoggerNames.getLogger(LoggerNames.WANDERING_TRADER_SPAWN_COUNTDOWN);
+            HUDLogger logger = Loggers.getWanderingTraderLogger();
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
             MutableText message = TextUtils.translate("carpet.logger.wanderingTrader.message",
-                    TextConstants.blockPos(trader.getBlockPos(), Formatting.GREEN));
+                    TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN));
             // 带点击导航的消息
             MutableText command = TextUtils.command(TextUtils.translate("carpet.logger.wanderingTrader.message.navigate"),
-                    "/navigate uuid \"" + trader.getUuid().toString() + "\"",
+                    CommandProvider.navigateToUuidEntity(trader.getUuid()),
                     TextUtils.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()),
                     Formatting.AQUA, false);
             MutableText canClickMessage = TextUtils.translate("carpet.logger.wanderingTrader.message.click",
-                    TextConstants.blockPos(trader.getBlockPos(), Formatting.GREEN), command);
+                    TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN), command);
             for (Map.Entry<String, String> entry : entries) {
                 ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
                 if (player == null) {

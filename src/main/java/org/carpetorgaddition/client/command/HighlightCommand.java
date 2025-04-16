@@ -9,6 +9,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
@@ -20,7 +21,9 @@ public class HighlightCommand {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
                 dispatcher.register(ClientCommandManager.literal("highlight")
                         .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
-                                .executes(context -> highlight(context, WaypointRendererType.HIGHLIGHT.getDefaultDurationTime()))
+                                .executes(context -> highlight(context,
+                                        // 如果绑定了清除高亮路径点的快捷键，则永久显示
+                                        CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound() ? WaypointRendererType.HIGHLIGHT.getDefaultDurationTime() : -1L))
                                 .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
                                         .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
                                         .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L)))

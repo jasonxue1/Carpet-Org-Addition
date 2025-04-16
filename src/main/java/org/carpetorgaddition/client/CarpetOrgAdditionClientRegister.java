@@ -1,5 +1,6 @@
 package org.carpetorgaddition.client;
 
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -22,11 +23,13 @@ import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
 import java.util.Optional;
 
 public class CarpetOrgAdditionClientRegister {
+
     public static void register() {
         registerCommand();
         registerC2SNetworkPack();
         registerNetworkPackReceiver();
         registerRender();
+        registerKeyBinding();
         developed();
     }
 
@@ -134,6 +137,14 @@ public class CarpetOrgAdditionClientRegister {
                     WorldRendererManager.getRenderer(VillagerPoiRenderer.class).forEach(renderer -> renderer.render(context));
                 }
         );
+    }
+
+    /**
+     * 注册按键绑定
+     */
+    private static void registerKeyBinding() {
+        // 清除高亮路径点
+        KeyBindingHelper.registerKeyBinding(CarpetOrgAdditionClient.CLEAR_WAYPOINT);
     }
 
     /**

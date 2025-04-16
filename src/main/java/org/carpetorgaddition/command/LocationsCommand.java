@@ -13,10 +13,12 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +39,8 @@ public class LocationsCommand {
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                         .executes(context -> addWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
                 .then(CommandManager.literal("list")
-                        .executes(context -> listWayPoint(context, null)).then(CommandManager.argument("filter", StringArgumentType.string())
+                        .executes(context -> listWayPoint(context, null))
+                        .then(CommandManager.argument("filter", StringArgumentType.string())
                                 .executes(context -> listWayPoint(context, StringArgumentType.getString(context, "filter")))))
                 .then(CommandManager.literal("supplement")
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -59,15 +62,20 @@ public class LocationsCommand {
                                 .suggests(suggestion())
                                 .executes(context -> setWayPoint(context, null))
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-                                        .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos")))))));
+                                        .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
+                .then(CommandManager.literal("here")
+                        .executes(LocationsCommand::sendSelfLocation)));
     }
 
     // 用来自动补全路径点名称
     public static SuggestionProvider<ServerCommandSource> suggestion() {
         return (context, builder) -> {
             WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
-            return CommandSource.suggestMatching(worldFormat.toImmutableFileList().stream().map(File::getName)
-                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION)).map(IOUtils::removeExtension)
+            return CommandSource.suggestMatching(worldFormat.toImmutableFileList()
+                    .stream()
+                    .map(File::getName)
+                    .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION))
+                    .map(s -> IOUtils.removeExtension(s, IOUtils.JSON_EXTENSION))
                     .map(StringArgumentType::escapeIfRequired), builder);
         };
     }
@@ -77,6 +85,9 @@ public class LocationsCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
+        if (IOUtils.isValidFileName(name)) {
+            throw CommandUtils.createException("carpet.command.file.name.valid");
+        }
         if (blockPos == null) {
             blockPos = player.getBlockPos();
         }
@@ -84,7 +95,7 @@ public class LocationsCommand {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         // 检查文件是否已存在
-        if (worldFormat.fileExists(name)) {
+        if (worldFormat.file(name + IOUtils.JSON_EXTENSION).exists()) {
             throw CommandUtils.createException("carpet.commands.locations.add.fail.already_exists", name);
         }
         // 创建一个路径点对象
@@ -215,7 +226,7 @@ public class LocationsCommand {
         //获取路径点文件对象
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
         // 获取路径点文件的对象
-        File file = worldFormat.file(name);
+        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
         //从本地文件删除路径点
         if (file.delete()) {
             // 成功删除
@@ -248,6 +259,27 @@ public class LocationsCommand {
         } catch (IOException | NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.locations.set.io", fileName);
         }
+        return 1;
+    }
+
+    //发送自己的位置
+    public static int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        BlockPos blockPos = player.getBlockPos();
+        MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
+            case WorldUtils.OVERWORLD -> TextUtils.translate("carpet.commands.locations.here.overworld",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
+            case WorldUtils.THE_NETHER -> TextUtils.translate("carpet.commands.locations.here.the_nether",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
+            case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.here.the_end",
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE));
+            default -> TextUtils.translate("carpet.commands.locations.here.default",
+                    player.getDisplayName(), WorldUtils.getDimensionId(player.getWorld()),
+                    TextProvider.blockPos(blockPos, null));
+        };
+        MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
         return 1;
     }
 }
