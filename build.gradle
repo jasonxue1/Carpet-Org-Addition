@@ -32,7 +32,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     // fabric-carpet
-    modImplementation(files("lib/fabric-carpet-25w15a-1.4.170+v250408.jar"))
+    modImplementation(files("lib/fabric-carpet-25w16a-1.4.171+v250416.jar"))
     // modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
@@ -86,8 +86,12 @@ jar {
     }
 }
 
-runClient {
-    jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
+loom {
+    runs {
+        client {
+            vmArg "-DCarpetOrgAddition.EnableHiddenFunction=true"
+        }
+    }
 }
 
 // configure the maven publication
