@@ -2,7 +2,7 @@ package org.carpetorgaddition.util.wheel;
 
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.util.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class WorldFormatTest {
     @Test

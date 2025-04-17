@@ -1,10 +1,10 @@
-package org.carpetorgaddition.mixin;
+package org.carpetorgaddition.mixins;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.util.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +44,11 @@ public class MixinTest {
             if (put == null) {
                 continue;
             }
-            Assert.fail("重复声明的Mixin类：" + put.getPath());
+            Assertions.fail("重复声明的Mixin类：" + put.getPath());
         }
         // 检查json中声明的文件是否全部存在
         for (File file : this.mixinClass) {
-            Assert.assertTrue("不存在的Mixin类：" + file.getPath(), file.isFile());
+            Assertions.assertTrue(file.isFile(), "不存在的Mixin类：" + file.getPath());
         }
     }
 
@@ -63,7 +63,7 @@ public class MixinTest {
     private void traverse(File file) {
         // 如果是文件，检查类文件是否被声明，否则遍历文件夹
         if (file.isFile() && !"package-info.java".equals(file.getName())) {
-            Assert.assertTrue("未声明的Mixin类：" + file.getPath(), this.mixinClass.contains(file));
+            Assertions.assertTrue(this.mixinClass.contains(file), "未声明的Mixin类：" + file.getPath());
         } else {
             File[] files = file.listFiles();
             if (files == null) {

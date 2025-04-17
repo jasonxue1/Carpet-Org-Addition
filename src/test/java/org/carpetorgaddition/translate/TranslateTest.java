@@ -3,8 +3,8 @@ package org.carpetorgaddition.translate;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.translate.TranslateParser.Entry;
 import org.carpetorgaddition.util.wheel.Counter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -67,7 +67,7 @@ public class TranslateTest {
             error.add("en_us缺失：" + entry.key());
             identical = false;
         }
-        Assert.assertTrue(error.toString(), identical);
+        Assertions.assertTrue(identical, error.toString());
     }
 
     /**
@@ -79,7 +79,7 @@ public class TranslateTest {
         List<String> enValue = this.parsers.get(EN_US).listOtherTranslate().stream().map(Entry::value).toList();
         int size = zhValue.size();
         if (size != enValue.size()) {
-            Assert.fail("中英文翻译键不相同");
+            Assertions.fail("中英文翻译键不相同");
         }
         boolean perfectMatch = true;
         StringJoiner error = new StringJoiner("\n", "中英文翻译值不匹配：\n", "");
@@ -92,7 +92,7 @@ public class TranslateTest {
             error.add(zhTranslate + " --- " + enTranslate);
             perfectMatch = false;
         }
-        Assert.assertTrue(error.toString(), perfectMatch);
+        Assertions.assertTrue(perfectMatch, error.toString());
     }
 
     /**
@@ -128,7 +128,7 @@ public class TranslateTest {
         for (String key : list) {
             errorReport.add(key);
         }
-        Assert.assertTrue(errorReport.toString(), list.isEmpty());
+        Assertions.assertTrue(list.isEmpty(), errorReport.toString());
     }
 
     // 递归遍历所有源代码文件
@@ -186,7 +186,7 @@ public class TranslateTest {
             unused = true;
             sj.add(str);
         }
-        Assert.assertFalse(sj.toString(), unused);
+        Assertions.assertFalse(unused, sj.toString());
     }
 
     /**
@@ -208,7 +208,7 @@ public class TranslateTest {
                 sj.add(entry.toString());
             }
         }
-        Assert.assertFalse(sj.toString(), hasChineseCharacter);
+        Assertions.assertFalse(hasChineseCharacter, sj.toString());
     }
 
     /**
@@ -231,6 +231,6 @@ public class TranslateTest {
                 sj.add(entry.toString());
             }
         }
-        Assert.assertFalse(sj.toString(), hasChineseCharacter);
+        Assertions.assertFalse(hasChineseCharacter, sj.toString());
     }
 }
