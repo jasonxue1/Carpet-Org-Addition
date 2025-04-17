@@ -86,7 +86,7 @@ public class TranslateTest {
         for (int index = 0; index < size; index++) {
             String zhTranslate = zhValue.get(index);
             String enTranslate = enValue.get(index);
-            if (substringCount(zhTranslate, PLACEHOLDER) == substringCount(enValue.get(index), PLACEHOLDER)) {
+            if (substringCount(zhTranslate) == substringCount(enValue.get(index))) {
                 continue;
             }
             error.add(zhTranslate + " --- " + enTranslate);
@@ -98,8 +98,8 @@ public class TranslateTest {
     /**
      * @return 翻译中的占位符个数
      */
-    private int substringCount(String value, String regex) {
-        Matcher matcher = Pattern.compile(regex).matcher(value);
+    private int substringCount(String value) {
+        Matcher matcher = Pattern.compile(TranslateTest.PLACEHOLDER).matcher(value);
         int count = 0;
         while (matcher.find()) {
             count++;
