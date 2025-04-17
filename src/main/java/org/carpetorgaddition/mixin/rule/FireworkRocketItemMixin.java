@@ -14,18 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FireworkRocketItem.class)
 public abstract class FireworkRocketItemMixin {
-    @Inject(method = "useOnBlock", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "useOnBlock", at = @At("HEAD"))
     private void useOnBlock(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         PlayerEntity player = context.getPlayer();
         if (player == null) {
             return;
-        }
-        //不能在飞行时对方块使用烟花
-        if (CarpetOrgAdditionSettings.flyingUseOnBlockFirework) {
-            if (player.isGliding()) {
-                cir.setReturnValue(ActionResult.PASS);
-                return;
-            }
         }
         //烟花火箭使用冷却(对方块使用)
         if (CarpetOrgAdditionSettings.fireworkRocketUseCooldown) {

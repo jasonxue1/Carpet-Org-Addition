@@ -8,7 +8,6 @@
   "carpet.rule.sculkShriekerCanSummon.desc": "Enable sculk shrieker placed by player to summon warden",
   "carpet.rule.creativeImmuneKill.desc": "Make player in creative mode immune to /kill command",
   "carpet.rule.itemNeverDespawn.desc": "Disable the despawning of items",
-  "carpet.rule.flyingUseOnBlockFirework.desc": "Limit fire rocket only to be used when flying",
   "carpet.rule.staringEndermanNotAngry.desc": "Disable enderman getting angry when player stares at them",
   "carpet.rule.farmlandPreventStepping.desc": "Prevent farmland from being trampled",
   "carpet.rule.maxBlockPlaceDistance.desc": "Set the maximum block placement distance",

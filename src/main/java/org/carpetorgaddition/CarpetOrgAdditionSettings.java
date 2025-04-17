@@ -70,10 +70,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean itemNeverDespawn = false;
 
-    // 滑翔时不能对方块使用烟花
-    @Rule(categories = {ORG, RuleCategory.SURVIVAL})
-    public static boolean flyingUseOnBlockFirework = false;
-
     // 盯着末影人眼睛看时不会激怒末影人
     @Rule(categories = {ORG, RuleCategory.SURVIVAL, RuleCategory.FEATURE})
     public static boolean staringEndermanNotAngry = false;
