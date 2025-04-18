@@ -69,18 +69,18 @@ public class PlayerManagerCommand {
                 .then(CommandManager.literal("save")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                 .executes(context -> savePlayer(context, false))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> withAnnotationSavePlayer(context, false)))))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> withCommentSavePlayer(context, false)))))
                 .then(CommandManager.literal("spawn")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .executes(PlayerManagerCommand::spawnPlayer)))
-                .then(CommandManager.literal("annotation")
+                .then(CommandManager.literal("comment")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .executes(context -> setAnnotation(context, true))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> setAnnotation(context, false)))))
+                                .executes(context -> setComment(context, true))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> setComment(context, false)))))
                 .then(CommandManager.literal("autologin")
                         .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -90,8 +90,8 @@ public class PlayerManagerCommand {
                 .then(CommandManager.literal("resave")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                 .executes(context -> savePlayer(context, true))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> withAnnotationSavePlayer(context, true)))))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> withCommentSavePlayer(context, true)))))
                 .then(CommandManager.literal("list")
                         .executes(context -> list(context, s -> true))
                         .then(CommandManager.argument("filter", StringArgumentType.string())
@@ -359,23 +359,23 @@ public class PlayerManagerCommand {
     }
 
     // 保存玩家带注释
-    private static int withAnnotationSavePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
+    private static int withCommentSavePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        String annotation = StringArgumentType.getString(context, "annotation");
-        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer, annotation);
+        String comment = StringArgumentType.getString(context, "comment");
+        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer, comment);
         return savePlayer(context, fakePlayerSerializer, fakePlayer, resave);
     }
 
     // 设置注释
-    private static int setAnnotation(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
+    private static int setComment(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         // 修改注释
-        String annotation = remove ? null : StringArgumentType.getString(context, "annotation");
+        String comment = remove ? null : StringArgumentType.getString(context, "comment");
         FakePlayerSerializer serial;
         try {
             serial = FakePlayerSerializer.factory(worldFormat, name);
-            serial.setAnnotation(annotation);
+            serial.setComment(comment);
             // 将玩家信息重新保存的本地文件
             serial.save(context, true);
         } catch (FileNotFoundException e) {
@@ -386,10 +386,10 @@ public class PlayerManagerCommand {
         // 发送命令反馈
         if (remove) {
             // 移除注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.annotation.remove", serial.getDisplayName());
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.remove", serial.getDisplayName());
         } else {
             // 修改注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.annotation.modify", serial.getDisplayName(), annotation);
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.modify", serial.getDisplayName(), comment);
         }
         return 1;
     }

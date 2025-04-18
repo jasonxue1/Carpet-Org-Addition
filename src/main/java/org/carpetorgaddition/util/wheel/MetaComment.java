@@ -1,7 +1,5 @@
 package org.carpetorgaddition.util.wheel;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
@@ -41,11 +39,6 @@ public class MetaComment {
 
     public void setComment(@Nullable String comment) {
         this.comment = comment == null ? "" : comment;
-    }
-
-    public void setAnnotation(JsonObject json) {
-        JsonElement element = json.get("annotation");
-        this.comment = element == null ? "" : element.getAsString();
     }
 
     public Text getText() {

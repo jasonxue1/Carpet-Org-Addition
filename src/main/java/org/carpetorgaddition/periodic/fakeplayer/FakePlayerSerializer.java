@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.fakes.ServerPlayerInterface;
 import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -98,9 +99,9 @@ public class FakePlayerSerializer {
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
     }
 
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String annotation) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
         this(fakePlayer);
-        this.comment.setComment(annotation);
+        this.comment.setComment(comment);
     }
 
     private FakePlayerSerializer(JsonObject json, String fakePlayerName) {
@@ -124,7 +125,8 @@ public class FakePlayerSerializer {
         // 是否自动登录
         this.autologin = IOUtils.getJsonElement(json, "autologin", false, Boolean.class);
         // 注释
-        this.comment.setAnnotation(json);
+        JsonElement element = json.get("annotation");
+        this.comment.setComment(element == null ? "" : element.getAsString());
         // 假玩家左右手动作
         if (json.has("hand_action")) {
             this.interactiveAction = new EntityPlayerActionPackSerial(json.get("hand_action").getAsJsonObject());
@@ -225,7 +227,7 @@ public class FakePlayerSerializer {
         }
         if (this.comment.hasContent()) {
             // 添加注释
-            build.newLine().appendTranslate("carpet.commands.playerManager.info.annotation", this.comment.getText());
+            build.newLine().appendTranslate("carpet.commands.playerManager.info.comment", this.comment.getText());
         }
         return build.toLine();
     }
@@ -264,8 +266,8 @@ public class FakePlayerSerializer {
     }
 
     // 修改注释
-    public void setAnnotation(@Nullable String annotation) {
-        this.comment.setComment(annotation);
+    public void setComment(@Nullable String comment) {
+        this.comment.setComment(comment);
     }
 
     // 设置自动登录
