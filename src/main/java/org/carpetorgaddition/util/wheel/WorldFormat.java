@@ -25,7 +25,6 @@ public class WorldFormat {
     public static final Predicate<File> JSON_EXTENSIONS = file -> file.getName().endsWith(IOUtils.JSON_EXTENSION);
 
     private final File directory;
-    private final MinecraftServer server;
 
     /**
      * 尝试创建一个存档目录下的文件夹
@@ -37,7 +36,6 @@ public class WorldFormat {
      * @apiNote 第一级目录是carpetorgaddition文件夹
      */
     public WorldFormat(MinecraftServer server, @Nullable String directory, String... directories) {
-        this.server = server;
         // 获取服务器存档保存文件的路径
         Path path = server.getSavePath(WorldSavePath.ROOT).resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
         if (directory != null) {
@@ -147,10 +145,6 @@ public class WorldFormat {
         }
         // 一些操作系统下文件排序可能不是按字母排序
         return Stream.of(files).filter(filter).sorted(Comparator.comparing(file -> file.getName().toLowerCase())).toList();
-    }
-
-    public MinecraftServer getServer() {
-        return this.server;
     }
 
     // 检查该目录下的文件是否存在

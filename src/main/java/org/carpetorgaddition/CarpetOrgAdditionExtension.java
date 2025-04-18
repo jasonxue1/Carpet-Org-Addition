@@ -84,13 +84,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         }
     }
 
-    // 服务器启动时调用
-    @Override
-    public void onServerLoaded(MinecraftServer server) {
-        // 服务器启动时自动将旧的路径点替换成新的
-        Waypoint.replaceWaypoint(server);
-    }
-
     @Override
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录

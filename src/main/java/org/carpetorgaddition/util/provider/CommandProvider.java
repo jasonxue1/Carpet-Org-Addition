@@ -4,7 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.util.wheel.Annotation;
+import org.carpetorgaddition.util.wheel.MetaComment;
 
 import java.util.UUID;
 
@@ -58,9 +58,9 @@ public class CommandProvider {
     /**
      * 将一名玩家重新保存到玩家管理器
      */
-    public static String playerManagerResave(String playerName, Annotation annotation) {
+    public static String playerManagerResave(String playerName, MetaComment comment) {
         String str = "/playerManager resave %s".formatted(playerName);
-        return annotation.hasContent() ? str + " \"" + annotation.getAnnotation() + "\"" : str;
+        return comment.hasContent() ? str + " \"" + comment.getComment() + "\"" : str;
     }
 
     /**

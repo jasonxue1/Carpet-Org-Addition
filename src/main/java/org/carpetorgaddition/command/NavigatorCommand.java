@@ -94,19 +94,15 @@ public class NavigatorCommand {
     private static int navigateToWaypoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = context.getSource().getServer();
-        String waypoint = StringArgumentType.getString(context, "waypoint");
+        String waypointArgument = StringArgumentType.getString(context, "waypoint");
         try {
-            Optional<Waypoint> optional = Waypoint.load(server, waypoint);
-            if (optional.isPresent()) {
-                PlayerPeriodicTaskManager.getManager(player).getNavigatorManager().setNavigator(optional.get());
-                MessageUtils.sendMessage(context, START_NAVIGATION, player.getDisplayName(), "[" + waypoint + "]");
-                return 1;
-            } else {
-                throw new NullPointerException();
-            }
+            Waypoint waypoint = Waypoint.load(server, waypointArgument);
+            PlayerPeriodicTaskManager.getManager(player).getNavigatorManager().setNavigator(waypoint);
+            MessageUtils.sendMessage(context, START_NAVIGATION, player.getDisplayName(), "[" + waypointArgument + "]");
         } catch (IOException | NullPointerException e) {
-            throw CommandUtils.createException("carpet.commands.locations.list.parse", waypoint);
+            throw CommandUtils.createException("carpet.commands.locations.list.parse", waypointArgument);
         }
+        return 1;
     }
 
     // 根据UUID获取实体并导航

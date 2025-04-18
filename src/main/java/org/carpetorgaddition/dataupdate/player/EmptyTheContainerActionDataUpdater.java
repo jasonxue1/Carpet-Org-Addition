@@ -1,6 +1,7 @@
-package org.carpetorgaddition.dataupdate;
+package org.carpetorgaddition.dataupdate.player;
 
 import com.google.gson.JsonObject;
+import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.fakeplayer.action.EmptyTheContainerAction;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 

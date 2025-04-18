@@ -10,46 +10,50 @@ import org.jetbrains.annotations.Nullable;
 /**
  * 用来给一些功能添加注释
  */
-public class Annotation {
+public class MetaComment {
     @NotNull
-    private String annotation = "";
+    private String comment = "";
 
-    public Annotation() {
+    public MetaComment() {
+    }
+
+    public MetaComment(@NotNull String comment) {
+        this.comment = comment;
     }
 
     /**
      * @return 此注释是否有内容
      */
     public boolean hasContent() {
-        return !this.annotation.isBlank();
+        return !this.isEmpty();
     }
 
     public boolean isEmpty() {
-        return this.annotation.isBlank();
+        return this.comment.isBlank();
     }
 
-    public @NotNull String getAnnotation() {
+    public @NotNull String getComment() {
         if (this.isEmpty()) {
             return "";
         }
-        return this.annotation;
+        return this.comment;
     }
 
-    public void setAnnotation(@Nullable String annotation) {
-        this.annotation = annotation == null ? "" : annotation;
+    public void setComment(@Nullable String comment) {
+        this.comment = comment == null ? "" : comment;
     }
 
     public void setAnnotation(JsonObject json) {
         JsonElement element = json.get("annotation");
-        this.annotation = element == null ? "" : element.getAsString();
+        this.comment = element == null ? "" : element.getAsString();
     }
 
     public Text getText() {
-        return TextUtils.createText(this.annotation);
+        return TextUtils.createText(this.comment);
     }
 
     @Override
     public String toString() {
-        return this.annotation;
+        return this.comment;
     }
 }
