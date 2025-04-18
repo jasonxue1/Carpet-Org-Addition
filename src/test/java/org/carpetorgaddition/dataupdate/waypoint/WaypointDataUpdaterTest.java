@@ -25,7 +25,7 @@ public class WaypointDataUpdaterTest {
         JsonObject json = IOUtils.GSON.fromJson(oldWaypoint, JsonObject.class);
         WaypointDataUpdater dataUpdater = new WaypointDataUpdater();
         JsonObject update = dataUpdater.update(json, DataUpdater.getVersion(json));
-        // 路径点坐标已被替换为数组
+        // 路径点坐标已被合并
         Assertions.assertNull(update.get("x"));
         Assertions.assertNull(update.get("y"));
         Assertions.assertNull(update.get("z"));
@@ -36,7 +36,7 @@ public class WaypointDataUpdaterTest {
         // illustrate已被重命名为comment
         Assertions.assertNull(update.get("illustrate"));
         Assertions.assertNotNull(update.get("comment"));
-        // 路径点的另一个坐标已被替换为数组
+        // 路径点的另一个坐标已被合并
         Assertions.assertNull(update.get("another_x"));
         Assertions.assertNull(update.get("another_y"));
         Assertions.assertNull(update.get("another_z"));

@@ -44,7 +44,7 @@ public class PlayerActionCommand {
                                         .then(CommandManager.argument("this", Vec3ArgumentType.vec3())
                                                 .then(CommandManager.argument("other", Vec3ArgumentType.vec3())
                                                         .executes(PlayerActionCommand::setCategorize)))))
-                        .then(CommandManager.literal("clean")
+                        .then(CommandManager.literal("empty")
                                 .executes(context -> setEmptyTheContainer(context, true))
                                 .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
                                         .executes(context -> setEmptyTheContainer(context, false))))
