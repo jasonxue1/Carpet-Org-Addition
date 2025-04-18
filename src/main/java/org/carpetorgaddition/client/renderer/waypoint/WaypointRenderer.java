@@ -55,7 +55,9 @@ public class WaypointRenderer implements WorldRenderer {
      */
     @Override
     public void render(WorldRenderContext renderContext) {
-        if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT) && this.renderType == WaypointRendererType.HIGHLIGHT) {
+        if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
+                && MinecraftClient.getInstance().currentScreen == null
+                && this.renderType == WaypointRendererType.HIGHLIGHT) {
             this.setFade();
         }
         MatrixStack matrixStack = renderContext.matrixStack();
