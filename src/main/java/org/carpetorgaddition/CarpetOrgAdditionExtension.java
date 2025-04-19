@@ -15,13 +15,13 @@ import org.carpetorgaddition.command.PlayerManagerCommand;
 import org.carpetorgaddition.command.RegisterCarpetCommands;
 import org.carpetorgaddition.config.CustomSettingsManager;
 import org.carpetorgaddition.logger.LoggerRegister;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
-import org.carpetorgaddition.util.wheel.Waypoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -61,7 +61,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.server).getExpressManager();
+        ExpressManager expressManager = ServerComponentCoordinator.getManager(player.server).getExpressManager();
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
@@ -89,6 +89,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
+        GenericFetcherUtils.getRuleSelfManager(server).load();
     }
 
     @Override

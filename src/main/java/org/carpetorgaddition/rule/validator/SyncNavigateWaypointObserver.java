@@ -2,7 +2,7 @@ package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
-import org.carpetorgaddition.periodic.PlayerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +29,8 @@ public class SyncNavigateWaypointObserver extends AbstractValidator<Boolean> {
         }
         List<AbstractNavigator> list = source.getServer().getPlayerManager().getPlayerList()
                 .stream()
-                .map(PlayerPeriodicTaskManager::getManager)
-                .map(PlayerPeriodicTaskManager::getNavigatorManager)
+                .map(PlayerComponentCoordinator::getManager)
+                .map(PlayerComponentCoordinator::getNavigatorManager)
                 .map(NavigatorManager::getNavigator)
                 .filter(Objects::nonNull)
                 .toList();

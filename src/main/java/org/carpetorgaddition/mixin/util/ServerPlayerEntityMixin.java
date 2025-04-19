@@ -8,7 +8,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.network.s2c.BackgroundSpriteSyncS2CPacket;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
-import org.carpetorgaddition.periodic.PlayerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.screen.BackgroundSpriteSyncServer;
 import org.carpetorgaddition.util.screen.UnavailableSlotSyncInterface;
 import org.jetbrains.annotations.NotNull;
@@ -27,10 +27,10 @@ public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
     private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
     @Unique
     @NotNull
-    private final PlayerPeriodicTaskManager manager = new PlayerPeriodicTaskManager(thisPlayer);
+    private final PlayerComponentCoordinator manager = new PlayerComponentCoordinator(thisPlayer);
 
     @Override
-    public PlayerPeriodicTaskManager carpet_Org_Addition$getPlayerPeriodicTaskManager() {
+    public PlayerComponentCoordinator carpet_Org_Addition$getPlayerPeriodicTaskManager() {
         return this.manager;
     }
 

@@ -16,7 +16,7 @@ import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
@@ -326,7 +326,7 @@ public class FakePlayerSerializer {
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(server).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         try {
             tryAutoLogin(server, manager);
         } catch (RuntimeException | CommandSyntaxException e) {

@@ -38,7 +38,11 @@ public class WorldFormat {
     public WorldFormat(MinecraftServer server, @Nullable String directory, String... directories) {
         // 获取服务器存档保存文件的路径
         Path path = server.getSavePath(WorldSavePath.ROOT).resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
-        if (directory != null) {
+        if (directory == null) {
+            if (directories.length != 0) {
+                throw new IllegalArgumentException();
+            }
+        } else {
             path = path.resolve(directory);
         }
         // 拼接路径

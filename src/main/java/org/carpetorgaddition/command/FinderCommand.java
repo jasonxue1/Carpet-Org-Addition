@@ -30,7 +30,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
@@ -144,7 +144,7 @@ public class FinderCommand {
         // 查找周围容器中的物品
         World world = player.getWorld();
         ItemSearchTask task = new ItemSearchTask(world, predicate, new SelectionArea(world, sourceBlockPos, range), context);
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -158,7 +158,7 @@ public class FinderCommand {
         // 计算要查找的区域
         SelectionArea selectionArea = new SelectionArea(from, to);
         ItemSearchTask task = new ItemSearchTask(player.getWorld(), predicate, selectionArea, context);
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -181,7 +181,7 @@ public class FinderCommand {
         } else {
             task = new OfflinePlayerSearchTask(argument);
         }
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -197,7 +197,7 @@ public class FinderCommand {
         SelectionArea selectionArea = new SelectionArea(world, sourceBlockPos, range);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, selectionArea, context, predicate);
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -213,7 +213,7 @@ public class FinderCommand {
         SelectionArea selectionArea = new SelectionArea(from, to);
         BlockBlockPredicate predicate = new BlockBlockPredicate();
         MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, selectionArea, context, predicate);
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 0;
     }
 
@@ -229,7 +229,7 @@ public class FinderCommand {
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         // 添加查找任务
         BlockSearchTask task = new BlockSearchTask(player.getServerWorld(), player.getBlockPos(), selectionArea, context, predicate);
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -246,7 +246,7 @@ public class FinderCommand {
         SelectionArea area = new SelectionArea(world, sourcePos, range);
         TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context);
         // 向任务管理器添加任务
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -263,7 +263,7 @@ public class FinderCommand {
         SelectionArea area = new SelectionArea(world, sourcePos, range);
         TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context, enchantment);
         // 向任务管理器添加任务
-        ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
 

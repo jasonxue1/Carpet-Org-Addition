@@ -10,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.CreeperExplosionTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.util.CommandUtils;
@@ -26,7 +26,7 @@ public class CreeperCommand {
     // 创建苦力怕并爆炸
     private static int creeperExplosion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         // 添加苦力怕爆炸任务
         manager.addTask(new CreeperExplosionTask(targetPlayer));
         ServerPlayerEntity sourcePlayer = context.getSource().getPlayer();
