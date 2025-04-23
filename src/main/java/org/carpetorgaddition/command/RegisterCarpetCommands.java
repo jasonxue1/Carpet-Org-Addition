@@ -6,7 +6,7 @@ import net.minecraft.server.command.ServerCommandSource;
 
 public class RegisterCarpetCommands {
     // 注册Carpet命令
-    public static void registerCarpetCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
+    public static void registerCarpetCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         // 物品分身命令
         ItemShadowingCommand.register(dispatcher);
         // 苦力怕音效命令
@@ -16,7 +16,7 @@ public class RegisterCarpetCommands {
         // 生存旁观切换命令
         SpectatorCommand.register(dispatcher);
         // 查找器命令
-        FinderCommand.register(dispatcher, commandRegistryAccess);
+        FinderCommand.register(dispatcher, access);
         // 自杀命令
         KillMeCommand.register(dispatcher);
         // 路径点管理器命令
@@ -24,7 +24,7 @@ public class RegisterCarpetCommands {
         // 绘制粒子线命令
         // ParticleLineCommand.register(dispatcher);
         // 假玩家动作命令
-        PlayerActionCommand.register(dispatcher, commandRegistryAccess);
+        PlayerActionCommand.register(dispatcher, access);
         // 规则搜索命令
         RuleSearchCommand.register(dispatcher);
         // 玩家管理器命令

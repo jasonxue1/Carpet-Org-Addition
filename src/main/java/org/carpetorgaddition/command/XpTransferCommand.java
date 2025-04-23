@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class XpTransferCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("xpTransfer")
+        dispatcher.register(CommandManager.literal(CommandConstants.XP_TRANSFER_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandXpTransfer))
                 .then(CommandManager.argument("outputPlayer", EntityArgumentType.player())
                         .then(CommandManager.argument("inputPlayer", EntityArgumentType.player())

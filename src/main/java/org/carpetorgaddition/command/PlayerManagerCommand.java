@@ -64,7 +64,7 @@ public class PlayerManagerCommand {
             logoutNode.then(CommandManager.literal(unit.getName())
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
-        dispatcher.register(CommandManager.literal("playerManager")
+        dispatcher.register(CommandManager.literal(CommandConstants.PLAYER_MANAGER_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerManager))
                 .then(CommandManager.literal("save")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())

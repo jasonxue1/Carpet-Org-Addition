@@ -30,7 +30,7 @@ import java.util.List;
 //路径点管理器
 public class LocationsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("locations")
+        dispatcher.register(CommandManager.literal(CommandConstants.LOCATIONS_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandLocations))
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("name", StringArgumentType.string())

@@ -23,6 +23,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
+import org.carpetorgaddition.command.CommandConstants;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -34,7 +35,7 @@ import java.util.Objects;
 public class DictionaryCommand {
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal("dictionary");
+            LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal(CommandConstants.DICTIONARY_COMMAND);
             // 注册每一项子命令
             for (DictionaryType value : DictionaryType.values()) {
                 builder.then(ClientCommandManager.literal(value.name)

@@ -14,12 +14,13 @@ import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
+import org.carpetorgaddition.command.CommandConstants;
 import org.jetbrains.annotations.Nullable;
 
 public class HighlightCommand {
     public static void register() {
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-                dispatcher.register(ClientCommandManager.literal("highlight")
+                dispatcher.register(ClientCommandManager.literal(CommandConstants.HIGHLIGHT_COMMAND)
                         .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
                                 .executes(context -> highlight(context,
                                         // 如果绑定了清除高亮路径点的快捷键，则永久显示

@@ -37,7 +37,7 @@ public class SpectatorCommand {
     private static final String SPECTATOR = "spectator";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("spectator")
+        dispatcher.register(CommandManager.literal(CommandConstants.SPECTATOR_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandSpectator))
                 .executes(context -> setGameMode(context, false))
                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())

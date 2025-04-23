@@ -149,9 +149,11 @@ public class IOUtils {
         return false;
     }
 
-    public static File createConfigFile(String fileName) {
+    public static File createConfigFile(String fileName, boolean create) {
         File file = new File(CONFIGURE_DIRECTORY, fileName);
-        createFileIfNotExists(file);
+        if (create) {
+            createFileIfNotExists(file);
+        }
         return file;
     }
 

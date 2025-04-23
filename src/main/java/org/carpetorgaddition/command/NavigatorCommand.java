@@ -40,7 +40,7 @@ public class NavigatorCommand {
     private static final String START_NAVIGATION = "carpet.commands.navigate.start_navigation";
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("navigate")
+        dispatcher.register(CommandManager.literal(CommandConstants.NAVIGATE_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandNavigate))
                 .then(CommandManager.literal("entity")
                         .then(CommandManager.argument("entity", EntityArgumentType.entity())

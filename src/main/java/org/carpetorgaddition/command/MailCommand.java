@@ -37,7 +37,7 @@ import java.util.Optional;
 
 public class MailCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("mail")
+        dispatcher.register(CommandManager.literal(CommandConstants.MAIL_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandMail))
                 .then(CommandManager.literal("ship")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())

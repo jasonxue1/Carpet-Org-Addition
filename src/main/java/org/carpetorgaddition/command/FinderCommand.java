@@ -66,12 +66,12 @@ public class FinderCommand {
      */
     public static final String TIME_OUT = "carpet.commands.finder.timeout";
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
-        dispatcher.register(CommandManager.literal("finder")
+    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        dispatcher.register(CommandManager.literal(CommandConstants.FINDER_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
                         .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
-                        .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(commandRegistryAccess))
+                        .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(access))
                                 .executes(context -> blockFinder(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
@@ -83,7 +83,7 @@ public class FinderCommand {
                                                                 .executes(FinderCommand::areaBlockSearch)))))))
                 .then(CommandManager.literal("item")
                         .requires(PermissionManager.register("finder.item", PermissionLevel.PASS))
-                        .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
+                        .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(access))
                                 .executes(context -> searchItem(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
@@ -97,18 +97,19 @@ public class FinderCommand {
                 .then(CommandManager.literal("trade")
                         .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
                         .then(CommandManager.literal("item")
-                                .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(commandRegistryAccess))
+                                .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(access))
                                         .executes(context -> searchTradeItem(context, 64))
                                         .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchTradeItem(context, IntegerArgumentType.getInteger(context, "range"))))))
                         .then(CommandManager.literal("enchanted_book")
-                                .then(CommandManager.argument("enchantment", RegistryEntryReferenceArgumentType.registryEntry(commandRegistryAccess, RegistryKeys.ENCHANTMENT))
+                                .then(CommandManager.argument("enchantment", RegistryEntryReferenceArgumentType.registryEntry(access, RegistryKeys.ENCHANTMENT))
                                         .executes(context -> searchEnchantedBookTrade(context, 64))
                                         .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(CommandManager.literal("worldEater")
+                        // TODO 子命令在未加参数的情况下默认启用了？
                         .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                         .requires(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS))
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())

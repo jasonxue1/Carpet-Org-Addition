@@ -17,7 +17,7 @@ import org.carpetorgaddition.util.CommandUtils;
 
 public class CreeperCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("creeper")
+        dispatcher.register(CommandManager.literal(CommandConstants.CREEPER_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandCreeper))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .executes(CreeperCommand::creeperExplosion)));

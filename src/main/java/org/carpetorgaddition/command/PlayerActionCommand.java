@@ -36,7 +36,7 @@ import java.util.Arrays;
 
 public class PlayerActionCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
-        dispatcher.register(CommandManager.literal("playerAction")
+        dispatcher.register(CommandManager.literal(CommandConstants.PLAYER_ACTION_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .then(CommandManager.literal("sorting")

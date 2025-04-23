@@ -19,7 +19,7 @@ public class RuleDocument {
     private final LinkedHashSet<String> rules = new LinkedHashSet<>();
     private final JsonObject json;
 
-    public static void main(String[] args) throws IOException, NoSuchFieldException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException, ReflectiveOperationException {
         // 生成文档前备份旧的文件
         String time = DateTimeFormatter.ofPattern("yyMMddHHmmss").format(LocalDateTime.now());
         FileInputStream fileInputStream = new FileInputStream("docs/rules.md");
@@ -43,7 +43,7 @@ public class RuleDocument {
         writer.close();
     }
 
-    RuleDocument() throws FileNotFoundException {
+    /*package-private*/ RuleDocument() throws FileNotFoundException {
         BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/assets/carpet-org-addition/lang/zh_cn.json"));
         Gson gson = new Gson();
         this.json = gson.fromJson(reader, JsonObject.class);

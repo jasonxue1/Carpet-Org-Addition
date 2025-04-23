@@ -57,7 +57,7 @@ public class CarpetOrgAdditionCommand {
     );
 
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CarpetOrgAddition.MOD_ID)
+        dispatcher.register(CommandManager.literal(CommandConstants.CARPET_ORG_ADDITION_COMMAND)
                 .then(CommandManager.literal("permission")
                         .requires(PermissionManager.register("carpet-org-addition.permission", PermissionLevel.OWNERS))
                         .then(CommandManager.argument("node", StringArgumentType.string())
@@ -119,7 +119,7 @@ public class CarpetOrgAdditionCommand {
      */
     private static int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        String version = CarpetOrgAddition.METADATA.getVersion().getFriendlyString();
+        String version = CarpetOrgAddition.VERSION;
         MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.version", name, version);
         return 1;
     }

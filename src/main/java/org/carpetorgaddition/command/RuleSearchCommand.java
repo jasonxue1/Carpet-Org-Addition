@@ -21,7 +21,7 @@ import java.util.Collection;
 
 public class RuleSearchCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("ruleSearch")
+        dispatcher.register(CommandManager.literal(CommandConstants.RULE_SEARCH_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandRuleSearch))
                 .then(CommandManager.argument("rule", StringArgumentType.greedyString())
                         .executes(RuleSearchCommand::listRule)));

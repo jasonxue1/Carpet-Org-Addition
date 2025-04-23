@@ -13,7 +13,7 @@ import org.carpetorgaddition.util.CommandUtils;
 // 自杀命令
 public class KillMeCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("killMe")
+        dispatcher.register(CommandManager.literal(CommandConstants.KILL_ME_COMMAND)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandKillMe))
                 .executes(KillMeCommand::killMe));
     }
