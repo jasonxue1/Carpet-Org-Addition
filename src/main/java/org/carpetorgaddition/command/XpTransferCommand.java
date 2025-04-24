@@ -6,6 +6,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -21,16 +22,21 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
-public class XpTransferCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CommandConstants.XP_TRANSFER_COMMAND)
+public class XpTransferCommand extends AbstractServerCommand {
+    public XpTransferCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandXpTransfer))
                 .then(CommandManager.argument("outputPlayer", EntityArgumentType.player())
                         .then(CommandManager.argument("inputPlayer", EntityArgumentType.player())
                                 .then(CommandManager.literal("all")
-                                        .executes(XpTransferCommand::xpAllTransfer))
+                                        .executes(this::xpAllTransfer))
                                 .then(CommandManager.literal("half")
-                                        .executes(XpTransferCommand::xpHalfTransfer))
+                                        .executes(this::xpHalfTransfer))
                                 .then(CommandManager.literal("points")
                                         .then(CommandManager.argument("number", IntegerArgumentType.integer(0))
                                                 .executes(context -> xpPointTransfer(context, null))))
@@ -42,7 +48,7 @@ public class XpTransferCommand {
     }
 
     // 转移所有经验
-    private static int xpAllTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int xpAllTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         // 获取命令执行者
         ServerPlayerEntity sourcePlayer = source.getPlayer();
@@ -84,7 +90,7 @@ public class XpTransferCommand {
     }
 
     // 转移一半经验
-    private static int xpHalfTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int xpHalfTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         // 获取命令执行者玩家
         ServerPlayerEntity sourcePlayer = source.getPlayer();
@@ -130,8 +136,8 @@ public class XpTransferCommand {
     }
 
     // 转移指定数量经验
-    private static int xpPointTransfer(CommandContext<ServerCommandSource> context,
-                                       @Nullable Integer number) throws CommandSyntaxException {
+    private int xpPointTransfer(CommandContext<ServerCommandSource> context,
+                                @Nullable Integer number) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         // 获取命令执行者玩家
         ServerPlayerEntity serverCommandSourcePlayer = source.getPlayer();
@@ -182,17 +188,17 @@ public class XpTransferCommand {
     }
 
     // 获取要输出经验的玩家
-    private static ServerPlayerEntity getOutputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private ServerPlayerEntity getOutputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return EntityArgumentType.getPlayer(context, "outputPlayer");
     }
 
     // 获取要输入经验的玩家
-    private static ServerPlayerEntity getInputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private ServerPlayerEntity getInputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         return EntityArgumentType.getPlayer(context, "inputPlayer");
     }
 
     // 记录日志
-    private static void writeLog(
+    private void writeLog(
             ServerCommandSource source,
             ServerPlayerEntity inputPlayer,
             ServerPlayerEntity outputPlayer,
@@ -205,7 +211,7 @@ public class XpTransferCommand {
     }
 
     // 获取悬停提示
-    private static MutableText getHover(
+    private MutableText getHover(
             ServerPlayerEntity inputPlayer,
             int inputCurrentLevel,
             int inputBeforeLevel,
@@ -246,7 +252,7 @@ public class XpTransferCommand {
      * @return 总经验值
      * @author ChatGPT
      */
-    private static int getTotalExperience(int level, int xp) {
+    private int getTotalExperience(int level, int xp) {
         int totalExp;
         // 0-16级
         if (level <= 16) {
@@ -263,5 +269,10 @@ public class XpTransferCommand {
         // 防止数值溢出
         int sum = totalExp + xp;
         return sum < 0 ? totalExp : sum;
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "xpTransfer";
     }
 }

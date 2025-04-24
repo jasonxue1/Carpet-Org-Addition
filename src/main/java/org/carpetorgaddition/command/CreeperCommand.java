@@ -4,6 +4,7 @@ import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -15,16 +16,21 @@ import org.carpetorgaddition.periodic.task.CreeperExplosionTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.util.CommandUtils;
 
-public class CreeperCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CommandConstants.CREEPER_COMMAND)
+public class CreeperCommand extends AbstractServerCommand {
+    public CreeperCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandCreeper))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
-                        .executes(CreeperCommand::creeperExplosion)));
+                        .executes(this::creeperExplosion)));
     }
 
     // 创建苦力怕并爆炸
-    private static int creeperExplosion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int creeperExplosion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         // 添加苦力怕爆炸任务
@@ -38,5 +44,10 @@ public class CreeperCommand {
             );
         }
         return 1;
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "creeper";
     }
 }

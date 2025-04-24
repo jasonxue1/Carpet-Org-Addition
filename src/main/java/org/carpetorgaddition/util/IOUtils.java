@@ -104,7 +104,7 @@ public class IOUtils {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("发生IO错误：", e);
+            IOUtils.loggerError(e);
         }
     }
 

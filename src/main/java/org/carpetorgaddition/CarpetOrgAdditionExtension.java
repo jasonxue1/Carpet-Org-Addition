@@ -11,9 +11,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
-import org.carpetorgaddition.command.RegisterCarpetCommands;
-import org.carpetorgaddition.config.CustomSettingsManager;
+import org.carpetorgaddition.config.CustomCommandConfig;
+import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
@@ -47,7 +48,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     public static SettingsManager getCustomSettingManager() {
         if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER && customSettingManager == null) {
             try {
-                customSettingManager = CustomSettingsManager.getSettingManager();
+                customSettingManager = CustomSettingsConfig.getSettingManager();
             } catch (RuntimeException e) {
                 return null;
             }
@@ -90,12 +91,15 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
         GenericFetcherUtils.getRuleSelfManager(server).load();
+        // 初始化自定义命令名称
+        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     @Override
     public void onServerClosed(MinecraftServer server) {
         UuidNameMappingTable.getInstance().save();
         PermissionManager.reset();
+        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     @Override
@@ -124,7 +128,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     // 注册命令
     @Override
-    public void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
-        RegisterCarpetCommands.registerCarpetCommands(dispatcher, commandRegistryAccess);
+    public void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        CommandRegister.register(dispatcher, access);
     }
 }

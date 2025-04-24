@@ -3,7 +3,10 @@ package org.carpetorgaddition.util.provider;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
-import org.carpetorgaddition.command.CommandConstants;
+import org.carpetorgaddition.client.command.AbstractClientCommand;
+import org.carpetorgaddition.client.command.ClientCommandRegister;
+import org.carpetorgaddition.client.command.HighlightCommand;
+import org.carpetorgaddition.command.*;
 import org.carpetorgaddition.util.wheel.MetaComment;
 
 import java.util.UUID;
@@ -16,14 +19,14 @@ public class CommandProvider {
      * 接收一件快递
      */
     public static String receiveExpress(int id) {
-        return "/%s receive %s".formatted(CommandConstants.MAIL_COMMAND, id);
+        return "/%s receive %s".formatted(getCommandName(MailCommand.class), id);
     }
 
     /**
      * 撤回一件快递
      */
     public static String cancelExpress(int id) {
-        return "/%s cancel %s".formatted(CommandConstants.MAIL_COMMAND, id);
+        return "/%s cancel %s".formatted(getCommandName(MailCommand.class), id);
     }
 
 
@@ -31,35 +34,35 @@ public class CommandProvider {
      * 接收所有快递
      */
     public static String receiveAllExpress() {
-        return "/%s receive".formatted(CommandConstants.MAIL_COMMAND);
+        return "/%s receive".formatted(getCommandName(MailCommand.class));
     }
 
     /**
      * 撤回所有快递
      */
     public static String cancelAllExpress() {
-        return "/%s cancel".formatted(CommandConstants.MAIL_COMMAND);
+        return "/%s cancel".formatted(getCommandName(MailCommand.class));
     }
 
     /**
      * 导航到指定UUID的实体
      */
     public static String navigateToUuidEntity(UUID uuid) {
-        return "/%s uuid \"%s\"".formatted(CommandConstants.NAVIGATE_COMMAND, uuid.toString());
+        return "/%s uuid \"%s\"".formatted(getCommandName(NavigatorCommand.class), uuid.toString());
     }
 
     /**
      * 通过玩家管理器生成玩家
      */
     public static String playerManagerSpawn(String playerName) {
-        return "/%s spawn %s".formatted(CommandConstants.PLAYER_MANAGER_COMMAND, playerName);
+        return "/%s spawn %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
     }
 
     /**
      * 将一名玩家重新保存到玩家管理器
      */
     public static String playerManagerResave(String playerName, MetaComment comment) {
-        String str = "/%s resave %s".formatted(CommandConstants.PLAYER_MANAGER_COMMAND, playerName);
+        String str = "/%s resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
         return comment.hasContent() ? str + " \"" + comment.getComment() + "\"" : str;
     }
 
@@ -67,14 +70,18 @@ public class CommandProvider {
      * 永久更改假玩家安全挂机阈值
      */
     public static String setupSafeAfkPermanentlyChange(EntityPlayerMPFake player, float threshold) {
-        return "/%s safeafk set %s %s true".formatted(CommandConstants.PLAYER_MANAGER_COMMAND, player.getName().getString(), threshold);
+        String commandName = getCommandName(PlayerManagerCommand.class);
+        String playerName = player.getName().getString();
+        return "/%s safeafk set %s %s true".formatted(commandName, playerName, threshold);
     }
 
     /**
      * 取消设置假玩家安全挂机阈值
      */
     public static String cancelSafeAfkPermanentlyChange(EntityPlayerMPFake player) {
-        return "/%s safeafk set %s -1 true".formatted(CommandConstants.PLAYER_MANAGER_COMMAND, player.getName().getString());
+        String commandName = getCommandName(PlayerManagerCommand.class);
+        String playerName = player.getName().getString();
+        return "/%s safeafk set %s -1 true".formatted(commandName, playerName);
     }
 
     /**
@@ -95,7 +102,7 @@ public class CommandProvider {
      * 高亮路径点
      */
     public static String highlightWaypoint(BlockPos blockPos) {
-        return "/%s %s %s %s".formatted(CommandConstants.HIGHLIGHT_COMMAND, blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        return "/%s %s %s %s".formatted(getClientCommandName(HighlightCommand.class), blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
     /**
@@ -109,21 +116,21 @@ public class CommandProvider {
      * 通过Mojang API查询玩家名称
      */
     public static String queryPlayerName(UUID uuid) {
-        return "/%s textclickevent queryPlayerName %s".formatted(CommandConstants.CARPET_ORG_ADDITION_COMMAND, uuid.toString());
+        return "/%s textclickevent queryPlayerName %s".formatted(getCommandName(CarpetOrgAdditionCommand.class), uuid.toString());
     }
 
     /**
      * 停止导航
      */
     public static String stopNavigate() {
-        return "%s stop".formatted(CommandConstants.NAVIGATE_COMMAND);
+        return "%s stop".formatted(getCommandName(NavigatorCommand.class));
     }
 
     /**
      * 绘制粒子线
      */
     public static String drawParticleLine(double x1, double y1, double z1, double x2, double y2, double z2) {
-        return "particleLine " + x1 + " " + y1 + " " + z1 + " " + x2 + " " + y2 + " " + z2;
+        return "particleLine %s %s %s %s %s %s".formatted(x1, y1, z1, x2, y2, z2);
     }
 
     /**
@@ -131,5 +138,14 @@ public class CommandProvider {
      */
     public static String openPlayerInventory(PlayerEntity player) {
         return "player %s inventory".formatted(player.getName().getString());
+    }
+
+    private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {
+        return CommandRegister.getCommandInstance(clazz).getAvailableName();
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static <T extends AbstractClientCommand> String getClientCommandName(Class<T> clazz) {
+        return ClientCommandRegister.getCommandInstance(clazz).getAvailableName();
     }
 }

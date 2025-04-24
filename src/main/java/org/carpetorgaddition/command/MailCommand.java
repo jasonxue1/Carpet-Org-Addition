@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.inventory.SimpleInventory;
@@ -35,32 +36,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MailCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CommandConstants.MAIL_COMMAND)
+public class MailCommand extends AbstractServerCommand {
+    public MailCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandMail))
                 .then(CommandManager.literal("ship")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                .executes(MailCommand::ship)))
+                                .executes(this::ship)))
                 .then(CommandManager.literal("receive")
-                        .executes(MailCommand::receiveAll)
+                        .executes(this::receiveAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(true))
-                                .executes(MailCommand::receive)))
+                                .executes(this::receive)))
                 .then(CommandManager.literal("cancel")
-                        .executes(MailCommand::cancelAll)
+                        .executes(this::cancelAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(false))
-                                .executes(MailCommand::cancel)))
+                                .executes(this::cancel)))
                 .then(CommandManager.literal("list")
-                        .executes(MailCommand::list))
+                        .executes(this::list))
                 .then(CommandManager.literal("multiple")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                .executes(MailCommand::shipMultipleExpress))));
+                                .executes(this::shipMultipleExpress))));
     }
 
     // 自动补全快递单号
-    private static @NotNull SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
+    private @NotNull SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
         return (context, builder) -> {
             ServerPlayerEntity player = context.getSource().getPlayer();
             if (player == null) {
@@ -77,7 +83,7 @@ public class MailCommand {
     }
 
     // 发送快递
-    private static int ship(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int ship(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         // 限制只允许发送给其他真玩家
@@ -94,7 +100,7 @@ public class MailCommand {
     }
 
     // 发送多个快递
-    private static int shipMultipleExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int shipMultipleExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         checkPlayer(sourcePlayer, targetPlayer);
@@ -107,7 +113,7 @@ public class MailCommand {
     }
 
     // 接收快递
-    private static int receive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int receive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取快递
         Express express = getExpress(context);
@@ -124,7 +130,7 @@ public class MailCommand {
     }
 
     // 接收所有快递
-    private static int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
             return ServerComponentCoordinator.getManager(context).getExpressManager().receiveAll(player);
@@ -134,7 +140,7 @@ public class MailCommand {
     }
 
     // 撤回快递
-    private static int cancel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
         if (express.isSender(player)) {
@@ -149,7 +155,7 @@ public class MailCommand {
     }
 
     // 撤回所有快递
-    private static int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
             return ServerComponentCoordinator.getManager(context).getExpressManager().cancelAll(player);
@@ -159,7 +165,7 @@ public class MailCommand {
     }
 
     // 列出快递
-    private static int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         List<Express> list = manager.stream().toList();
@@ -171,7 +177,7 @@ public class MailCommand {
         return list.size();
     }
 
-    private static void list(ServerPlayerEntity player, Express express) {
+    private void list(ServerPlayerEntity player, Express express) {
         ArrayList<MutableText> list = new ArrayList<>();
         MutableText text;
         if (express.isRecipient(player)) {
@@ -202,7 +208,7 @@ public class MailCommand {
     }
 
     // 获取快递
-    private static @NotNull Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private @NotNull Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");
@@ -215,7 +221,7 @@ public class MailCommand {
     }
 
     // 检查玩家是否是自己或假玩家
-    private static void checkPlayer(ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
+    private void checkPlayer(ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
         // 允许在开发环境下发送给自己
         if (CarpetOrgAddition.isDebugDevelopment()) {
             return;
@@ -223,5 +229,10 @@ public class MailCommand {
         if (sourcePlayer == targetPlayer || targetPlayer instanceof EntityPlayerMPFake) {
             throw CommandUtils.createException("carpet.commands.mail.check_player");
         }
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "mail";
     }
 }

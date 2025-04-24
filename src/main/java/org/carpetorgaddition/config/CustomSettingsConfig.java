@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 
-public class CustomSettingsManager {
+public class CustomSettingsConfig {
     private static final File SETTINGS_MANAGER_CONFIG = IOUtils.createConfigFile("settings_manager.json", false);
 
     public static void initSettingsManagerConfigs() {

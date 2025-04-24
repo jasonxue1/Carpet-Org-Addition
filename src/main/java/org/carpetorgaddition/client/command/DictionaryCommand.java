@@ -1,14 +1,15 @@
 package org.carpetorgaddition.client.command;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.StatusEffect;
@@ -23,7 +24,6 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
-import org.carpetorgaddition.command.CommandConstants;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -32,22 +32,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
-public class DictionaryCommand {
-    public static void register() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal(CommandConstants.DICTIONARY_COMMAND);
-            // 注册每一项子命令
-            for (DictionaryType value : DictionaryType.values()) {
-                builder.then(ClientCommandManager.literal(value.name)
-                        .then(ClientCommandManager.argument(value.name, value.getArgumentType())
-                                .executes(context -> getId(context, value))));
-            }
-            dispatcher.register(builder);
-        });
+public class DictionaryCommand extends AbstractClientCommand {
+    public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal(name);
+        // 注册每一项子命令
+        for (DictionaryType value : DictionaryType.values()) {
+            builder.then(ClientCommandManager.literal(value.name)
+                    .then(ClientCommandManager.argument(value.name, value.getArgumentType())
+                            .executes(context -> getId(context, value))));
+        }
+        this.dispatcher.register(builder);
     }
 
     // 获取对象id
-    private static int getId(CommandContext<FabricClientCommandSource> context, DictionaryType type) {
+    private int getId(CommandContext<FabricClientCommandSource> context, DictionaryType type) {
         List<?> list = ClientObjectArgumentType.getType(context, type.name);
         // list集合至少有一个元素，不与任何对象匹配的字符串在解析命令时不会成功
         if (list.size() == 1) {
@@ -67,22 +70,27 @@ public class DictionaryCommand {
     }
 
     // 发送命令反馈
-    private static void sendFeedback(Text text, String id) {
+    private void sendFeedback(Text text, String id) {
         ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.id", text, canCopyId(id));
     }
 
-    private static void sendFeedback(int count) {
+    private void sendFeedback(int count) {
         ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.multiple.id", count);
     }
 
-    private static void sendFeedback(String id) {
+    private void sendFeedback(String id) {
         ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.multiple.each", canCopyId(id));
     }
 
     // 将字符串id转换成可以单击复制的形式
     @NotNull
-    private static MutableText canCopyId(String id) {
+    private MutableText canCopyId(String id) {
         return TextUtils.copy(id, id, TextProvider.COPY_CLICK, Formatting.GREEN);
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "dictionary";
     }
 
     private enum DictionaryType {

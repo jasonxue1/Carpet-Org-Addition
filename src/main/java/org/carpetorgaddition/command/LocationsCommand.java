@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.server.MinecraftServer;
@@ -28,9 +29,14 @@ import java.io.IOException;
 import java.util.List;
 
 //路径点管理器
-public class LocationsCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CommandConstants.LOCATIONS_COMMAND)
+public class LocationsCommand extends AbstractServerCommand {
+    public LocationsCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandLocations))
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -55,7 +61,7 @@ public class LocationsCommand {
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
-                                .executes(LocationsCommand::deleteWayPoint)))
+                                .executes(this::deleteWayPoint)))
                 .then(CommandManager.literal("set")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
@@ -63,7 +69,7 @@ public class LocationsCommand {
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                         .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
                 .then(CommandManager.literal("here")
-                        .executes(LocationsCommand::sendSelfLocation)));
+                        .executes(this::sendSelfLocation)));
     }
 
     // 用来自动补全路径点名称
@@ -80,7 +86,7 @@ public class LocationsCommand {
     }
 
     // 添加路径点
-    private static int addWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int addWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
@@ -111,7 +117,7 @@ public class LocationsCommand {
     }
 
     // 列出所有路径点
-    private static int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) {
+    private int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.toImmutableFileList();
@@ -145,7 +151,7 @@ public class LocationsCommand {
     }
 
     // 添加说明文本
-    private static int addIllustrateText(CommandContext<ServerCommandSource> context, @Nullable String comment) throws CommandSyntaxException {
+    private int addIllustrateText(CommandContext<ServerCommandSource> context, @Nullable String comment) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         MinecraftServer server = context.getSource().getServer();
         // 获取路径点的名称
@@ -177,7 +183,7 @@ public class LocationsCommand {
     }
 
     // 添加另一个坐标
-    private static int addAnotherPos(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int addAnotherPos(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ServerCommandSource source = context.getSource();
         // 路径点的另一个坐标
@@ -208,7 +214,7 @@ public class LocationsCommand {
     }
 
     // 删除路径点
-    private static int deleteWayPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int deleteWayPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         //获取路径点文件名
         String name = StringArgumentType.getString(context, "name");
@@ -228,7 +234,7 @@ public class LocationsCommand {
     }
 
     // 修改路径点
-    private static int setWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int setWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ServerCommandSource source = context.getSource();
         if (blockPos == null) {
@@ -249,7 +255,7 @@ public class LocationsCommand {
     }
 
     //发送自己的位置
-    public static int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
@@ -267,5 +273,10 @@ public class LocationsCommand {
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
         return 1;
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "locations";
     }
 }

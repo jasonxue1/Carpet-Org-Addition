@@ -7,6 +7,7 @@ import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
@@ -19,16 +20,21 @@ import org.carpetorgaddition.util.TextUtils;
 
 import java.util.Collection;
 
-public class RuleSearchCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CommandConstants.RULE_SEARCH_COMMAND)
+public class RuleSearchCommand extends AbstractServerCommand {
+    public RuleSearchCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandRuleSearch))
                 .then(CommandManager.argument("rule", StringArgumentType.greedyString())
-                        .executes(RuleSearchCommand::listRule)));
+                        .executes(this::listRule)));
     }
 
     // 列出符合条件的规则
-    private static int listRule(CommandContext<ServerCommandSource> context) {
+    private int listRule(CommandContext<ServerCommandSource> context) {
         String filter = StringArgumentType.getString(context, "rule");
         if (filter.matches("\".*\"")) {
             filter = filter.substring(1, filter.length() - 1);
@@ -47,7 +53,7 @@ public class RuleSearchCommand {
         return listRule(context, filter);
     }
 
-    private static int listRule(CommandContext<ServerCommandSource> context, String filter) {
+    private int listRule(CommandContext<ServerCommandSource> context, String filter) {
         MutableInt ruleCount = new MutableInt(0);
         CarpetServer.forEachManager(settingsManager -> {
             SettingsManagerAccessor accessor = (SettingsManagerAccessor) settingsManager;
@@ -65,5 +71,10 @@ public class RuleSearchCommand {
             }
         });
         return ruleCount.getValue();
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "ruleSearch";
     }
 }
