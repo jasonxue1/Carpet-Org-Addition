@@ -96,6 +96,13 @@ public class CommandUtils {
     }
 
     /**
+     * 操作超时
+     */
+    public static CommandSyntaxException createOperationTimeoutException() {
+        return createException("carpet.command.operation.timeout");
+    }
+
+    /**
      * 断言指定玩家为假玩家。<br>
      *
      * @param fakePlayer 要检查是否为假玩家的玩家对象

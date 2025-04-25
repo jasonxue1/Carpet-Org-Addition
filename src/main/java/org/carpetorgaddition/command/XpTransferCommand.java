@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -13,16 +12,21 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.math.MathHelper;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.exception.OperationTimeoutException;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
-import org.jetbrains.annotations.Nullable;
+import org.carpetorgaddition.util.wheel.ExperienceTransfer;
 
 public class XpTransferCommand extends AbstractServerCommand {
+    /**
+     * 一次最多能转移的等级数
+     */
+    public static final int MAX_TRANSFER_LEVEL = 21863;
+
     public XpTransferCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -31,58 +35,50 @@ public class XpTransferCommand extends AbstractServerCommand {
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandXpTransfer))
-                .then(CommandManager.argument("outputPlayer", EntityArgumentType.player())
-                        .then(CommandManager.argument("inputPlayer", EntityArgumentType.player())
+                .then(CommandManager.argument("from", EntityArgumentType.player())
+                        .then(CommandManager.argument("to", EntityArgumentType.player())
                                 .then(CommandManager.literal("all")
-                                        .executes(this::xpAllTransfer))
+                                        .executes(this::transferAll))
                                 .then(CommandManager.literal("half")
-                                        .executes(this::xpHalfTransfer))
+                                        .executes(this::transferHalf))
                                 .then(CommandManager.literal("points")
                                         .then(CommandManager.argument("number", IntegerArgumentType.integer(0))
-                                                .executes(context -> xpPointTransfer(context, null))))
+                                                .executes(this::transferSpecifyPoint)))
                                 .then(CommandManager.literal("level")
-                                        .then(CommandManager.argument("level", IntegerArgumentType.integer(0))
-                                                .executes(context -> xpPointTransfer(context,
-                                                        getTotalExperience(IntegerArgumentType.getInteger(context,
-                                                                "level"), 0))))))));
+                                        .then(CommandManager.argument("level", IntegerArgumentType.integer(0, MAX_TRANSFER_LEVEL))
+                                                .executes(this::transferSpecifyLevel))))));
     }
 
     // 转移所有经验
-    private int xpAllTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
-        // 获取命令执行者
-        ServerPlayerEntity sourcePlayer = source.getPlayer();
-        // 获取输出经验的玩家
-        ServerPlayerEntity outputPlayer = getOutputPlayer(context);
-        // 获取输入经验的玩家
-        ServerPlayerEntity inputPlayer = getInputPlayer(context);
+        ServerPlayerEntity player = source.getPlayer();
+        ExperienceTransfer from = new ExperienceTransfer(getOutputPlayer(context));
+        ExperienceTransfer to = new ExperienceTransfer(getInputPlayer(context));
         // 输出经验的玩家必须是假玩家或者是命令执行者自己
-        if (outputPlayer instanceof EntityPlayerMPFake || outputPlayer == sourcePlayer) {
+        if (from.isSpecifiedOrFakePlayer(player)) {
             // 获取转移之前玩家的经验
-            int outputBeforeLevel = outputPlayer.experienceLevel;
-            int inputBeforeLevel = inputPlayer.experienceLevel;
-            // 获取玩家当前的经验值
-            int points = MathHelper.floor(outputPlayer.experienceProgress * (float) outputPlayer.getNextLevelExperience());
-            // 获取玩家的总经验值
-            int totalExperience = getTotalExperience(outputPlayer.experienceLevel, points);
-            // 清除输出玩家的经验
-            outputPlayer.setExperienceLevel(0);
-            outputPlayer.setExperiencePoints(0);
-            // 把经验给输入玩家
-            inputPlayer.addExperience(totalExperience);
+            int fromBeforeLevel = from.getLevel();
+            int toBeforeLevel = to.getLevel();
+            Number number;
+            try {
+                number = from.transferAllTo(to);
+            } catch (OperationTimeoutException e) {
+                throw CommandUtils.createOperationTimeoutException();
+            }
             // 获取转移之后玩家的经验
-            int outputCurrentLevel = outputPlayer.experienceLevel;
-            int inputCurrentLevel = inputPlayer.experienceLevel;
+            int fromCurrentLevel = from.getLevel();
+            int toCurrentLevel = to.getLevel();
             MutableText message = TextUtils.translate(
                     "carpet.commands.xpTransfer.all",
-                    outputPlayer.getDisplayName(),
-                    totalExperience,
-                    inputPlayer.getDisplayName()
+                    from.player().getDisplayName(),
+                    number.toString(),
+                    to.player().getDisplayName()
             );
-            MutableText hover = getHover(inputPlayer, inputCurrentLevel, inputBeforeLevel, outputPlayer, outputBeforeLevel, outputCurrentLevel);
+            MutableText hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
             MessageUtils.sendMessage(source, TextUtils.hoverText(message, hover));
-            writeLog(source, inputPlayer, outputPlayer, totalExperience);
-            return totalExperience;
+            writeLog(source, to.player(), from.player(), number);
+            return number.intValue();
         } else {
             // 发送需要目标是自己或假玩家消息
             throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
@@ -90,97 +86,89 @@ public class XpTransferCommand extends AbstractServerCommand {
     }
 
     // 转移一半经验
-    private int xpHalfTransfer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferHalf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         // 获取命令执行者玩家
-        ServerPlayerEntity sourcePlayer = source.getPlayer();
-        // 获取输出经验的玩家
-        ServerPlayerEntity outputPlayer = getOutputPlayer(context);
-        // 获取输入经验的玩家
-        ServerPlayerEntity inputPlayer = getInputPlayer(context);
-        // 只能操作自己或假玩家
-        if (outputPlayer instanceof EntityPlayerMPFake || outputPlayer == sourcePlayer) {
+        ServerPlayerEntity player = source.getPlayer();
+        ExperienceTransfer from = new ExperienceTransfer(getOutputPlayer(context));
+        ExperienceTransfer to = new ExperienceTransfer(getInputPlayer(context));
+        if (from.isSpecifiedOrFakePlayer(player)) {
             // 获取转移之前玩家的经验
-            int outputBeforeLevel = outputPlayer.experienceLevel;
-            int inputBeforeLevel = inputPlayer.experienceLevel;
-            // 获取玩家当前的经验值
-            int points = MathHelper.floor(outputPlayer.experienceProgress * (float) outputPlayer.getNextLevelExperience());
-            // 获取玩家的总经验值
-            int totalExperience = getTotalExperience(outputPlayer.experienceLevel, points);
-            // 将玩家的经验值取半
-            int halfExperience = totalExperience / 2;
-            // 清除两个玩家的所有经验
-            outputPlayer.setExperienceLevel(0);
-            outputPlayer.setExperiencePoints(0);
-            // 将输出玩家一半的经验转移至输入玩家身上
-            inputPlayer.addExperience(halfExperience);
-            // 将另一半经验再转移回输出玩家身上
-            outputPlayer.addExperience(totalExperience - halfExperience);
+            int outputBeforeLevel = from.getLevel();
+            int inputBeforeLevel = to.getLevel();
+            Number number;
+            try {
+                number = from.transferHalfTo(to);
+            } catch (OperationTimeoutException e) {
+                throw CommandUtils.createOperationTimeoutException();
+            }
             // 获取转移之后玩家的经验
-            int outputCurrentLevel = outputPlayer.experienceLevel;
-            int inputCurrentLevel = inputPlayer.experienceLevel;
-            MutableText hover = getHover(inputPlayer, inputCurrentLevel, inputBeforeLevel, outputPlayer, outputBeforeLevel, outputCurrentLevel);
+            int outputCurrentLevel = from.getLevel();
+            int inputCurrentLevel = to.getLevel();
+            MutableText hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             MutableText message = TextUtils.translate(
                     "carpet.commands.xpTransfer.half",
-                    outputPlayer.getDisplayName(),
-                    halfExperience,
-                    inputPlayer.getDisplayName()
+                    from.player().getDisplayName(),
+                    number.toString(),
+                    to.player().getDisplayName()
             );
             MessageUtils.sendMessage(source, TextUtils.hoverText(message, hover));
-            writeLog(source, inputPlayer, outputPlayer, halfExperience);
-            return halfExperience;
+            writeLog(source, to.player(), from.player(), number);
+            return number.intValue();
         } else {
             // 发送消息：只允许操作自己或假玩家
             throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
         }
     }
 
-    // 转移指定数量经验
-    private int xpPointTransfer(CommandContext<ServerCommandSource> context,
-                                @Nullable Integer number) throws CommandSyntaxException {
+    // 转移指定数量的经验
+    private int transferSpecifyPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int count = IntegerArgumentType.getInteger(context, "number");
+        return transfer(context, count);
+    }
+
+    // 转移指定等级的经验
+    private int transferSpecifyLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int level = IntegerArgumentType.getInteger(context, "level");
+        int count = ExperienceTransfer.calculateTotalExperience(level, 0);
+        return transfer(context, count);
+    }
+
+    private int transfer(CommandContext<ServerCommandSource> context, int count) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
-        // 获取命令执行者玩家
-        ServerPlayerEntity serverCommandSourcePlayer = source.getPlayer();
-        // 获取输出经验的玩家
-        ServerPlayerEntity outputPlayer = getOutputPlayer(context);
-        // 获取输入经验的玩家
-        ServerPlayerEntity inputPlayer = getInputPlayer(context);
-        // 获取要转移的经验数量
-        int xpNumber = number == null ? IntegerArgumentType.getInteger(context, "number") : number;
+        ServerPlayerEntity player = source.getPlayer();
+        ExperienceTransfer from = new ExperienceTransfer(getOutputPlayer(context));
+        ExperienceTransfer to = new ExperienceTransfer(getInputPlayer(context));
         // 只能操作自己或假玩家
-        if (outputPlayer instanceof EntityPlayerMPFake || outputPlayer == serverCommandSourcePlayer) {
+        if (from.isSpecifiedOrFakePlayer(player)) {
             // 获取转移之前玩家的经验
-            int outputBeforeLevel = outputPlayer.experienceLevel;
-            int inputBeforeLevel = inputPlayer.experienceLevel;
-            // 获取玩家当前的经验值，不考虑经验等级
-            int points = MathHelper.floor(outputPlayer.experienceProgress
-                    * (float) outputPlayer.getNextLevelExperience());
-            // 获取玩家的总经验值，等级+当前经验值
-            int totalExperience = getTotalExperience(outputPlayer.experienceLevel, points);
-            // 要转移经验的数量不能多于玩家的总经验
-            if (xpNumber > totalExperience) {
-                throw CommandUtils.createException("carpet.commands.xpTransfer.point.fail",
-                        outputPlayer.getDisplayName(), xpNumber, totalExperience);
+            int outputBeforeLevel = from.getLevel();
+            int inputBeforeLevel = to.getLevel();
+            try {
+                from.transferTo(to, count);
+            } catch (ExperienceTransfer.ExperienceTransferException e) {
+                // 要转移经验的数量不能多于玩家的总经验
+                throw CommandUtils.createException(
+                        "carpet.commands.xpTransfer.point.fail",
+                        from.player().getDisplayName(),
+                        e.getRequire(),
+                        e.getExisting()
+                );
+            } catch (OperationTimeoutException e) {
+                throw CommandUtils.createOperationTimeoutException();
             }
-            // 清除两个玩家的所有经验
-            outputPlayer.setExperienceLevel(0);
-            outputPlayer.setExperiencePoints(0);
-            // 将指定数量的经验添加给输入玩家
-            inputPlayer.addExperience(xpNumber);
-            // 将剩余的经验再添加回输出玩家
-            outputPlayer.addExperience(totalExperience - xpNumber);
             // 获取转移之后玩家的经验
-            int outputCurrentLevel = outputPlayer.experienceLevel;
-            int inputCurrentLevel = inputPlayer.experienceLevel;
+            int outputCurrentLevel = from.getLevel();
+            int inputCurrentLevel = to.getLevel();
             MutableText message = TextUtils.translate("carpet.commands.xpTransfer.point",
-                    outputPlayer.getDisplayName(),
-                    xpNumber,
-                    inputPlayer.getDisplayName()
+                    from.player().getDisplayName(),
+                    count,
+                    to.player().getDisplayName()
             );
-            MutableText hover = getHover(inputPlayer, inputCurrentLevel, inputBeforeLevel, outputPlayer, outputBeforeLevel, outputCurrentLevel);
+            MutableText hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             MessageUtils.sendMessage(source, TextUtils.hoverText(message, hover));
-            writeLog(source, inputPlayer, outputPlayer, xpNumber);
-            return xpNumber;
+            writeLog(source, to.player(), from.player(), count);
+            return count;
         } else {
             // 发送消息：只允许操作自己或假玩家
             throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
@@ -189,12 +177,12 @@ public class XpTransferCommand extends AbstractServerCommand {
 
     // 获取要输出经验的玩家
     private ServerPlayerEntity getOutputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return EntityArgumentType.getPlayer(context, "outputPlayer");
+        return EntityArgumentType.getPlayer(context, "from");
     }
 
     // 获取要输入经验的玩家
     private ServerPlayerEntity getInputPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return EntityArgumentType.getPlayer(context, "inputPlayer");
+        return EntityArgumentType.getPlayer(context, "to");
     }
 
     // 记录日志
@@ -202,12 +190,12 @@ public class XpTransferCommand extends AbstractServerCommand {
             ServerCommandSource source,
             ServerPlayerEntity inputPlayer,
             ServerPlayerEntity outputPlayer,
-            int point
+            Number point
     ) {
         ServerPlayerEntity player = source.getPlayer();
         String output = player == outputPlayer ? "自己" : outputPlayer.getName().getString();
         String input = player == inputPlayer ? "自己" : inputPlayer.getName().getString();
-        CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getName(), output, point, input);
+        CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getName(), output, point.toString(), input);
     }
 
     // 获取悬停提示
@@ -242,33 +230,6 @@ public class XpTransferCommand extends AbstractServerCommand {
                         Formatting.RED
                 )
         );
-    }
-
-    /**
-     * 根据经验等级和经验值计算总经验值<br>
-     *
-     * @param level 经验等级
-     * @param xp    经验值
-     * @return 总经验值
-     * @author ChatGPT
-     */
-    private int getTotalExperience(int level, int xp) {
-        int totalExp;
-        // 0-16级
-        if (level <= 16) {
-            totalExp = level * level + 6 * level;
-        }
-        // 17-31级
-        else if (level <= 31) {
-            totalExp = (int) (2.5 * level * level - 40.5 * level + 360);
-        }
-        // 32级以上
-        else {
-            totalExp = (int) (4.5 * level * level - 162.5 * level + 2220);
-        }
-        // 防止数值溢出
-        int sum = totalExp + xp;
-        return sum < 0 ? totalExp : sum;
     }
 
     @Override

@@ -151,6 +151,7 @@
   "carpet.command.thread.wait.last": "Waiting for the previous thread to complete execution",
   "carpet.command.task.wait.last": "Waiting for the completion of the previous task execution",
   "carpet.command.error.io": "IO error occurred",
+  "carpet.command.operation.timeout": "Operation Timeout",
   "carpet.commands.finder.timeout": "Task timeout",
   "carpet.commands.finder.block.too_much_blocks": "Too many %s around, unable to count",
   "carpet.commands.finder.block.not_found_block": "No %s found in range",
