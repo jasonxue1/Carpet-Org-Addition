@@ -216,7 +216,7 @@
   "carpet.commands.xpTransfer.self_or_fake_player": "You are only allowed to manipulate yourself or fake players",
   "carpet.commands.xpTransfer.all": "Transfer all experience from %1$s to%3$s, %2$s in total",
   "carpet.commands.xpTransfer.half": "Transfer half of experience from %1$s to%3$s, %2$s in total",
-  "carpet.commands.xpTransfer.point.fail": "%s doesn't have enough experience (%s>%s)",
+  "carpet.commands.xpTransfer.point.fail": "%s doesn't have enough experience (%s > %s)",
   "carpet.commands.xpTransfer.point": "Transfer experience from %1$s to%3$s, %2$s in total",
   "carpet.commands.xpTransfer.upgrade": "%s (+%s) [%s->%s]",
   "carpet.commands.xpTransfer.degrade": "%s (-%s) [%s->%s]",
