@@ -19,6 +19,7 @@ import java.util.Set;
 
 public class PermissionManager {
     private static final HashMap<String, CommandPermission> PERMISSIONS = new HashMap<>();
+    private static final String PERMISSION_JSON = "permission.json";
 
     public static CommandPermission register(String node, PermissionLevel level) {
         CommandPermission permission = new CommandPermission(level);
@@ -62,7 +63,7 @@ public class PermissionManager {
         PERMISSIONS.forEach((node, perm) -> permission.addProperty(node, perm.getLevel().asString()));
         json.add("permission", permission);
         WorldFormat worldFormat = new WorldFormat(server, null);
-        File file = worldFormat.file("permission.json");
+        File file = worldFormat.file(PERMISSION_JSON);
         IOUtils.saveJson(file, json);
     }
 
@@ -71,26 +72,28 @@ public class PermissionManager {
      */
     public static void load(MinecraftServer server) {
         WorldFormat worldFormat = new WorldFormat(server, null);
-        File file = worldFormat.file("permission.json");
-        JsonObject json;
-        try {
-            json = IOUtils.loadJson(file);
-        } catch (IOException e) {
-            IOUtils.loggerError(e);
-            return;
-        }
-        Set<Map.Entry<String, JsonElement>> entries = json.get("permission").getAsJsonObject().entrySet();
-        for (Map.Entry<String, JsonElement> entry : entries) {
-            CommandPermission permission = PERMISSIONS.get(entry.getKey());
-            PermissionLevel level;
+        File file = worldFormat.file(PERMISSION_JSON);
+        if (file.isFile()) {
+            JsonObject json;
             try {
-                level = PermissionLevel.fromString(entry.getValue().getAsString());
-            } catch (IllegalArgumentException e) {
-                CarpetOrgAddition.LOGGER.warn("Unable to parse permissions for permission node {}", entry.getKey(), e);
-                continue;
+                json = IOUtils.loadJson(file);
+            } catch (IOException e) {
+                IOUtils.loggerError(e);
+                return;
             }
-            permission.setLevel(level);
+            Set<Map.Entry<String, JsonElement>> entries = json.get("permission").getAsJsonObject().entrySet();
+            for (Map.Entry<String, JsonElement> entry : entries) {
+                CommandPermission permission = PERMISSIONS.get(entry.getKey());
+                PermissionLevel level;
+                try {
+                    level = PermissionLevel.fromString(entry.getValue().getAsString());
+                } catch (IllegalArgumentException e) {
+                    CarpetOrgAddition.LOGGER.warn("Unable to parse permissions for permission node {}", entry.getKey(), e);
+                    continue;
+                }
+                permission.setLevel(level);
+            }
+            CommandHelper.notifyPlayersCommandsChanged(server);
         }
-        CommandHelper.notifyPlayersCommandsChanged(server);
     }
 }
