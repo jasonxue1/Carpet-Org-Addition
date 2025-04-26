@@ -114,10 +114,10 @@ public class CustomCommandConfig {
         } catch (IOException e) {
             IOUtils.loggerError(e);
         } catch (RuntimeException e) {
-            // 译：自定义命令名称配置文件已失效，尝试重新生成。
-            CarpetOrgAddition.LOGGER.warn("The custom command name configuration file has expired. Attempting to regenerate it: ", e);
+            // 译：自定义命令名称配置文件已损坏，尝试重新生成。
+            CarpetOrgAddition.LOGGER.warn("The custom command name configuration file is damaged. Attempting to regenerate it: ", e);
             // 重新生成前备份文件
-            IOUtils.copyFile(this.file, IOUtils.createConfigFile(this.file.getName() + ".bak", false));
+            IOUtils.backup(this.file);
         }
         this.expired = true;
     }

@@ -109,6 +109,16 @@ public class IOUtils {
     }
 
     /**
+     * 备份一个文件
+     *
+     * @param file 要备份的文件
+     */
+    public static void backup(File file) {
+        File backup = new File(file.getParent(), file.getName() + ".bak");
+        copyFile(file, backup);
+    }
+
+    /**
      * json对象中是否包含指定元素
      *
      * @param elements 一个字符串数组，数组中只要有一个元素不存在于json中方法就返回false
