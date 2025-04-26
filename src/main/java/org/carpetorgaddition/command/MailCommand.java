@@ -7,6 +7,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.inventory.SimpleInventory;
@@ -20,7 +21,7 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.CommandUtils;
@@ -35,38 +36,43 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MailCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("mail")
+public class MailCommand extends AbstractServerCommand {
+    public MailCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandMail))
                 .then(CommandManager.literal("ship")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                .executes(MailCommand::ship)))
+                                .executes(this::ship)))
                 .then(CommandManager.literal("receive")
-                        .executes(MailCommand::receiveAll)
+                        .executes(this::receiveAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(true))
-                                .executes(MailCommand::receive)))
+                                .executes(this::receive)))
                 .then(CommandManager.literal("cancel")
-                        .executes(MailCommand::cancelAll)
+                        .executes(this::cancelAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(false))
-                                .executes(MailCommand::cancel)))
+                                .executes(this::cancel)))
                 .then(CommandManager.literal("list")
-                        .executes(MailCommand::list))
+                        .executes(this::list))
                 .then(CommandManager.literal("multiple")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                .executes(MailCommand::shipMultipleExpress))));
+                                .executes(this::shipMultipleExpress))));
     }
 
     // 自动补全快递单号
-    private static @NotNull SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
+    private @NotNull SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
         return (context, builder) -> {
             ServerPlayerEntity player = context.getSource().getPlayer();
             if (player == null) {
                 return CommandSource.suggestMatching(List.of(), builder);
             }
-            ExpressManager manager = ServerPeriodicTaskManager.getManager(context).getExpressManager();
+            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
             // 获取所有发送给自己的快递（或所有自己发送的快递）
             List<String> list = manager.stream()
                     .filter(express -> recipient ? express.isRecipient(player) : express.isSender(player))
@@ -77,13 +83,13 @@ public class MailCommand {
     }
 
     // 发送快递
-    private static int ship(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int ship(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         // 限制只允许发送给其他真玩家
         checkPlayer(sourcePlayer, targetPlayer);
         MinecraftServer server = context.getSource().getServer();
-        ExpressManager manager = ServerPeriodicTaskManager.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         try {
             // 将快递信息添加到快递管理器
             manager.put(new Express(server, sourcePlayer, targetPlayer, manager.generateNumber()));
@@ -94,7 +100,7 @@ public class MailCommand {
     }
 
     // 发送多个快递
-    private static int shipMultipleExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int shipMultipleExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         checkPlayer(sourcePlayer, targetPlayer);
@@ -107,7 +113,7 @@ public class MailCommand {
     }
 
     // 接收快递
-    private static int receive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int receive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取快递
         Express express = getExpress(context);
@@ -124,17 +130,17 @@ public class MailCommand {
     }
 
     // 接收所有快递
-    private static int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerPeriodicTaskManager.getManager(context).getExpressManager().receiveAll(player);
+            return ServerComponentCoordinator.getManager(context).getExpressManager().receiveAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
     }
 
     // 撤回快递
-    private static int cancel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
         if (express.isSender(player)) {
@@ -149,19 +155,19 @@ public class MailCommand {
     }
 
     // 撤回所有快递
-    private static int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerPeriodicTaskManager.getManager(context).getExpressManager().cancelAll(player);
+            return ServerComponentCoordinator.getManager(context).getExpressManager().cancelAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
     }
 
     // 列出快递
-    private static int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ExpressManager manager = ServerPeriodicTaskManager.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         List<Express> list = manager.stream().toList();
         if (list.isEmpty()) {
             // 没有快递被列出
@@ -171,7 +177,7 @@ public class MailCommand {
         return list.size();
     }
 
-    private static void list(ServerPlayerEntity player, Express express) {
+    private void list(ServerPlayerEntity player, Express express) {
         ArrayList<MutableText> list = new ArrayList<>();
         MutableText text;
         if (express.isRecipient(player)) {
@@ -202,8 +208,8 @@ public class MailCommand {
     }
 
     // 获取快递
-    private static @NotNull Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ExpressManager manager = ServerPeriodicTaskManager.getManager(context).getExpressManager();
+    private @NotNull Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");
         // 查找指定单号的快递
@@ -215,7 +221,7 @@ public class MailCommand {
     }
 
     // 检查玩家是否是自己或假玩家
-    private static void checkPlayer(ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
+    private void checkPlayer(ServerPlayerEntity sourcePlayer, ServerPlayerEntity targetPlayer) throws CommandSyntaxException {
         // 允许在开发环境下发送给自己
         if (CarpetOrgAddition.isDebugDevelopment()) {
             return;
@@ -223,5 +229,10 @@ public class MailCommand {
         if (sourcePlayer == targetPlayer || targetPlayer instanceof EntityPlayerMPFake) {
             throw CommandUtils.createException("carpet.commands.mail.check_player");
         }
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "mail";
     }
 }

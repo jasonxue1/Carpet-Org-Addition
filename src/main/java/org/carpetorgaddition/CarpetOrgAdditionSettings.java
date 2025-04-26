@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.rule.Hidden;
 import org.carpetorgaddition.rule.Removed;
+import org.carpetorgaddition.rule.RuleSelf;
 import org.carpetorgaddition.rule.validator.*;
 import org.carpetorgaddition.rule.value.*;
 
@@ -348,6 +349,7 @@ public class CarpetOrgAdditionSettings {
     public static String commandPlayerManager = "ops";
 
     // 方块掉落物直接进入物品栏
+    @RuleSelf
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean blockDropsDirectlyEnterInventory = false;
 

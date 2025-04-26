@@ -2,6 +2,7 @@ package org.carpetorgaddition.translate;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -68,7 +69,7 @@ public class TranslateParser {
         }
 
         @Override
-        public String toString() {
+        public @NotNull String toString() {
             return this.key + "=" + this.value;
         }
     }

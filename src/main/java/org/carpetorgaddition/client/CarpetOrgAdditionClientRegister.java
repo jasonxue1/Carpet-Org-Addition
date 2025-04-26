@@ -6,8 +6,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.screen.ScreenHandler;
-import org.carpetorgaddition.client.command.DictionaryCommand;
-import org.carpetorgaddition.client.command.HighlightCommand;
+import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
@@ -37,10 +36,7 @@ public class CarpetOrgAdditionClientRegister {
      * 注册客户端命令
      */
     private static void registerCommand() {
-        // 高亮路径点命令
-        HighlightCommand.register();
-        // 字典命令
-        DictionaryCommand.register();
+        ClientCommandRegister.register();
     }
 
     /**

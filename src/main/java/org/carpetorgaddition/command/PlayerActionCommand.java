@@ -34,76 +34,81 @@ import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
 import java.util.Arrays;
 
-public class PlayerActionCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
-        dispatcher.register(CommandManager.literal("playerAction")
+public class PlayerActionCommand extends AbstractServerCommand {
+    public PlayerActionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .then(CommandManager.literal("sorting")
-                                .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
+                                .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(this.access))
                                         .then(CommandManager.argument("this", Vec3ArgumentType.vec3())
                                                 .then(CommandManager.argument("other", Vec3ArgumentType.vec3())
-                                                        .executes(PlayerActionCommand::setCategorize)))))
-                        .then(CommandManager.literal("clean")
+                                                        .executes(this::setCategorize)))))
+                        .then(CommandManager.literal("empty")
                                 .executes(context -> setEmptyTheContainer(context, true))
-                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
+                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(this.access))
                                         .executes(context -> setEmptyTheContainer(context, false))))
                         .then(CommandManager.literal("fill")
                                 .executes(context -> setFillTheContainer(context, true, true))
-                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(access))
+                                .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(this.access))
                                         .executes(context -> setFillTheContainer(context, false, true))
                                         .then(CommandManager.argument(FillTheContainerAction.DROP_OTHER, BoolArgumentType.bool())
                                                 .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER))))))
                         .then(CommandManager.literal("stop")
-                                .executes(PlayerActionCommand::setStop))
+                                .executes(this::setStop))
                         .then(CommandManager.literal("craft")
                                 .then(CommandManager.literal("one")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
-                                                .executes(PlayerActionCommand::setOneCraft)))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(this.access))
+                                                .executes(this::setOneCraft)))
                                 .then(CommandManager.literal("nine")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
-                                                .executes(PlayerActionCommand::setNineCraft)))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(this.access))
+                                                .executes(this::setNineCraft)))
                                 .then(CommandManager.literal("four")
-                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(access))
-                                                .executes(PlayerActionCommand::setFourCraft)))
+                                        .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(this.access))
+                                                .executes(this::setFourCraft)))
                                 .then(CommandManager.literal("crafting_table")
-                                        .then(registerItemPredicateNode(9, access, PlayerActionCommand::setCraftingTableCraft)))
+                                        .then(registerItemPredicateNode(9, this.access, this::setCraftingTableCraft)))
                                 .then(CommandManager.literal("inventory")
-                                        .then(registerItemPredicateNode(4, access, PlayerActionCommand::setInventoryCraft)))
+                                        .then(registerItemPredicateNode(4, this.access, this::setInventoryCraft)))
                                 .then(CommandManager.literal("gui")
-                                        .executes(PlayerActionCommand::openFakePlayerCraftGui)))
+                                        .executes(this::openFakePlayerCraftGui)))
                         .then(CommandManager.literal("trade")
                                 .then(CommandManager.argument("index", IntegerArgumentType.integer(1))
                                         .executes(context -> setTrade(context, false))
                                         .then(CommandManager.literal("void_trade")
                                                 .executes(context -> setTrade(context, true)))))
                         .then(CommandManager.literal("info")
-                                .executes(PlayerActionCommand::getAction))
+                                .executes(this::getAction))
                         .then(CommandManager.literal("rename")
-                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
+                                .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(this.access))
                                         .then(CommandManager.argument("name", StringArgumentType.string())
-                                                .executes(PlayerActionCommand::setRename))))
+                                                .executes(this::setRename))))
                         .then(CommandManager.literal("stonecutting")
                                 .then(CommandManager.literal("item")
-                                        .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(access))
+                                        .then(CommandManager.argument("item", ItemStackArgumentType.itemStack(this.access))
                                                 .then(CommandManager.argument("button", IntegerArgumentType.integer(1))
-                                                        .executes(PlayerActionCommand::setStonecutting))))
+                                                        .executes(this::setStonecutting))))
                                 .then(CommandManager.literal("gui")
-                                        .executes(PlayerActionCommand::useGuiSetStonecutting)))
+                                        .executes(this::useGuiSetStonecutting)))
                         .then(CommandManager.literal("fishing")
-                                .executes(PlayerActionCommand::setFishing))
+                                .executes(this::setFishing))
                         .then(CommandManager.literal("plant")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                                .executes(PlayerActionCommand::setPlant))
+                                .executes(this::setPlant))
                         .then(CommandManager.literal("bedrock")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(PlayerActionCommand::setBreakBedrock))))));
+                                                .executes(this::setBreakBedrock))))));
     }
 
     // 注册物品谓词节点
-    private static RequiredArgumentBuilder<ServerCommandSource, ItemStackPredicateArgument> registerItemPredicateNode(
+    private RequiredArgumentBuilder<ServerCommandSource, ItemStackPredicateArgument> registerItemPredicateNode(
             int maxValue,
             CommandRegistryAccess access,
             Command<ServerCommandSource> function
@@ -122,7 +127,7 @@ public class PlayerActionCommand {
     }
 
     // 设置停止
-    private static int setStop(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setStop(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         actionManager.stop();
@@ -130,7 +135,7 @@ public class PlayerActionCommand {
     }
 
     // 设置物品分拣
-    private static int setCategorize(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setCategorize(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         // 获取要分拣的物品对象
@@ -144,7 +149,7 @@ public class PlayerActionCommand {
     }
 
     // 设置清空容器
-    private static int setEmptyTheContainer(CommandContext<ServerCommandSource> context, boolean allItem) throws CommandSyntaxException {
+    private int setEmptyTheContainer(CommandContext<ServerCommandSource> context, boolean allItem) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
@@ -153,7 +158,7 @@ public class PlayerActionCommand {
     }
 
     // 设置填充容器
-    private static int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
+    private int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
@@ -162,7 +167,7 @@ public class PlayerActionCommand {
     }
 
     // 单个物品合成
-    private static int setOneCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setOneCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], false);
@@ -172,7 +177,7 @@ public class PlayerActionCommand {
     }
 
     // 四个物品合成
-    private static int setFourCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setFourCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], true);
@@ -182,7 +187,7 @@ public class PlayerActionCommand {
     }
 
     // 设置物品栏合成
-    private static int setInventoryCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setInventoryCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
         ItemStackPredicate[] items = new ItemStackPredicate[4];
@@ -195,7 +200,7 @@ public class PlayerActionCommand {
     }
 
     // 九个物品合成
-    private static int setNineCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setNineCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
@@ -205,7 +210,7 @@ public class PlayerActionCommand {
     }
 
     // 设置工作台合成
-    private static int setCraftingTableCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setCraftingTableCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = prepareTheCrafting(context);
         ItemStackPredicate[] items = new ItemStackPredicate[9];
@@ -217,7 +222,7 @@ public class PlayerActionCommand {
     }
 
     // 设置交易
-    private static int setTrade(CommandContext<ServerCommandSource> context, boolean voidTrade) throws CommandSyntaxException {
+    private int setTrade(CommandContext<ServerCommandSource> context, boolean voidTrade) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         // 获取按钮的索引，减去1
@@ -227,7 +232,7 @@ public class PlayerActionCommand {
     }
 
     // 设置重命名
-    private static int setRename(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setRename(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         // 获取当前要操作的物品和要重命名的字符串
@@ -238,7 +243,7 @@ public class PlayerActionCommand {
     }
 
     // 设置使用切石机
-    private static int setStonecutting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setStonecutting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         // 获取要切割的物品和按钮的索引
@@ -249,7 +254,7 @@ public class PlayerActionCommand {
     }
 
     // 使用GUI设置使用切石机
-    private static int useGuiSetStonecutting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int useGuiSetStonecutting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inventory, playerEntity) -> {
@@ -261,7 +266,7 @@ public class PlayerActionCommand {
     }
 
     // 设置自动钓鱼
-    private static int setFishing(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setFishing(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         actionManager.setAction(new FishingAction(fakePlayer));
@@ -269,7 +274,7 @@ public class PlayerActionCommand {
     }
 
     // 设置自动种植
-    private static int setPlant(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setPlant(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
@@ -279,7 +284,7 @@ public class PlayerActionCommand {
         return 0;
     }
 
-    private static int setBreakBedrock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setBreakBedrock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
             BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
@@ -292,7 +297,7 @@ public class PlayerActionCommand {
     }
 
     // 填充数组
-    private static ItemStackPredicate[] fillArray(ItemStackPredicate matcher, ItemStackPredicate[] matchers, boolean directFill) {
+    private ItemStackPredicate[] fillArray(ItemStackPredicate matcher, ItemStackPredicate[] matchers, boolean directFill) {
         if (directFill) {
             // 直接使用元素填满整个数组
             Arrays.fill(matchers, matcher);
@@ -310,7 +315,7 @@ public class PlayerActionCommand {
     }
 
     //获取假玩家操作类型
-    private static int getAction(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int getAction(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         AbstractPlayerAction action = actionManager.getAction();
@@ -322,7 +327,7 @@ public class PlayerActionCommand {
     }
 
     // 打开控制假人合成物品的GUI
-    private static int openFakePlayerCraftGui(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int openFakePlayerCraftGui(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 打开合成GUI
@@ -335,8 +340,13 @@ public class PlayerActionCommand {
     }
 
     // 在设置假玩家合成时获取动作管理器并提示启用合成修复
-    private static FakePlayerActionManager prepareTheCrafting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private FakePlayerActionManager prepareTheCrafting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         return GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "playerAction";
     }
 }

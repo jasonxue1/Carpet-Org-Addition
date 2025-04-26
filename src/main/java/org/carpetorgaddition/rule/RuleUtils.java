@@ -1,7 +1,11 @@
 package org.carpetorgaddition.rule;
 
+import carpet.api.settings.CarpetRule;
+import carpet.utils.Translations;
+import net.minecraft.text.MutableText;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
+import org.carpetorgaddition.util.TextUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -51,5 +55,16 @@ public class RuleUtils {
         } finally {
             CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.set(changed);
         }
+    }
+
+    /**
+     * 获取规则的名称
+     */
+    public static MutableText simpleTranslationName(CarpetRule<?> rule) {
+        String value = String.format("%s.rule.%s.name", rule.settingsManager().identifier(), rule.name());
+        if (Translations.hasTranslation(value)) {
+            return TextUtils.hoverText(TextUtils.translate(value), rule.name());
+        }
+        return TextUtils.createText(rule.name());
     }
 }

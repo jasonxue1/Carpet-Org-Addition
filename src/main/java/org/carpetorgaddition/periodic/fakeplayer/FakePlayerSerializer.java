@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.fakes.ServerPlayerInterface;
 import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -14,15 +15,15 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
-import org.carpetorgaddition.dataupdate.FakePlayerSerializeDataUpdater;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.Annotation;
+import org.carpetorgaddition.util.wheel.MetaComment;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,7 @@ public class FakePlayerSerializer {
     /**
      * 注释
      */
-    private final Annotation annotation = new Annotation();
+    private final MetaComment comment = new MetaComment();
     /**
      * 位置
      */
@@ -98,9 +99,9 @@ public class FakePlayerSerializer {
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
     }
 
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String annotation) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
         this(fakePlayer);
-        this.annotation.setAnnotation(annotation);
+        this.comment.setComment(comment);
     }
 
     private FakePlayerSerializer(JsonObject json, String fakePlayerName) {
@@ -124,7 +125,8 @@ public class FakePlayerSerializer {
         // 是否自动登录
         this.autologin = IOUtils.getJsonElement(json, "autologin", false, Boolean.class);
         // 注释
-        this.annotation.setAnnotation(json);
+        JsonElement element = json.get("annotation");
+        this.comment.setComment(element == null ? "" : element.getAsString());
         // 假玩家左右手动作
         if (json.has("hand_action")) {
             this.interactiveAction = new EntityPlayerActionPackSerial(json.get("hand_action").getAsJsonObject());
@@ -165,7 +167,7 @@ public class FakePlayerSerializer {
         // 玩家数据是否已存在
         boolean exists = file.exists();
         if (exists && !resave) {
-            String command = CommandProvider.playerManagerResave(name, this.annotation);
+            String command = CommandProvider.playerManagerResave(name, this.comment);
             // 单击执行命令
             MutableText clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
@@ -223,9 +225,9 @@ public class FakePlayerSerializer {
         if (this.autoAction.hasAction()) {
             build.newLine().append(this.autoAction.toText());
         }
-        if (this.annotation.hasContent()) {
+        if (this.comment.hasContent()) {
             // 添加注释
-            build.newLine().appendTranslate("carpet.commands.playerManager.info.annotation", this.annotation.getText());
+            build.newLine().appendTranslate("carpet.commands.playerManager.info.comment", this.comment.getText());
         }
         return build.toLine();
     }
@@ -255,7 +257,7 @@ public class FakePlayerSerializer {
         // 自动登录
         json.addProperty("autologin", this.autologin);
         // 注释
-        json.addProperty("annotation", this.annotation.getAnnotation());
+        json.addProperty("annotation", this.comment.getComment());
         // 添加左键右键动作
         json.add("hand_action", interactiveAction.toJson());
         // 添加玩家动作
@@ -264,8 +266,8 @@ public class FakePlayerSerializer {
     }
 
     // 修改注释
-    public void setAnnotation(@Nullable String annotation) {
-        this.annotation.setAnnotation(annotation);
+    public void setComment(@Nullable String comment) {
+        this.comment.setComment(comment);
     }
 
     // 设置自动登录
@@ -294,7 +296,7 @@ public class FakePlayerSerializer {
         for (File file : jsonFileList) {
             try {
                 FakePlayerSerializer serial = factory(worldFormat, file.getName());
-                if (filter.test(serial.annotation.getAnnotation()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
+                if (filter.test(serial.comment.getComment()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
                     eachPlayer(context, file, online, offline, serial);
                     count++;
                 }
@@ -315,7 +317,7 @@ public class FakePlayerSerializer {
                 TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",
                 TextUtils.hoverText(TextUtils.createText("[?]"), serial.info(), Formatting.GRAY), " ",
                 // 如果有注释，在列出的玩家的名字上也添加注释
-                serial.annotation.hasContent() ? TextUtils.hoverText(playerName, serial.annotation.getText()) : playerName);
+                serial.comment.hasContent() ? TextUtils.hoverText(playerName, serial.comment.getText()) : playerName);
         // 发送消息
         MessageUtils.sendMessage(context.getSource(), mutableText);
     }
@@ -324,7 +326,7 @@ public class FakePlayerSerializer {
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(server).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         try {
             tryAutoLogin(server, manager);
         } catch (RuntimeException | CommandSyntaxException e) {

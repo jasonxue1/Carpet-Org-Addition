@@ -1,8 +1,9 @@
-package org.carpetorgaddition.dataupdate;
+package org.carpetorgaddition.dataupdate.player;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.util.Pair;
+import org.carpetorgaddition.dataupdate.DataUpdater;
 
 import java.util.HashSet;
 import java.util.Map;

@@ -25,7 +25,7 @@ public class ServerTaskManager {
         if (this.tasks.add(task)) {
             return;
         }
-        throw CommandUtils.createException("carpet.commands.finder.add.exist");
+        throw CommandUtils.createException("carpet.command.task.wait.last");
     }
 
     /**

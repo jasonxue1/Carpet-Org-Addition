@@ -1,8 +1,8 @@
 package org.carpetorgaddition;
 
 import org.carpetorgaddition.util.IOUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,7 +20,7 @@ public class EmptyFileTest {
     private void traverse(File file) throws IOException {
         // 如果是文件，检查类文件是否被声明，否则遍历文件夹
         if (file.isFile()) {
-            Assert.assertFalse("空文件：" + file.getPath(), this.isEmptyFile(file));
+            Assertions.assertFalse(this.isEmptyFile(file), "空文件：" + file.getPath());
         } else {
             File[] files = file.listFiles();
             if (files == null) {

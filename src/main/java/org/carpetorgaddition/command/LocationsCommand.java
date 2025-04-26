@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.server.MinecraftServer;
@@ -26,12 +27,16 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 //路径点管理器
-public class LocationsCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("locations")
+public class LocationsCommand extends AbstractServerCommand {
+    public LocationsCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandLocations))
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -45,10 +50,10 @@ public class LocationsCommand {
                 .then(CommandManager.literal("supplement")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
-                                .then(CommandManager.literal("illustrate")
+                                .then(CommandManager.literal("comment")
                                         .executes(context -> addIllustrateText(context, null))
-                                        .then(CommandManager.argument("illustrate", StringArgumentType.string())
-                                                .executes(context -> addIllustrateText(context, StringArgumentType.getString(context, "illustrate")))))
+                                        .then(CommandManager.argument("comment", StringArgumentType.string())
+                                                .executes(context -> addIllustrateText(context, StringArgumentType.getString(context, "comment")))))
                                 .then(CommandManager.literal("another_pos")
                                         .executes(context -> addAnotherPos(context, null))
                                         .then(CommandManager.argument("anotherPos", BlockPosArgumentType.blockPos())
@@ -56,7 +61,7 @@ public class LocationsCommand {
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
-                                .executes(LocationsCommand::deleteWayPoint)))
+                                .executes(this::deleteWayPoint)))
                 .then(CommandManager.literal("set")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
@@ -64,7 +69,7 @@ public class LocationsCommand {
                                 .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
                                         .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
                 .then(CommandManager.literal("here")
-                        .executes(LocationsCommand::sendSelfLocation)));
+                        .executes(this::sendSelfLocation)));
     }
 
     // 用来自动补全路径点名称
@@ -81,7 +86,7 @@ public class LocationsCommand {
     }
 
     // 添加路径点
-    private static int addWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int addWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
@@ -112,7 +117,7 @@ public class LocationsCommand {
     }
 
     // 列出所有路径点
-    private static int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) {
+    private int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.toImmutableFileList();
@@ -131,18 +136,14 @@ public class LocationsCommand {
             if (filter != null && !name.contains(filter)) {
                 continue;
             }
-            Optional<Waypoint> optional;
             try {
-                optional = Waypoint.load(server, name);
+                Waypoint waypoint = Waypoint.load(server, name);
+                // 显示路径点
+                waypoint.show(context.getSource());
+                count++;
             } catch (IOException | NullPointerException e) {
                 //无法解析坐标
                 CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeExtension(name), e);
-                continue;
-            }
-            // 显示路径点
-            if (optional.isPresent()) {
-                optional.get().show(context.getSource());
-                count++;
             }
         }
         MessageUtils.sendMessage(context.getSource(), dividerLine);
@@ -150,42 +151,39 @@ public class LocationsCommand {
     }
 
     // 添加说明文本
-    private static int addIllustrateText(CommandContext<ServerCommandSource> context, @Nullable String illustrate) throws CommandSyntaxException {
+    private int addIllustrateText(CommandContext<ServerCommandSource> context, @Nullable String comment) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         MinecraftServer server = context.getSource().getServer();
         // 获取路径点的名称
         String name = StringArgumentType.getString(context, "name");
         try {
             // 从本地文件中读取路径点对象
-            Optional<Waypoint> optional = Waypoint.load(server, name);
-            if (optional.isPresent()) {
-                boolean remove = false;
-                if (illustrate == null || illustrate.isEmpty()) {
-                    illustrate = null;
-                    remove = true;
-                }
-                Waypoint waypoint = optional.get();
-                waypoint.setIllustrate(illustrate);
-                // 将路径点对象重新写入本地文件
-                waypoint.save(server);
-                if (remove) {
-                    // 移除路径点的说明文本
-                    MessageUtils.sendMessage(source, "carpet.commands.locations.illustrate.remove", name);
-                } else {
-                    // 为路径点添加说明文本
-                    MessageUtils.sendMessage(source, "carpet.commands.locations.illustrate.add", illustrate, name);
-                }
+            Waypoint waypoint = Waypoint.load(server, name);
+            boolean remove = false;
+            if (comment == null || comment.isEmpty()) {
+                comment = null;
+                remove = true;
+            }
+            waypoint.setComment(comment);
+            // 将路径点对象重新写入本地文件
+            waypoint.save(server);
+            if (remove) {
+                // 移除路径点的说明文本
+                MessageUtils.sendMessage(source, "carpet.commands.locations.comment.remove", name);
+            } else {
+                // 为路径点添加说明文本
+                MessageUtils.sendMessage(source, "carpet.commands.locations.comment.add", comment, name);
             }
         } catch (IOException | NullPointerException e) {
             //无法添加说明文本
             CarpetOrgAddition.LOGGER.error("无法为路径点[{}]添加说明文本", name, e);
-            throw CommandUtils.createException("carpet.commands.locations.illustrate.io", name);
+            throw CommandUtils.createException("carpet.commands.locations.comment.io", name);
         }
         return 1;
     }
 
     // 添加另一个坐标
-    private static int addAnotherPos(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int addAnotherPos(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ServerCommandSource source = context.getSource();
         // 路径点的另一个坐标
@@ -197,20 +195,17 @@ public class LocationsCommand {
         String name = StringArgumentType.getString(context, "name");
         try {
             // 从文件中读取路径点对象
-            Optional<Waypoint> optional = Waypoint.load(server, name);
-            if (optional.isPresent()) {
-                Waypoint waypoint = optional.get();
-                if (waypoint.canAddAnother()) {
-                    waypoint.setAnotherBlockPos(blockPos);
-                } else {
-                    // 不能为末地添加对向坐标
-                    throw CommandUtils.createException("carpet.commands.locations.another.add.fail");
-                }
-                // 将修改后的路径点重新写入本地文件
-                waypoint.save(server);
-                //添加对向坐标
-                MessageUtils.sendMessage(source, "carpet.commands.locations.another.add");
+            Waypoint waypoint = Waypoint.load(server, name);
+            if (waypoint.canAddAnother()) {
+                waypoint.setAnotherBlockPos(blockPos);
+            } else {
+                // 不能为末地添加对向坐标
+                throw CommandUtils.createException("carpet.commands.locations.another.add.fail");
             }
+            // 将修改后的路径点重新写入本地文件
+            waypoint.save(server);
+            //添加对向坐标
+            MessageUtils.sendMessage(source, "carpet.commands.locations.another.add");
         } catch (IOException | NullPointerException e) {
             CarpetOrgAddition.LOGGER.error("无法解析路径点[{}]:", name, e);
             throw CommandUtils.createException("carpet.commands.locations.another.io", name);
@@ -219,7 +214,7 @@ public class LocationsCommand {
     }
 
     // 删除路径点
-    private static int deleteWayPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int deleteWayPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         //获取路径点文件名
         String name = StringArgumentType.getString(context, "name");
@@ -239,7 +234,7 @@ public class LocationsCommand {
     }
 
     // 修改路径点
-    private static int setWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+    private int setWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ServerCommandSource source = context.getSource();
         if (blockPos == null) {
@@ -247,15 +242,12 @@ public class LocationsCommand {
         }
         String fileName = StringArgumentType.getString(context, "name");
         try {
-            Optional<Waypoint> optional = Waypoint.load(context.getSource().getServer(), fileName);
-            if (optional.isPresent()) {
-                Waypoint waypoint = optional.get();
-                waypoint.setBlockPos(blockPos);
-                // 将修改完坐标的路径点对象重新写入本地文件
-                waypoint.save(context.getSource().getServer());
-                //发送命令执行后的反馈
-                MessageUtils.sendMessage(source, "carpet.commands.locations.set", fileName);
-            }
+            Waypoint waypoint = Waypoint.load(context.getSource().getServer(), fileName);
+            waypoint.setBlockPos(blockPos);
+            // 将修改完坐标的路径点对象重新写入本地文件
+            waypoint.save(context.getSource().getServer());
+            //发送命令执行后的反馈
+            MessageUtils.sendMessage(source, "carpet.commands.locations.set", fileName);
         } catch (IOException | NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.locations.set.io", fileName);
         }
@@ -263,7 +255,7 @@ public class LocationsCommand {
     }
 
     //发送自己的位置
-    public static int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
@@ -281,5 +273,10 @@ public class LocationsCommand {
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
         return 1;
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "locations";
     }
 }

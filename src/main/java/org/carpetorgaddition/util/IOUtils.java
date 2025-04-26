@@ -1,9 +1,8 @@
 package org.carpetorgaddition.util;
 
 import com.google.gson.*;
-import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -15,7 +14,7 @@ public class IOUtils {
     public static final String JSON_EXTENSION = ".json";
     public static final String NBT_EXTENSION = ".nbt";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static File CONFIGURE_DIRECTORY;
+    private static final File CONFIGURE_DIRECTORY = new File("./config/" + CarpetOrgAddition.MOD_NAME_LOWER_CASE);
     /**
      * 不能包含在文件名中的字符
      */
@@ -105,8 +104,18 @@ public class IOUtils {
                 }
             }
         } catch (IOException e) {
-            throw new RuntimeException("发生IO错误：", e);
+            IOUtils.loggerError(e);
         }
+    }
+
+    /**
+     * 备份一个文件
+     *
+     * @param file 要备份的文件
+     */
+    public static void backup(File file) {
+        File backup = new File(file.getParent(), file.getName() + ".bak");
+        copyFile(file, backup);
     }
 
     /**
@@ -150,9 +159,11 @@ public class IOUtils {
         return false;
     }
 
-    public static File createConfigFile(String fileName) {
-        File file = new File(getConfigureDirectory(), fileName);
-        createFileIfNotExists(file);
+    public static File createConfigFile(String fileName, boolean create) {
+        File file = new File(CONFIGURE_DIRECTORY, fileName);
+        if (create) {
+            createFileIfNotExists(file);
+        }
         return file;
     }
 
@@ -162,7 +173,7 @@ public class IOUtils {
      * @param defaultValue 如果为获取到值，返回默认值
      * @param type         返回值的类型
      */
-    @NotNull
+    @Contract(value = "_,_,!null,_ -> !null")
     public static <T> T getJsonElement(JsonObject json, String key, T defaultValue, Class<T> type) {
         JsonElement element = json.get(key);
         if (element == null) {
@@ -172,9 +183,25 @@ public class IOUtils {
         if (type == boolean.class || type == Boolean.class) {
             return type.cast(element.getAsBoolean());
         }
-        // 数值
-        if (Number.class.isAssignableFrom(type)) {
-            return type.cast(element.getAsNumber());
+        // 整数
+        if (type == byte.class || type == Byte.class) {
+            return type.cast(element.getAsByte());
+        }
+        if (type == short.class || type == Short.class) {
+            return type.cast(element.getAsShort());
+        }
+        if (type == int.class || type == Integer.class) {
+            return type.cast(element.getAsInt());
+        }
+        if (type == long.class || type == Long.class) {
+            return type.cast(element.getAsLong());
+        }
+        // 浮点数
+        if (type == float.class || type == Float.class) {
+            return type.cast(element.getAsFloat());
+        }
+        if (type == double.class || type == Double.class) {
+            return type.cast(element.getAsDouble());
         }
         // 字符串
         if (type == String.class) {
@@ -189,6 +216,10 @@ public class IOUtils {
             return type.cast(element.getAsJsonArray());
         }
         throw new IllegalArgumentException();
+    }
+
+    public static <T> Optional<T> getJsonElement(JsonObject json, String key, Class<T> type) {
+        return Optional.ofNullable(getJsonElement(json, key, null, type));
     }
 
     /**
@@ -221,25 +252,5 @@ public class IOUtils {
      */
     public static void loggerError(IOException e) {
         CarpetOrgAddition.LOGGER.error("IO error occurred:", e);
-    }
-
-    /**
-     * <p>懒加载该字段</p>
-     * <p>
-     * 在游戏中正常调用该成员变量并没有什么问题，但是如果在游戏外，例如单元测试的代码中，
-     * 会抛出{@link ExceptionInInitializerError}，因为该成员变量通过
-     * {@link CarpetOrgAddition#MOD_NAME_LOWER_CASE}间接引用了另一个
-     * 成员{@link CarpetOrgAddition#METADATA}，它的加载需要调用
-     * {@link FabricLoader#getModContainer(String)}，但游戏并没有启动，这个
-     * 方法不会返回有效的内容，而是会在调用{@link Optional#orElseThrow()}时抛出异常。
-     * 这会导致单元测试因为抛出异常而无法正常通过，因此将此类设为懒加载，只在游戏中需要
-     * 该成员时才赋值。
-     * </p>
-     */
-    public static File getConfigureDirectory() {
-        if (CONFIGURE_DIRECTORY == null) {
-            CONFIGURE_DIRECTORY = new File("./config/" + CarpetOrgAddition.MOD_NAME_LOWER_CASE);
-        }
-        return CONFIGURE_DIRECTORY;
     }
 }

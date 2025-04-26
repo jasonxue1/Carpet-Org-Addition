@@ -11,17 +11,18 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
-import org.carpetorgaddition.command.RegisterCarpetCommands;
-import org.carpetorgaddition.config.CustomSettingsManager;
+import org.carpetorgaddition.config.CustomCommandConfig;
+import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.logger.LoggerRegister;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
-import org.carpetorgaddition.util.wheel.Waypoint;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -47,7 +48,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     public static SettingsManager getCustomSettingManager() {
         if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER && customSettingManager == null) {
             try {
-                customSettingManager = CustomSettingsManager.getSettingManager();
+                customSettingManager = CustomSettingsConfig.getSettingManager();
             } catch (RuntimeException e) {
                 return null;
             }
@@ -61,7 +62,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.server).getExpressManager();
+        ExpressManager expressManager = ServerComponentCoordinator.getManager(player.server).getExpressManager();
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
@@ -84,24 +85,21 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         }
     }
 
-    // 服务器启动时调用
-    @Override
-    public void onServerLoaded(MinecraftServer server) {
-        // 服务器启动时自动将旧的路径点替换成新的
-        Waypoint.replaceWaypoint(server);
-    }
-
     @Override
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
+        GenericFetcherUtils.getRuleSelfManager(server).load();
+        // 初始化自定义命令名称
+        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     @Override
     public void onServerClosed(MinecraftServer server) {
         UuidNameMappingTable.getInstance().save();
         PermissionManager.reset();
+        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     @Override
@@ -130,7 +128,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     // 注册命令
     @Override
-    public void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess) {
-        RegisterCarpetCommands.registerCarpetCommands(dispatcher, commandRegistryAccess);
+    public void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        CommandRegister.register(dispatcher, access);
     }
 }

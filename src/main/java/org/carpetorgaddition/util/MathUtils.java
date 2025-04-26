@@ -176,4 +176,21 @@ public class MathUtils {
     public static double approach(double start, double target, double factor) {
         return start + (target - start) * factor;
     }
+
+    /**
+     * 等差数列求和
+     *
+     * @param start  等差数列的首项
+     * @param end    等差数列的末项
+     * @param number 等差数列的项数
+     * @return 等差数列的和
+     */
+    @SuppressWarnings("unused")
+    public static int sumOfArithmeticProgression(int start, int end, int number) {
+        return ((start + end) * number) >>> 1;
+    }
+
+    public static double sumOfArithmeticProgression(double start, double end, int number) {
+        return ((start + end) * number) / 2;
+    }
 }

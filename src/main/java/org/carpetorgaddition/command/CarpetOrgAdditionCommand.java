@@ -1,29 +1,36 @@
 package org.carpetorgaddition.command;
 
+import carpet.api.settings.CarpetRule;
+import carpet.api.settings.RuleHelper;
 import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.rule.RuleUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.permission.CommandPermission;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -37,37 +44,64 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class CarpetOrgAdditionCommand {
+public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     /**
      * 一个只有一个线程并且阻塞队列为空的线程池
      */
-    private static final ThreadPoolExecutor QUERY_PLAYER_NAME_THREAD_POOL = new ThreadPoolExecutor(
+    private final ThreadPoolExecutor QUERY_PLAYER_NAME_THREAD_POOL = new ThreadPoolExecutor(
             0,
             1,
             60,
             TimeUnit.SECONDS,
             new SynchronousQueue<>(),
+            this::createDaemonThread,
             new ThreadPoolExecutor.AbortPolicy()
     );
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal(CarpetOrgAddition.MOD_ID)
+    public CarpetOrgAdditionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    /**
+     * 创建守护线程
+     */
+    private Thread createDaemonThread(Runnable runnable) {
+        Thread thread = new Thread(runnable);
+        // 设置守护线程
+        thread.setDaemon(true);
+        thread.setName("Query-Player-Name");
+        return thread;
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .then(CommandManager.literal("permission")
                         .requires(PermissionManager.register("carpet-org-addition.permission", PermissionLevel.OWNERS))
                         .then(CommandManager.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
                                 .then(CommandManager.argument("level", StringArgumentType.string())
                                         .suggests((context, builder) -> CommandSource.suggestMatching(PermissionLevel.listPermission(), builder))
-                                        .executes(CarpetOrgAdditionCommand::setLevel))))
+                                        .executes(this::setLevel))))
                 .then(CommandManager.literal("version")
-                        .executes(CarpetOrgAdditionCommand::version))
+                        .executes(this::version))
+                .then(CommandManager.literal("ruleself")
+                        .then(CommandManager.argument("rule", StringArgumentType.string())
+                                .suggests(suggestRule())
+                                .executes(this::infoRuleSelf)
+                                .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                        .executes(this::setRuleSelf))))
                 .then(CommandManager.literal("textclickevent")
                         .then(CommandManager.literal("queryPlayerName")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
-                                        .executes(CarpetOrgAdditionCommand::queryPlayerName)))));
+                                        .executes(this::queryPlayerName)))));
     }
 
-    private static SuggestionProvider<ServerCommandSource> suggestsNode() {
+    private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
+        return (context, builder) -> CommandSource.suggestMatching(RuleSelfManager.RULES.values().stream().map(CarpetRule::name), builder);
+    }
+
+    private SuggestionProvider<ServerCommandSource> suggestsNode() {
         return (context, builder) -> CommandSource.suggestMatching(
                 PermissionManager.listNode().stream().map(StringArgumentType::escapeIfRequired),
                 builder
@@ -75,7 +109,7 @@ public class CarpetOrgAdditionCommand {
     }
 
     // 设置子命令权限
-    private static int setLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         CommandPermission permission = PermissionManager.getPermission(StringArgumentType.getString(context, "node"));
         if (permission == null) {
             throw CommandUtils.createException("carpet.commands.carpet-org-addition.permission.node.not_found");
@@ -101,14 +135,14 @@ public class CarpetOrgAdditionCommand {
     /**
      * 显示模组版本
      */
-    private static int version(CommandContext<ServerCommandSource> context) {
+    private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        String version = CarpetOrgAddition.METADATA.getVersion().getFriendlyString();
+        String version = CarpetOrgAddition.VERSION;
         MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.version", name, version);
         return 1;
     }
 
-    private static int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         try {
             UuidNameMappingTable table = UuidNameMappingTable.getInstance();
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
@@ -133,7 +167,7 @@ public class CarpetOrgAdditionCommand {
     /**
      * 在独立线程查询玩家名称
      */
-    private static void queryPlayerName(CommandContext<ServerCommandSource> context, UUID uuid, UuidNameMappingTable table) {
+    private void queryPlayerName(CommandContext<ServerCommandSource> context, UUID uuid, UuidNameMappingTable table) {
         String name;
         try {
             name = queryPlayerNameFromMojangApi(uuid);
@@ -147,7 +181,7 @@ public class CarpetOrgAdditionCommand {
         server.execute(() -> sendFeekback(context, uuid.toString(), name));
     }
 
-    private static void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
+    private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
         MessageUtils.sendMessage(
                 context,
                 "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.success",
@@ -159,7 +193,7 @@ public class CarpetOrgAdditionCommand {
     /**
      * 通过Mojang API查询玩家名称
      */
-    private static String queryPlayerNameFromMojangApi(UUID uuid) throws CommandSyntaxException {
+    private String queryPlayerNameFromMojangApi(UUID uuid) throws CommandSyntaxException {
         URL url;
         try {
             URI uri = new URI(UuidNameMappingTable.MOJANG_API.formatted(uuid.toString()));
@@ -198,5 +232,59 @@ public class CarpetOrgAdditionCommand {
             return json.get("name").getAsString();
         }
         throw CommandUtils.createException("carpet.command.api.mojang_api.connection.fail", uuid.toString());
+    }
+
+    // 设置一条规则是否对自己生效
+    private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+        String ruleString = StringArgumentType.getString(context, "rule");
+        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+        if (rule == null) {
+            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
+        }
+        boolean value = BoolArgumentType.getBool(context, "value");
+        boolean changed = ruleSelfManager.setEnabled(player, ruleString, value);
+        Text displayName = RuleUtils.simpleTranslationName(rule);
+        if (changed) {
+            if (value) {
+                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.enable", displayName);
+            } else {
+                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.disable", displayName);
+            }
+        } else {
+            if (value) {
+                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.enable", displayName);
+            } else {
+                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.disable", displayName);
+            }
+        }
+        return 1;
+    }
+
+    private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+        String ruleString = StringArgumentType.getString(context, "rule");
+        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+        if (rule == null) {
+            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
+        }
+        boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
+        Text displayName = RuleUtils.simpleTranslationName(rule);
+        MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.info.rule", displayName);
+        MutableText translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.enable", TextProvider.getBoolean(enabled));
+        if (RuleHelper.isInDefaultValue(rule)) {
+            MutableText hover = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.invalid");
+            translate = TextUtils.hoverText(translate, hover);
+            translate = TextUtils.toStrikethrough(translate);
+        }
+        MessageUtils.sendMessage(context.getSource(), translate);
+        return 1;
+    }
+
+    @Override
+    public String getDefaultName() {
+        return CarpetOrgAddition.MOD_ID;
     }
 }

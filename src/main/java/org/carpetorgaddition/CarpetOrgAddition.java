@@ -4,7 +4,7 @@ import carpet.CarpetServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import org.carpetorgaddition.config.CustomSettingsManager;
+import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
 import org.slf4j.Logger;
@@ -61,7 +61,7 @@ public class CarpetOrgAddition implements ModInitializer {
     @Override
     public void onInitialize() {
         if (ALLOW_CUSTOM_SETTINGS_MANAGER) {
-            CustomSettingsManager.initSettingsManagerConfigs();
+            CustomSettingsConfig.initSettingsManagerConfigs();
         }
         CarpetServer.manageExtension(new CarpetOrgAdditionExtension());
         // 注册网络数据包

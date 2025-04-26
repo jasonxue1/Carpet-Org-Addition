@@ -1,7 +1,7 @@
 package org.carpetorgaddition;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class CarpetOrgAdditionTest {
     /**
@@ -9,6 +9,6 @@ public class CarpetOrgAdditionTest {
      */
     @Test
     public void testJavaVersion() {
-        Assert.assertEquals("请使用jdk21构建", 21, Runtime.version().version().getFirst().intValue());
+        Assertions.assertEquals(21, Runtime.version().version().getFirst().intValue(), "请使用jdk21构建");
     }
 }

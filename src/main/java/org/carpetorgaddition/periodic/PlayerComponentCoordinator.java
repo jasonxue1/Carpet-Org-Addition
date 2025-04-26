@@ -9,15 +9,15 @@ import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PlayerPeriodicTaskManager {
+public class PlayerComponentCoordinator {
+    private final ServerPlayerEntity player;
     @Nullable
     private final FakePlayerActionManager fakePlayerActionManager;
     @Nullable
     private final BlockBreakManager blockBreakManager;
     private final NavigatorManager navigatorManager;
-    private final ServerPlayerEntity player;
 
-    public PlayerPeriodicTaskManager(ServerPlayerEntity player) {
+    public PlayerComponentCoordinator(ServerPlayerEntity player) {
         this.player = player;
         if (player instanceof EntityPlayerMPFake fakePlayer) {
             this.fakePlayerActionManager = new FakePlayerActionManager(fakePlayer);
@@ -56,9 +56,8 @@ public class PlayerPeriodicTaskManager {
         return this.navigatorManager;
     }
 
-
     @NotNull
-    public static PlayerPeriodicTaskManager getManager(ServerPlayerEntity player) {
+    public static PlayerComponentCoordinator getManager(ServerPlayerEntity player) {
         return ((PeriodicTaskManagerInterface) player).carpet_Org_Addition$getPlayerPeriodicTaskManager();
     }
 
