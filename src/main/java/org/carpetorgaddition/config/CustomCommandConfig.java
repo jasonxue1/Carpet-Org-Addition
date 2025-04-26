@@ -48,7 +48,7 @@ public class CustomCommandConfig {
     }
 
     /**
-     * 如果配置文件失效，则重新生成配置文件，方法可能在渲染线程和服务器线程同时调用
+     * 如果配置文件失效，则重新生成配置文件，方法可能在渲染线程和Worker-Main线程同时调用
      */
     public synchronized void refreshIfExpired() {
         if (this.expired) {

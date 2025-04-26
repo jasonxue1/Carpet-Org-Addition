@@ -54,11 +54,23 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
             60,
             TimeUnit.SECONDS,
             new SynchronousQueue<>(),
+            this::createDaemonThread,
             new ThreadPoolExecutor.AbortPolicy()
     );
 
     public CarpetOrgAdditionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
+    }
+
+    /**
+     * 创建守护线程
+     */
+    private Thread createDaemonThread(Runnable runnable) {
+        Thread thread = new Thread(runnable);
+        // 设置守护线程
+        thread.setDaemon(true);
+        thread.setName("Query-Player-Name");
+        return thread;
     }
 
     @Override
