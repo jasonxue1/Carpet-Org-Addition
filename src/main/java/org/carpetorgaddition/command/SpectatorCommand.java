@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.DimensionArgumentType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.Vec3ArgumentType;
@@ -33,11 +34,16 @@ import java.io.IOException;
 import java.util.Locale;
 
 // 在生存模式和旁观模式间切换
-public class SpectatorCommand {
+public class SpectatorCommand extends AbstractServerCommand {
     private static final String SPECTATOR = "spectator";
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("spectator")
+    public SpectatorCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandSpectator))
                 .executes(context -> setGameMode(context, false))
                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
@@ -45,16 +51,16 @@ public class SpectatorCommand {
                 .then(CommandManager.literal("teleport")
                         .then(CommandManager.literal("dimension")
                                 .then(CommandManager.argument("dimension", DimensionArgumentType.dimension())
-                                        .executes(SpectatorCommand::tpToDimension)
+                                        .executes(this::tpToDimension)
                                         .then(CommandManager.argument("location", Vec3ArgumentType.vec3())
-                                                .executes(SpectatorCommand::tpToDimensionLocation))))
+                                                .executes(this::tpToDimensionLocation))))
                         .then(CommandManager.literal("entity")
                                 .then(CommandManager.argument("entity", EntityArgumentType.entity())
-                                        .executes(SpectatorCommand::tpToEntity)))));
+                                        .executes(this::tpToEntity)))));
     }
 
     // 更改游戏模式
-    private static int setGameMode(CommandContext<ServerCommandSource> context, boolean isFakePlayer) throws CommandSyntaxException {
+    private int setGameMode(CommandContext<ServerCommandSource> context, boolean isFakePlayer) throws CommandSyntaxException {
         ServerPlayerEntity player = isFakePlayer
                 ? CommandUtils.getArgumentFakePlayer(context)
                 : CommandUtils.getSourcePlayer(context);
@@ -84,9 +90,9 @@ public class SpectatorCommand {
     }
 
     // 传送到维度
-    private static int tpToDimension(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int tpToDimension(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        requireSpectator(player);
+        this.requireSpectator(player);
         ServerWorld dimension = DimensionArgumentType.getDimensionArgument(context, "dimension");
         if (player.getWorld().getRegistryKey() == World.OVERWORLD && dimension.getRegistryKey() == World.NETHER) {
             WorldUtils.teleport(player, dimension, player.getX() / 8, player.getY(), player.getZ() / 8, player.getYaw(), player.getPitch());
@@ -102,7 +108,7 @@ public class SpectatorCommand {
     }
 
     // 传送到维度的指定坐标
-    private static int tpToDimensionLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int tpToDimensionLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 检查玩家是不是旁观模式
         requireSpectator(player);
@@ -116,7 +122,7 @@ public class SpectatorCommand {
     }
 
     // 传送到实体
-    private static int tpToEntity(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int tpToEntity(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 检查玩家是不是旁观模式
         requireSpectator(player);
@@ -129,7 +135,7 @@ public class SpectatorCommand {
     }
 
     // 检查玩家当前是不是旁观模式
-    private static void requireSpectator(ServerPlayerEntity player) throws CommandSyntaxException {
+    private void requireSpectator(ServerPlayerEntity player) throws CommandSyntaxException {
         if (player.isSpectator()) {
             return;
         }
@@ -137,7 +143,7 @@ public class SpectatorCommand {
     }
 
     // 将玩家位置保存到文件
-    private static void savePlayerPos(MinecraftServer server, ServerPlayerEntity player) {
+    private void savePlayerPos(MinecraftServer server, ServerPlayerEntity player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
         JsonObject json = new JsonObject();
         json.addProperty("x", MathUtils.numberToTwoDecimalString(player.getX()));
@@ -159,7 +165,7 @@ public class SpectatorCommand {
     }
 
     // 从文件加载位置并传送玩家
-    private static void loadPlayerPos(MinecraftServer server, ServerPlayerEntity player) {
+    private void loadPlayerPos(MinecraftServer server, ServerPlayerEntity player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
         File file = worldFormat.file(player.getUuidAsString() + IOUtils.JSON_EXTENSION);
         try {
@@ -182,7 +188,12 @@ public class SpectatorCommand {
     }
 
     // 格式化坐标文本
-    private static String formatFloat(double d) {
+    private String formatFloat(double d) {
         return String.format(Locale.ROOT, "%f", d);
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "spectator";
     }
 }

@@ -1,65 +1,33 @@
-对假玩家执行一些操作，或者让假玩家自动做一些事情
+控制假玩家自动化执行一些任务
 
 ## 语法
 
-`playerAction <player> ...`
-
-- `... clean [<item>]`
-- `... craft ...`
-    - `... inventory <item1> <item2> <item3> <item4>`
-    - `... crafting_table <item1> <item2> <item3> <item4> <item5> <item6> <item7> <item8> <item9>`
-    - `... four <item>`
-    - `... gui`
-    - `... nine <item>`
-    - `... one <item>`
-- `... fill [<item>]`
-- `... info`
-- `... rename <item> <name>`
-- `... sorting <item> <this> <other>`
-- `... stonecutting <item> <button>`
-- `... stop`
-- `... trade <index> [void_trade]`
-
-## 参数
-
-`player`:entity
-
-必须是玩家名或指向玩家的目标选择器，且只能选中一个玩家
-
-`item`,`item1~9`:item_predicate
-
-一个指定的物品或存在物品形式的方块的ID
-
-`name`:string
-物品的新名称，中文字符或其他特殊字符需要用英文双引号包裹
-
-`this`:vec3
-
-一个坐标，假玩家会把指定的物品丢向这个坐标
-
-`other`:vec3
-
-一个坐标，假玩家会把指定物品以外的物品丢向这个坐标
-
-`button`:integer
-
-切石机按钮的索引，从1开始，必须大于0
-
-`index`:integer
-
-村民交易选项的索引，从1开始，必须大于0
+- `playerAction <player> ...`：具体效果见下文
+    - `... clean [<filter>]`
+    - `... craft ...`
+        - `... inventory <item1> <item2> <item3> <item4>`
+        - `... crafting_table <item1> <item2> <item3> <item4> <item5> <item6> <item7> <item8> <item9>`
+        - `... four <item>`
+        - `... gui`
+        - `... nine <item>`
+        - `... one <item>`
+    - `... fill [<filter>] [<dropOther>]`
+    - `... info`
+    - `... rename <item> <name>`
+    - `... sorting <item> <this> <other>`
+    - `... stonecutting item <item> <button>`
+    - `... stonecutting gui`
+    - `... trade <index> [void_trade]`
+    - `... fishing`
+    - `... stop`
 
 ## 效果
 
-`/playerAction <player> ...`
-
-- `clean [<item>]`
-    - 让假玩家自动清空潜影盒，需要让假玩家打开潜影盒，清空完毕后自动关闭潜影盒
-    - 如果指定的物品，则只清空指定的物品
-- `craft ...`
-    - 让假玩家自动合成一些物品，需要给予该假玩家一些合成材料物品
-    - 为了快速合成物品，应同时启用Ctrl+Q合成修复
-    - 如果在工作台合成，则需要打开一个工作台，并且不能使用副手槽和盔甲槽中的物品，在生存模式物品栏合成的，副手槽和盔甲槽的物品也会被使用
+- `/playerAction <player> ...`
+    - `clean [<filter>]`
+        - 让假玩家自动清空容器，需要让假玩家打开容器，清空完毕后自动关闭容器
+        - 如果指定的`filter`参数，则只清空指定的物品
+    - `craft ...`
         - `inventory <item1> <item2> <item3> <item4>`
             - 让假玩家在生存模式物品栏合成指定配方的物品
         - `crafting_table <item1> <item2> <item3> <item4> <item5> <item6> <item7> <item8> <item9>`
@@ -72,134 +40,49 @@
             - 让假玩家在工作台合成指定配方为九个相同材料的物品
         - `one`
             - 让假玩家在生存模式物品栏合成配方为单个材料的物品
-- `fill [<item]`
-    - 让假玩家向潜影盒中放入指定物品，玩家物品栏内的指定物品会被填入潜影盒，非指定物品会被丢出，需要让假玩家打开潜影盒。
-    - 无法再向潜影盒内填充物品时，潜影盒会自动关闭
-    - 如果未指定物品，则表示向容器内填充所有潜影盒以外的物品
-- `info`
-    - 在聊天栏显示假玩家当前动作的详细信息
-- `rename <item> <name>`
-    - 让假玩家给物品重命名，需要打开一个铁砧，重命名需要消耗经验
-- `sorting <item> <this> <other>`
-    - 让假玩家从一堆物品实体中分拣出指定的物品并丢在<this>的位置，其他物品物品会丢在<other>
-      位置，潜影盒物品会先取出潜影盒内的物品，可以利用这个特性来快速拆解潜影盒
-- `stonecutting <item> <button>`
-    - 让假玩家使用切石机制作一些物品，需要让假玩家打开一个切石机GUI
-- `stop`
-    - 让假玩家停止当前的动作
-- `trade <index> [void_trade]`
-    - 让假玩家与一名村民或流浪商人进行交易，需要打开一个交易界面
-    - 如果指定了void_trade参数，表示当前进行的是虚空交易，虚空交易会在村民被卸载后的下一个游戏刻进行，交易完毕后会自动关闭交易页面
-
-## 输出
-
-<table>
-    <tr>
-      <th>命令</th>
-      <th>条件</th>
-      <th>成功次数</th>
-      <th>结果</th>
-      <th>返回值</th>
-    </tr>
-  <tbody>
-    <tr>
-      <td>任意</td>
-      <td>目标玩家不是假玩家</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <td>stop</td>
-      <td rowspan="15">执行成功</td>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>clean</td>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-    </tr>
-    <tr>
-      <td>craft one</td>
-      <td rowspan="3">1</td>
-      <td rowspan="3">1</td>
-      <td rowspan="3">2</td>
-    </tr>
-    <tr>
-      <td>craft four</td>
-    </tr>
-    <tr>
-      <td>craft 2x2</td>
-    </tr>
-    <tr>
-      <td>craft nine</td>
-      <td rowspan="2">1</td>
-      <td rowspan="2">1</td>
-      <td rowspan="2">3</td>
-    </tr>
-    <tr>
-      <td>craft 3x3</td>
-    </tr>
-    <tr>
-      <td>craft gui</td>
-      <td>1</td>
-      <td>1</td>
-      <td>4</td>
-    </tr>
-    <tr>
-      <td>fill</td>
-      <td>1</td>
-      <td>1</td>
-      <td>5</td>
-    </tr>
-    <tr>
-      <td>info</td>
-      <td>1</td>
-      <td>1</td>
-      <td>6</td>
-    </tr>
-    <tr>
-      <td>rename</td>
-      <td>1</td>
-      <td>1</td>
-      <td>7</td>
-    </tr>
-    <tr>
-      <td>sorting</td>
-      <td>1</td>
-      <td>1</td>
-      <td>8</td>
-    </tr>
-    <tr>
-      <td>sorting</td>
-      <td>1</td>
-      <td>1</td>
-      <td>8</td>
-    </tr>
-    <tr>
-      <td>stonecutting</td>
-      <td>1</td>
-      <td>1</td>
-      <td>9</td>
-    </tr>
-    <tr>
-      <td>trade</td>
-      <td>1</td>
-      <td>1</td>
-      <td>10</td>
-    </tr>
-  </tbody>
-</table>
+        - 如果在工作台合成，则需要打开一个工作台，并且不能使用副手槽和盔甲槽中的物品，在生存模式物品栏合成的，不需要打开工作台，并且副手槽和盔甲槽的物品也会被使用
+    - `fill [<filter>] [<dropOther>]`
+        - 让假玩家向容器中放入指定物品，玩家物品栏内的指定物品会被填入容器
+        - 无法再向容器内填充物品时，容器会被自动关闭
+        - 如果未指定物品，则表示向容器中填充任意物品
+            - 潜影盒物品不会尝试放入潜影盒容器中
+        - 如果`dropOther`参数未指定或为`true`，则填充容器时非指定物品会被丢出
+        - 支持以下容器
+            - 潜影盒
+            - 通用9*3容器，例如箱子，木桶，陷阱箱
+            - 通用9*6容器，例如大箱子
+            - 通用3*3容器，例如发射器，投掷器
+            - 漏斗
+            - 合成器
+    - `info`
+        - 在聊天栏显示假玩家当前动作的详细信息
+    - `rename <item> <name>`
+        - 让假玩家给物品重命名，需要打开一个铁砧，重命名需要消耗经验
+        - 为了避免经验浪费，物品必须满一组才会开始重命名
+    - `sorting <item> <this> <other>`
+        - 让假玩家从一堆物品实体中分拣出指定的物品并丢在`this`的位置，其他物品物品会丢在`other`位置
+        - 潜影盒物品会先取出潜影盒内的物品，可以利用这个特性来快速拆解潜影盒
+    - `stonecutting ...`
+        - `... <item> <button>`
+            - 为假玩家指定一个切石机配方
+        - `... gui`
+            - 使用GUI设置假玩家的切石机配方
+    - `trade <index> [void_trade]`
+        - 让假玩家与一名村民或流浪商人进行交易，需要打开一个交易界面
+        - 如果指定了void_trade参数，表示当前进行的是虚空交易，虚空交易会在村民被卸载后的下一个游戏刻进行，交易完毕后会自动关闭交易页面
+    - `fishing`
+        - 让假玩家开始钓鱼
+    - `stop`
+        - 让假玩家停止当前的动作
 
 ## 示例
 
 - 让Steve合成铁块
     - `/playerAction Steve craft nine minecraft:iron_ingot`
-    - `/playerAction Steve craft 3x3 minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot`
+    - `/playerAction Steve craft crafting_table minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot minecraft:iron_ingot`
 - 让Bot使用切石机制作石砖（如果修改了切石机的配方，按钮的索引也要相应调整）
     - `/playerActions Bot stonecutting minecraft:stone 5`
 - 显示Alex正在做什么
     - `/playerAction Alex info`
+- 让Steve开始钓鱼
+    - `/playerAction Steve fishing`

@@ -17,7 +17,10 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleSelfConstants;
+import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.util.EnchantmentUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -69,8 +72,11 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
             if (player == null) {
                 return true;
             }
-            player.getInventory().insertStack(itemStack);
-            return !itemStack.isEmpty();
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            if (ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory)) {
+                player.getInventory().insertStack(itemStack);
+                return !itemStack.isEmpty();
+            }
         }
         return true;
     }

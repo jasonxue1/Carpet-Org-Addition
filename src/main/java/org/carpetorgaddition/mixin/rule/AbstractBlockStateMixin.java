@@ -2,11 +2,8 @@ package org.carpetorgaddition.mixin.rule;
 
 import net.minecraft.block.AbstractBlock.AbstractBlockState;
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.EntityType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.wheel.BlockHardnessModifiers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,13 +26,5 @@ public abstract class AbstractBlockStateMixin {
     public void getBlockHardness(BlockView world, BlockPos pos, CallbackInfoReturnable<Float> cir) {
         Optional<Float> optional = BlockHardnessModifiers.getHardness(this.getBlock(), world, pos);
         optional.ifPresent(cir::setReturnValue);
-    }
-
-    //蓝冰上不能刷怪
-    @Inject(method = "allowsSpawning", at = @At(value = "HEAD"), cancellable = true)
-    private void canSpawn(BlockView world, BlockPos pos, EntityType<?> type, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.blueIceCanSpawn && this.getBlock() == Blocks.BLUE_ICE) {
-            cir.setReturnValue(false);
-        }
     }
 }

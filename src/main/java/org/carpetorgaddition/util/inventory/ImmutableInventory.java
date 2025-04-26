@@ -1,10 +1,9 @@
 package org.carpetorgaddition.util.inventory;
 
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -14,40 +13,41 @@ import java.util.StringJoiner;
 /**
  * 不可变的物品栏，一旦创建，里面的内容都是不可以改变的，只能进行查询操作，否则抛出{@link UnsupportedOperationException}
  */
-public final class ImmutableInventory extends SimpleInventory implements Iterable<ItemStack> {
-    /**
-     * 当前物品栏是否已锁定，锁定后，物品栏不能改变
-     */
-    private boolean lock = false;
+public final class ImmutableInventory implements Inventory, Iterable<ItemStack> {
     /**
      * 空物品栏
      */
-    public static final ImmutableInventory EMPTY = new ImmutableInventory(DefaultedList.copyOf(ItemStack.EMPTY));
+    public static final ImmutableInventory EMPTY = new ImmutableInventory();
+
+    private final SimpleInventory inventory;
 
     public ImmutableInventory(List<ItemStack> list) {
-        super(list.size());
-        for (int i = 0; i < list.size(); i++) {
-            // 不能用super.setStack(i, list.get(i))，编译器会自动把super设置为this
-            this.setStack(i, list.get(i));
-        }
-        this.lock = true;
+        this.inventory = new SimpleInventory(list.toArray(ItemStack[]::new));
     }
 
     public ImmutableInventory(Inventory inventory) {
-        this(asList(inventory));
-    }
-
-    private static ArrayList<ItemStack> asList(Inventory inventory) {
         ArrayList<ItemStack> list = new ArrayList<>();
         for (int i = 0; i < inventory.size(); i++) {
             list.add(inventory.getStack(i));
         }
-        return list;
+        this.inventory = new SimpleInventory(list.toArray(ItemStack[]::new));
+    }
+
+    private ImmutableInventory() {
+        this.inventory = new SimpleInventory();
+    }
+
+    public int size() {
+        return this.inventory.size();
     }
 
     @Override
     public boolean isEmpty() {
-        return this == EMPTY || super.isEmpty();
+        return this == EMPTY || this.inventory.isEmpty();
+    }
+
+    public ItemStack getStack(int slot) {
+        return this.inventory.getStack(slot);
     }
 
     @Override
@@ -62,11 +62,15 @@ public final class ImmutableInventory extends SimpleInventory implements Iterabl
 
     @Override
     public void setStack(int slot, ItemStack stack) {
-        if (this.lock) {
-            throw new UnsupportedOperationException();
-        } else {
-            super.setStack(slot, stack);
-        }
+        throw new UnsupportedOperationException();
+    }
+
+    public void markDirty() {
+        this.inventory.markDirty();
+    }
+
+    public boolean canPlayerUse(PlayerEntity player) {
+        return this.inventory.canPlayerUse(player);
     }
 
     @Override
@@ -75,23 +79,8 @@ public final class ImmutableInventory extends SimpleInventory implements Iterabl
     }
 
     @Override
-    public List<ItemStack> clearToList() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ItemStack removeItem(Item item, int count) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ItemStack addStack(ItemStack stack) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String toString() {
-        StringJoiner joiner = new StringJoiner(", ", "{", "}");
+        StringJoiner joiner = new StringJoiner(", ", this.getClass().getSimpleName() + ":{", "}");
         for (int index = 0; index < this.size(); index++) {
             ItemStack itemStack = this.getStack(index);
             if (itemStack.isEmpty()) {

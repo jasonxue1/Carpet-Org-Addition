@@ -6,6 +6,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleSelfConstants;
+import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -19,11 +22,14 @@ public class ServerPlayerInteractionManagerMixin {
     @WrapMethod(method = "tryBreakBlock")
     private boolean tryBreakBlock(BlockPos pos, Operation<Boolean> original) {
         if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
-            try {
-                CarpetOrgAdditionSettings.blockBreaking.set(this.player);
-                return original.call(pos);
-            } finally {
-                CarpetOrgAdditionSettings.blockBreaking.remove();
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            if (ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory)) {
+                try {
+                    CarpetOrgAdditionSettings.blockBreaking.set(this.player);
+                    return original.call(pos);
+                } finally {
+                    CarpetOrgAdditionSettings.blockBreaking.remove();
+                }
             }
         }
         return original.call(pos);

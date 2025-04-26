@@ -31,6 +31,7 @@ public class ClientBlockPosArgumentType implements ArgumentType<BlockPos> {
         return context.getArgument(name, BlockPos.class);
     }
 
+    @Override
     public BlockPos parse(StringReader reader) throws CommandSyntaxException {
         int i = reader.getCursor();
         int x = this.parseInteger(reader);

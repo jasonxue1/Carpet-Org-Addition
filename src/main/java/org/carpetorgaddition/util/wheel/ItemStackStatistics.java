@@ -39,41 +39,41 @@ public class ItemStackStatistics {
     }
 
     /**
-     * 统计物品栏内指定物品的数量<br/>
+     * 统计物品栏内指定物品的数量<br>
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      */
     public void statistics(Inventory inventory) {
-        statistics(inventory, false);
+        this.statistics(inventory, false);
     }
 
     /**
-     * 统计物品栏内指定物品的数量<br/>
+     * 统计物品栏内指定物品的数量<br>
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      *
      * @param isNestingInventory 当前物品栏是否是潜影盒或收纳袋内部的物品栏
      */
     public void statistics(Inventory inventory, boolean isNestingInventory) {
         for (int i = 0; i < inventory.size(); i++) {
-            tally(inventory.getStack(i), isNestingInventory);
+            this.tally(inventory.getStack(i), isNestingInventory);
         }
     }
 
     public void statistics(Iterable<ItemStack> iterable, boolean isNestingInventory) {
-        iterable.forEach(itemStack -> tally(itemStack, isNestingInventory));
+        iterable.forEach(itemStack -> this.tally(itemStack, isNestingInventory));
     }
 
     private void statistics(ItemStack itemStack) {
         // 容器物品
         ContainerComponent container = itemStack.get(DataComponentTypes.CONTAINER);
         if (container != null) {
-            statistics(container.iterateNonEmpty(), true);
+            this.statistics(container.iterateNonEmpty(), true);
             // 不考虑一个物品同时有容器物品组件和收纳袋物品组件的情况
             return;
         }
         // 收纳袋物品
         BundleContentsComponent bundleContents = itemStack.get(DataComponentTypes.BUNDLE_CONTENTS);
         if (bundleContents != null) {
-            statistics(bundleContents.iterate(), true);
+            this.statistics(bundleContents.iterate(), true);
         }
     }
 
@@ -92,9 +92,8 @@ public class ItemStackStatistics {
             if (nesting) {
                 this.nestingItem.add(item);
             }
-        } else {
-            statistics(itemStack);
         }
+        this.statistics(itemStack);
     }
 
     public int getSum() {

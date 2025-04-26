@@ -1,12 +1,12 @@
 package org.carpetorgaddition.client;
 
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.screen.ScreenHandler;
-import org.carpetorgaddition.client.command.DictionaryCommand;
-import org.carpetorgaddition.client.command.HighlightCommand;
+import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
@@ -22,11 +22,13 @@ import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
 import java.util.Optional;
 
 public class CarpetOrgAdditionClientRegister {
+
     public static void register() {
         registerCommand();
         registerC2SNetworkPack();
         registerNetworkPackReceiver();
         registerRender();
+        registerKeyBinding();
         developed();
     }
 
@@ -34,10 +36,7 @@ public class CarpetOrgAdditionClientRegister {
      * 注册客户端命令
      */
     private static void registerCommand() {
-        // 高亮路径点命令
-        HighlightCommand.register();
-        // 字典命令
-        DictionaryCommand.register();
+        ClientCommandRegister.register();
     }
 
     /**
@@ -134,6 +133,14 @@ public class CarpetOrgAdditionClientRegister {
                     WorldRendererManager.getRenderer(VillagerPoiRenderer.class).forEach(renderer -> renderer.render(context));
                 }
         );
+    }
+
+    /**
+     * 注册按键绑定
+     */
+    private static void registerKeyBinding() {
+        // 清除高亮路径点
+        KeyBindingHelper.registerKeyBinding(CarpetOrgAdditionClient.CLEAR_WAYPOINT);
     }
 
     /**
