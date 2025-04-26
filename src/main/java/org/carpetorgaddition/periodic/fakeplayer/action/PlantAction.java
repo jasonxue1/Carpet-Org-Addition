@@ -233,7 +233,7 @@ public class PlantAction extends AbstractPlayerAction {
             ItemStack itemStack = this.fakePlayer.getMainHandStack();
             if (itemStack.getCount() > 1
                     || this.fakePlayer.isCreative()
-                    || replenishment(this.fakePlayer, fakePlayer.getInventory().getSelectedSlot() + 36, predicate)) {
+                    || replenishment(this.fakePlayer.getInventory().getSelectedSlot() + 36, predicate)) {
                 // 如果手上有多余一个的骨粉，就使用骨粉
                 Vec3d centerPos = upPos.toCenterPos();
                 // 让假玩家看向该位置（这不是必须的）

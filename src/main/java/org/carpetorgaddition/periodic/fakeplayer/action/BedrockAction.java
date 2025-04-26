@@ -349,7 +349,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
             BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
             // 先切换工具，再计算剩余挖掘时间
-            switchTool(blockState, world, up);
+            switchTool(blockState, world, up, this.fakePlayer);
             // 计算剩余挖掘时间
             int currentTime = breakManager.getCurrentBreakingTime(up);
             if (currentTime == 1) {
@@ -462,13 +462,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         World world = player.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
-            switchTool(blockState, world, blockPos);
+            switchTool(blockState, world, blockPos, player);
         }
         return breakManager.breakBlock(blockPos, Direction.DOWN, false);
     }
 
     private void switchTool(BlockState blockState, World world, BlockPos blockPos, EntityPlayerMPFake player) {
-        boolean replenishment = FakePlayerUtils.replenishment(this.player, itemStack -> {
+        boolean replenishment = FakePlayerUtils.replenishment(player, itemStack -> {
             if (player.isCreative()) {
                 return itemStack.getItem().canMine(player.getMainHandStack(), blockState, world, blockPos, player);
             }

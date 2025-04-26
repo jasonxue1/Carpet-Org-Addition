@@ -63,7 +63,7 @@ public class TextProvider {
         //添加单击事件，复制方块坐标
         pos.styled(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(WorldUtils.toPosString(blockPos))));
         //添加光标悬停事件：单击复制到剪贴板
-        pos.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, COPY_CLICK)));
+        pos.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(COPY_CLICK)));
         if (color != null) {
             //修改文本颜色
             pos.styled(style -> style.withColor(color));
