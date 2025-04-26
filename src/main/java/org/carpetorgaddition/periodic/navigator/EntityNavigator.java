@@ -13,7 +13,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class EntityNavigator extends AbstractNavigator {
     }
 
     public void tick() {
-        if (this.terminate()) {
+        if (this.shouldTerminate()) {
             this.clear();
             return;
         }
@@ -50,7 +50,7 @@ public class EntityNavigator extends AbstractNavigator {
         Text text;
         if (player.getWorld().equals(world)) {
             // 获取翻译后的文本信息
-            Text in = TextUtils.translate(IN, entity.getName(), TextConstants.simpleBlockPos(entity.getBlockPos()));
+            Text in = TextUtils.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.getBlockPos()));
             Text distance = TextUtils.translate(DISTANCE,
                     MathUtils.getBlockIntegerDistance(player.getBlockPos(), entity.getBlockPos()));
             // 添加上下箭头
@@ -59,7 +59,7 @@ public class EntityNavigator extends AbstractNavigator {
         } else {
             text = TextUtils.translate(IN, entity.getName(),
                     TextUtils.appendAll(WorldUtils.getDimensionName(entity.getWorld()),
-                            TextConstants.simpleBlockPos(entity.getBlockPos())));
+                            TextProvider.simpleBlockPos(entity.getBlockPos())));
         }
         MessageUtils.sendMessageToHud(this.player, text);
         this.syncWaypoint(new WaypointUpdateS2CPacket(this.entity.getEyePos(), world));
@@ -69,7 +69,7 @@ public class EntityNavigator extends AbstractNavigator {
      * @return 此导航器是否需要停止
      */
     @Override
-    protected boolean terminate() {
+    protected boolean shouldTerminate() {
         if (this.isContinue) {
             return false;
         }

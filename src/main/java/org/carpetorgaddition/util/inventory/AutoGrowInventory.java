@@ -16,7 +16,7 @@ import java.util.NoSuchElementException;
  */
 public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
     @NotNull
-    private SimpleInventory inventory = new SimpleInventory(16);
+    private SimpleInventory inventory = new SimpleInventory(27);
     private int growCount = 0;
 
     public AutoGrowInventory() {
@@ -101,6 +101,17 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
         this.inventory = inventory;
         this.growCount++;
         return this.tryAddStack(itemStack);
+    }
+
+    /**
+     * @return 物品栏中物品的总数
+     */
+    public int count() {
+        int count = 0;
+        for (ItemStack itemStack : this) {
+            count += itemStack.getCount();
+        }
+        return count;
     }
 
     @NotNull

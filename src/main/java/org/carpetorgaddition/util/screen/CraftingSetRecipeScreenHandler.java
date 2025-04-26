@@ -12,6 +12,10 @@ import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerAction;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.context.CraftingTableCraftContext;
 import org.carpetorgaddition.periodic.fakeplayer.action.context.InventoryCraftContext;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerCraftRecipeInterface;
+import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
+import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
+import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
@@ -62,20 +66,20 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     private void setCraftAction(Item[] items, FakePlayerActionManager actionManager) {
         // 如果能在2x2合成格中合成，优先使用2x2
         if (canInventoryCraft(items, 0, 1, 2, 5, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 3, 4, 6, 7));
+            actionManager.setAction(createData(items, 3, 4, 6, 7));
         } else if (canInventoryCraft(items, 0, 3, 6, 7, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 1, 2, 4, 5));
+            actionManager.setAction(createData(items, 1, 2, 4, 5));
         } else if (canInventoryCraft(items, 2, 5, 6, 7, 8)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 0, 1, 3, 4));
+            actionManager.setAction(createData(items, 0, 1, 3, 4));
         } else if (canInventoryCraft(items, 0, 1, 2, 3, 6)) {
-            actionManager.setAction(FakePlayerAction.INVENTORY_CRAFTING, createData(items, 4, 5, 7, 8));
+            actionManager.setAction(createData(items, 4, 5, 7, 8));
         } else {
             //将假玩家动作设置为3x3合成
             ItemStackPredicate[] predicates = new ItemStackPredicate[9];
             for (int i = 0; i < predicates.length; i++) {
                 predicates[i] = new ItemStackPredicate(items[i]);
             }
-            actionManager.setAction(FakePlayerAction.CRAFTING_TABLE_CRAFT, new CraftingTableCraftContext(predicates));
+            actionManager.setAction(new CraftingTableCraftAction(this.fakePlayer, predicates));
         }
     }
 
@@ -91,13 +95,13 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     }
 
     // 创建合成数据
-    private InventoryCraftContext createData(Item[] items, int... indices) {
+    private InventoryCraftAction createData(Item[] items, int... indices) {
         ItemStackPredicate[] predicates = new ItemStackPredicate[4];
         // 这里的index并不是indices里保存的元素
         for (int index = 0; index < 4; index++) {
             predicates[index] = new ItemStackPredicate(items[indices[index]]);
         }
-        return new InventoryCraftContext(predicates);
+        return new InventoryCraftAction(this.fakePlayer, predicates);
     }
 
     @Override

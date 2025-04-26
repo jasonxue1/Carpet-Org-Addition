@@ -3,16 +3,13 @@ package org.carpetorgaddition.util.wheel;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.TextProvider;
 
 import java.util.ArrayList;
 
 @SuppressWarnings("UnusedReturnValue")
 public class TextBuilder {
     private final ArrayList<Text> list = new ArrayList<>();
-    /**
-     * 换行
-     */
-    private final Text NEW_LINE = TextUtils.createText("\n");
 
     public TextBuilder() {
     }
@@ -48,14 +45,14 @@ public class TextBuilder {
      */
     public TextBuilder appendTranslateLine(String key, Object... args) {
         this.append(TextUtils.translate(key, args));
-        return this.append(NEW_LINE);
+        return this.append(TextProvider.NEW_LINE);
     }
 
     /**
      * 换行
      */
     public TextBuilder newLine() {
-        return this.append(NEW_LINE);
+        return this.append(TextProvider.NEW_LINE);
     }
 
     /**
@@ -97,7 +94,7 @@ public class TextBuilder {
         for (int i = 0; i < this.list.size(); i++) {
             result.append(this.list.get(i));
             if (i < this.list.size() - 1) {
-                result.append(NEW_LINE);
+                result.append(TextProvider.NEW_LINE);
             }
         }
         return result;

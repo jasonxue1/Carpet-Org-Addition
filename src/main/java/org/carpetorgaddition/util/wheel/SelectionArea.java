@@ -65,7 +65,7 @@ public class SelectionArea implements Iterable<BlockPos> {
     }
 
     /**
-     * @return 改选区是否包含指定位置
+     * @return 该选区是否包含指定位置
      */
     public boolean contains(BlockPos blockPos) {
         int x = blockPos.getX();

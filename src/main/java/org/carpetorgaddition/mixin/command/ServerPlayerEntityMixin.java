@@ -1,7 +1,10 @@
 package org.carpetorgaddition.mixin.command;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageTracker;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -41,6 +44,14 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         if (this.safeAfkThreshold > 0 && thisPlayer instanceof EntityPlayerMPFake) {
             safeAfk(source, amount);
         }
+    }
+
+    @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageTracker;getDeathMessage()Lnet/minecraft/text/Text;"))
+    private Text getDeathMessage(DamageTracker instance, Operation<Text> original) {
+        if (CarpetOrgAdditionSettings.committingSuicide.get()) {
+            return TextUtils.translate("carpet.commands.killMe.suicide", thisPlayer.getDisplayName());
+        }
+        return original.call(instance);
     }
 
     // 假玩家安全挂机

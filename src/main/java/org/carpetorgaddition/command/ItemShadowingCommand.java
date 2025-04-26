@@ -4,6 +4,7 @@ import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -14,16 +15,20 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 
-public class ItemShadowingCommand {
-    //注册用于制作物品分身的/itemshadowing命令
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("itemshadowing")
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandItemShadowing))
-                .executes(ItemShadowingCommand::itemShadowing));
+public class ItemShadowingCommand extends AbstractServerCommand {
+    public ItemShadowingCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
     }
 
-    //制作物品分身
-    private static int itemShadowing(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(CommandManager.literal(name)
+                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandItemShadowing))
+                .executes(this::itemShadowing));
+    }
+
+    // 制作物品分身
+    private int itemShadowing(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取主副手上的物品
         ItemStack main = player.getMainHandStack();
@@ -64,5 +69,10 @@ public class ItemShadowingCommand {
             // 副手必须为空
             throw CommandUtils.createException("carpet.commands.itemshadowing.off_hand_not_empty");
         }
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "itemshadowing";
     }
 }

@@ -2,100 +2,21 @@
 
 ## 语法
 
-`spectator [<player>]`
+- `spectator [<player>]`：在生存模式和旁观模式直接切换
+    - 从旁观模式切换会生存模式后会自动回到原位置
+    - 如果指定了`player`参数，则切换指定假玩家的游戏模式
+- `spectator teleport dimension <dimension> [<location>]`：将自己传送至指定维度
+    - 自己必须处于旁观模式
+    - 如果指定了`location`，则表示传送至指定维度的指定位置
+    - 如果在主世界和下界直接传送并且未指定位置，则会自动换算坐标
+- `spectator teleport entity <entity>`：将自己传送至指定实体位置
+    - 自己必须处于旁观模式
 
-`spectator teleport dimension <dimension> [<location>]`
+## 示例
 
-`spectator teleport entity <entity>`
-
-## 参数
-
-`player`:entity
-
-必须是玩家名或指向玩家的目标选择器，且只能选中一个玩家
-
-`dimension`:dimension
-
-要传送到的维度
-
-`location`:block_pos
-
-传送到维度的指定坐标
-
-`entity`:entity
-
-传送到该实体的位置
-
-## 效果
-
-<table>
-    <tr>
-      <th>命令</th>
-      <th>触发条件</th>
-      <th>结果</th>
-    </tr>
-    <tr>
-      <td>任意</td>
-      <td>参数不正确</td>
-      <td>无法解析</td>
-    </tr>
-    <tr>
-     <td rowspan="3">spectator [&lt;player&gt;]</td>
-      <td>未加[&lt;player&gt;]参数时命令执行者不是玩家</td>
-      <td rowspan="2">执行失败</td>
-    </tr>
-    <tr>
-      <td>加了[&lt;player&gt;]参数时目标玩家不是假玩家</td>
-    </tr>
-    <tr>
-      <td>执行成功</td>
-      <td>如果玩家当前不是旁观模式，就切换到旁观模式，否则切换到生存模式</td>
-    </tr>
-    <tr>
-        <td>spectator teleport ...</td>
-        <td>玩家当前未处于旁观模式</td>
-        <td>执行失败</td>
-    </tr>
-    <tr>
-      <td>spectator teleport dimension &lt;dimension&gt; [&lt;location&gt;]</td>
-      <td>执行成功</td>
-      <td>玩家传送到指定维度，如果指定了&lt;location&gt;，则传送指定维度的指定坐标</td>
-    </tr>
-    <tr>
-      <td>spectator teleport entity &lt;entity&gt;</td>
-      <td>执行成功</td>
-      <td>玩家传送到指定实体的位置</td>
-    </tr>
-</table>
-
-## 输出
-
-<table>
-    <tr>
-        <th>命令</th>
-        <th>条件</th>
-        <th>成功次数</th>
-        <th>结果</th>
-        <th>返回值</th>
-    </tr>
-    <tr>
-        <td>任意</td>
-        <td>执行失败</td>
-        <td>0</td>
-        <td>0</td>
-        <td>0</td>
-    </tr>
-    <tr>
-        <td>spectator</td>
-        <td rowspan="2">执行成功</td>
-        <td>1</td>
-        <td>1</td>
-        <td>玩家切换到生存模式返回1，否则返回0</td>
-    </tr>
-    <tr>
-        <td>任意，除了spectator</td>
-        <td>1</td>
-        <td>1</td>
-        <td>1</td>
-    </tr>
-</table>
+- 将自己的游戏模式在生存模式和旁观模式之间切换
+    - `/spectator`
+- 将处于旁观模式的自己传送至下界对应位置
+    - `/spectator teleport dimension minecraft:the_nether`
+- 将Bot在生存模式和旁观模式之间切换
+    - `/spectator Bot`

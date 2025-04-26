@@ -51,19 +51,6 @@ public abstract class LivingEntityMixin extends Entity {
     @Nullable
     protected abstract Map<EquipmentSlot, ItemStack> getEquipmentChanges();
 
-    //创造玩家免疫/kill
-    @Inject(method = "kill", at = @At("HEAD"), cancellable = true)
-    private void kill(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.creativeImmuneKill) {
-            LivingEntity livingEntity = (LivingEntity) (Object) this;
-            if (livingEntity instanceof PlayerEntity player) {
-                if (player.isCreative()) {
-                    ci.cancel();
-                }
-            }
-        }
-    }
-
     //禁用伤害免疫
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
@@ -71,6 +58,16 @@ public abstract class LivingEntityMixin extends Entity {
             return 0;
         }
         return original.call(instance);
+    }
+
+    // 不死图腾无敌时间
+    @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseTotem(Lnet/minecraft/entity/damage/DamageSource;)Z"))
+    private boolean setInvincibleTime(LivingEntity instance, DamageSource source, Operation<Boolean> original) {
+        boolean call = original.call(instance, source);
+        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime && call) {
+            instance.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
+        }
+        return call;
     }
 
     // 增强不死图腾

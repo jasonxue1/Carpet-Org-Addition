@@ -15,11 +15,10 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
@@ -115,11 +114,11 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        MutableText cancelText = TextConstants.clickRun("/mail cancel " + this.getId());
+        MutableText cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId()));
         Object[] senderArray = {recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextUtils.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
-        MutableText receiveText = TextConstants.clickRun("/mail receive " + this.getId());
+        MutableText receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId()));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
         MessageUtils.sendMessage(recipientPlayer, TextUtils.translate("carpet.commands.mail.sending.recipient", recipientArray));
         // 在接收者位置播放音效
@@ -288,7 +287,7 @@ public class Express implements Comparable<Express> {
         if (player == null) {
             return;
         }
-        MessageUtils.sendMessage(player.getCommandSource(), message.get());
+        MessageUtils.sendMessage(player, message.get());
     }
 
     /**
@@ -316,21 +315,21 @@ public class Express implements Comparable<Express> {
         }
         // 将消息设置为灰色斜体
         MutableText message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.sending.permission"));
-        MessageUtils.sendMessage(senderPlayer.getCommandSource(), message);
+        MessageUtils.sendMessage(senderPlayer, message);
     }
 
     /**
      * 将快递信息保存到本地文件
      */
     public void save() throws IOException {
-        NbtIo.write(this.writeNbt(this.server), this.worldFormat.file(this.getId() + ".nbt").toPath());
+        NbtIo.write(this.writeNbt(this.server), this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
     /**
      * 删除已经完成的快递
      */
     public void delete() {
-        File file = this.worldFormat.getFile(this.getId() + ".nbt");
+        File file = this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION);
         if (file.delete()) {
             return;
         }
@@ -340,7 +339,7 @@ public class Express implements Comparable<Express> {
     /**
      * 完成寄件
      */
-    public boolean complete() {
+    public boolean isComplete() {
         return this.express.isEmpty();
     }
 
@@ -355,7 +354,8 @@ public class Express implements Comparable<Express> {
         nbt.putInt("id", this.id);
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
         nbt.putIntArray("time", args);
-        nbt.put("item", this.express.toNbt(server.getRegistryManager(), new NbtCompound()));
+        nbt.put("item", this.express.encode(server.getRegistryManager(), new NbtCompound()));
+        nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
         return nbt;
     }
 
@@ -427,12 +427,12 @@ public class Express implements Comparable<Express> {
 
     @Override
     public boolean equals(Object obj) {
-        if (this.complete()) {
+        if (this.isComplete()) {
             return false;
         }
         if (this.getClass() == obj.getClass()) {
             Express other = (Express) obj;
-            if (other.complete()) {
+            if (other.isComplete()) {
                 return false;
             }
             return this.id == other.id;
