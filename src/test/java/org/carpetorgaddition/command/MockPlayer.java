@@ -10,9 +10,6 @@ public class MockPlayer {
     private int totalExperience;
     private float experienceProgress;
 
-    public MockPlayer() {
-    }
-
     public MockPlayer(int level) {
         this.addExperienceLevels(level);
     }
@@ -63,39 +60,8 @@ public class MockPlayer {
         this.experienceProgress = 0;
     }
 
-    public void setExperiencePoints(int points) {
-        float f = (float) this.getNextLevelExperience();
-        float g = (f - 1.0F) / f;
-        this.experienceProgress = MathHelper.clamp((float) points / f, 0.0F, g);
-    }
-
     public int getExperienceLevel() {
         return experienceLevel;
-    }
-
-    public float getExperienceProgress() {
-        return experienceProgress;
-    }
-
-    public int getTotalExperience() {
-        int level = this.experienceLevel;
-        int xp = this.getPoint();
-        int totalExp;
-        // 0-16级
-        if (level <= 16) {
-            totalExp = level * level + 6 * level;
-        }
-        // 17-31级
-        else if (level <= 31) {
-            totalExp = (int) (2.5 * level * level - 40.5 * level + 360);
-        }
-        // 32级以上
-        else {
-            totalExp = (int) (4.5 * level * level - 162.5 * level + 2220);
-        }
-        // 防止数值溢出
-        int sum = totalExp + xp;
-        return sum < 0 ? totalExp : sum;
     }
 
     public BigInteger getTotalExperienceAsBigInteger() {

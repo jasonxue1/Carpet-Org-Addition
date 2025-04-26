@@ -23,7 +23,6 @@ import org.carpetorgaddition.util.wheel.ExperienceTransfer;
 
 import java.math.BigInteger;
 
-// TODO 测试
 public class XpTransferCommand extends AbstractServerCommand {
     public XpTransferCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
@@ -139,7 +138,12 @@ public class XpTransferCommand extends AbstractServerCommand {
      */
     private int transferSpecifyLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         int level = IntegerArgumentType.getInteger(context, "level");
-        BigInteger count = ExperienceTransfer.calculateTotalExperience(level, 0);
+        BigInteger count;
+        try {
+            count = ExperienceTransfer.calculateTotalExperience(level, 0);
+        } catch (ArithmeticException e) {
+            throw CommandUtils.createException(e, "carpet.commands.xpTransfer.calculate.fail");
+        }
         return this.transfer(context, count);
     }
 

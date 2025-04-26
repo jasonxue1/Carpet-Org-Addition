@@ -21,10 +21,6 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      */
     private static final int MAX_EFFECTIVE_LEVEL = 238609312;
     /**
-     * 要转移的等级数超过该值后修正经验值
-     */
-    private static final BigDecimal THRESHOLD = new BigDecimal("100000");
-    /**
      * 经验转移的最大时间
      */
     private static final long TIMEOUT_MILLIS = 5000L;
@@ -134,6 +130,13 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
         int point = transfer.getPoint();
         try {
             long time = System.currentTimeMillis();
+            // 经验值过大时舍弃部分经验，避免转移的经验超出预期
+            // 这通常是不必要的，因为玩家不太可能在正常的生存模式下得到这么多经验
+            if (experience.compareTo(BigInteger.valueOf(1000_0000_0000L)) > 0) {
+                experience = new BigDecimal(experience).multiply(new BigDecimal("0.99999999")).toBigInteger();
+            } else if (experience.compareTo(BigInteger.valueOf(100_0000_0000L)) > 0) {
+                experience = new BigDecimal(experience).multiply(new BigDecimal("0.9999999")).toBigInteger();
+            }
             while (experience.compareTo(MAX_INTEGER_VALUE) >= 0) {
                 // 经验转移必须在指定时间内完成
                 if (System.currentTimeMillis() - time >= timeout) {
@@ -172,13 +175,25 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
     private BigInteger calculateTotalExperience() {
         int level = Math.min(this.player.experienceLevel, MAX_EFFECTIVE_LEVEL);
         int xp = this.player.experienceLevel >= MAX_EFFECTIVE_LEVEL ? 0 : this.getPoint();
+        if (level <= 31) {
+            // 作者：ChatGPT
+            int totalExp;
+            // 0-16级
+            if (level <= 16) {
+                totalExp = level * level + 6 * level;
+            }
+            // 17-31级
+            else {
+                totalExp = (int) (2.5 * level * level - 40.5 * level + 360);
+            }
+            return BigInteger.valueOf(totalExp);
+        }
         BigDecimal bigLevel = BigDecimal.valueOf(level);
         BigDecimal decimal = new BigDecimal("4.5").multiply(bigLevel.multiply(bigLevel))
                 .subtract(new BigDecimal("162.5").multiply(bigLevel))
                 .add(new BigDecimal("2220"))
                 .add(new BigDecimal(xp));
-        BigDecimal factor = new BigDecimal("0.99999999328");
-        return decimal.compareTo(THRESHOLD) <= 0 ? decimal.toBigInteger() : decimal.multiply(factor).toBigInteger();
+        return decimal.toBigInteger();
     }
 
     public int getLevel() {
@@ -186,28 +201,15 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
     }
 
     /**
-     * 根据经验等级和经验值计算总经验值<br>
+     * 根据经验等级和经验值计算总经验值
      *
      * @param level 经验等级
      * @param xp    经验值
      * @return 总经验值
-     * @author ChatGPT
      */
     public static BigInteger calculateTotalExperience(int level, int xp) {
-        double totalExp;
-        // 0-16级
-        if (level <= 16) {
-            totalExp = level * level + 6 * level;
-        }
-        // 17-31级
-        else if (level <= 31) {
-            totalExp = Math.floor(2.5 * level * level - 40.5 * level + 360);
-        }
-        // 32级以上
-        else {
-            totalExp = Math.floor(4.5 * level * level - 162.5 * level + 2220);
-        }
-        return BigDecimal.valueOf(totalExp + xp).toBigInteger();
+        BigInteger experience = calculateUpgradeExperience(0, level);
+        return xp == 0 ? experience : experience.add(BigInteger.valueOf(xp));
     }
 
     /**
@@ -216,6 +218,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @param level  当前经验等级
      * @param target 目标经验等级
      * @return 从当前等级升级到目标等级需要的经验数量
+     * @throws ArithmeticException 如果目标等级超过了能通过添加经验值能合法提升的最高经验等级
      * @see <a href="https://zh.minecraft.wiki/w/%E7%BB%8F%E9%AA%8C#%E7%BB%8F%E9%AA%8C%E7%AD%89%E7%BA%A7">经验等级</a>
      */
     public static BigInteger calculateUpgradeExperience(int level, int target) {
