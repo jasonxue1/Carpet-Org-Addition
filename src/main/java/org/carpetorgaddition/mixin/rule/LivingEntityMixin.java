@@ -10,6 +10,8 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.tag.DamageTypeTags;
@@ -30,7 +32,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public abstract class LivingEntityMixin extends Entity {
     }
 
     // 不死图腾无敌时间
-    @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseTotem(Lnet/minecraft/entity/damage/DamageSource;)Z"))
+    @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseDeathProtector(Lnet/minecraft/entity/damage/DamageSource;)Z"))
     private boolean setInvincibleTime(LivingEntity instance, DamageSource source, Operation<Boolean> original) {
         boolean call = original.call(instance, source);
         if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime && call) {
@@ -72,7 +73,8 @@ public abstract class LivingEntityMixin extends Entity {
 
     // 增强不死图腾
     @Inject(method = "tryUseDeathProtector", at = @At("HEAD"), cancellable = true)
-    private void tryUseTotem(DamageSource source, CallbackInfoReturnable<Boolean> cir) {        // 在一开始就对规则是否开启进行判断，这样当其他Mod也修改了此段代码时，就可以通过关闭改规则来保障其他Mod的正常运行
+    private void tryUseTotem(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
+        // 在一开始就对规则是否开启进行判断，这样当其他Mod也修改了此段代码时，就可以通过关闭改规则来保障其他Mod的正常运行
         if (CarpetOrgAdditionSettings.betterTotemOfUndying == BetterTotemOfUndying.FALSE) {
             return;
         }

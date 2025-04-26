@@ -5,8 +5,9 @@ import com.google.gson.JsonObject;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.StonecuttingRecipe;
+import net.minecraft.recipe.display.CuttingRecipeDisplay;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.StonecutterScreenHandler;
@@ -22,6 +23,7 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class StonecuttingAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -158,11 +160,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
         World world = this.fakePlayer.getWorld();
         ItemStack outputItemStack;
         try {
-            // 获取与材料和按钮索引对应的配方对象
-            StonecuttingRecipe stonecuttingRecipe = world.getRecipeManager()
-                    .getAllMatches(RecipeType.STONECUTTING, input, world).get(this.button).value();
             // 获取与配方对应的物品
-            outputItemStack = stonecuttingRecipe.craft(input, world.getRegistryManager());
+            outputItemStack = this.getRecipeResult(this.fakePlayer, world, input);
         } catch (IndexOutOfBoundsException e) {
             // 如果索引越界了，将输出物品设置为空
             outputItemStack = ItemStack.EMPTY;
@@ -193,6 +192,21 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     this.fakePlayer.getDisplayName(), Items.STONECUTTER.getName()));
         }
         return list;
+    }
+
+    // 获取切石机配方输出
+    private ItemStack getRecipeResult(EntityPlayerMPFake fakePlayer, World world, SingleStackRecipeInput input) {
+        for (CuttingRecipeDisplay.GroupEntry<StonecuttingRecipe> entry : world.getRecipeManager().getStonecutterRecipes().entries()) {
+            Optional<RecipeEntry<StonecuttingRecipe>> optional = entry.recipe().recipe();
+            if (optional.isEmpty()) {
+                continue;
+            }
+            StonecuttingRecipe recipe = optional.get().value();
+            if (recipe.matches(input, fakePlayer.getWorld())) {
+                return recipe.craft(input, world.getRegistryManager());
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override
