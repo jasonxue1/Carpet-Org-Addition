@@ -4,7 +4,6 @@ import carpet.CarpetExtension;
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.SettingsManager;
-import carpet.utils.Translations;
 import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -49,7 +48,6 @@ public class DebugRuleRegistrar implements CarpetExtension {
             }
             this.parse(field, debugRule);
         }
-        Translations.updateLanguage();
     }
 
     private void parse(Field field, DebugRule debugRule) {

@@ -9,7 +9,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class HasNamePosNavigator extends BlockPosNavigator {
@@ -22,12 +22,12 @@ public class HasNamePosNavigator extends BlockPosNavigator {
 
     @Override
     public void tick() {
-        if (this.terminate()) {
+        if (this.shouldTerminate()) {
             this.clear();
             return;
         }
         MutableText text;
-        MutableText posText = TextConstants.simpleBlockPos(this.blockPos);
+        MutableText posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
         if (this.player.getWorld().equals(this.world)) {
             MutableText distance = TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));

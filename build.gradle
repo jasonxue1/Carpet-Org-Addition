@@ -35,24 +35,30 @@ dependencies {
     modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
-    testImplementation(group: 'junit', name: 'junit', version: junit_version)
+    testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
 processResources {
     inputs.property "version", mod_version
-    inputs.property "minecraft_version", project.minecraft_version
-    inputs.property "loader_version", project.loader_version
+    inputs.property "minecraft_version", minecraft_version
+    inputs.property "loader_version", loader_version
+    inputs.property "depend_version", depend_version
     filteringCharset "UTF-8"
 
     filesMatching("fabric.mod.json") {
         expand "version": mod_version,
-                "minecraft_version": project.minecraft_version,
-                "loader_version": project.loader_version
+                "minecraft_version": minecraft_version,
+                "loader_version": loader_version,
+                "depend_version": depend_version
     }
 }
 
 // 构建模组前自动单元测试
 remapJar.dependsOn test
+
+test {
+    useJUnitPlatform()
+}
 
 def targetJavaVersion = 21
 tasks.withType(JavaCompile).configureEach {
@@ -83,10 +89,17 @@ jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
     }
+    // 在构建jar时排除org.util包
+    exclude "org/util/**"
 }
 
-runClient {
-    jvmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
+loom {
+    runs {
+        client {
+            vmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
+            programArgs(["--username", "Player789"])
+        }
+    }
 }
 
 // configure the maven publication
