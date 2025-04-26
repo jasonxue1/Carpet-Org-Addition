@@ -1,5 +1,7 @@
 package org.carpetorgaddition.command;
 
+import org.carpetorgaddition.util.wheel.ExperienceTransfer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -27,12 +29,32 @@ public class XpTransferCommandTest {
     }
 
     @Test
+    @Disabled
     public void testTransferHalf() {
         MockPlayer from = new MockPlayer(3333333);
         MockPlayer to = new MockPlayer();
         this.transferHalf(from, to);
         System.out.println(from);
         System.out.println(to);
+    }
+
+    @Test
+    public void testCalculateUpgradeExperience() {
+        Assertions.assertEquals(BigInteger.valueOf(7), ExperienceTransfer.calculateUpgradeExperience(0, 1));
+        Assertions.assertEquals(BigInteger.valueOf(64), ExperienceTransfer.calculateUpgradeExperience(3, 7));
+        Assertions.assertEquals(BigInteger.valueOf(682), ExperienceTransfer.calculateUpgradeExperience(15, 26));
+        Assertions.assertEquals(BigInteger.valueOf(9702), ExperienceTransfer.calculateUpgradeExperience(20, 64));
+        Assertions.assertEquals(BigInteger.valueOf(30963), ExperienceTransfer.calculateUpgradeExperience(1, 100));
+        Assertions.assertEquals(BigInteger.valueOf(358470), ExperienceTransfer.calculateUpgradeExperience(0, 300));
+        Assertions.assertEquals(BigInteger.valueOf(1740870), ExperienceTransfer.calculateUpgradeExperience(20, 640));
+        Assertions.assertEquals(BigInteger.valueOf(4308750), ExperienceTransfer.calculateUpgradeExperience(100, 1000));
+        Assertions.assertEquals(BigInteger.valueOf(444037500), ExperienceTransfer.calculateUpgradeExperience(1000, 10000));
+        Assertions.assertEquals(BigInteger.valueOf(2147407943), ExperienceTransfer.calculateUpgradeExperience(0, 21863));
+        Assertions.assertEquals(BigInteger.valueOf(4499837502220L), ExperienceTransfer.calculateUpgradeExperience(0, 1000000));
+        Assertions.assertEquals(BigInteger.valueOf(256204778204999070L), ExperienceTransfer.calculateUpgradeExperience(0, 238609312));
+        Assertions.assertEquals(BigInteger.valueOf(-30963), ExperienceTransfer.calculateUpgradeExperience(100, 1));
+        Assertions.assertEquals(BigInteger.valueOf(-4339720), ExperienceTransfer.calculateUpgradeExperience(1000, 0));
+        Assertions.assertThrows(ArithmeticException.class, () -> ExperienceTransfer.calculateUpgradeExperience(0, 238609313));
     }
 
     private void transfer(MockPlayer from, MockPlayer to) {

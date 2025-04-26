@@ -304,6 +304,8 @@
   "carpet.commands.xpTransfer.half": "将%s一半的经验共%s转移给%s",
   "carpet.commands.xpTransfer.point.fail": "%s没有这么多经验（%s > %s）",
   "carpet.commands.xpTransfer.point": "将%s的%s点经验转移给%s",
+  "carpet.commands.xpTransfer.upgradeto.negative": "升级所需经验为负数",
+  "carpet.commands.xpTransfer.calculate.fail": "无法计算升级所需的经验",
   "carpet.commands.xpTransfer.upgrade": "%s (+%s) [%s->%s]",
   "carpet.commands.xpTransfer.degrade": "%s (-%s) [%s->%s]",
   "carpet.commands.playerAction.info.stop": "%s没有任何动作",

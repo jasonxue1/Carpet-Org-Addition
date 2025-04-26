@@ -218,6 +218,8 @@
   "carpet.commands.xpTransfer.half": "Transfer half of experience from %1$s to%3$s, %2$s in total",
   "carpet.commands.xpTransfer.point.fail": "%s doesn't have enough experience (%s > %s)",
   "carpet.commands.xpTransfer.point": "Transfer experience from %1$s to%3$s, %2$s in total",
+  "carpet.commands.xpTransfer.upgradeto.negative": "The experience required for upgrading is negative number",
+  "carpet.commands.xpTransfer.calculate.fail": "Unable to calculate the experience required for upgrading",
   "carpet.commands.xpTransfer.upgrade": "%s (+%s) [%s->%s]",
   "carpet.commands.xpTransfer.degrade": "%s (-%s) [%s->%s]",
   "carpet.commands.playerAction.info.stop": "%s has no actions",

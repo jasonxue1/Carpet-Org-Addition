@@ -3,11 +3,12 @@ package org.carpetorgaddition.util.wheel;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
-import org.carpetorgaddition.command.XpTransferCommand;
 import org.carpetorgaddition.exception.OperationTimeoutException;
+import org.carpetorgaddition.util.MathUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 public record ExperienceTransfer(ServerPlayerEntity player) {
@@ -50,20 +51,13 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      *
      * @return 转移经验的数量
      */
-    public Number transferAllTo(ExperienceTransfer transfer) {
-        if (this.isLowLevel()) {
-            // 转移少量经验
-            int experience = this.extractAllExperience();
-            transfer.addExperience(experience);
-            return experience;
-        } else {
-            // 转移大量经验
-            return this.transfer(() -> {
-                final BigInteger result = this.extractAllExperienceAsBigInteger();
-                this.addExperience(transfer, result);
-                return result;
-            });
-        }
+    public BigInteger transferAllTo(ExperienceTransfer transfer) {
+        // 转移大量经验
+        return this.transfer(() -> {
+            final BigInteger result = this.extractAllExperience();
+            this.addExperience(transfer, result);
+            return result;
+        });
     }
 
     /**
@@ -71,54 +65,35 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      *
      * @return 转移经验的数量
      */
-    public Number transferHalfTo(ExperienceTransfer transfer) {
-        if (this.isLowLevel()) {
-            int experience = this.extractAllExperience();
-            int half = experience / 2;
-            // 转移一半经验，然后将另一半重新添加到当前玩家
-            transfer.addExperience(half);
-            this.addExperience(experience - half);
+    public BigInteger transferHalfTo(ExperienceTransfer transfer) {
+        return this.transfer(() -> {
+            BigInteger experience = this.extractAllExperience();
+            BigInteger half = experience.divide(BigInteger.TWO);
+            long time = System.currentTimeMillis();
+            this.addExperience(transfer, half, TIMEOUT_MILLIS);
+            long timeElapsed = System.currentTimeMillis() - time;
+            this.addExperience(this, experience.subtract(half), TIMEOUT_MILLIS - timeElapsed);
             return half;
-        } else {
-            return this.transfer(() -> {
-                BigInteger experience = this.extractAllExperienceAsBigInteger();
-                BigInteger half = experience.divide(BigInteger.TWO);
-                long time = System.currentTimeMillis();
-                this.addExperience(transfer, half, TIMEOUT_MILLIS);
-                long timeElapsed = System.currentTimeMillis() - time;
-                this.addExperience(this, experience.subtract(half), TIMEOUT_MILLIS - timeElapsed);
-                return half;
-            });
-        }
+        });
     }
 
     /**
      * 转移指定数量的经验
      */
-    public void transferTo(ExperienceTransfer transfer, final int count) {
-        if (this.isLowLevel()) {
-            int total = this.calculateTotalExperience();
-            if (count > total) {
+    public void transferTo(ExperienceTransfer transfer, BigInteger count) {
+        this.transfer(() -> {
+            BigInteger total = this.calculateTotalExperience();
+            if (count.compareTo(total) > 0) {
                 throw new ExperienceTransferException(count, total);
             }
             this.clearExperience();
-            this.addExperience(total - count);
-        } else {
-            this.transfer(() -> {
-                BigInteger total = this.calculateTotalExperienceAsBigInteger();
-                BigInteger value = BigInteger.valueOf(count);
-                if (value.compareTo(total) > 0) {
-                    throw new ExperienceTransferException(count, total);
-                }
-                this.clearExperience();
-                this.addExperience(total.subtract(value));
-                return count;
-            });
-        }
-        transfer.addExperience(count);
+            transfer.addExperience(count);
+            this.addExperience(total.subtract(count));
+            return count;
+        });
     }
 
-    private Number transfer(Supplier<Number> supplier) {
+    private BigInteger transfer(Supplier<BigInteger> supplier) {
         int level = this.player.experienceLevel;
         int point = this.getPoint();
         try {
@@ -135,10 +110,6 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      */
     public boolean isSpecifiedOrFakePlayer(ServerPlayerEntity specified) {
         return this.player instanceof EntityPlayerMPFake || this.player == specified;
-    }
-
-    private boolean isLowLevel() {
-        return this.player.experienceLevel <= XpTransferCommand.MAX_TRANSFER_LEVEL;
     }
 
     /**
@@ -181,33 +152,12 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
     }
 
     /**
-     * 提取玩家的所有经验值
-     */
-    private int extractAllExperience() {
-        int experience = calculateTotalExperience();
-        this.clearExperience();
-        return experience;
-    }
-
-    /**
-     * 计算玩家的经验值
-     *
-     * @return 总经验值
-     * @author ChatGPT
-     */
-    private int calculateTotalExperience() {
-        int level = this.player.experienceLevel;
-        int point = this.getPoint();
-        return calculateTotalExperience(level, point);
-    }
-
-    /**
      * 计算并清空玩家的经验值
      *
      * @return 玩家的总经验数
      */
-    private BigInteger extractAllExperienceAsBigInteger() {
-        BigInteger experience = calculateTotalExperienceAsBigInteger();
+    private BigInteger extractAllExperience() {
+        BigInteger experience = calculateTotalExperience();
         // 清除玩家的所有经验
         this.clearExperience();
         return experience;
@@ -219,12 +169,9 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @apiNote 转移大量经验时，实际转移的经验数量可能高于预期，因此方法返回结果前可能会对超出部分的经验进行舍弃
      * @see <a href="https://report.bugs.mojang.com/servicedesk/customer/portal/2/MC-271084">MC-271084</a>
      */
-    private BigInteger calculateTotalExperienceAsBigInteger() {
+    private BigInteger calculateTotalExperience() {
         int level = Math.min(this.player.experienceLevel, MAX_EFFECTIVE_LEVEL);
         int xp = this.player.experienceLevel >= MAX_EFFECTIVE_LEVEL ? 0 : this.getPoint();
-        if (level <= XpTransferCommand.MAX_TRANSFER_LEVEL) {
-            throw new IllegalStateException();
-        }
         BigDecimal bigLevel = BigDecimal.valueOf(level);
         BigDecimal decimal = new BigDecimal("4.5").multiply(bigLevel.multiply(bigLevel))
                 .subtract(new BigDecimal("162.5").multiply(bigLevel))
@@ -246,25 +193,89 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @return 总经验值
      * @author ChatGPT
      */
-    public static int calculateTotalExperience(int level, int xp) {
-        int totalExp;
+    public static BigInteger calculateTotalExperience(int level, int xp) {
+        double totalExp;
         // 0-16级
         if (level <= 16) {
             totalExp = level * level + 6 * level;
         }
         // 17-31级
         else if (level <= 31) {
-            totalExp = (int) (2.5 * level * level - 40.5 * level + 360);
+            totalExp = Math.floor(2.5 * level * level - 40.5 * level + 360);
         }
         // 32级以上
         else {
-            totalExp = (int) (4.5 * level * level - 162.5 * level + 2220);
+            totalExp = Math.floor(4.5 * level * level - 162.5 * level + 2220);
         }
-        return totalExp + xp;
+        return BigDecimal.valueOf(totalExp + xp).toBigInteger();
+    }
+
+    /**
+     * 计算从指定等级升级到指定等级所需的经验数量
+     *
+     * @param level  当前经验等级
+     * @param target 目标经验等级
+     * @return 从当前等级升级到目标等级需要的经验数量
+     * @see <a href="https://zh.minecraft.wiki/w/%E7%BB%8F%E9%AA%8C#%E7%BB%8F%E9%AA%8C%E7%AD%89%E7%BA%A7">经验等级</a>
+     */
+    public static BigInteger calculateUpgradeExperience(int level, int target) {
+        if (target > MAX_EFFECTIVE_LEVEL) {
+            // 译：升级到%s级需要无限的经验
+            throw new ArithmeticException("Upgrading to level %s requires infinite experience".formatted(target));
+        }
+        if (level == target) {
+            return BigInteger.ZERO;
+        }
+        if (level > target) {
+            return calculateUpgradeExperience(target, level).negate();
+        }
+        double sum = 0;
+        // 等差数列的首项
+        int start;
+        // 等差数列的末项
+        int end;
+        // 只计算到目标等级的上一级
+        target--;
+        // 计算第一个区间：0 <= 等级 <= 15
+        start = level;
+        end = Math.min(target, 15);
+        if (start <= end) {
+            sum += calculateExperienceSum(start, end, x -> 2.0 * x + 7);
+        }
+        // 计算第二个区间：16 <= 等级 <= 30
+        start = Math.max(level, 16);
+        end = Math.min(target, 30);
+        if (start <= end) {
+            sum += calculateExperienceSum(start, end, x -> 5.0 * x - 38);
+        }
+        // 计算第三个区间：等级 >= 31
+        start = Math.max(level, 31);
+        end = target;
+        if (start <= end) {
+            sum += calculateExperienceSum(start, end, x -> 9.0 * x - 158);
+        }
+        return BigDecimal.valueOf(sum).toBigInteger();
+    }
+
+    /**
+     * 计算每个区间的经验总和
+     *
+     * @param function 每个区间的经验计算公式
+     */
+    private static double calculateExperienceSum(int start, int end, IntFunction<Double> function) {
+        // 计算等差队列的项数（同时也是从当前等级到目标等级需要升的等级数）
+        int n = end - start + 1;
+        return MathUtils.sumOfArithmeticProgression(function.apply(start), function.apply(end), n);
     }
 
     public static class ExperienceTransferException extends RuntimeException {
+        /**
+         * 需要的经验
+         */
         private final Number require;
+        /**
+         * 现有的经验
+         */
         private final Number existing;
 
         public ExperienceTransferException(Number require, Number existing) {
