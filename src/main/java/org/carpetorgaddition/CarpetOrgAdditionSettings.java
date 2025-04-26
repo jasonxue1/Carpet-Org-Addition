@@ -8,10 +8,7 @@ import org.carpetorgaddition.rule.Hidden;
 import org.carpetorgaddition.rule.Removed;
 import org.carpetorgaddition.rule.RuleSelf;
 import org.carpetorgaddition.rule.validator.*;
-import org.carpetorgaddition.rule.value.BetterTotemOfUndying;
-import org.carpetorgaddition.rule.value.CanHighlightBlockPos;
-import org.carpetorgaddition.rule.value.QuickSettingFakePlayerCraft;
-import org.carpetorgaddition.rule.value.ReusableSmithingTemplate;
+import org.carpetorgaddition.rule.value.*;
 
 @SuppressWarnings("CanBeFinal")
 public class CarpetOrgAdditionSettings {
