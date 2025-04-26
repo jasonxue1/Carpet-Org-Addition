@@ -10,9 +10,9 @@ public class CountLines {
     public static void main(String[] args) throws IOException {
         File file = new File("src/main/java/org/carpetorgaddition");
         // 直接使用System.out.println()输出可能导致控制台乱码
-        PrintWriter print = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
-        print.println("总行数：" + count(file));
-        print.close();
+        PrintWriter console = new PrintWriter(new OutputStreamWriter(System.out, StandardCharsets.UTF_8), true);
+        console.println("总行数：" + count(file));
+        console.close();
     }
 
     // 统计代码总行数
