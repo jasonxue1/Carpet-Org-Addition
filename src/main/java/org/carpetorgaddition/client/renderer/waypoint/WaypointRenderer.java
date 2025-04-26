@@ -16,7 +16,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
@@ -54,6 +56,11 @@ public class WaypointRenderer implements WorldRenderer {
      */
     @Override
     public void render(WorldRenderContext renderContext) {
+        if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
+                && MinecraftClient.getInstance().currentScreen == null
+                && this.renderType == WaypointRendererType.HIGHLIGHT) {
+            this.setFade();
+        }
         MatrixStack matrixStack = renderContext.matrixStack();
         MinecraftClient client = MinecraftClient.getInstance();
         Camera camera = client.gameRenderer.getCamera();
@@ -164,7 +171,7 @@ public class WaypointRenderer implements WorldRenderer {
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
         MutableText text = TextUtils.createText(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (WorldUtils.differentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
+        if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
             text = TextUtils.toItalic(text);
         }
         // 获取文本宽度
@@ -226,6 +233,9 @@ public class WaypointRenderer implements WorldRenderer {
      * 设置该路径点消失
      */
     public void setFade() {
+        if (this.fade) {
+            return;
+        }
         this.fade = true;
         this.fadeTime = System.currentTimeMillis();
     }

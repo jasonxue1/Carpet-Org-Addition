@@ -1,8 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.constant.RuleValidatorConstants;
+import org.carpetorgaddition.util.provider.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 // 自定义猪灵交易时间
@@ -14,6 +13,6 @@ public class PiglinBarteringTimeValidator extends AbstractValidator<Long> {
 
     @Override
     public @NotNull Text errorMessage() {
-        return RuleValidatorConstants.greaterThanOrEqualOrNumber(0, -1);
+        return RuleValidatorProvider.greaterThanOrEqualOrNumber(0, -1);
     }
 }

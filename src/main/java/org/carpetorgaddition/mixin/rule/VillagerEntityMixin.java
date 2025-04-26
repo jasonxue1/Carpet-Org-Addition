@@ -1,12 +1,10 @@
 package org.carpetorgaddition.mixin.rule;
 
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LightningEntity;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
@@ -31,15 +29,6 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
 
     public VillagerEntityMixin(EntityType<? extends MerchantEntity> entityType, World world) {
         super(entityType, world);
-    }
-
-    // 阻止村民变成女巫
-    @Inject(method = "onStruckByLightning", at = @At("HEAD"), cancellable = true)
-    private void onStruckByLightning(ServerWorld world, LightningEntity lightning, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.disableVillagerWitch) {
-            super.onStruckByLightning(world, lightning);
-            ci.cancel();
-        }
     }
 
     // 打开村民物品栏

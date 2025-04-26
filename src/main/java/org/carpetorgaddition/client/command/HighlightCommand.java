@@ -1,37 +1,50 @@
 package org.carpetorgaddition.client.command;
 
+import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.jetbrains.annotations.Nullable;
 
-public class HighlightCommand {
-    public static void register() {
-        ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) ->
-                dispatcher.register(ClientCommandManager.literal("highlight")
-                        .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
-                                .executes(context -> highlight(context, WaypointRendererType.HIGHLIGHT.getDefaultDurationTime()))
-                                .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
-                                        .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
-                                        .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L)))
-                                .then(ClientCommandManager.literal("continue")
-                                        .executes(context -> highlight(context, -1L))))
-                        .then(ClientCommandManager.literal("clear")
-                                .executes(context -> clear()))));
+public class HighlightCommand extends AbstractClientCommand {
+    public HighlightCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
+        this.dispatcher.register(ClientCommandManager.literal(name)
+                .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
+                        .executes(context -> highlight(context, getDefaultDurationTime()))
+                        .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
+                                .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
+                                .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L)))
+                        .then(ClientCommandManager.literal("continue")
+                                .executes(context -> highlight(context, -1L))))
+                .then(ClientCommandManager.literal("clear")
+                        .executes(context -> clear())));
+    }
+
+    /**
+     * 如果绑定了清除高亮路径点的快捷键，则永久显示
+     */
+    private long getDefaultDurationTime() {
+        return CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound() ? WaypointRendererType.HIGHLIGHT.getDefaultDurationTime() : -1L;
     }
 
     // 高亮路径点
-    private static int highlight(CommandContext<FabricClientCommandSource> context, long durationTime) {
+    private int highlight(CommandContext<FabricClientCommandSource> context, long durationTime) {
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
         // 获取旧路径点
@@ -49,7 +62,7 @@ public class HighlightCommand {
     }
 
     // 取消高亮路径点
-    private static int clear() {
+    private int clear() {
         WaypointRenderer render = getWaypointRenderer();
         if (render == null) {
             return 0;
@@ -59,7 +72,12 @@ public class HighlightCommand {
     }
 
     @Nullable
-    private static WaypointRenderer getWaypointRenderer() {
+    private WaypointRenderer getWaypointRenderer() {
         return WorldRendererManager.getOnlyRenderer(WaypointRenderer.class, renderer -> renderer.getRenderType() == WaypointRendererType.HIGHLIGHT);
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "highlight";
     }
 }

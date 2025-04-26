@@ -24,7 +24,7 @@ public class WorldFormat {
      */
     public static final Predicate<File> JSON_EXTENSIONS = file -> file.getName().endsWith(IOUtils.JSON_EXTENSION);
 
-    private final File modFileDirectory;
+    private final File directory;
 
     /**
      * 尝试创建一个存档目录下的文件夹
@@ -38,7 +38,11 @@ public class WorldFormat {
     public WorldFormat(MinecraftServer server, @Nullable String directory, String... directories) {
         // 获取服务器存档保存文件的路径
         Path path = server.getSavePath(WorldSavePath.ROOT).resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
-        if (directory != null) {
+        if (directory == null) {
+            if (directories.length != 0) {
+                throw new IllegalArgumentException();
+            }
+        } else {
             path = path.resolve(directory);
         }
         // 拼接路径
@@ -46,13 +50,39 @@ public class WorldFormat {
             path = path.resolve(name);
         }
         // 将路径转为文件对象
-        this.modFileDirectory = path.toFile();
+        this.directory = path.toFile();
         // 文件夹必须存在或者成功创建
-        if (this.modFileDirectory.isDirectory() || this.modFileDirectory.mkdirs()) {
+        if (this.directory.isDirectory() || this.directory.mkdirs()) {
             return;
         }
         // 如果这个文件夹不存在并且没有创建成功，将信息写入日志
-        CarpetOrgAddition.LOGGER.error("{}文件夹创建失败", this.modFileDirectory);
+        CarpetOrgAddition.LOGGER.error("{}文件夹创建失败", this.directory);
+    }
+
+    /**
+     * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
+     *
+     * @param fileName 文件对象的文件名，必须是带扩展名的
+     */
+    public File file(String fileName) {
+        if (fileName.contains(".")) {
+            return new File(this.directory, fileName);
+        }
+        throw new IllegalArgumentException();
+    }
+
+    /**
+     * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
+     *
+     * @param fileName  文件对象的文件名
+     * @param extension 如果文件名没有扩展名，则自动添加当前参数为扩展名
+     */
+    public File file(String fileName, String extension) {
+        String end = extension.startsWith(".") ? extension : "." + extension;
+        if (fileName.endsWith(end)) {
+            return new File(this.directory, fileName);
+        }
+        return new File(this.directory, fileName + end);
     }
 
     /**
@@ -60,8 +90,9 @@ public class WorldFormat {
      *
      * @param fileName 文件名，如果没有扩展名，则自动添加json作为扩展名
      */
-    public File file(String fileName) {
-        return new File(this.modFileDirectory, suppFileName(fileName));
+    @Deprecated(forRemoval = true)
+    public File jsonFile(String fileName) {
+        return new File(this.directory, suppJsonFileName(fileName));
     }
 
     /**
@@ -69,13 +100,15 @@ public class WorldFormat {
      *
      * @param fileName 文件的名称，如果没有扩展名，则自动添加一个.json作为扩展名
      */
-    public File getFile(String fileName) {
-        fileName = suppFileName(fileName);
-        return new File(this.modFileDirectory, fileName);
+    @Deprecated(forRemoval = true)
+    public File getJsonFile(String fileName) {
+        fileName = suppJsonFileName(fileName);
+        return new File(this.directory, fileName);
     }
 
     // 补全文件扩展名
-    private static String suppFileName(String fileName) {
+    @Deprecated(forRemoval = true)
+    private static String suppJsonFileName(String fileName) {
         if (fileName.split("\\.").length == 1) {
             return fileName + IOUtils.JSON_EXTENSION;
         }
@@ -88,7 +121,7 @@ public class WorldFormat {
      */
     @Deprecated(forRemoval = true)
     public HashSet<File> listFiles() {
-        File[] files = this.modFileDirectory.listFiles();
+        File[] files = this.directory.listFiles();
         if (files == null) {
             // 返回空集合
             return new HashSet<>();
@@ -101,7 +134,7 @@ public class WorldFormat {
      * @apiNote Java貌似没有对中文的拼音排序做很好的支持，因此，中文的排序依然是无序的
      */
     public List<File> toImmutableFileList() {
-        File[] files = this.modFileDirectory.listFiles();
+        File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();
         }
@@ -110,7 +143,7 @@ public class WorldFormat {
     }
 
     public List<File> toImmutableFileList(Predicate<File> filter) {
-        File[] files = this.modFileDirectory.listFiles();
+        File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();
         }
@@ -119,14 +152,15 @@ public class WorldFormat {
     }
 
     // 检查该目录下的文件是否存在
+    @Deprecated(forRemoval = true)
     public boolean fileExists(String fileName) {
-        fileName = suppFileName(fileName);
-        File file = this.file(fileName);
+        fileName = suppJsonFileName(fileName);
+        File file = this.jsonFile(fileName);
         return file.exists();
     }
 
     @Override
     public String toString() {
-        return this.modFileDirectory.toString();
+        return this.directory.toString();
     }
 }

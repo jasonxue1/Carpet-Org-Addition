@@ -15,7 +15,7 @@ import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -159,9 +159,9 @@ public class WorldUtils {
     public static Text getDimensionName(World world) {
         String dimension = WorldUtils.getDimensionId(world);
         return switch (dimension) {
-            case OVERWORLD -> TextConstants.OVERWORLD;
-            case THE_NETHER -> TextConstants.THE_NETHER;
-            case THE_END -> TextConstants.THE_END;
+            case OVERWORLD -> TextProvider.OVERWORLD;
+            case THE_NETHER -> TextProvider.THE_NETHER;
+            case THE_END -> TextProvider.THE_END;
             default -> TextUtils.createText(dimension);
         };
     }
@@ -196,7 +196,7 @@ public class WorldUtils {
      * @return 两个维度ID是否分别表示不同的世界
      * @throws InvalidIdentifierException 如果维度ID不合法
      */
-    public static boolean differentWorld(String world1, String world2) {
+    public static boolean isDifferentWorld(String world1, String world2) {
         return !Identifier.of(world1).equals(Identifier.of(world2));
     }
 

@@ -10,7 +10,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
-import org.carpetorgaddition.periodic.PlayerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,7 @@ public abstract class AbstractNavigator {
 
     public AbstractNavigator(@NotNull ServerPlayerEntity player) {
         this.player = player;
-        this.manager = PlayerPeriodicTaskManager.getManager(this.player).getNavigatorManager();
+        this.manager = PlayerComponentCoordinator.getManager(this.player).getNavigatorManager();
     }
 
     public abstract void tick();
@@ -42,7 +42,7 @@ public abstract class AbstractNavigator {
      *
      * @return 导航是否需要结束
      */
-    protected abstract boolean terminate();
+    protected abstract boolean shouldTerminate();
 
     /**
      * @return 此导航器的浅拷贝副本

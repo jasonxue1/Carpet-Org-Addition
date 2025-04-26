@@ -2,7 +2,7 @@ package org.carpetorgaddition.mixin.util;
 
 import net.minecraft.server.MinecraftServer;
 import org.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -15,12 +15,12 @@ import java.util.function.BooleanSupplier;
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin implements PeriodicTaskManagerInterface {
     @Unique
-    private ServerPeriodicTaskManager manager;
+    private ServerComponentCoordinator manager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void init(CallbackInfo ci) {
         // 在构造方法执行完毕后创建，因为在这之前服务器可能没有完成初始化
-        this.manager = new ServerPeriodicTaskManager((MinecraftServer) (Object) this);
+        this.manager = new ServerComponentCoordinator((MinecraftServer) (Object) this);
     }
 
     @Inject(method = "tick", at = @At("HEAD"))
@@ -29,7 +29,7 @@ public class MinecraftServerMixin implements PeriodicTaskManagerInterface {
     }
 
     @Override
-    public ServerPeriodicTaskManager carpet_Org_Addition$getServerPeriodicTaskManager() {
+    public ServerComponentCoordinator carpet_Org_Addition$getServerPeriodicTaskManager() {
         return Objects.requireNonNull(this.manager);
     }
 }
