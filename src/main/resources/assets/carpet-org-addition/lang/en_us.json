@@ -113,6 +113,7 @@
   "carpet.rule.playerCommandOpenPlayerInventory.extra.2": "fake_player: Allow opening fake player inventory",
   "carpet.rule.playerCommandOpenPlayerInventory.extra.3": "online_player: Allow opening any player inventory",
   "carpet.rule.playerCommandTeleportFakePlayer.desc": "Add the teleport subcommand to /player to move fake players to your current location",
+  "carpet.rule.experienceOrbMerge.desc": "Experience orb merging does not require equal value and ignores entity number",
   "carpet.rule.message.disableRespawnBlocksExplode": "Respawn blocks explosion is disabled",
   "carpet.rule.message.CCEUpdateSuppression": "You cannot open the shulkerbox for update surpression",
   "carpet.rule.validate.invalid_value": "Wrong value %s for: %s",

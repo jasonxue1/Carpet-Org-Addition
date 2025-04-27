@@ -85,6 +85,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
                                         .executes(this::setLevel))))
                 .then(CommandManager.literal("version")
                         .executes(this::version))
+                // TODO 允许修改假玩家的规则开关
                 .then(CommandManager.literal("ruleself")
                         .then(CommandManager.argument("rule", StringArgumentType.string())
                                 .suggests(suggestRule())

@@ -199,6 +199,8 @@
   "carpet.rule.playerCommandOpenPlayerInventory.extra.3": "online_player：允许打开任意玩家的物品栏",
   "carpet.rule.playerCommandTeleportFakePlayer.name": "假玩家传送",
   "carpet.rule.playerCommandTeleportFakePlayer.desc": "为/player命令添加teleport子命令用来将假玩家传送到自己的位置",
+  "carpet.rule.experienceOrbMerge.name": "经验球合并",
+  "carpet.rule.experienceOrbMerge.desc": "经验球合并无需价值相同，并且忽略实体编号",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.validate.invalid_value": "规则“%s”值无效：%s",

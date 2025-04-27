@@ -34,6 +34,7 @@
     "rule.EnderPearlEntityMixin",
     "rule.EntityAccessor",
     "rule.EntityMixin",
+    "rule.ExperienceOrbEntityMixin",
     "rule.FarmlandBlockMixin",
     "rule.FireworkRocketItemMixin",
     "rule.FishingMixin",
