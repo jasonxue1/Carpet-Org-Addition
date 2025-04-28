@@ -21,8 +21,11 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.exception.InfiniteLoopException;
-import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
+import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingContext;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
@@ -33,12 +36,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockAction.BedrockDestructor> {
-    private final HashSet<BedrockDestructor> hashSet = new HashSet<>();
+public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
+    private final HashSet<BedrockBreakingContext> contexts = new HashSet<>();
     private final SelectionArea selectionArea;
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
@@ -49,14 +51,14 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public void tick() {
         World world = this.fakePlayer.getWorld();
-        this.removeIf(destructor -> {
-            if (destructor.getState() == State.COMPLETE) {
+        this.removeIf(context -> {
+            if (context.getState() == BreakingState.COMPLETE) {
                 return true;
             }
-            if (world.getBlockState(destructor.getBedrockPos()).isOf(Blocks.BEDROCK)) {
-                return !this.fakePlayer.canInteractWithBlockAt(destructor.getBedrockPos(), 0.0);
+            if (world.getBlockState(context.getBedrockPos()).isOf(Blocks.BEDROCK)) {
+                return !this.fakePlayer.canInteractWithBlockAt(context.getBedrockPos(), 0.0);
             }
-            return destructor.getState() != State.CLEAN_PISTON;
+            return context.getState() != BreakingState.CLEAN_PISTON;
         });
         double range = this.fakePlayer.getBlockInteractionRange();
         Box box = new Box(this.fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
@@ -64,11 +66,12 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         for (BlockPos blockPos : area) {
             if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)
                     && this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0)
+                    // TODO 逻辑错误？
                     && this.contains(blockPos)) {
-                this.add(new BedrockDestructor(blockPos));
+                this.add(new BedrockBreakingContext(blockPos));
             }
         }
-        for (BedrockDestructor destructor : this) {
+        for (BedrockBreakingContext context : this) {
             int loopCount = 0;
             loop:
             while (true) {
@@ -76,7 +79,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 if (loopCount > 10) {
                     throw new InfiniteLoopException();
                 }
-                StepResult stepResult = start(destructor);
+                StepResult stepResult = start(context);
                 switch (stepResult) {
                     case COMPLETION -> {
                         break loop;
@@ -91,14 +94,14 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         }
     }
 
-    private StepResult start(BedrockDestructor destructor) {
-        BlockPos bedrockPos = destructor.getBedrockPos();
-        switch (destructor.getState()) {
+    private StepResult start(BedrockBreakingContext context) {
+        BlockPos bedrockPos = context.getBedrockPos();
+        switch (context.getState()) {
             case PLACE_THE_PISTON_FACING_UP -> {
                 if (hasMaterial()) {
                     StepResult stepResult = placePiston(bedrockPos);
                     if (stepResult == StepResult.CONTINUE) {
-                        destructor.nextStep();
+                        context.nextStep();
                     } else {
                         return stepResult;
                     }
@@ -108,9 +111,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 }
             }
             case PLACE_AND_ACTIVATE_THE_LEVER -> {
-                StepResult stepResult = placeAndActivateTheLever(destructor);
+                StepResult stepResult = placeAndActivateTheLever(context);
                 if (stepResult == StepResult.CONTINUE) {
-                    destructor.nextStep();
+                    context.nextStep();
                 } else {
                     return stepResult;
                 }
@@ -118,11 +121,11 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return StepResult.COMPLETION;
             }
             case PISTON_BREAK_BEDROCK -> {
-                StepResult stepResult = pistonBreakBedrock(destructor);
+                StepResult stepResult = pistonBreakBedrock(context);
                 switch (stepResult) {
                     // 基岩破除，结束当前位置
                     case COMPLETION -> {
-                        destructor.nextStep();
+                        context.nextStep();
                         return StepResult.COMPLETION;
                     }
                     // 活塞没有挖掘完毕，结束当前tick
@@ -130,7 +133,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                         return StepResult.TICK_COMPLETION;
                     }
                     case FAIL -> {
-                        destructor.fail();
+                        context.fail();
                         return StepResult.COMPLETION;
                     }
                     default -> throw new IllegalStateException();
@@ -139,7 +142,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             case CLEAN_PISTON -> {
                 if (cleanPiston(bedrockPos.up())) {
                     // 活塞挖掘完毕，执行下一步
-                    destructor.nextStep();
+                    context.nextStep();
                 } else {
                     return StepResult.TICK_COMPLETION;
                 }
@@ -182,7 +185,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         World world = this.fakePlayer.getWorld();
         BlockPos up = bedrockPos.up(1);
         BlockState blockState = world.getBlockState(up);
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
+        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
         boolean isPiston = false;
         //noinspection StatementWithEmptyBody
         if (isReplaceableBlock(blockState)) {
@@ -192,7 +195,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             // 当方块已经是活塞了，不需要再次放置
             isPiston = true;
         } else if (canMine(blockState, world, up)) {
-            return tickBreakBlock(breakManager, up);
+            return tickBreakBlock(blockExcavator, up);
         } else {
             return StepResult.COMPLETION;
         }
@@ -213,7 +216,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
             return StepResult.COMPLETION;
         } else if (canMine(blockState, world, up)) {
-            return tickBreakBlock(breakManager, up);
+            return tickBreakBlock(blockExcavator, up);
         } else {
             return StepResult.COMPLETION;
         }
@@ -239,7 +242,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (isPiston || blockState.isOf(Blocks.PISTON_HEAD)) {
             return false;
         }
-        return blockState.getHardness(world, blockPos) != -1 && BlockBreakManager.canBreak(this.fakePlayer, blockPos);
+        return blockState.getHardness(world, blockPos) != -1 && BlockExcavator.canBreak(this.fakePlayer, blockPos);
     }
 
     /**
@@ -247,8 +250,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      *
      * @return 拉杆是否放置并激活成功
      */
-    private StepResult placeAndActivateTheLever(BedrockDestructor destructor) {
-        BlockPos bedrockPos = destructor.getBedrockPos();
+    private StepResult placeAndActivateTheLever(BedrockBreakingContext context) {
+        BlockPos bedrockPos = context.getBedrockPos();
         World world = this.fakePlayer.getWorld();
         ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
         Direction direction = null;
@@ -259,15 +262,15 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 direction = value;
                 continue;
             }
-            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
+            BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
             if (blockState.isOf(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
                 if (blockState.get(WallMountedBlock.FACE) != BlockFace.WALL) {
-                    return tickBreakBlock(breakManager, offset);
+                    return tickBreakBlock(blockExcavator, offset);
                 }
                 if (bedrockPos.equals(offset.offset(blockState.get(LeverBlock.FACING), -1))) {
-                    if (destructor.getLeverPos() == null) {
-                        destructor.setLeverPos(offset);
+                    if (context.getLeverPos() == null) {
+                        context.setLeverPos(offset);
                         if (blockState.get(LeverBlock.POWERED)) {
                             continue;
                         }
@@ -275,7 +278,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                         interactionLever(offset);
                     } else {
                         // 拉杆正确的附着在了基岩上，但是拉杆不止一个
-                        return tickBreakBlock(breakManager, offset);
+                        return tickBreakBlock(blockExcavator, offset);
                     }
                 } else {
                     BlockPos supportBlockPos = offset.offset(blockState.get(LeverBlock.FACING), -1);
@@ -284,13 +287,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                         continue;
                     }
                     // 拉杆附着在了墙上，但不是当前要破坏的基岩方块
-                    return tickBreakBlock(breakManager, offset);
+                    return tickBreakBlock(blockExcavator, offset);
                 }
             } else if (canMine(blockState, world, offset)) {
-                return tickBreakBlock(breakManager, offset);
+                return tickBreakBlock(blockExcavator, offset);
             }
         }
-        if (destructor.getLeverPos() != null) {
+        if (context.getLeverPos() != null) {
             return StepResult.CONTINUE;
         }
         if (direction == null) {
@@ -314,7 +317,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         interactionManager.interactBlock(this.fakePlayer, world, this.fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
         // 再次单击激活拉杆
         interactionLever(offset);
-        destructor.setLeverPos(offset);
+        context.setLeverPos(offset);
         return StepResult.CONTINUE;
     }
 
@@ -340,21 +343,21 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     /**
      * 破除基岩
      */
-    private StepResult pistonBreakBedrock(BedrockDestructor destructor) {
-        BlockPos bedrockPos = destructor.getBedrockPos();
+    private StepResult pistonBreakBedrock(BedrockBreakingContext context) {
+        BlockPos bedrockPos = context.getBedrockPos();
         BlockPos up = bedrockPos.up();
         // 基岩上方方块是活塞
         World world = this.fakePlayer.getWorld();
         BlockState blockState = world.getBlockState(up);
         if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
-            BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
+            BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
             // 先切换工具，再计算剩余挖掘时间
             switchTool(blockState, world, up);
             // 计算剩余挖掘时间
-            int currentTime = breakManager.getCurrentBreakingTime(up);
+            int currentTime = blockExcavator.getCurrentBreakingTime(up);
             if (currentTime == 1) {
                 // 方块将在本游戏刻挖掘完毕
-                BlockPos leverPos = destructor.getLeverPos();
+                BlockPos leverPos = context.getLeverPos();
                 BlockState leverState = world.getBlockState(leverPos);
                 if (leverState.isOf(Blocks.LEVER)) {
                     if (leverState.get(LeverBlock.POWERED)) {
@@ -363,9 +366,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     }
                     // 关闭周围可能激活活塞的拉杆
                     closeTheSurroundingLevers(up);
-                    destructor.setLeverPos(null);
+                    context.setLeverPos(null);
                     // 继续挖掘，此时活塞应该会挖掘完毕
-                    breakBlock(breakManager, up, false);
+                    breakBlock(blockExcavator, up, false);
                     // 放置一个朝下的活塞，这个活塞会破坏掉基岩
                     if (placePiston(bedrockPos, Direction.DOWN).isAccepted()) {
                         return StepResult.COMPLETION;
@@ -373,7 +376,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 }
                 return StepResult.COMPLETION;
             }
-            breakBlock(breakManager, up, false);
+            breakBlock(blockExcavator, up, false);
             return StepResult.TICK_COMPLETION;
         } else {
             return StepResult.FAIL;
@@ -432,7 +435,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 挖掘掉破完基岩后留下的活塞
      */
     private boolean cleanPiston(BlockPos blockPos) {
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
+        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
         BlockState blockState = this.fakePlayer.getWorld().getBlockState(blockPos);
         if (blockState.isAir()) {
             return true;
@@ -442,13 +445,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             return false;
         }
         if (blockState.isOf(Blocks.PISTON)) {
-            return breakBlock(breakManager, blockPos, true);
+            return breakBlock(blockExcavator, blockPos, true);
         }
         return true;
     }
 
-    private StepResult tickBreakBlock(BlockBreakManager breakManager, BlockPos blockPos) {
-        return breakBlock(breakManager, blockPos, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
+    private StepResult tickBreakBlock(BlockExcavator blockExcavator, BlockPos blockPos) {
+        return breakBlock(blockExcavator, blockPos, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
     }
 
     /**
@@ -457,14 +460,14 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * @param switchTool 是否需要切换工具
      * @return 是否破坏成功
      */
-    private boolean breakBlock(BlockBreakManager breakManager, BlockPos blockPos, boolean switchTool) {
-        EntityPlayerMPFake player = breakManager.getPlayer();
+    private boolean breakBlock(BlockExcavator blockExcavator, BlockPos blockPos, boolean switchTool) {
+        EntityPlayerMPFake player = blockExcavator.getPlayer();
         World world = player.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
             switchTool(blockState, world, blockPos);
         }
-        return breakManager.breakBlock(blockPos, Direction.DOWN, false);
+        return blockExcavator.breakBlock(blockPos, Direction.DOWN, false);
     }
 
     private void switchTool(BlockState blockState, World world, BlockPos blockPos) {
@@ -518,12 +521,12 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     }
 
 
-    public void add(BedrockDestructor destructor) {
-        this.hashSet.add(destructor);
+    public void add(BedrockBreakingContext context) {
+        this.contexts.add(context);
     }
 
-    public void removeIf(Predicate<BedrockDestructor> predicate) {
-        this.hashSet.removeIf(predicate);
+    public void removeIf(Predicate<BedrockBreakingContext> predicate) {
+        this.contexts.removeIf(predicate);
     }
 
     public boolean contains(BlockPos blockPos) {
@@ -531,7 +534,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     }
 
     public boolean isEmpty() {
-        return this.hashSet.isEmpty();
+        return this.contexts.isEmpty();
     }
 
     @Override
@@ -574,107 +577,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @NotNull
     @Override
-    public Iterator<BedrockDestructor> iterator() {
-        return this.hashSet.iterator();
-    }
-
-    public static class BedrockDestructor {
-        private final BlockPos bedrockPos;
-        private BlockPos leverPos;
-        private State state = State.PLACE_THE_PISTON_FACING_UP;
-
-        private BedrockDestructor(BlockPos bedrockPos) {
-            this.bedrockPos = bedrockPos;
-        }
-
-        public BlockPos getBedrockPos() {
-            return this.bedrockPos;
-        }
-
-        public BlockPos getLeverPos() {
-            return this.leverPos;
-        }
-
-        public void setLeverPos(BlockPos leverPos) {
-            this.leverPos = leverPos;
-        }
-
-        public State getState() {
-            return this.state;
-        }
-
-        public void nextStep() {
-            State[] values = State.values();
-            if (this.state.ordinal() == values.length) {
-                throw new IllegalStateException();
-            }
-            this.state = values[this.state.ordinal() + 1];
-        }
-
-        public void fail() {
-            this.state = State.COMPLETE;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            BedrockDestructor that = (BedrockDestructor) o;
-            return Objects.equals(bedrockPos, that.bedrockPos);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(bedrockPos);
-        }
-    }
-
-    public enum State {
-        /**
-         * 放置朝上的活塞
-         */
-        PLACE_THE_PISTON_FACING_UP,
-        /**
-         * 在基岩方块侧面放置并激活一个拉杆
-         */
-        PLACE_AND_ACTIVATE_THE_LEVER,
-        /**
-         * 挖掘基岩上方的活塞，并在挖掘完成前关闭拉杆，然后完成挖掘，接着放置一个朝下的活塞
-         */
-        PISTON_BREAK_BEDROCK,
-        /**
-         * 清理掉基岩上方的活塞
-         */
-        CLEAN_PISTON,
-        /**
-         * 已完成破基岩
-         */
-        COMPLETE
-    }
-
-    /**
-     * 当前步骤的执行结果
-     */
-    private enum StepResult {
-        /**
-         * 当前步骤执行完毕，应继续执行下一步
-         */
-        CONTINUE,
-        /**
-         * 不再执行下一步，但是应继续执行下一个位置
-         */
-        COMPLETION,
-        /**
-         * 不再执行下一步，并且应该结束当前tick
-         */
-        TICK_COMPLETION,
-        /**
-         * 破基岩失败，重新开始
-         */
-        FAIL
+    public Iterator<BedrockBreakingContext> iterator() {
+        return this.contexts.iterator();
     }
 }

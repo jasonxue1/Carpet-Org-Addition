@@ -15,7 +15,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockBreakManager {
+public class BlockExcavator {
     private final EntityPlayerMPFake player;
     /**
      * 方块挖掘冷却
@@ -31,7 +31,7 @@ public class BlockBreakManager {
      */
     private float currentBreakingProgress;
 
-    public BlockBreakManager(EntityPlayerMPFake player) {
+    public BlockExcavator(EntityPlayerMPFake player) {
         this.player = player;
     }
 
@@ -151,6 +151,17 @@ public class BlockBreakManager {
         BlockState blockState = world.getBlockState(blockPos);
         float delta = blockState.calcBlockBreakingDelta(this.player, world, blockPos);
         return (int) Math.ceil((1F - this.currentBreakingProgress) / delta);
+    }
+
+    /**
+     * @return 当前方块是否可以瞬间挖掘
+     */
+    public boolean canInstantMining(BlockPos blockPos) {
+        if (this.player.isCreative()) {
+            return true;
+        }
+        World world = this.player.getWorld();
+        return world.getBlockState(blockPos).calcBlockBreakingDelta(this.player, world, blockPos) >= 1F;
     }
 
     private void breakingAction(Action action, BlockPos blockPos, Direction direction) {
