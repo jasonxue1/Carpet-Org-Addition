@@ -34,14 +34,15 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
-    private final HashSet<BedrockBreakingContext> contexts = new HashSet<>();
+    private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final SelectionArea selectionArea;
+    private BedrockBreakingContext currentContext;
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
         super(fakePlayer);
@@ -50,6 +51,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     public void tick() {
+        if (this.tickCurrent()) {
+            return;
+        }
         World world = this.fakePlayer.getWorld();
         this.removeIf(context -> {
             if (context.getState() == BreakingState.COMPLETE) {
@@ -61,37 +65,59 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             return context.getState() != BreakingState.CLEAN_PISTON;
         });
         double range = this.fakePlayer.getBlockInteractionRange();
+        // 如果this.selectionArea过大，遍历时可能会造成大量卡顿
         Box box = new Box(this.fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
         SelectionArea area = new SelectionArea(box);
         for (BlockPos blockPos : area) {
             if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)
                     && this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0)
-                    // TODO 逻辑错误？
-                    && this.contains(blockPos)) {
+                    && this.inSelectionArea(blockPos)) {
                 this.add(new BedrockBreakingContext(blockPos));
             }
         }
         for (BedrockBreakingContext context : this) {
-            int loopCount = 0;
-            loop:
-            while (true) {
-                loopCount++;
-                if (loopCount > 10) {
-                    throw new InfiniteLoopException();
+            if (context == this.currentContext) {
+                continue;
+            }
+            if (tick(context)) {
+                return;
+            }
+        }
+    }
+
+    private boolean tickCurrent() {
+        if (this.currentContext == null) {
+            return false;
+        }
+        if (this.contexts.contains(this.currentContext)) {
+            return this.tick(this.currentContext);
+        }
+        this.currentContext = null;
+        return false;
+    }
+
+    private boolean tick(BedrockBreakingContext context) {
+        int loopCount = 0;
+        loop:
+        while (true) {
+            loopCount++;
+            if (loopCount > 10) {
+                throw new InfiniteLoopException();
+            }
+            StepResult stepResult = start(context);
+            switch (stepResult) {
+                case COMPLETION -> {
+                    break loop;
                 }
-                StepResult stepResult = start(context);
-                switch (stepResult) {
-                    case COMPLETION -> {
-                        break loop;
-                    }
-                    case TICK_COMPLETION -> {
-                        return;
-                    }
-                    default -> {
-                    }
+                case TICK_COMPLETION -> {
+                    this.currentContext = context;
+                    return true;
+                }
+                default -> {
                 }
             }
         }
+        return false;
     }
 
     private StepResult start(BedrockBreakingContext context) {
@@ -283,7 +309,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 } else {
                     BlockPos supportBlockPos = offset.offset(blockState.get(LeverBlock.FACING), -1);
                     // 拉杆附着在了另一个基岩上
-                    if (world.getBlockState(supportBlockPos).isOf(Blocks.BEDROCK) && this.contains(supportBlockPos)) {
+                    if (world.getBlockState(supportBlockPos).isOf(Blocks.BEDROCK) && this.inSelectionArea(supportBlockPos)) {
                         continue;
                     }
                     // 拉杆附着在了墙上，但不是当前要破坏的基岩方块
@@ -529,7 +555,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         this.contexts.removeIf(predicate);
     }
 
-    public boolean contains(BlockPos blockPos) {
+    public boolean inSelectionArea(BlockPos blockPos) {
         return this.selectionArea.contains(blockPos);
     }
 

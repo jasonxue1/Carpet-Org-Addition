@@ -153,17 +153,6 @@ public class BlockExcavator {
         return (int) Math.ceil((1F - this.currentBreakingProgress) / delta);
     }
 
-    /**
-     * @return 当前方块是否可以瞬间挖掘
-     */
-    public boolean canInstantMining(BlockPos blockPos) {
-        if (this.player.isCreative()) {
-            return true;
-        }
-        World world = this.player.getWorld();
-        return world.getBlockState(blockPos).calcBlockBreakingDelta(this.player, world, blockPos) >= 1F;
-    }
-
     private void breakingAction(Action action, BlockPos blockPos, Direction direction) {
         World world = this.player.getWorld();
         this.player.interactionManager.processBlockBreakingAction(blockPos, action, direction, world.getTopY(), -1);

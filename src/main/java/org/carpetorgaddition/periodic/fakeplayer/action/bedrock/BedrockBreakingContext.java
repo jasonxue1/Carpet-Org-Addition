@@ -8,7 +8,6 @@ public class BedrockBreakingContext {
     private final BlockPos bedrockPos;
     private BlockPos leverPos;
     private BreakingState breakingState = BreakingState.PLACE_THE_PISTON_FACING_UP;
-    private boolean isInstantlyDestroyed = false;
 
     public BedrockBreakingContext(BlockPos bedrockPos) {
         this.bedrockPos = bedrockPos;
@@ -40,14 +39,6 @@ public class BedrockBreakingContext {
 
     public void fail() {
         this.breakingState = BreakingState.COMPLETE;
-    }
-
-    public boolean isInstantlyDestroyed() {
-        return isInstantlyDestroyed;
-    }
-
-    public void setInstantlyDestroyed(boolean instantlyDestroyed) {
-        isInstantlyDestroyed = instantlyDestroyed;
     }
 
     @Override
