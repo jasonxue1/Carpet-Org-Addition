@@ -34,3 +34,4 @@ public class GenericFetcherUtils {
         return getRuleSelfManager(player.server);
     }
 }
+

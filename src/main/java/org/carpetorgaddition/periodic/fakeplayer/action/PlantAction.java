@@ -254,7 +254,7 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private boolean breakBlock(BlockPos pos) {
         BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(fakePlayer);
-        boolean breakBlock = blockExcavator.breakBlock(pos, Direction.DOWN, !fakePlayer.isCreative());
+        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !fakePlayer.isCreative());
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
@@ -268,7 +268,7 @@ public class PlantAction extends AbstractPlayerAction {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
         FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> itemStack.getItem() instanceof ToolItem);
         BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
-        boolean breakBlock = blockExcavator.breakBlock(pos, Direction.DOWN);
+        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }

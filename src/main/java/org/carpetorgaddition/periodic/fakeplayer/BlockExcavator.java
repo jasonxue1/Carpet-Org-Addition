@@ -41,8 +41,8 @@ public class BlockExcavator {
         }
     }
 
-    public boolean breakBlock(BlockPos blockPos, Direction direction) {
-        return breakBlock(blockPos, direction, true);
+    public boolean mining(BlockPos blockPos, Direction direction) {
+        return mining(blockPos, direction, true);
     }
 
     /**
@@ -52,7 +52,7 @@ public class BlockExcavator {
      * @param breakingCooldown 是否受方块挖掘冷却影响
      * @return 是否成功挖掘
      */
-    public boolean breakBlock(BlockPos blockPos, Direction direction, boolean breakingCooldown) {
+    public boolean mining(BlockPos blockPos, Direction direction, boolean breakingCooldown) {
         // 方块挖掘冷却
         if (breakingCooldown && this.blockBreakingCooldown > 0) {
             return false;
@@ -143,7 +143,7 @@ public class BlockExcavator {
      *
      * @return 破坏当前方块还需要多少个游戏刻
      */
-    public int getCurrentBreakingTime(BlockPos blockPos) {
+    public int computingRemainingMiningTime(BlockPos blockPos) {
         World world = this.player.getWorld();
         if (this.player.isCreative()) {
             return 1;

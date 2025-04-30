@@ -380,7 +380,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             // 先切换工具，再计算剩余挖掘时间
             switchTool(blockState, world, up);
             // 计算剩余挖掘时间
-            int currentTime = blockExcavator.getCurrentBreakingTime(up);
+            int currentTime = blockExcavator.computingRemainingMiningTime(up);
             if (currentTime == 1) {
                 // 方块将在本游戏刻挖掘完毕
                 BlockPos leverPos = context.getLeverPos();
@@ -493,7 +493,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (switchTool) {
             switchTool(blockState, world, blockPos);
         }
-        return blockExcavator.breakBlock(blockPos, Direction.DOWN, false);
+        return blockExcavator.mining(blockPos, Direction.DOWN, false);
     }
 
     private void switchTool(BlockState blockState, World world, BlockPos blockPos) {
