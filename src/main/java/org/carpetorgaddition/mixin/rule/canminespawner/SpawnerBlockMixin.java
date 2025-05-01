@@ -5,15 +5,18 @@ import net.minecraft.block.BlockWithEntity;
 import net.minecraft.block.SpawnerBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.MobSpawnerBlockEntity;
+import net.minecraft.block.spawner.MobSpawnerLogic;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -46,11 +49,15 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
         boolean hasSilkTouch = EnchantmentUtils.hasEnchantment(world, Enchantments.SILK_TOUCH, player.getMainHandStack());
         if (CarpetOrgAdditionSettings.canMineSpawner && !player.isCreative() && hasSilkTouch) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (!world.isClient && blockEntity instanceof MobSpawnerBlockEntity) {
+            if (!world.isClient && blockEntity instanceof MobSpawnerBlockEntity spawner) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
-                NbtCompound nbtCompound = blockEntity.createComponentlessNbtWithIdentifyingData(player.getWorld().getRegistryManager());
-                BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), nbtCompound);
-                itemStack.applyComponentsFrom(blockEntity.getComponents());
+                MinecraftServer server = player.getServer();
+                if (server != null) {
+                    NbtWriteView view = NbtWriteView.create(ErrorReporter.EMPTY, server.getRegistryManager());
+                    MobSpawnerLogic logic = spawner.getLogic();
+                    logic.writeData(view);
+                    BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), view);
+                }
                 if (tryCollect(itemStack)) {
                     ItemEntity itemEntity = new ItemEntity(world, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, itemStack);
                     itemEntity.setToDefaultPickupDelay();

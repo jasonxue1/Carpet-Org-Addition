@@ -347,6 +347,7 @@ public class Express implements Comparable<Express> {
     /**
      * 将快递内容写入NBT
      */
+    @SuppressWarnings("unused")
     public NbtCompound writeNbt(MinecraftServer server) {
         NbtCompound nbt = new NbtCompound();
         nbt.putString("sender", this.sender);
@@ -355,7 +356,7 @@ public class Express implements Comparable<Express> {
         nbt.putInt("id", this.id);
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
         nbt.putIntArray("time", args);
-        nbt.put("item", this.express.toNbt(server.getRegistryManager(), new NbtCompound()));
+        nbt.put("item", ItemStack.CODEC, this.express);
         return nbt;
     }
 
@@ -366,7 +367,7 @@ public class Express implements Comparable<Express> {
         String sender = nbt.getString("sender").orElseThrow();
         String recipient = nbt.getString("recipient").orElseThrow();
         boolean cancel = nbt.getBoolean("cancel").orElseThrow();
-        ItemStack stack = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound("item").orElseThrow()).orElse(ItemStack.EMPTY);
+        ItemStack stack = nbt.get("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         int id = nbt.getInt("id").orElseThrow();
         int[] times = nbt.getIntArray("time").orElseThrow();
         LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
