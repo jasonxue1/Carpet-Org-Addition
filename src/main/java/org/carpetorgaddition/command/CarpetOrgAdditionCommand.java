@@ -78,7 +78,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
                 .then(CommandManager.literal("permission")
-                        .requires(PermissionManager.register("carpet-org-addition.permission", PermissionLevel.OWNERS))
+                        .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
                                 .then(CommandManager.argument("level", StringArgumentType.string())
