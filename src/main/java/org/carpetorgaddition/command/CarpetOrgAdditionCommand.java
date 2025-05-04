@@ -12,6 +12,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -85,13 +86,13 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
                                         .executes(this::setLevel))))
                 .then(CommandManager.literal("version")
                         .executes(this::version))
-                // TODO 允许修改假玩家的规则开关
                 .then(CommandManager.literal("ruleself")
-                        .then(CommandManager.argument("rule", StringArgumentType.string())
-                                .suggests(suggestRule())
-                                .executes(this::infoRuleSelf)
-                                .then(CommandManager.argument("value", BoolArgumentType.bool())
-                                        .executes(this::setRuleSelf))))
+                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                                .then(CommandManager.argument("rule", StringArgumentType.string())
+                                        .suggests(suggestRule())
+                                        .executes(this::infoRuleSelf)
+                                        .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(this::setRuleSelf)))))
                 .then(CommandManager.literal("textclickevent")
                         .then(CommandManager.literal("queryPlayerName")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
@@ -237,51 +238,59 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
 
     // 设置一条规则是否对自己生效
     private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-        String ruleString = StringArgumentType.getString(context, "rule");
-        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-        if (rule == null) {
-            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
-        }
-        boolean value = BoolArgumentType.getBool(context, "value");
-        boolean changed = ruleSelfManager.setEnabled(player, ruleString, value);
-        Text displayName = RuleUtils.simpleTranslationName(rule);
-        if (changed) {
-            if (value) {
-                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.enable", displayName);
-            } else {
-                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.disable", displayName);
+        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+        if (CommandUtils.isSelfOrFakePlayer(player, context)) {
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            String ruleString = StringArgumentType.getString(context, "rule");
+            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+            if (rule == null) {
+                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
             }
-        } else {
+            boolean value = BoolArgumentType.getBool(context, "value");
+            ruleSelfManager.setEnabled(player, ruleString, value);
+            Text ruleName = RuleUtils.simpleTranslationName(rule);
+            Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
+            MutableText translate;
             if (value) {
-                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.enable", displayName);
+                translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.enable", ruleName, playerName);
             } else {
-                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.disable", displayName);
+                translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.disable", ruleName, playerName);
             }
+            if (RuleHelper.isInDefaultValue(rule)) {
+                MutableText hover = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.invalid");
+                translate = TextUtils.hoverText(translate, hover);
+                translate = TextUtils.toStrikethrough(translate);
+            }
+            MessageUtils.sendMessage(context.getSource(), translate);
+            return 1;
         }
-        return 1;
+        throw CommandUtils.createSelfOrFakePlayerException();
     }
 
     private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-        String ruleString = StringArgumentType.getString(context, "rule");
-        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-        if (rule == null) {
-            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
+        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+        if (CommandUtils.isSelfOrFakePlayer(player, context)) {
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            String ruleString = StringArgumentType.getString(context, "rule");
+            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+            if (rule == null) {
+                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
+            }
+            MessageUtils.sendEmptyMessage(context);
+            MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.info.player", player.getDisplayName());
+            boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
+            Text displayName = RuleUtils.simpleTranslationName(rule);
+            MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.info.rule", displayName);
+            MutableText translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            if (RuleHelper.isInDefaultValue(rule)) {
+                MutableText hover = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.invalid");
+                translate = TextUtils.hoverText(translate, hover);
+                translate = TextUtils.toStrikethrough(translate);
+            }
+            MessageUtils.sendMessage(context.getSource(), translate);
+            return 1;
         }
-        boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
-        Text displayName = RuleUtils.simpleTranslationName(rule);
-        MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.info.rule", displayName);
-        MutableText translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.enable", TextProvider.getBoolean(enabled));
-        if (RuleHelper.isInDefaultValue(rule)) {
-            MutableText hover = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.invalid");
-            translate = TextUtils.hoverText(translate, hover);
-            translate = TextUtils.toStrikethrough(translate);
-        }
-        MessageUtils.sendMessage(context.getSource(), translate);
-        return 1;
+        throw CommandUtils.createSelfOrFakePlayerException();
     }
 
     @Override

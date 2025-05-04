@@ -85,7 +85,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             return number.intValue();
         } else {
             // 发送需要目标是自己或假玩家消息
-            throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
+            throw CommandUtils.createSelfOrFakePlayerException();
         }
     }
 
@@ -121,7 +121,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             return number.intValue();
         } else {
             // 发送消息：只允许操作自己或假玩家
-            throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
+            throw CommandUtils.createSelfOrFakePlayerException();
         }
     }
 
@@ -220,7 +220,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             return count.intValue();
         } else {
             // 发送消息：只允许操作自己或假玩家
-            throw CommandUtils.createException("carpet.commands.xpTransfer.self_or_fake_player");
+            throw CommandUtils.createSelfOrFakePlayerException();
         }
     }
 

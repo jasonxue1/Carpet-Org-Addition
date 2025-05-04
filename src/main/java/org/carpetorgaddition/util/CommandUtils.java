@@ -4,12 +4,14 @@ import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import org.jetbrains.annotations.Contract;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -59,6 +61,25 @@ public class CommandUtils {
     }
 
     /**
+     * @return 指定玩家是否是命令执行者自己或假玩家
+     */
+    public static boolean isSelfOrFakePlayer(ServerPlayerEntity player, CommandContext<ServerCommandSource> context) {
+        return isSelfOrFakePlayer(player, context.getSource());
+    }
+
+    public static boolean isSelfOrFakePlayer(ServerPlayerEntity player, ServerCommandSource source) {
+        return isSpecifiedOrFakePlayer(player, source.getPlayer());
+    }
+
+    /**
+     * @return 指定玩家是否是另一个指定的玩家或假玩家
+     */
+    public static boolean isSpecifiedOrFakePlayer(ServerPlayerEntity player, ServerPlayerEntity specified) {
+        return player == specified || player instanceof EntityPlayerMPFake;
+    }
+
+
+    /**
      * 创建一个命令语法参数异常对象
      *
      * @param key 异常信息的翻译键
@@ -100,6 +121,13 @@ public class CommandUtils {
      */
     public static CommandSyntaxException createOperationTimeoutException() {
         return createException("carpet.command.operation.timeout");
+    }
+
+    /**
+     * 只允许操作自己或假玩家
+     */
+    public static CommandSyntaxException createSelfOrFakePlayerException() {
+        return createException("carpet.command.self_or_fake_player");
     }
 
     /**

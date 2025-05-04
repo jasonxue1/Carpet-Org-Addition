@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 import org.carpetorgaddition.exception.OperationTimeoutException;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MathUtils;
 
 import java.math.BigDecimal;
@@ -105,7 +106,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @return 当前玩家是否是假玩家或指定玩家
      */
     public boolean isSpecifiedOrFakePlayer(ServerPlayerEntity specified) {
-        return this.player instanceof EntityPlayerMPFake || this.player == specified;
+        return CommandUtils.isSpecifiedOrFakePlayer(this.player, specified);
     }
 
     /**
