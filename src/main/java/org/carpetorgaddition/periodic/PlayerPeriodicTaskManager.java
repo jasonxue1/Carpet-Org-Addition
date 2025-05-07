@@ -31,7 +31,7 @@ public class PlayerPeriodicTaskManager {
 
     public void tick() {
         if (this.fakePlayerActionManager != null) {
-            ServerTickManager tickManager = this.player.server.getTickManager();
+            ServerTickManager tickManager = this.player.getWorld().getServer().getTickManager();
             if (tickManager.shouldTick()) {
                 this.fakePlayerActionManager.tick();
             }

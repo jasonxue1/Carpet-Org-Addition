@@ -82,7 +82,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 this.remainingTick = this.interval;
                 if (player instanceof EntityPlayerMPFake fakePlayer) {
                     // 如果假玩家坠入虚空，设置任务为停止
-                    if (fakePlayer.getY() < fakePlayer.getServerWorld().getBottomY() - 64) {
+                    if (fakePlayer.getY() < fakePlayer.getWorld().getBottomY() - 64) {
                         this.stop();
                     }
                     // 让假玩家退出游戏

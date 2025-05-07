@@ -299,7 +299,7 @@ public class PlayerManagerCommand {
      */
     public static void loadSafeAfk(ServerPlayerEntity player) {
         if (player instanceof EntityPlayerMPFake) {
-            WorldFormat worldFormat = new WorldFormat(player.server, null);
+            WorldFormat worldFormat = new WorldFormat(player.getWorld().getServer(), null);
             File file = worldFormat.file(SAFEAFK_PROPERTIES);
             // 文件必须存在
             if (file.isFile()) {
@@ -325,7 +325,7 @@ public class PlayerManagerCommand {
                     // 广播阈值设置的消息
                     String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
                     MutableText message = TextUtils.translate(key, player.getDisplayName(), threshold);
-                    MessageUtils.broadcastMessage(player.server, TextUtils.toGrayItalic(message));
+                    MessageUtils.broadcastMessage(player.getWorld().getServer(), TextUtils.toGrayItalic(message));
                 } catch (NumberFormatException e) {
                     CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", player.getName().getString(), e);
                 }
@@ -490,7 +490,7 @@ public class PlayerManagerCommand {
                     // 目标玩家不是假玩家
                     CommandUtils.checkFakePlayer(player);
                 }
-                manager.addTask(new ReLoginTask(name, interval, server, player.getServerWorld().getRegistryKey(), context));
+                manager.addTask(new ReLoginTask(name, interval, server, player.getWorld().getRegistryKey(), context));
             } else {
                 // 修改周期时间
                 optional.get().setInterval(interval);

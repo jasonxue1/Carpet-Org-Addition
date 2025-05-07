@@ -28,7 +28,7 @@ public class KillMeCommand {
                 context.getSource().getServer(),
                 TextUtils.translate("carpet.commands.killMe", player.getDisplayName())
         );
-        player.kill(player.getServerWorld());
+        player.kill(player.getWorld());
         return 1;
     }
 }

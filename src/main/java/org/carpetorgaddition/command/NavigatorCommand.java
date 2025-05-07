@@ -174,7 +174,7 @@ public class NavigatorCommand {
         try {
             ServerPlayerEntity.Respawn respawn = Objects.requireNonNull(player.getRespawn());
             BlockPos respawnPos = respawn.pos();
-            ServerWorld world = player.server.getWorld(respawn.dimension());
+            ServerWorld world = player.getWorld().getServer().getWorld(respawn.dimension());
             PlayerPeriodicTaskManager.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);

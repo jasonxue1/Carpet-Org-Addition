@@ -59,7 +59,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             message = TextUtils.setColor(message, Formatting.RED);
             // 添加悬停提示
             message = TextUtils.hoverText(message, report(source, amount));
-            MessageUtils.broadcastMessage(thisPlayer.server, message);
+            MessageUtils.broadcastMessage(thisPlayer.getWorld().getServer(), message);
             return;
         }
         // 玩家安全挂机触发成功
@@ -71,11 +71,11 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             // 添加悬停提示
             message = TextUtils.hoverText(message, report(source, amount));
             // 广播触发消息，斜体淡灰色
-            MessageUtils.broadcastMessage(thisPlayer.server, TextUtils.toGrayItalic(message));
+            MessageUtils.broadcastMessage(thisPlayer.getWorld().getServer(), TextUtils.toGrayItalic(message));
             // 恢复饥饿值
             thisPlayer.getHungerManager().setFoodLevel(20);
             // 退出假人
-            thisPlayer.kill(thisPlayer.getServerWorld());
+            thisPlayer.kill(thisPlayer.getWorld());
         }
     }
 

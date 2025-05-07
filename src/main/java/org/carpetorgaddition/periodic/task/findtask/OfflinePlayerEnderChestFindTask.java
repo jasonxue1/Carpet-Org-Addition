@@ -36,7 +36,7 @@ public class OfflinePlayerEnderChestFindTask extends OfflinePlayerFindTask {
     @Override
     protected Inventory getInventory(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
-        ReadView readView = NbtReadView.get(ErrorReporter.EMPTY, this.player.server.getRegistryManager(), nbt);
+        ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, this.player.getWorld().getRegistryManager(), nbt);
         inventory.readData(readView.getTypedListView("EnderItems", StackWithSlot.CODEC));
         return inventory;
     }

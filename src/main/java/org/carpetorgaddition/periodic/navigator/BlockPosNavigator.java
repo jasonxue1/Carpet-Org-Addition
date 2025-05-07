@@ -49,7 +49,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     @Override
     protected boolean terminate() {
         // 玩家与目的地在同一维度
-        if (this.player.getServerWorld().equals(this.world)) {
+        if (this.player.getWorld().equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos) <= 8) {
                 // 到达目的地，停止追踪
                 MessageUtils.sendMessageToHud(this.player, TextUtils.translate(REACH));

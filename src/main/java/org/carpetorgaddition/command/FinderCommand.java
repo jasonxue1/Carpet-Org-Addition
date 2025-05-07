@@ -157,11 +157,11 @@ public class FinderCommand {
 
     private static void findItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        File[] files = player.server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
+        File[] files = player.getWorld().getServer().getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        UserCache userCache = player.server.getUserCache();
+        UserCache userCache = player.getWorld().getServer().getUserCache();
         if (userCache == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }
@@ -182,7 +182,7 @@ public class FinderCommand {
         BlockStateArgument argument = BlockStateArgumentType.getBlockState(context, "blockState");
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getWorld();
         SelectionArea selectionArea = new SelectionArea(world, sourceBlockPos, range);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         BlockFindTask task = new BlockFindTask(world, sourceBlockPos, selectionArea, context, predicate);
@@ -198,7 +198,7 @@ public class FinderCommand {
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
-        ServerWorld world = player.getServerWorld();
+        ServerWorld world = player.getWorld();
         SelectionArea selectionArea = new SelectionArea(from, to);
         BlockBlockPredicate predicate = new BlockBlockPredicate();
         MayAffectWorldEaterBlockFindTask task = new MayAffectWorldEaterBlockFindTask(world, sourceBlockPos, selectionArea, context, predicate);
@@ -217,7 +217,7 @@ public class FinderCommand {
         SelectionArea selectionArea = new SelectionArea(from, to);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         // 添加查找任务
-        BlockFindTask task = new BlockFindTask(player.getServerWorld(), player.getBlockPos(), selectionArea, context, predicate);
+        BlockFindTask task = new BlockFindTask(player.getWorld(), player.getBlockPos(), selectionArea, context, predicate);
         ServerPeriodicTaskManager.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }

@@ -73,7 +73,7 @@ public class EntityNavigator extends AbstractNavigator {
         if (this.isContinue) {
             return false;
         }
-        if (this.player.getServerWorld().equals(this.entity.getWorld())
+        if (this.player.getWorld().equals(this.entity.getWorld())
                 && MathUtils.getBlockDistance(player.getBlockPos(), entity.getBlockPos()) <= 8) {
             // 停止追踪
             MessageUtils.sendMessageToHud(this.player, TextUtils.translate(REACH));
@@ -98,7 +98,7 @@ public class EntityNavigator extends AbstractNavigator {
                     // 如果目标实体是玩家，并且玩家已被删除
                     // 就从服务器的玩家管理器中查找新的玩家实体对象，如果找到了，设置目标为新玩家，如果找不到，玩家的追踪器对象不变
                     // 只要这个玩家在线，就不需要清除这个追踪器，因为玩家可以复活
-                    MinecraftServer server = serverPlayerEntity.getServerWorld().getServer();
+                    MinecraftServer server = serverPlayerEntity.getWorld().getServer();
                     UUID uuid = serverPlayerEntity.getUuid();
                     ServerPlayerEntity newPlayer = server.getPlayerManager().getPlayer(uuid);
                     if (newPlayer == null) {

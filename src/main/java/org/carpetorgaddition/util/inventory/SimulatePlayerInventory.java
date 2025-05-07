@@ -26,7 +26,7 @@ public class SimulatePlayerInventory implements Inventory {
     }
 
     public static SimulatePlayerInventory of(NbtCompound nbt, MinecraftServer server) {
-        ReadView readView = NbtReadView.get(ErrorReporter.EMPTY, server.getRegistryManager(), nbt);
+        ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, server.getRegistryManager(), nbt);
         SimulatePlayerInventory inventory = new SimulatePlayerInventory();
         for (StackWithSlot stackWithSlot : readView.getTypedListView("Inventory", StackWithSlot.CODEC)) {
             if (stackWithSlot.isValidSlot(inventory.main.size())) {

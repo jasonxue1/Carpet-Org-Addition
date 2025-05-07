@@ -64,7 +64,7 @@ public class ParticleLineCommand {
         }
         ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
         // 新建绘制粒子线任务
-        manager.addTask(new DrawParticleLineTask(player.getServerWorld(), mainParticle, from, to));
+        manager.addTask(new DrawParticleLineTask(player.getWorld(), mainParticle, from, to));
         // 发送箭头
         sendArrow(player, to);
         // 返回值为粒子线的长度

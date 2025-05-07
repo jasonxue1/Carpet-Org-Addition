@@ -20,11 +20,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("SpellCheckingInspection")
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin {
     @Shadow
-    public abstract ServerWorld getServerWorld();
+    public abstract ServerWorld getWorld();
 
     @Unique
     private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
@@ -38,7 +37,7 @@ public abstract class ServerPlayerEntityMixin {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
             itemStack.set(DataComponentTypes.PROFILE, new ProfileComponent(thisPlayer.getGameProfile()));
             creeperEntity.onHeadDropped();
-            thisPlayer.dropStack(thisPlayer.getServerWorld(), itemStack);
+            thisPlayer.dropStack(thisPlayer.getWorld(), itemStack);
         }
     }
 
@@ -51,7 +50,7 @@ public abstract class ServerPlayerEntityMixin {
         }
         // 自动同步玩家状态
         if (CarpetOrgAdditionSettings.autoSyncPlayerStatus && thisPlayer.getWorld().getTime() % 30 == 0) {
-            thisPlayer.server.getPlayerManager().sendPlayerStatus(thisPlayer);
+            thisPlayer.getWorld().getServer().getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);
             SelectionArea selectionArea = new SelectionArea(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));
@@ -59,7 +58,7 @@ public abstract class ServerPlayerEntityMixin {
                 if (blockPos.toCenterPos().distanceTo(pos.toCenterPos()) > range) {
                     continue;
                 }
-                thisPlayer.networkHandler.sendPacket(new BlockUpdateS2CPacket(pos, this.getServerWorld().getBlockState(pos)));
+                thisPlayer.networkHandler.sendPacket(new BlockUpdateS2CPacket(pos, this.getWorld().getBlockState(pos)));
             }
         }
     }

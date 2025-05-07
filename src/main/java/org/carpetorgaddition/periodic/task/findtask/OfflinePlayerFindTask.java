@@ -119,7 +119,7 @@ public class OfflinePlayerFindTask extends ServerTask {
         if (optional.isPresent()) {
             GameProfile gameProfile = optional.get();
             // 不从在线玩家物品栏查找物品
-            if (this.player.server.getPlayerManager().getPlayer(gameProfile.getName()) != null) {
+            if (this.player.getWorld().getServer().getPlayerManager().getPlayer(gameProfile.getName()) != null) {
                 return;
             }
             // 从玩家NBT读取物品栏
@@ -153,7 +153,7 @@ public class OfflinePlayerFindTask extends ServerTask {
 
     // 获取玩家物品栏
     protected Inventory getInventory(NbtCompound nbt) {
-        return SimulatePlayerInventory.of(nbt, this.player.getServer());
+        return SimulatePlayerInventory.of(nbt, this.player.getWorld().getServer());
     }
 
     // 统计物品数量

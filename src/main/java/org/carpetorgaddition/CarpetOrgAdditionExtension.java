@@ -44,7 +44,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
             player.getStatusEffects().removeIf(effect -> effect.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL);
         }
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.server).getExpressManager();
+        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.getServer()).getExpressManager();
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
