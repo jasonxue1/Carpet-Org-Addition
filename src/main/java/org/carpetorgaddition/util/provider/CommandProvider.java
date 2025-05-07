@@ -116,7 +116,7 @@ public class CommandProvider {
      * 通过Mojang API查询玩家名称
      */
     public static String queryPlayerName(UUID uuid) {
-        return "/%s textclickevent queryPlayerName %s".formatted(getCommandName(CarpetOrgAdditionCommand.class), uuid.toString());
+        return "/%s textclickevent queryPlayerName %s".formatted(getCommandName(OrangeCommand.class), uuid.toString());
     }
 
     /**
