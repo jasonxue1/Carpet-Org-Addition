@@ -11,7 +11,6 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.screen.VillagerScreenHandler;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,9 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 // 村民立即补货
 @Mixin(VillagerEntity.class)
 public abstract class VillagerEntityMixin extends MerchantEntity {
-    @Shadow
-    public abstract ActionResult interactMob(PlayerEntity player, Hand hand);
-
     @Unique
     private final VillagerEntity thisVillager = (VillagerEntity) (Object) this;
 

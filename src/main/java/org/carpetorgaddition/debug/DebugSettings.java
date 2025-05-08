@@ -2,6 +2,7 @@ package org.carpetorgaddition.debug;
 
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 
+@SuppressWarnings("CanBeFinal")
 public class DebugSettings {
     static {
         // 不要在非开发环境加载
@@ -25,4 +26,7 @@ public class DebugSettings {
 
     @DebugRule(name = "HUD信息显示")
     public static boolean HUDInformationDisplay = false;
+
+    @DebugRule(name = "禁用经验球环绕")
+    public static boolean disableExperienceOrbSurround = false;
 }
