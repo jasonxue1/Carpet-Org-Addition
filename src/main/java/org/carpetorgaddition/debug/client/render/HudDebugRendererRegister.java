@@ -15,6 +15,8 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.Window;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -35,6 +37,7 @@ import net.minecraft.world.chunk.WorldChunk;
 import org.carpetorgaddition.client.renderer.Tooltip;
 import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
+import org.carpetorgaddition.mixin.debug.ExperienceOrbEntityAccessor;
 import org.carpetorgaddition.mixin.debug.HandledScreenAccessor;
 import org.carpetorgaddition.mixin.debug.ScreenAccessor;
 import org.carpetorgaddition.util.TextUtils;
@@ -42,6 +45,7 @@ import org.carpetorgaddition.util.wheel.Counter;
 import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
 
@@ -110,7 +114,7 @@ public class HudDebugRendererRegister {
                 }
             }
         });
-        // 渲染灵魂沙物品技术
+        // 渲染灵魂沙物品数量
         renders.add((context, tickCounter) -> {
             MinecraftClient client = MinecraftClient.getInstance();
             if (showSoulSandItemCount(client)) {
@@ -120,25 +124,49 @@ public class HudDebugRendererRegister {
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    BlockState blockState = getClientWorld().getBlockState(blockPos);
+                    ServerWorld world = getPlayerWorld();
+                    BlockState blockState = world.getBlockState(blockPos);
                     if (blockState.isAir()) {
                         return;
                     }
                     if (blockState.isOf(Blocks.SOUL_SAND)) {
                         Box box = new Box(blockPos.up());
-                        List<ItemEntity> entities = getClientWorld().getEntitiesByClass(ItemEntity.class, box, EntityPredicates.VALID_ENTITY);
-                        if (entities.isEmpty()) {
+                        List<Entity> itemEntities;
+                        try {
+                            // 方法可能被多个线程调用
+                            itemEntities = world.getEntitiesByClass(Entity.class, box, EntityPredicates.VALID_ENTITY);
+                        } catch (ConcurrentModificationException e) {
+                            return;
+                        }
+                        if (itemEntities.isEmpty()) {
                             return;
                         }
                         Counter<Item> counter = new Counter<>();
-                        for (ItemEntity itemEntity : entities) {
-                            ItemStack itemStack = itemEntity.getStack();
-                            counter.add(itemStack.getItem(), itemStack.getCount());
+                        int experienceOrbEntityCount = 0;
+                        int experienceOrbTotalValue = 0;
+                        for (Entity entity : itemEntities) {
+                            switch (entity) {
+                                case ItemEntity itemEntity -> {
+                                    ItemStack itemStack = itemEntity.getStack();
+                                    counter.add(itemStack.getItem(), itemStack.getCount());
+                                }
+                                case ExperienceOrbEntity experienceOrb -> {
+                                    experienceOrbEntityCount++;
+                                    ExperienceOrbEntityAccessor accessor = (ExperienceOrbEntityAccessor) experienceOrb;
+                                    experienceOrbTotalValue += accessor.getPickingCount() * experienceOrb.getExperienceAmount();
+                                }
+                                default -> {
+                                }
+                            }
                         }
                         List<Text> list = new ArrayList<>();
                         for (Item item : counter) {
                             int count = counter.getCount(item);
                             list.add(TextUtils.appendAll(item.getName(), "*", count));
+                        }
+                        if (experienceOrbEntityCount != 0) {
+                            list.add(TextUtils.appendAll("经验球实体数量：", experienceOrbEntityCount));
+                            list.add(TextUtils.appendAll("经验球总价值：", experienceOrbTotalValue));
                         }
                         Tooltip.drawTooltip(context, list);
                     }
@@ -230,6 +258,11 @@ public class HudDebugRendererRegister {
     @Contract("-> !null")
     private static ClientWorld getClientWorld() {
         return MinecraftClient.getInstance().world;
+    }
+
+    @Contract("-> !null")
+    private static ServerWorld getPlayerWorld() {
+        return getServer().getWorld(getClientWorld().getRegistryKey());
     }
 
     @Contract("-> !null")

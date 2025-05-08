@@ -17,6 +17,7 @@ public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
         super(world, sourcePos, selectionArea, context, blockPredicate);
     }
 
+    @Override
     protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
         return TextUtils.translate(
                 "carpet.commands.finder.may_affect_world_eater_block.feedback",

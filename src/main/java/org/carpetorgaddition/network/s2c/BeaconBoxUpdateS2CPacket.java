@@ -13,7 +13,7 @@ import org.carpetorgaddition.network.PacketUtils;
 public record BeaconBoxUpdateS2CPacket(BlockPos blockPos, Box box) implements CustomPayload {
     public static final Box ZERO = new Box(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
     public static final Id<BeaconBoxUpdateS2CPacket> ID = PacketUtils.createId("beacon_box_update");
-    public static PacketCodec<RegistryByteBuf, BeaconBoxUpdateS2CPacket> CODEC = new PacketCodec<>() {
+    public static final PacketCodec<RegistryByteBuf, BeaconBoxUpdateS2CPacket> CODEC = new PacketCodec<>() {
         @Override
         public BeaconBoxUpdateS2CPacket decode(RegistryByteBuf buf) {
             BlockPos pos = buf.readBlockPos();

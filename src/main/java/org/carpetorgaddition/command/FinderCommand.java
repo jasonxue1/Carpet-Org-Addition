@@ -43,6 +43,7 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.io.File;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 public class FinderCommand extends AbstractServerCommand {
     /**
@@ -114,9 +115,8 @@ public class FinderCommand extends AbstractServerCommand {
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(CommandManager.literal("worldEater")
-                        // TODO 子命令在未加参数的情况下默认启用了？
-                        .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                        .requires(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS))
+                        .requires(((Predicate<ServerCommandSource>) source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .and(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS)))
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                 .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                         .executes(this::mayAffectWorldEater)))));

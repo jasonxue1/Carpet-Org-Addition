@@ -84,6 +84,9 @@ public class PermissionManager {
             Set<Map.Entry<String, JsonElement>> entries = json.get("permission").getAsJsonObject().entrySet();
             for (Map.Entry<String, JsonElement> entry : entries) {
                 CommandPermission permission = PERMISSIONS.get(entry.getKey());
+                if (permission == null) {
+                    continue;
+                }
                 PermissionLevel level;
                 try {
                     level = PermissionLevel.fromString(entry.getValue().getAsString());

@@ -460,4 +460,9 @@ public class CarpetOrgAdditionSettings {
     // /player命令假玩家传送
     @Rule(categories = {ORG, RuleCategory.COMMAND})
     public static boolean playerCommandTeleportFakePlayer = false;
+
+    // 经验球合并
+    @Hidden
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.FEATURE})
+    public static boolean experienceOrbMerge = false;
 }
