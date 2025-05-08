@@ -100,7 +100,7 @@ public class GameUtils {
      * @return 当前游戏的NBT数据版本
      */
     public static int getNbtDataVersion() {
-        return SharedConstants.getGameVersion().getSaveVersion().getId();
+        return SharedConstants.getGameVersion().dataVersion().id();
     }
 
     /**

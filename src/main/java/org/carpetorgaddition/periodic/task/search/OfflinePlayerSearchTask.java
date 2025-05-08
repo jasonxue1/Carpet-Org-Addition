@@ -84,7 +84,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.predicate = context.predicate();
         this.userCache = context.userCache();
         this.player = context.player();
-        this.server = this.player.server;
+        this.server = this.player.getWorld().getServer();
         this.files = context.files();
         this.showUnknown = context.showUnknown();
         this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
@@ -201,7 +201,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 获取玩家物品栏
     protected Inventory getInventory(NbtCompound nbt) {
-        return SimulatePlayerInventory.of(nbt, this.player.getServer());
+        return SimulatePlayerInventory.of(nbt, this.player.getWorld().getServer());
     }
 
     // 发送命令反馈

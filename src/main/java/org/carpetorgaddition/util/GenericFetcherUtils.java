@@ -31,7 +31,7 @@ public class GenericFetcherUtils {
     }
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
-        return getRuleSelfManager(player.server);
+        return getRuleSelfManager(player.getServer());
     }
 }
 

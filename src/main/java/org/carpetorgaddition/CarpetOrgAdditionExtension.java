@@ -62,7 +62,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerComponentCoordinator.getManager(player.server).getExpressManager();
+        ExpressManager expressManager = ServerComponentCoordinator.getManager(player.getServer()).getExpressManager();
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
@@ -83,18 +83,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
             // 清除负面效果
             player.getStatusEffects().removeIf(effect -> effect.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL);
         }
-        // 提示玩家接收快递
-        ExpressManager expressManager = ServerPeriodicTaskManager.getManager(player.getServer()).getExpressManager();
-        expressManager.promptToReceive(player);
-        // 加载假玩家安全挂机
-        PlayerManagerCommand.loadSafeAfk(player);
-    }
-
-    // 服务器启动时调用
-    @Override
-    public void onServerLoaded(MinecraftServer server) {
-        // 服务器启动时自动将旧的路径点替换成新的
-        Waypoint.replaceWaypoint(server);
     }
 
     @Override

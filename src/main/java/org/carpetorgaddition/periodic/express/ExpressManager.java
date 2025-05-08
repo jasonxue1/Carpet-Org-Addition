@@ -161,7 +161,7 @@ public class ExpressManager {
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            PlayerManager playerManager = player.server.getPlayerManager();
+            PlayerManager playerManager = player.getWorld().getServer().getPlayerManager();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
                 MutableText message = getReceiveNotice(player, entry.getValue());
@@ -212,7 +212,7 @@ public class ExpressManager {
             Express.playItemPickupSound(player);
             Text message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
             for (String name : players) {
-                PlayerManager playerManager = player.server.getPlayerManager();
+                PlayerManager playerManager = player.getWorld().getServer().getPlayerManager();
                 ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
                 if (receivePlayer == null) {
                     continue;

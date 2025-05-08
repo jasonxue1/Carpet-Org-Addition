@@ -49,7 +49,7 @@ public class CreeperExplosionTask extends ServerTask {
         }
         // 将苦力怕传送到随机坐标
         BlockPos randomPos = list.isEmpty() ? playerPos : list.get(MathUtils.randomInt(1, list.size()) - 1);
-        TeleportTarget target = new TeleportTarget(player.getServerWorld(), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
+        TeleportTarget target = new TeleportTarget(player.getWorld(), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
         return (CreeperEntity) creeper.teleportTo(target);
     }
 

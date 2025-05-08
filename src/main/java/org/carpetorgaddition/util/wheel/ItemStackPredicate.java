@@ -197,20 +197,17 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             }
             return ItemStack.EMPTY;
         }
-        if (allItem) {
-            // 前面的循环中已经判断了字符串是否能转换成物品，所以这里不需要再判断
-            List<ItemStack> list = Arrays.stream(predicates)
-                    .map(ItemStackPredicate::getInput)
-                    .map(Identifier::of)
-                    .map(Registries.ITEM::get)
-                    .map(Item::getDefaultStack)
-                    .toList();
-            CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
-            World world = fakePlayer.getWorld();
-            Optional<RecipeEntry<CraftingRecipe>> optional = fakePlayer.getWorld().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
-            return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
-        }
-        return ItemStack.EMPTY;
+        // 前面的循环中已经判断了字符串是否能转换成物品，所以这里不需要再判断
+        List<ItemStack> list = Arrays.stream(predicates)
+                .map(ItemStackPredicate::getInput)
+                .map(Identifier::of)
+                .map(Registries.ITEM::get)
+                .map(Item::getDefaultStack)
+                .toList();
+        CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
+        World world = fakePlayer.getWorld();
+        Optional<RecipeEntry<CraftingRecipe>> optional = fakePlayer.getWorld().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
+        return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
     }
 
     /**
