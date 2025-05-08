@@ -2,6 +2,7 @@ package org.carpetorgaddition.debug;
 
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 
+@SuppressWarnings("CanBeFinal")
 public class DebugSettings {
     static {
         // 不要在非开发环境加载

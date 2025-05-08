@@ -1,6 +1,5 @@
 package org.carpetorgaddition.util.wheel;
 
-import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.MathHelper;
 import org.carpetorgaddition.exception.OperationTimeoutException;

@@ -38,6 +38,7 @@ public final class ImmutableInventory implements Inventory, Iterable<ItemStack> 
         this.inventory = new SimpleInventory();
     }
 
+    @Override
     public int size() {
         return this.inventory.size();
     }
@@ -47,6 +48,7 @@ public final class ImmutableInventory implements Inventory, Iterable<ItemStack> 
         return this == EMPTY || this.inventory.isEmpty();
     }
 
+    @Override
     public ItemStack getStack(int slot) {
         return this.inventory.getStack(slot);
     }
@@ -66,10 +68,12 @@ public final class ImmutableInventory implements Inventory, Iterable<ItemStack> 
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void markDirty() {
         this.inventory.markDirty();
     }
 
+    @Override
     public boolean canPlayerUse(PlayerEntity player) {
         return this.inventory.canPlayerUse(player);
     }

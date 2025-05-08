@@ -11,7 +11,7 @@ import org.carpetorgaddition.util.GameUtils;
  */
 public record WaypointClearS2CPacket() implements CustomPayload {
     public static final CustomPayload.Id<WaypointClearS2CPacket> ID = PacketUtils.createId("waypoint_clear");
-    public static PacketCodec<RegistryByteBuf, WaypointClearS2CPacket> CODEC
+    public static final PacketCodec<RegistryByteBuf, WaypointClearS2CPacket> CODEC
             = PacketCodec.of((buf, value) -> GameUtils.pass(), buf -> new WaypointClearS2CPacket());
 
     @Override
