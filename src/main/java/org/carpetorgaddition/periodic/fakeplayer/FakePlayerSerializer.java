@@ -1,0 +1,360 @@
+package org.carpetorgaddition.periodic.fakeplayer;
+
+import carpet.fakes.ServerPlayerInterface;
+import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
+import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
+import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
+import org.carpetorgaddition.periodic.task.ServerTaskManager;
+import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
+import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.MetaComment;
+import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
+import java.util.function.Predicate;
+
+public class FakePlayerSerializer {
+    public static final String PLAYER_DATA = "player_data";
+    public static final String SCRIPT_ACTION = "script_action";
+    /**
+     * 玩家名称
+     */
+    private final String fakePlayerName;
+    /**
+     * 注释
+     */
+    private final MetaComment comment = new MetaComment();
+    /**
+     * 位置
+     */
+    private final Vec3d playerPos;
+    /**
+     * 偏航角
+     */
+    private final float yaw;
+    /**
+     * 俯仰角
+     */
+    private final float pitch;
+    /**
+     * 维度
+     */
+    private final String dimension;
+    /**
+     * 游戏模式
+     */
+    private final GameMode gameMode;
+    /**
+     * 是否飞行
+     */
+    private final boolean flying;
+    /**
+     * 是否潜行
+     */
+    private final boolean sneaking;
+    /**
+     * 是否自动登录
+     */
+    private boolean autologin = false;
+    /**
+     * 假玩家手部动作
+     */
+    private final EntityPlayerActionPackSerial interactiveAction;
+    /**
+     * 假玩家自动动作
+     */
+    private final FakePlayerActionSerializer autoAction;
+
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
+        this.fakePlayerName = fakePlayer.getName().getString();
+        this.playerPos = fakePlayer.getPos();
+        this.yaw = fakePlayer.getYaw();
+        this.pitch = fakePlayer.getPitch();
+        this.dimension = WorldUtils.getDimensionId(fakePlayer.getWorld());
+        this.gameMode = fakePlayer.interactionManager.getGameMode();
+        this.flying = fakePlayer.getAbilities().flying;
+        this.sneaking = fakePlayer.isSneaking();
+        this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
+        this.autoAction = new FakePlayerActionSerializer(fakePlayer);
+    }
+
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
+        this(fakePlayer);
+        this.comment.setComment(comment);
+    }
+
+    private FakePlayerSerializer(JsonObject json, String fakePlayerName) {
+        // 玩家名
+        this.fakePlayerName = fakePlayerName;
+        // 玩家位置
+        JsonObject pos = json.get("pos").getAsJsonObject();
+        this.playerPos = new Vec3d(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
+        // 获取朝向
+        JsonObject direction = json.get("direction").getAsJsonObject();
+        this.yaw = direction.get("yaw").getAsFloat();
+        this.pitch = direction.get("pitch").getAsFloat();
+        // 维度
+        this.dimension = json.get("dimension").getAsString();
+        // 游戏模式
+        this.gameMode = GameMode.byId(json.get("gamemode").getAsString());
+        // 是否飞行
+        this.flying = json.get("flying").getAsBoolean();
+        // 是否潜行
+        this.sneaking = json.get("sneaking").getAsBoolean();
+        // 是否自动登录
+        this.autologin = IOUtils.getJsonElement(json, "autologin", false, Boolean.class);
+        // 注释
+        JsonElement element = json.get("annotation");
+        this.comment.setComment(element == null ? "" : element.getAsString());
+        // 假玩家左右手动作
+        if (json.has("hand_action")) {
+            this.interactiveAction = new EntityPlayerActionPackSerial(json.get("hand_action").getAsJsonObject());
+        } else {
+            this.interactiveAction = EntityPlayerActionPackSerial.NO_ACTION;
+        }
+        // 假玩家动作，自动合成自动交易等
+        if (json.has(SCRIPT_ACTION)) {
+            JsonObject scriptJson = json.get(SCRIPT_ACTION).getAsJsonObject();
+            this.autoAction = new FakePlayerActionSerializer(scriptJson);
+        } else {
+            this.autoAction = FakePlayerActionSerializer.NO_ACTION;
+        }
+    }
+
+    public static FakePlayerSerializer factory(WorldFormat worldFormat, String nameOrFileName) throws IOException {
+        JsonObject json = IOUtils.loadJson(worldFormat.file(nameOrFileName, IOUtils.JSON_EXTENSION));
+        int version = DataUpdater.getVersion(json);
+        if (version < DataUpdater.VERSION) {
+            FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
+            // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
+            json = dataUpdater.update(json, version);
+        }
+        String fakePlayerName = IOUtils.removeExtension(nameOrFileName, IOUtils.JSON_EXTENSION);
+        return new FakePlayerSerializer(json, fakePlayerName);
+    }
+
+    /**
+     * 将当前对象保存到本地文件
+     *
+     * @return 如果是首次保存，返回0，如果是重新保存，返回1，如果未能保存，返回-1
+     */
+    public int save(CommandContext<ServerCommandSource> context, boolean resave) throws IOException {
+        MinecraftServer server = context.getSource().getServer();
+        WorldFormat worldFormat = new WorldFormat(server, PLAYER_DATA);
+        String name = this.fakePlayerName;
+        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
+        // 玩家数据是否已存在
+        boolean exists = file.exists();
+        if (exists && !resave) {
+            String command = CommandProvider.playerManagerResave(name, this.comment);
+            // 单击执行命令
+            MutableText clickResave = TextProvider.clickRun(command);
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
+            return -1;
+        }
+        IOUtils.saveJson(file, this.toJson());
+        return exists ? 1 : 0;
+    }
+
+    // 从json加载并生成假玩家
+    public void spawn(MinecraftServer server) throws CommandSyntaxException {
+        if (server.getPlayerManager().getPlayer(this.fakePlayerName) != null) {
+            throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
+        }
+        // 生成假玩家
+        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, yaw, pitch,
+                WorldUtils.getWorld(dimension), this.gameMode, flying);
+        fakePlayer.setSneaking(sneaking);
+        // 设置玩家动作
+        this.interactiveAction.startAction(fakePlayer);
+        this.autoAction.startAction(fakePlayer);
+    }
+
+    // 显示文本信息
+    public Text info() {
+        TextBuilder build = new TextBuilder();
+        // 玩家位置
+        String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
+                + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
+                + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
+        build.appendTranslateLine("carpet.commands.playerManager.info.pos",
+                pos);
+        // 获取朝向
+        build.appendTranslateLine("carpet.commands.playerManager.info.direction",
+                MathUtils.numberToTwoDecimalString(this.yaw),
+                MathUtils.numberToTwoDecimalString(this.pitch));
+        // 维度
+        build.appendTranslateLine("carpet.commands.playerManager.info.dimension", switch (this.dimension) {
+            case "minecraft:overworld", "overworld" -> TextProvider.OVERWORLD;
+            case "minecraft:the_nether", "the_nether" -> TextProvider.THE_NETHER;
+            case "minecraft:the_end", "the_end" -> TextProvider.THE_END;
+            default -> TextUtils.createText(dimension);
+        });
+        // 游戏模式
+        build.appendTranslateLine("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
+        // 是否飞行
+        build.appendTranslateLine("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
+        // 是否潜行
+        build.appendTranslateLine("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
+        // 是否自动登录
+        build.appendTranslate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
+        if (this.interactiveAction.hasAction()) {
+            build.newLine().append(this.interactiveAction.toText());
+        }
+        if (this.autoAction.hasAction()) {
+            build.newLine().append(this.autoAction.toText());
+        }
+        if (this.comment.hasContent()) {
+            // 添加注释
+            build.newLine().appendTranslate("carpet.commands.playerManager.info.comment", this.comment.getText());
+        }
+        return build.toLine();
+    }
+
+    public JsonObject toJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        // 玩家位置
+        JsonObject pos = new JsonObject();
+        pos.addProperty("x", this.playerPos.x);
+        pos.addProperty("y", this.playerPos.y);
+        pos.addProperty("z", this.playerPos.z);
+        json.add("pos", pos);
+        // 玩家朝向
+        JsonObject direction = new JsonObject();
+        direction.addProperty("yaw", this.yaw);
+        direction.addProperty("pitch", this.pitch);
+        json.add("direction", direction);
+        // 维度
+        json.addProperty("dimension", this.dimension);
+        // 游戏模式
+        json.addProperty("gamemode", this.gameMode.getId());
+        // 是否飞行
+        json.addProperty("flying", this.flying);
+        // 是否潜行
+        json.addProperty("sneaking", this.sneaking);
+        // 自动登录
+        json.addProperty("autologin", this.autologin);
+        // 注释
+        json.addProperty("annotation", this.comment.getComment());
+        // 添加左键右键动作
+        json.add("hand_action", interactiveAction.toJson());
+        // 添加玩家动作
+        json.add(SCRIPT_ACTION, this.autoAction.toJson());
+        return json;
+    }
+
+    // 修改注释
+    public void setComment(@Nullable String comment) {
+        this.comment.setComment(comment);
+    }
+
+    // 设置自动登录
+    public void setAutologin(boolean autologin) {
+        this.autologin = autologin;
+    }
+
+    // 获取玩家名
+    public String getFakePlayerName() {
+        return this.fakePlayerName;
+    }
+
+    // 获取显示名称
+    public Text getDisplayName() {
+        return TextUtils.hoverText(this.fakePlayerName, this.info());
+    }
+
+    // 列出每一条玩家信息
+    public static int list(CommandContext<ServerCommandSource> context, WorldFormat worldFormat, Predicate<String> filter) {
+        MutableText online = TextUtils.translate("carpet.commands.playerManager.click.online");
+        MutableText offline = TextUtils.translate("carpet.commands.playerManager.click.offline");
+        // 使用变量记录列出的数量，而不是直接使用集合的长度，因为集合中可能存在一些非json的文件，或者被损坏的json文件
+        int count = 0;
+        // 所有json文件
+        List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
+        for (File file : jsonFileList) {
+            try {
+                FakePlayerSerializer serial = factory(worldFormat, file.getName());
+                if (filter.test(serial.comment.getComment()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
+                    eachPlayer(context, file, online, offline, serial);
+                    count++;
+                }
+            } catch (IOException | RuntimeException e) {
+                CarpetOrgAddition.LOGGER.warn("无法从文件{}加载玩家信息", file.getName(), e);
+            }
+        }
+        return count;
+    }
+
+    private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
+        // 添加快捷命令
+        String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
+        String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
+        String offlineCommand = CommandProvider.killFakePlayer(playerName);
+        MutableText mutableText = TextUtils.appendAll(
+                TextUtils.command(TextUtils.createText("[↑]"), onlineCommand, online, Formatting.GREEN, false), " ",
+                TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",
+                TextUtils.hoverText(TextUtils.createText("[?]"), serial.info(), Formatting.GRAY), " ",
+                // 如果有注释，在列出的玩家的名字上也添加注释
+                serial.comment.hasContent() ? TextUtils.hoverText(playerName, serial.comment.getText()) : playerName);
+        // 发送消息
+        MessageUtils.sendMessage(context.getSource(), mutableText);
+    }
+
+    /**
+     * 假玩家自动登录
+     */
+    public static void autoLogin(MinecraftServer server) {
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        try {
+            tryAutoLogin(server, manager);
+        } catch (RuntimeException | CommandSyntaxException e) {
+            CarpetOrgAddition.LOGGER.error("玩家自动登录出现意外错误", e);
+        }
+    }
+
+    private static void tryAutoLogin(MinecraftServer server, ServerTaskManager manager) throws CommandSyntaxException {
+        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
+        List<File> files = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
+        int count = server.getCurrentPlayerCount();
+        for (File file : files) {
+            FakePlayerSerializer fakePlayerSerializer;
+            try {
+                fakePlayerSerializer = factory(worldFormat, file.getName());
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION), e);
+                continue;
+            }
+            if (fakePlayerSerializer.autologin) {
+                manager.addTask(new DelayedLoginTask(server, fakePlayerSerializer, 1));
+                count++;
+                // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
+                if (count >= server.getMaxPlayerCount() - 1) {
+                    CarpetOrgAddition.LOGGER.warn("服务器玩家即将达到上限");
+                    return;
+                }
+            }
+        }
+    }
+}

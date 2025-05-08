@@ -5,8 +5,9 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.carpetorgaddition.translate.Translate;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.util.wheel.Translation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -64,35 +65,12 @@ public class TextUtils {
         return text;
     }
 
-    /**
-     * 获取一个可以单击打开网页链接的可变文本组件，带有下划线
-     *
-     * @param original  原始的文本，直接显示在聊天栏中的文本
-     * @param url       单击后要打开的网页链接
-     * @param hoverText 悬停在原始文本上的内容
-     * @param color     文本的颜色
-     * @return 可以单击打开网页链接的可变文本组件
-     */
-    public static MutableText url(@NotNull String original, @Nullable String url, @Nullable String hoverText, @Nullable Formatting color) {
-        MutableText text = Text.literal(original);
-        //添加下划线
-        text.styled(style -> style.withUnderline(true));
-        if (url != null) {
-            try {
-                URI uRI = new URI(url);
-                text.styled(style -> style.withClickEvent(new ClickEvent.OpenUrl(uRI)));
-            } catch (URISyntaxException e) {
-                MutableText translate = TextUtils.translate("carpet.text.url.invalid");
-                text.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(translate)));
-            }
-        }
-        if (hoverText != null) {
-            text.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(Text.literal(hoverText))));
-        }
-        if (color != null) {
-            text.styled(style -> style.withColor(color));
-        }
-        return text;
+    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText) {
+        return command(text, command, hoverText, null, false);
+    }
+
+    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText, @Nullable Formatting color) {
+        return command(text, command, hoverText, color, false);
     }
 
     /**
@@ -150,25 +128,6 @@ public class TextUtils {
     }
 
     /**
-     * @param original      原始的字符串
-     * @param color         字符串的颜色
-     * @param bold          是否带有粗体
-     * @param italic        是否带有斜体
-     * @param underlined    是否带有下划线
-     * @param strikethrough 是否带有删除线
-     * @return 只带有一些普通样式的可变文本对象
-     */
-    public static MutableText regularStyle(String original, Formatting color, boolean bold, boolean italic, boolean underlined, boolean strikethrough) {
-        MutableText text = Text.literal(original);
-        text.styled(style -> style.withColor(color)
-                .withBold(bold)
-                .withItalic(italic)
-                .withUnderline(underlined)
-                .withStrikethrough(strikethrough));
-        return text;
-    }
-
-    /**
      * 根据字符串创建一个新的可变文本对象
      *
      * @param text 可变文本对象的内容
@@ -197,6 +156,13 @@ public class TextUtils {
     }
 
     /**
+     * 将一个可变文本对象设置为粗体
+     */
+    public static MutableText toBold(MutableText mutableText) {
+        return mutableText.styled(style -> style.withBold(true));
+    }
+
+    /**
      * 设置一个可变文本对象的颜色
      */
     public static MutableText setColor(MutableText mutableText, Formatting formatting) {
@@ -208,6 +174,13 @@ public class TextUtils {
      */
     public static MutableText toGrayItalic(MutableText mutableText) {
         return toItalic(setColor(mutableText, Formatting.GRAY));
+    }
+
+    /**
+     * 为一段文本添加删除线
+     */
+    public static MutableText toStrikethrough(MutableText mutableText) {
+        return mutableText.styled(style -> style.withStrikethrough(true));
     }
 
     /**
@@ -240,7 +213,7 @@ public class TextUtils {
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));
             if (i < list.size() - 1) {
-                result.append("\n");
+                result.append(TextProvider.NEW_LINE);
             }
         }
         return result;
@@ -253,7 +226,7 @@ public class TextUtils {
      * @return 可翻译文本
      */
     public static MutableText translate(String key, Object... obj) {
-        String value = Translate.getTranslateValue(key);
+        String value = Translation.getTranslateValue(key);
         return Text.translatableWithFallback(key, value, obj);
     }
 }

@@ -1,9 +1,13 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
-import org.carpetorgaddition.periodic.PlayerPeriodicTaskManager;
-import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
+import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
+import org.carpetorgaddition.rule.RuleSelfManager;
 import org.jetbrains.annotations.Contract;
 
 public class GenericFetcherUtils {
@@ -14,11 +18,20 @@ public class GenericFetcherUtils {
      */
     @Contract("_ -> !null")
     public static FakePlayerActionManager getFakePlayerActionManager(EntityPlayerMPFake fakePlayer) {
-        return PlayerPeriodicTaskManager.getManager(fakePlayer).getFakePlayerActionManager();
+        return PlayerComponentCoordinator.getManager(fakePlayer).getFakePlayerActionManager();
     }
 
     @Contract("_ -> !null")
-    public static BlockBreakManager getBlockBreakManager(EntityPlayerMPFake fakePlayer) {
-        return PlayerPeriodicTaskManager.getManager(fakePlayer).getBlockBreakManager();
+    public static BlockExcavator getBlockExcavator(EntityPlayerMPFake fakePlayer) {
+        return PlayerComponentCoordinator.getManager(fakePlayer).getBlockExcavator();
+    }
+
+    public static RuleSelfManager getRuleSelfManager(MinecraftServer server) {
+        return ServerComponentCoordinator.getManager(server).getRuleSelfManager();
+    }
+
+    public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
+        return getRuleSelfManager(player.server);
     }
 }
+

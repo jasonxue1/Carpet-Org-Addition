@@ -34,11 +34,11 @@ public class PlayerInventoryScreenHandler extends ScreenHandler implements Unava
     private final ServerPlayerEntity player;
     private final ServerPlayerInventory inventory;
 
-    public PlayerInventoryScreenHandler(int syncId, PlayerInventory playerInventory, ServerPlayerEntity player) {
+    public PlayerInventoryScreenHandler(int syncId, PlayerInventory inventory, ServerPlayerEntity player) {
         super(ScreenHandlerType.GENERIC_9X6, syncId);
         this.player = player;
         this.inventory = new ServerPlayerInventory(player);
-        this.inventory.onOpen(playerInventory.player);
+        this.inventory.onOpen(inventory.player);
         // 定义变量记录添加的槽位的索引
         int index = 0;
         // 添加上半部分的槽位
@@ -47,10 +47,10 @@ public class PlayerInventoryScreenHandler extends ScreenHandler implements Unava
                 // 如果槽位id大于玩家物品栏的大小，添加不可用槽位
                 if (index >= SIZE) {
                     // 添加不可用槽位
-                    this.addSlot(new DisabledSlot(inventory, index, 8 + k * 18, 18 + j * 18));
+                    this.addSlot(new DisabledSlot(this.inventory, index, 8 + k * 18, 18 + j * 18));
                 } else {
                     // 添加普通槽位
-                    this.addSlot(new Slot(inventory, getIndex(index), 8 + k * 18, 18 + j * 18));
+                    this.addSlot(new Slot(this.inventory, getIndex(index), 8 + k * 18, 18 + j * 18));
                 }
                 index++;
             }
@@ -59,13 +59,13 @@ public class PlayerInventoryScreenHandler extends ScreenHandler implements Unava
         index = 0;
         for (int j = 0; j < 3; ++j) {
             for (int k = 0; k < 9; ++k) {
-                this.addSlot(new Slot(playerInventory, index + 9, 8 + k * 18, 103 + j * 18 + 36));
+                this.addSlot(new Slot(inventory, index + 9, 8 + k * 18, 103 + j * 18 + 36));
                 index++;
             }
         }
         // 将记录槽位索引的变量重置为0，然后添加快捷栏槽位
         for (index = 0; index < 9; ++index) {
-            this.addSlot(new Slot(playerInventory, index, 8 + index * 18, 161 + 36));
+            this.addSlot(new Slot(inventory, index, 8 + index * 18, 161 + 36));
         }
     }
 

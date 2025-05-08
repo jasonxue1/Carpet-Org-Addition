@@ -11,6 +11,7 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.MinecraftServer;
@@ -22,19 +23,22 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerial;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
-import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLoginTask;
-import org.carpetorgaddition.periodic.task.playerscheduletask.DelayedLogoutTask;
-import org.carpetorgaddition.periodic.task.playerscheduletask.PlayerScheduleTask;
-import org.carpetorgaddition.periodic.task.playerscheduletask.ReLoginTask;
+import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
+import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
+import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
+import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.constant.TextConstants;
+import org.carpetorgaddition.util.permission.PermissionLevel;
+import org.carpetorgaddition.util.permission.PermissionManager;
+import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,11 +47,15 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class PlayerManagerCommand {
-
+public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
 
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
+    public PlayerManagerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+        super(dispatcher, access);
+    }
+
+    @Override
+    public void register(String name) {
         // 延迟登录节点
         RequiredArgumentBuilder<ServerCommandSource, Integer> loginNode = CommandManager.argument("delayed", IntegerArgumentType.integer(1));
         for (TimeUnit unit : TimeUnit.values()) {
@@ -61,33 +69,34 @@ public class PlayerManagerCommand {
             logoutNode.then(CommandManager.literal(unit.getName())
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
-        dispatcher.register(CommandManager.literal("playerManager")
+        this.dispatcher.register(CommandManager.literal(name)
                 .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerManager))
                 .then(CommandManager.literal("save")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                 .executes(context -> savePlayer(context, false))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> withAnnotationSavePlayer(context, false)))))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> withCommentSavePlayer(context, false)))))
                 .then(CommandManager.literal("spawn")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .executes(PlayerManagerCommand::spawnPlayer)))
-                .then(CommandManager.literal("annotation")
+                                .executes(this::spawnPlayer)))
+                .then(CommandManager.literal("comment")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .executes(context -> setAnnotation(context, true))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> setAnnotation(context, false)))))
+                                .executes(context -> setComment(context, true))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> setComment(context, false)))))
                 .then(CommandManager.literal("autologin")
+                        .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .then(CommandManager.argument("autologin", BoolArgumentType.bool())
-                                        .executes(PlayerManagerCommand::setAutoLogin))))
+                                        .executes(this::setAutoLogin))))
                 .then(CommandManager.literal("resave")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                 .executes(context -> savePlayer(context, true))
-                                .then(CommandManager.argument("annotation", StringArgumentType.string())
-                                        .executes(context -> withAnnotationSavePlayer(context, true)))))
+                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .executes(context -> withCommentSavePlayer(context, true)))))
                 .then(CommandManager.literal("list")
                         .executes(context -> list(context, s -> true))
                         .then(CommandManager.argument("filter", StringArgumentType.string())
@@ -95,16 +104,17 @@ public class PlayerManagerCommand {
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .executes(PlayerManagerCommand::delete)))
+                                .executes(this::delete)))
                 .then(CommandManager.literal("schedule")
                         .then(CommandManager.literal("relogin")
+                                .requires(PermissionManager.register("playerManager.schedule.relogin", PermissionLevel.PASS))
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(reLoginTaskSuggests())
                                         .then(CommandManager.argument("interval", IntegerArgumentType.integer(1))
                                                 .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"1", "3", "5"}, builder))
-                                                .executes(PlayerManagerCommand::setReLogin))
+                                                .executes(this::setReLogin))
                                         .then(CommandManager.literal("stop")
-                                                .executes(PlayerManagerCommand::stopReLogin))))
+                                                .executes(this::stopReLogin))))
                         .then(CommandManager.literal("login")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
@@ -115,9 +125,9 @@ public class PlayerManagerCommand {
                         .then(CommandManager.literal("cancel")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
                                         .suggests(cancelSuggests())
-                                        .executes(PlayerManagerCommand::cancelScheduleTask)))
+                                        .executes(this::cancelScheduleTask)))
                         .then(CommandManager.literal("list")
-                                .executes(PlayerManagerCommand::listScheduleTask)))
+                                .executes(this::listScheduleTask)))
                 .then(CommandManager.literal("safeafk")
                         .then(CommandManager.literal("set")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
@@ -127,7 +137,7 @@ public class PlayerManagerCommand {
                                                 .then(CommandManager.argument("save", BoolArgumentType.bool())
                                                         .executes(context -> safeAfk(context, FloatArgumentType.getFloat(context, "threshold"), BoolArgumentType.getBool(context, "save")))))))
                         .then(CommandManager.literal("list")
-                                .executes(PlayerManagerCommand::listSafeAfk))
+                                .executes(this::listSafeAfk))
                         .then(CommandManager.literal("cancel")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(context -> cancelSafeAfk(context, false))
@@ -135,34 +145,34 @@ public class PlayerManagerCommand {
                                                 .executes(context -> cancelSafeAfk(context, true)))))
                         .then(CommandManager.literal("query")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                        .executes(PlayerManagerCommand::querySafeAfk)))));
+                                        .executes(this::querySafeAfk)))));
     }
 
     // cancel子命令自动补全
     @NotNull
-    private static SuggestionProvider<ServerCommandSource> cancelSuggests() {
+    private SuggestionProvider<ServerCommandSource> cancelSuggests() {
         return (context, builder) -> {
-            ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
             Stream<String> stream = manager.stream(PlayerScheduleTask.class).map(PlayerScheduleTask::getPlayerName);
             return CommandSource.suggestMatching(stream, builder);
         };
     }
 
     // 自动补全玩家名
-    private static SuggestionProvider<ServerCommandSource> defaultSuggests() {
+    private SuggestionProvider<ServerCommandSource> defaultSuggests() {
         return (context, builder) -> CommandSource.suggestMatching(new WorldFormat(context.getSource().getServer(),
-                FakePlayerSerial.PLAYER_DATA).toImmutableFileList().stream()
+                FakePlayerSerializer.PLAYER_DATA).toImmutableFileList().stream()
                 .filter(file -> file.getName().endsWith(IOUtils.JSON_EXTENSION))
-                .map(file -> IOUtils.removeExtension(file.getName()))
+                .map(file -> IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION))
                 .map(StringArgumentType::escapeIfRequired), builder);
     }
 
     // relogin子命令自动补全
     @NotNull
-    public static SuggestionProvider<ServerCommandSource> reLoginTaskSuggests() {
+    private SuggestionProvider<ServerCommandSource> reLoginTaskSuggests() {
         return (context, builder) -> {
             MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerPeriodicTaskManager.getManager(server).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
             // 所有正在周期性上下线的玩家
             List<String> taskList = manager.stream(ReLoginTask.class).map(ReLoginTask::getPlayerName).toList();
             // 所有在线玩家
@@ -179,7 +189,7 @@ public class PlayerManagerCommand {
     }
 
     // 安全挂机
-    private static int safeAfk(CommandContext<ServerCommandSource> context, float threshold, boolean save) throws CommandSyntaxException {
+    private int safeAfk(CommandContext<ServerCommandSource> context, float threshold, boolean save) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 假玩家安全挂机阈值必须小于玩家最大生命值
         if (threshold >= fakePlayer.getMaxHealth()) {
@@ -199,20 +209,20 @@ public class PlayerManagerCommand {
                 throw CommandExecuteIOException.of(e);
             }
         } else {
-            String command = "/playerManager safeafk set " + fakePlayer.getName().getString() + " " + threshold + " true";
+            String command = CommandProvider.setupSafeAfkPermanentlyChange(fakePlayer, threshold);
             MessageUtils.sendMessage(
                     context,
                     "carpet.commands.playerManager.safeafk.successfully_set_up",
                     fakePlayer.getDisplayName(),
                     threshold,
-                    TextConstants.clickRun(command)
+                    TextProvider.clickRun(command)
             );
         }
         return (int) threshold;
     }
 
     // 列出所有设置了安全挂机的在线假玩家
-    private static int listSafeAfk(CommandContext<ServerCommandSource> context) {
+    private int listSafeAfk(CommandContext<ServerCommandSource> context) {
         List<ServerPlayerEntity> list = context.getSource().getServer().getPlayerManager().getPlayerList()
                 .stream().filter(player -> player instanceof EntityPlayerMPFake).toList();
         int count = 0;
@@ -234,7 +244,7 @@ public class PlayerManagerCommand {
     }
 
     // 取消假玩家的安全挂机
-    private static int cancelSafeAfk(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
+    private int cancelSafeAfk(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 设置安全挂机阈值
         FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) fakePlayer;
@@ -247,14 +257,14 @@ public class PlayerManagerCommand {
             }
         } else {
             String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
-            MutableText command = TextConstants.clickRun("/playerManager safeafk set " + fakePlayer.getName().getString() + " -1 true");
+            MutableText command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
             MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
         }
         return 1;
     }
 
     // 查询指定玩家的安全挂机阈值
-    private static int querySafeAfk(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int querySafeAfk(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).getHealthThreshold();
         String key = "carpet.commands.playerManager.safeafk.list.each";
@@ -263,7 +273,7 @@ public class PlayerManagerCommand {
     }
 
     // 保存或删除安全挂机阈值
-    private static void saveSafeAfkThreshold(
+    private void saveSafeAfkThreshold(
             CommandContext<ServerCommandSource> context,
             float threshold,
             EntityPlayerMPFake fakePlayer
@@ -334,9 +344,9 @@ public class PlayerManagerCommand {
     }
 
     // 列出每一个玩家
-    private static int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
-        int count = FakePlayerSerial.list(context, worldFormat, filter);
+    private int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) {
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
+        int count = FakePlayerSerializer.list(context, worldFormat, filter);
         if (count == 0) {
             // 没有玩家被列出
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
@@ -346,31 +356,31 @@ public class PlayerManagerCommand {
     }
 
     // 保存假玩家数据
-    private static int savePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
+    private int savePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerSerial fakePlayerSerial = new FakePlayerSerial(fakePlayer);
-        savePlayer(context, fakePlayerSerial, fakePlayer, resave);
+        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer);
+        savePlayer(context, fakePlayerSerializer, fakePlayer, resave);
         return 1;
     }
 
     // 保存玩家带注释
-    private static int withAnnotationSavePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
+    private int withCommentSavePlayer(CommandContext<ServerCommandSource> context, boolean resave) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        String annotation = StringArgumentType.getString(context, "annotation");
-        FakePlayerSerial fakePlayerSerial = new FakePlayerSerial(fakePlayer, annotation);
-        return savePlayer(context, fakePlayerSerial, fakePlayer, resave);
+        String comment = StringArgumentType.getString(context, "comment");
+        FakePlayerSerializer fakePlayerSerializer = new FakePlayerSerializer(fakePlayer, comment);
+        return savePlayer(context, fakePlayerSerializer, fakePlayer, resave);
     }
 
     // 设置注释
-    private static int setAnnotation(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
+    private int setComment(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         // 修改注释
-        String annotation = remove ? null : StringArgumentType.getString(context, "annotation");
-        FakePlayerSerial serial;
+        String comment = remove ? null : StringArgumentType.getString(context, "comment");
+        FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerial(worldFormat, name);
-            serial.setAnnotation(annotation);
+            serial = FakePlayerSerializer.factory(worldFormat, name);
+            serial.setComment(comment);
             // 将玩家信息重新保存的本地文件
             serial.save(context, true);
         } catch (FileNotFoundException e) {
@@ -381,22 +391,22 @@ public class PlayerManagerCommand {
         // 发送命令反馈
         if (remove) {
             // 移除注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.annotation.remove", serial.getDisplayName());
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.remove", serial.getDisplayName());
         } else {
             // 修改注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.annotation.modify", serial.getDisplayName(), annotation);
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.modify", serial.getDisplayName(), comment);
         }
         return 1;
     }
 
     // 设置自动登录
-    private static int setAutoLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+    private int setAutoLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         String name = StringArgumentType.getString(context, "name");
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
-        FakePlayerSerial serial;
+        FakePlayerSerializer serial;
         try {
-            serial = new FakePlayerSerial(worldFormat, name);
+            serial = FakePlayerSerializer.factory(worldFormat, name);
             // 设置自动登录
             serial.setAutologin(autologin);
             serial.save(context, true);
@@ -415,9 +425,9 @@ public class PlayerManagerCommand {
     }
 
     // 保存玩家
-    private static int savePlayer(CommandContext<ServerCommandSource> context, FakePlayerSerial fakePlayerSerial, EntityPlayerMPFake fakePlayer, boolean resave) throws CommandSyntaxException {
+    private int savePlayer(CommandContext<ServerCommandSource> context, FakePlayerSerializer fakePlayerSerializer, EntityPlayerMPFake fakePlayer, boolean resave) throws CommandSyntaxException {
         try {
-            int result = fakePlayerSerial.save(context, resave);
+            int result = fakePlayerSerializer.save(context, resave);
             if (result == 0) {
                 // 首次保存
                 MessageUtils.sendMessage(context.getSource(),
@@ -437,11 +447,11 @@ public class PlayerManagerCommand {
     }
 
     // 生成假玩家
-    private static int spawnPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int spawnPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         try {
-            FakePlayerSerial serial = new FakePlayerSerial(worldFormat, name);
+            FakePlayerSerializer serial = FakePlayerSerializer.factory(worldFormat, name);
             // 生成假玩家
             serial.spawn(context.getSource().getServer());
         } catch (FileNotFoundException e) {
@@ -454,10 +464,10 @@ public class PlayerManagerCommand {
     }
 
     // 删除玩家信息
-    private static int delete(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerial.PLAYER_DATA);
+    private int delete(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         String name = StringArgumentType.getString(context, "name");
-        File file = worldFormat.getFile(name);
+        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
         // 文件存在且文件删除成功
         if (file.isFile() && file.delete()) {
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.delete.success");
@@ -468,14 +478,14 @@ public class PlayerManagerCommand {
     }
 
     // 设置不断重新上线下线
-    private static int setReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         // 强制启用内存泄漏修复
         if (fixMemoryLeak(context)) {
             // 获取目标假玩家名
             String name = StringArgumentType.getString(context, "name");
             int interval = IntegerArgumentType.getInteger(context, "interval");
             MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
             // 如果任务存在，修改任务，否则添加任务
             Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                     .filter(task -> Objects.equals(task.getPlayerName(), name))
@@ -488,7 +498,7 @@ public class PlayerManagerCommand {
                     throw CommandUtils.createException("argument.entity.notfound.player");
                 } else {
                     // 目标玩家不是假玩家
-                    CommandUtils.checkFakePlayer(player);
+                    CommandUtils.assertFakePlayer(player);
                 }
                 manager.addTask(new ReLoginTask(name, interval, server, player.getWorld().getRegistryKey(), context));
             } else {
@@ -502,7 +512,7 @@ public class PlayerManagerCommand {
     }
 
     // 启用内存泄漏修复
-    private static boolean fixMemoryLeak(CommandContext<ServerCommandSource> context) {
+    private boolean fixMemoryLeak(CommandContext<ServerCommandSource> context) {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix) {
             return true;
         }
@@ -518,10 +528,10 @@ public class PlayerManagerCommand {
     }
 
     // 停止重新上线下线
-    private static int stopReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int stopReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         // 获取目标假玩家名
         String name = StringArgumentType.getString(context, "name");
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .findFirst();
@@ -533,22 +543,22 @@ public class PlayerManagerCommand {
     }
 
     // 延时上线
-    private static int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
+    private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         Optional<DelayedLoginTask> optional = manager.stream(DelayedLoginTask.class)
                 .filter(task -> Objects.equals(name, task.getPlayerName()))
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextConstants.tickToTime(tick), TextConstants.tickToRealTime(tick));
+        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
         if (optional.isEmpty()) {
             // 添加上线任务
-            WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerial.PLAYER_DATA);
-            FakePlayerSerial serial;
+            WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
+            FakePlayerSerializer serial;
             try {
-                serial = new FakePlayerSerial(worldFormat, name);
+                serial = FakePlayerSerializer.factory(worldFormat, name);
             } catch (IOException e) {
                 throw CommandUtils.createException("carpet.commands.playerManager.schedule.read_file");
             }
@@ -572,13 +582,13 @@ public class PlayerManagerCommand {
     }
 
     // 延迟下线
-    private static int addDelayedLogoutTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
+    private int addDelayedLogoutTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextConstants.tickToTime(tick), TextConstants.tickToRealTime(tick));
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(server).getServerTaskManager();
+        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))
                 .findFirst();
@@ -596,8 +606,8 @@ public class PlayerManagerCommand {
     }
 
     // 取消任务
-    private static int cancelScheduleTask(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+    private int cancelScheduleTask(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         // 获取符合条件的任务列表
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class)
@@ -611,8 +621,8 @@ public class PlayerManagerCommand {
     }
 
     // 列出所有任务
-    private static int listScheduleTask(CommandContext<ServerCommandSource> context) {
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+    private int listScheduleTask(CommandContext<ServerCommandSource> context) {
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.list.empty");
@@ -620,6 +630,11 @@ public class PlayerManagerCommand {
             list.forEach(task -> task.sendEachMessage(context.getSource()));
         }
         return list.size();
+    }
+
+    @Override
+    public String getDefaultName() {
+        return "playerManager";
     }
 
     /**

@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.rule.Hidden;
 import org.carpetorgaddition.rule.Removed;
+import org.carpetorgaddition.rule.RuleSelf;
 import org.carpetorgaddition.rule.validator.*;
 import org.carpetorgaddition.rule.value.*;
 
@@ -20,6 +21,10 @@ public class CarpetOrgAdditionSettings {
      */
     public static final ThreadLocal<Boolean> shulkerBoxStackCountChanged = ThreadLocal.withInitial(() -> true);
     /**
+     * 玩家是否正在执行{@code /killMe}命令
+     */
+    public static final ThreadLocal<Boolean> committingSuicide = ThreadLocal.withInitial(() -> false);
+    /**
      * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
      */
     public static final ThreadLocal<ServerPlayerEntity> blockBreaking = new ThreadLocal<>();
@@ -32,7 +37,7 @@ public class CarpetOrgAdditionSettings {
     }
 
     public static final String ORG = "Org";
-    public static final String Hidden = "Hidden";
+    public static final String HIDDEN = "Hidden";
 
     // 制作物品分身
     @Rule(
@@ -42,6 +47,7 @@ public class CarpetOrgAdditionSettings {
     public static String commandItemShadowing = "ops";
 
     // 设置基岩硬度
+    @Removed
     @Rule(
             categories = {ORG},
             validators = {BedrockHardnessValidator.class}
@@ -55,11 +61,6 @@ public class CarpetOrgAdditionSettings {
     // 禁用钓鱼开阔水域检测
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean disableOpenOrWaterDetection = false;
-
-    // 幽匿尖啸体放置时状态
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean sculkShriekerCanSummon = false;
 
     // 创造玩家免疫/kill
     @Rule(categories = {ORG, RuleCategory.CREATIVE})
@@ -102,16 +103,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean disableDamageImmunity = false;
 
-    // 干草捆完全抵消摔落伤害
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean hayBlockCompleteOffsetFall = false;
-
-    // 蓝冰上不能刷怪
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean blueIceCanSpawn = false;
-
     // 禁止蝙蝠生成
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean disableBatCanSpawn = false;
@@ -136,22 +127,8 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean riptideIgnoreWeather = false;
 
-    // 禁止猪灵僵尸化
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean disablePiglinZombify = false;
-
-    // 禁止村民女巫化
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    @Removed
-    public static boolean disableVillagerWitch = false;
-
-    // 禁止铁傀儡攻击玩家
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean disableIronGolemAttackPlayer = false;
-
     // 将镐作为基岩的有效采集工具
+    @Removed
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean pickaxeMinedBedrock = false;
 
@@ -162,13 +139,6 @@ public class CarpetOrgAdditionSettings {
     // 假玩家回血
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean fakePlayerHeal = false;
-
-    // 假玩家工具命令
-    @Rule(
-            categories = {ORG, RuleCategory.COMMAND},
-            options = {"true", "false", "ops", "0", "1", "2", "3", "4"}
-    )
-    public static String commandPlayerTools = "false";
 
     // 最大方块交互距离适用于实体
     @Rule(categories = {ORG, RuleCategory.FEATURE})
@@ -193,13 +163,6 @@ public class CarpetOrgAdditionSettings {
     // 开放/seed命令权限
     @Rule(categories = {ORG, RuleCategory.COMMAND})
     public static boolean openSeedPermissions = false;
-
-    // 发送消息命令
-    @Rule(
-            categories = {ORG, RuleCategory.COMMAND},
-            options = {"true", "false", "ops", "0", "1", "2", "3", "4"}
-    )
-    public static String commandSendMessage = "ops";
 
     // 开放/carpet命令权限
     @Rule(categories = {ORG, RuleCategory.COMMAND, RuleCategory.CLIENT})
@@ -338,11 +301,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static QuickSettingFakePlayerCraft quickSettingFakePlayerCraft = QuickSettingFakePlayerCraft.FALSE;
 
-    // 湿海绵立即干燥
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.SURVIVAL})
-    public static WetSpongeImmediatelyDry wetSpongeImmediatelyDry = WetSpongeImmediatelyDry.FALSE;
-
     // 假玩家死亡不掉落
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean fakePlayerKeepInventory = false;
@@ -380,11 +338,6 @@ public class CarpetOrgAdditionSettings {
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean beaconWorldHeight = false;
 
-    // 生物是否可以捡起物品
-    @Removed
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static MobWhetherOrNotCanPickItem mobWhetherOrNotCanPickItem = MobWhetherOrNotCanPickItem.VANILLA;
-
     // 可高亮方块坐标
     @Rule(categories = {ORG, RuleCategory.SURVIVAL, RuleCategory.CLIENT})
     public static CanHighlightBlockPos canHighlightBlockPos = CanHighlightBlockPos.DEFAULT;
@@ -397,6 +350,7 @@ public class CarpetOrgAdditionSettings {
     public static String commandPlayerManager = "ops";
 
     // 方块掉落物直接进入物品栏
+    @RuleSelf
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
     public static boolean blockDropsDirectlyEnterInventory = false;
 
@@ -461,17 +415,17 @@ public class CarpetOrgAdditionSettings {
 
     // 立即应用工具效果
     @Hidden
-    @Rule(categories = {ORG, Hidden, RuleCategory.BUGFIX})
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.BUGFIX})
     public static boolean applyToolEffectsImmediately = false;
 
     // 强制补货
     @Hidden
-    @Rule(categories = {ORG, Hidden})
+    @Rule(categories = {ORG, HIDDEN})
     public static boolean forceRestock = false;
 
     // 自动同步玩家状态
     @Hidden
-    @Rule(categories = {ORG, Hidden})
+    @Rule(categories = {ORG, HIDDEN})
     public static boolean autoSyncPlayerStatus = false;
 
     // 记录玩家命令
@@ -498,4 +452,22 @@ public class CarpetOrgAdditionSettings {
     // 村民虚空交易
     @Rule(categories = {ORG, RuleCategory.FEATURE})
     public static boolean villagerVoidTrading = false;
+
+    // 不死图腾无敌时间
+    @Hidden
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.SURVIVAL})
+    public static boolean totemOfUndyingInvincibleTime = false;
+
+    // /player命令打开玩家物品栏
+    @Rule(categories = {ORG, RuleCategory.COMMAND})
+    public static OpenPlayerInventory playerCommandOpenPlayerInventory = OpenPlayerInventory.FALSE;
+
+    // /player命令假玩家传送
+    @Rule(categories = {ORG, RuleCategory.COMMAND})
+    public static boolean playerCommandTeleportFakePlayer = false;
+
+    // 经验球合并
+    @Hidden
+    @Rule(categories = {ORG, HIDDEN, RuleCategory.FEATURE})
+    public static boolean experienceOrbMerge = false;
 }

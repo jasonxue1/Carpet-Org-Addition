@@ -6,6 +6,7 @@ import carpet.logging.LoggerRegistry;
 
 import java.lang.reflect.Field;
 
+@SuppressWarnings("CanBeFinal")
 public class LoggerRegister {
     // wanderingTrader这个名字已经被另一个Carpet扩展使用了
     @LoggerConfig(name = LoggerNames.WANDERING_TRADER_SPAWN_COUNTDOWN, type = LoggerType.HUD)
@@ -23,6 +24,9 @@ public class LoggerRegister {
             options = {"bed", "jobSitePos", "potentialJobSite", "\"bed,jobSitePos\"", "\"jobSitePos,potentialJobSite\"", "all"}
     )
     public static boolean villager = false;
+
+    @LoggerConfig(name = LoggerNames.OBSIDIAN, type = LoggerType.FUNCTION)
+    public static boolean obsidian = false;
 
     /**
      * 注册记录器

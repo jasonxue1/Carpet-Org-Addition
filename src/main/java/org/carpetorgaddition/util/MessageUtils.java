@@ -102,6 +102,10 @@ public class MessageUtils {
         MessageUtils.sendMessage(source, TextUtils.translate(key, obj));
     }
 
+    public static void sendMessage(ServerPlayerEntity player, String key, Object... obj) {
+        MessageUtils.sendMessage(player, TextUtils.translate(key, obj));
+    }
+
     /**
      * 发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
      */
@@ -118,7 +122,7 @@ public class MessageUtils {
     }
 
     /**
-     * <br>发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见<br/>
+     * <br>发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见<br>
      * 鼠标悬停时可以显示异常信息
      *
      * @param source 消息的发送者
@@ -152,5 +156,22 @@ public class MessageUtils {
         for (Text message : list) {
             sendMessage(source, message);
         }
+    }
+
+    /**
+     * 发送一条空白消息
+     *
+     * @apiNote 用于在聊天栏中分隔消息内容
+     */
+    public static void sendEmptyMessage(ServerPlayerEntity player) {
+        sendMessage(player, Text.empty());
+    }
+
+    public static void sendEmptyMessage(ServerCommandSource source) {
+        sendEmptyMessage(source.getPlayer());
+    }
+
+    public static void sendEmptyMessage(CommandContext<ServerCommandSource> context) {
+        sendEmptyMessage(context.getSource());
     }
 }

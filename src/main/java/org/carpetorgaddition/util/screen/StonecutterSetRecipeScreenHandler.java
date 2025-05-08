@@ -7,9 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.StonecutterScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
-import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerAction;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
-import org.carpetorgaddition.periodic.fakeplayer.action.context.StonecuttingContext;
+import org.carpetorgaddition.periodic.fakeplayer.action.StonecuttingAction;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 
 public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler implements UnavailableSlotSyncInterface {
@@ -45,7 +44,7 @@ public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler 
         if (button != -1) {
             FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(this.fakePlayer);
             // 设置玩家动作
-            actionManager.setAction(FakePlayerAction.STONECUTTING, new StonecuttingContext(itemStack.getItem(), button));
+            actionManager.setAction(new StonecuttingAction(this.fakePlayer, itemStack.getItem(), button));
         }
         // 调用父类方法返还物品
         super.onClosed(player);

@@ -17,7 +17,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.ServerPeriodicTaskManager;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.DrawParticleLineTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.util.CommandUtils;
@@ -62,7 +62,7 @@ public class ParticleLineCommand {
         if (distance == 0) {
             return 0;
         }
-        ServerTaskManager manager = ServerPeriodicTaskManager.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         // 新建绘制粒子线任务
         manager.addTask(new DrawParticleLineTask(player.getWorld(), mainParticle, from, to));
         // 发送箭头

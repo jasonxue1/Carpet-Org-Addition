@@ -11,6 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 
+import java.io.IOException;
 import java.util.UUID;
 
 public class CommandUtils {
@@ -53,9 +54,28 @@ public class CommandUtils {
      */
     public static EntityPlayerMPFake getArgumentFakePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = EntityArgumentType.getPlayer(context, PLAYER);
-        checkFakePlayer(player);
+        assertFakePlayer(player);
         return (EntityPlayerMPFake) player;
     }
+
+    /**
+     * @return 指定玩家是否是命令执行者自己或假玩家
+     */
+    public static boolean isSelfOrFakePlayer(ServerPlayerEntity player, CommandContext<ServerCommandSource> context) {
+        return isSelfOrFakePlayer(player, context.getSource());
+    }
+
+    public static boolean isSelfOrFakePlayer(ServerPlayerEntity player, ServerCommandSource source) {
+        return isSpecifiedOrFakePlayer(player, source.getPlayer());
+    }
+
+    /**
+     * @return 指定玩家是否是另一个指定的玩家或假玩家
+     */
+    public static boolean isSpecifiedOrFakePlayer(ServerPlayerEntity player, ServerPlayerEntity specified) {
+        return player == specified || player instanceof EntityPlayerMPFake;
+    }
+
 
     /**
      * 创建一个命令语法参数异常对象
@@ -74,12 +94,47 @@ public class CommandUtils {
     }
 
     /**
-     * 判断指定玩家是否为假玩家，如果不是会直接抛出异常。<br/>
+     * @return 未找到实体
+     */
+    public static CommandSyntaxException createEntityNotFoundException() {
+        return EntityArgumentType.ENTITY_NOT_FOUND_EXCEPTION.create();
+    }
+
+    /**
+     * @return 未找到玩家
+     */
+    public static CommandSyntaxException createPlayerNotFoundException() {
+        return EntityArgumentType.PLAYER_NOT_FOUND_EXCEPTION.create();
+    }
+
+    /**
+     * 创建IO错误的语法参数异常异常
+     */
+    public static CommandSyntaxException createIOErrorException(IOException e) {
+        return createException(e, "carpet.command.error.io");
+    }
+
+    /**
+     * 操作超时
+     */
+    public static CommandSyntaxException createOperationTimeoutException() {
+        return createException("carpet.command.operation.timeout");
+    }
+
+    /**
+     * 只允许操作自己或假玩家
+     */
+    public static CommandSyntaxException createSelfOrFakePlayerException() {
+        return createException("carpet.command.self_or_fake_player");
+    }
+
+    /**
+     * 断言指定玩家为假玩家。<br>
      *
      * @param fakePlayer 要检查是否为假玩家的玩家对象
-     * @throws CommandSyntaxException 如果指定玩家不是假玩家抛出异常
+     * @throws CommandSyntaxException 如果指定玩家不是假玩家
      */
-    public static void checkFakePlayer(PlayerEntity fakePlayer) throws CommandSyntaxException {
+    public static void assertFakePlayer(PlayerEntity fakePlayer) throws CommandSyntaxException {
         if (fakePlayer instanceof EntityPlayerMPFake) {
             return;
         }
