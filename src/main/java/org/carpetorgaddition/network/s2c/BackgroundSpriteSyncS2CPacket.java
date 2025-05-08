@@ -12,7 +12,7 @@ import org.carpetorgaddition.network.PacketUtils;
 public record BackgroundSpriteSyncS2CPacket(int syncId, int slotIndex, Identifier identifier) implements CustomPayload {
     public static final Id<BackgroundSpriteSyncS2CPacket> ID = PacketUtils.createId("background_sprite_sync");
 
-    public static PacketCodec<RegistryByteBuf, BackgroundSpriteSyncS2CPacket> CODEC = new PacketCodec<>() {
+    public static final PacketCodec<RegistryByteBuf, BackgroundSpriteSyncS2CPacket> CODEC = new PacketCodec<>() {
         @Override
         public BackgroundSpriteSyncS2CPacket decode(RegistryByteBuf buf) {
             int syncId = buf.readInt();

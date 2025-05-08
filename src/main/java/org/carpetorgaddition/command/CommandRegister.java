@@ -38,7 +38,7 @@ public class CommandRegister {
         register(new NavigatorCommand(dispatcher, access));
         // 快递命令
         register(new MailCommand(dispatcher, access));
-        register(new CarpetOrgAdditionCommand(dispatcher, access));
+        register(new OrangeCommand(dispatcher, access));
     }
 
     private static <T extends AbstractServerCommand> void register(T command) {

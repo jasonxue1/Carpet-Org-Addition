@@ -52,6 +52,7 @@ public class RuleSelfManager {
      *
      * @return 是否设置成功
      */
+    @SuppressWarnings("UnusedReturnValue")
     public boolean setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
         String playerName = player.getName().getString();
         HashSet<String> rules = this.disabledRules.get(playerName);

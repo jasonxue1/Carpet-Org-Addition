@@ -87,7 +87,7 @@ public class TradeAction extends AbstractPlayerAction {
                 return;
             }
             // 尝试交易物品
-            tryTrade(merchantScreenHandler, this.index, this.voidTrade);
+            tryTrade(merchantScreenHandler);
             if (this.voidTrade) {
                 // 如果是虚空交易，交易完毕后关闭交易GUI
                 this.fakePlayer.closeHandledScreen();
@@ -96,7 +96,7 @@ public class TradeAction extends AbstractPlayerAction {
     }
 
     // 尝试交易物品
-    private void tryTrade(MerchantScreenHandler merchantScreenHandler, int index, boolean voidTrade) {
+    private void tryTrade(MerchantScreenHandler screenHandler) {
         ServerCommandSource source = this.fakePlayer.getCommandSource();
         int loopCount = 0;
         // 如果村民无限交易未启用或当前交易不是虚空交易，则只循环一次
@@ -106,19 +106,19 @@ public class TradeAction extends AbstractPlayerAction {
                 throw new InfiniteLoopException();
             }
             //如果当前交易以锁定，直接结束方法
-            TradeOffer tradeOffer = merchantScreenHandler.getRecipes().get(index);
+            TradeOffer tradeOffer = screenHandler.getRecipes().get(this.index);
             if (tradeOffer.isDisabled()) {
                 return;
             }
             // 选择要交易物品的索引
-            merchantScreenHandler.setRecipeIndex(index);
+            screenHandler.setRecipeIndex(this.index);
             // 填充交易槽位
-            if (switchItem(merchantScreenHandler, tradeOffer)) {
+            if (switchItem(screenHandler, tradeOffer)) {
                 // 判断输出槽是否有物品，如果有，丢出物品，否则停止交易，结束方法
-                Slot outputSlot = merchantScreenHandler.getSlot(2);
+                Slot outputSlot = screenHandler.getSlot(2);
                 // 假玩家可能交易出其他交易选项的物品，请参阅：https://bugs.mojang.com/browse/MC-215441
                 if (outputSlot.hasStack()) {
-                    FakePlayerUtils.compareAndThrow(merchantScreenHandler, 2, tradeOffer.getSellItem(), this.fakePlayer);
+                    FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getSellItem(), this.fakePlayer);
                     if (CarpetOrgAdditionSettings.villagerInfiniteTrade
                             && CarpetOrgAdditionSettings.fakePlayerMaxCraftCount > 0
                             && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount) {
@@ -133,7 +133,7 @@ public class TradeAction extends AbstractPlayerAction {
                 return;
             }
             // 如果启用了村民无限交易或当前为虚空交易，则尽可能完成所有交易
-        } while (voidTrade || CarpetOrgAdditionSettings.villagerInfiniteTrade);
+        } while (this.voidTrade || CarpetOrgAdditionSettings.villagerInfiniteTrade);
     }
 
     // 选择物品

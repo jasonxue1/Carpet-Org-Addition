@@ -14,7 +14,6 @@ public class XpTransferCommandTest {
 
     @Disabled
     @RepeatedTest(124)
-    @SuppressWarnings("TestFailedLine")
     public void testTransferAll(@NotNull RepetitionInfo info) {
         int level = (int) Math.pow(info.getCurrentRepetition(), 4);
         System.out.println("等级：" + level);

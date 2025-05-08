@@ -12,6 +12,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
+import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.UuidArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -44,7 +45,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class CarpetOrgAdditionCommand extends AbstractServerCommand {
+public class OrangeCommand extends AbstractServerCommand {
     /**
      * 一个只有一个线程并且阻塞队列为空的线程池
      */
@@ -58,7 +59,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
             new ThreadPoolExecutor.AbortPolicy()
     );
 
-    public CarpetOrgAdditionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public OrangeCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
 
@@ -77,7 +78,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
                 .then(CommandManager.literal("permission")
-                        .requires(PermissionManager.register("carpet-org-addition.permission", PermissionLevel.OWNERS))
+                        .requires(source -> source.hasPermissionLevel(2))
                         .then(CommandManager.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
                                 .then(CommandManager.argument("level", StringArgumentType.string())
@@ -86,11 +87,12 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
                 .then(CommandManager.literal("version")
                         .executes(this::version))
                 .then(CommandManager.literal("ruleself")
-                        .then(CommandManager.argument("rule", StringArgumentType.string())
-                                .suggests(suggestRule())
-                                .executes(this::infoRuleSelf)
-                                .then(CommandManager.argument("value", BoolArgumentType.bool())
-                                        .executes(this::setRuleSelf))))
+                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                                .then(CommandManager.argument("rule", StringArgumentType.string())
+                                        .suggests(suggestRule())
+                                        .executes(this::infoRuleSelf)
+                                        .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                                .executes(this::setRuleSelf)))))
                 .then(CommandManager.literal("textclickevent")
                         .then(CommandManager.literal("queryPlayerName")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
@@ -112,13 +114,13 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     private int setLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         CommandPermission permission = PermissionManager.getPermission(StringArgumentType.getString(context, "node"));
         if (permission == null) {
-            throw CommandUtils.createException("carpet.commands.carpet-org-addition.permission.node.not_found");
+            throw CommandUtils.createException("carpet.commands.orange.permission.node.not_found");
         }
         PermissionLevel level;
         try {
             level = PermissionLevel.fromString(StringArgumentType.getString(context, "level"));
         } catch (IllegalArgumentException e) {
-            throw CommandUtils.createException(e, "carpet.commands.carpet-org-addition.permission.value.invalid");
+            throw CommandUtils.createException(e, "carpet.commands.orange.permission.value.invalid");
         }
         permission.setLevel(level);
         MinecraftServer server = context.getSource().getServer();
@@ -138,7 +140,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
         String version = CarpetOrgAddition.VERSION;
-        MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.version", name, version);
+        MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
 
@@ -155,7 +157,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
             } else {
                 // 本地不存在，从Mojang API获取
                 QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid, table));
-                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.start");
+                MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.start");
             }
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
@@ -184,7 +186,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
     private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
         MessageUtils.sendMessage(
                 context,
-                "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.success",
+                "carpet.commands.orange.textclickevent.queryPlayerName.success",
                 TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
                 TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
         );
@@ -215,7 +217,7 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
             input = connection.getInputStream();
             reader = new BufferedReader(new InputStreamReader(input));
         } catch (IOException e) {
-            throw CommandUtils.createException(e, "carpet.commands.carpet-org-addition.textclickevent.queryPlayerName.fail", uuid.toString());
+            throw CommandUtils.createException(e, "carpet.commands.orange.textclickevent.queryPlayerName.fail", uuid.toString());
         }
         StringBuilder sb = new StringBuilder();
         try (reader) {
@@ -236,55 +238,63 @@ public class CarpetOrgAdditionCommand extends AbstractServerCommand {
 
     // 设置一条规则是否对自己生效
     private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-        String ruleString = StringArgumentType.getString(context, "rule");
-        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-        if (rule == null) {
-            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
-        }
-        boolean value = BoolArgumentType.getBool(context, "value");
-        boolean changed = ruleSelfManager.setEnabled(player, ruleString, value);
-        Text displayName = RuleUtils.simpleTranslationName(rule);
-        if (changed) {
-            if (value) {
-                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.enable", displayName);
-            } else {
-                MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.disable", displayName);
+        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+        if (CommandUtils.isSelfOrFakePlayer(player, context)) {
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            String ruleString = StringArgumentType.getString(context, "rule");
+            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+            if (rule == null) {
+                throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
             }
-        } else {
+            boolean value = BoolArgumentType.getBool(context, "value");
+            ruleSelfManager.setEnabled(player, ruleString, value);
+            Text ruleName = RuleUtils.simpleTranslationName(rule);
+            Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
+            MutableText translate;
             if (value) {
-                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.enable", displayName);
+                translate = TextUtils.translate("carpet.commands.orange.ruleself.enable", ruleName, playerName);
             } else {
-                throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.unchanged.disable", displayName);
+                translate = TextUtils.translate("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
+            if (RuleHelper.isInDefaultValue(rule)) {
+                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
+                translate = TextUtils.hoverText(translate, hover);
+                translate = TextUtils.toStrikethrough(translate);
+            }
+            MessageUtils.sendMessage(context.getSource(), translate);
+            return 1;
         }
-        return 1;
+        throw CommandUtils.createSelfOrFakePlayerException();
     }
 
     private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-        String ruleString = StringArgumentType.getString(context, "rule");
-        CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-        if (rule == null) {
-            throw CommandUtils.createException("carpet.commands.carpet-org-addition.ruleself.failed");
+        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+        if (CommandUtils.isSelfOrFakePlayer(player, context)) {
+            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            String ruleString = StringArgumentType.getString(context, "rule");
+            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
+            if (rule == null) {
+                throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
+            }
+            MessageUtils.sendEmptyMessage(context);
+            MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.player", player.getDisplayName());
+            boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
+            Text displayName = RuleUtils.simpleTranslationName(rule);
+            MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
+            MutableText translate = TextUtils.translate("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            if (RuleHelper.isInDefaultValue(rule)) {
+                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
+                translate = TextUtils.hoverText(translate, hover);
+                translate = TextUtils.toStrikethrough(translate);
+            }
+            MessageUtils.sendMessage(context.getSource(), translate);
+            return 1;
         }
-        boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
-        Text displayName = RuleUtils.simpleTranslationName(rule);
-        MessageUtils.sendMessage(context, "carpet.commands.carpet-org-addition.ruleself.info.rule", displayName);
-        MutableText translate = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.enable", TextProvider.getBoolean(enabled));
-        if (RuleHelper.isInDefaultValue(rule)) {
-            MutableText hover = TextUtils.translate("carpet.commands.carpet-org-addition.ruleself.info.invalid");
-            translate = TextUtils.hoverText(translate, hover);
-            translate = TextUtils.toStrikethrough(translate);
-        }
-        MessageUtils.sendMessage(context.getSource(), translate);
-        return 1;
+        throw CommandUtils.createSelfOrFakePlayerException();
     }
 
     @Override
     public String getDefaultName() {
-        return CarpetOrgAddition.MOD_ID;
+        return "orange";
     }
 }

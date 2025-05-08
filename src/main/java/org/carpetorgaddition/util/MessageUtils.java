@@ -158,4 +158,21 @@ public class MessageUtils {
             sendMessage(source, message);
         }
     }
+
+    /**
+     * 发送一条空白消息
+     *
+     * @apiNote 用于在聊天栏中分隔消息内容
+     */
+    public static void sendEmptyMessage(ServerPlayerEntity player) {
+        sendMessage(player, Text.empty());
+    }
+
+    public static void sendEmptyMessage(ServerCommandSource source) {
+        sendEmptyMessage(source.getPlayer());
+    }
+
+    public static void sendEmptyMessage(CommandContext<ServerCommandSource> context) {
+        sendEmptyMessage(context.getSource());
+    }
 }
