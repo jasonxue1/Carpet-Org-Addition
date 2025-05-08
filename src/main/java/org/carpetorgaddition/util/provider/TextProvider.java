@@ -46,8 +46,14 @@ public class TextProvider {
     public static final Text ITEM = TextUtils.translate("carpet.command.item.item");
     /**
      * 单击复制到剪贴板
+     *
+     * @apiNote 玩家客户端中一定有这条消息，不需要回调
      */
     public static final Text COPY_CLICK = Text.translatable("chat.copy.click");
+    /**
+     * 自己
+     */
+    public static final Text SELF = TextUtils.translate("carpet.command.text.self");
 
     public static Text getBoolean(boolean value) {
         return value ? TRUE : FALSE;

@@ -8,7 +8,7 @@ public abstract class AbstractCommand {
         String[] commands = this.getCustomNames();
         if (commands.length < 1) {
             CarpetOrgAddition.LOGGER.warn(
-                    // 译：服务器命令[%s]无法使用自定义名称注册，正在使用默认名称.
+                    // 译：服务端/客户端命令[/%s]无法使用自定义名称注册，正在使用默认名称.
                     "{} command [/{}] cannot be registered with a custom name. The default name is being used instead.",
                     this.getEnvironment(),
                     this.getDefaultName()

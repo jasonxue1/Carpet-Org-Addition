@@ -16,7 +16,7 @@ import org.carpetorgaddition.util.WorldUtils;
  */
 public record WaypointUpdateS2CPacket(Vec3d target, String worldId) implements CustomPayload {
     public static final Id<WaypointUpdateS2CPacket> ID = PacketUtils.createId("waypoint_update");
-    public static PacketCodec<RegistryByteBuf, WaypointUpdateS2CPacket> CODEC = new PacketCodec<>() {
+    public static final PacketCodec<RegistryByteBuf, WaypointUpdateS2CPacket> CODEC = new PacketCodec<>() {
         @Override
         public WaypointUpdateS2CPacket decode(RegistryByteBuf buf) {
             long[] arr = buf.readLongArray();

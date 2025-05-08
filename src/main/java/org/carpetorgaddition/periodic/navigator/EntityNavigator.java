@@ -35,6 +35,7 @@ public class EntityNavigator extends AbstractNavigator {
         this.isContinue = isContinue;
     }
 
+    @Override
     public void tick() {
         if (this.shouldTerminate()) {
             this.clear();

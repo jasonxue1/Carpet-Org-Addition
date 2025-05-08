@@ -5,7 +5,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
-import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
+import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.jetbrains.annotations.Contract;
@@ -22,8 +22,8 @@ public class GenericFetcherUtils {
     }
 
     @Contract("_ -> !null")
-    public static BlockBreakManager getBlockBreakManager(EntityPlayerMPFake fakePlayer) {
-        return PlayerComponentCoordinator.getManager(fakePlayer).getBlockBreakManager();
+    public static BlockExcavator getBlockExcavator(EntityPlayerMPFake fakePlayer) {
+        return PlayerComponentCoordinator.getManager(fakePlayer).getBlockExcavator();
     }
 
     public static RuleSelfManager getRuleSelfManager(MinecraftServer server) {
@@ -34,3 +34,4 @@ public class GenericFetcherUtils {
         return getRuleSelfManager(player.server);
     }
 }
+

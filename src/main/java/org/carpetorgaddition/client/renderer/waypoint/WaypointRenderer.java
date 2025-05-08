@@ -207,6 +207,7 @@ public class WaypointRenderer implements WorldRenderer {
     /**
      * @return 是否应该停止渲染
      */
+    @Override
     public boolean shouldStop() {
         return this.stop;
     }

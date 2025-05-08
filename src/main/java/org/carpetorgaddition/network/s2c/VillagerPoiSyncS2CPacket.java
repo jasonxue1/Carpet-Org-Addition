@@ -12,7 +12,7 @@ import org.jetbrains.annotations.Nullable;
 // 村民信息同步数据包
 public record VillagerPoiSyncS2CPacket(VillagerInfo info) implements CustomPayload {
     public static final Id<VillagerPoiSyncS2CPacket> ID = PacketUtils.createId("villager_poi_sync");
-    public static PacketCodec<RegistryByteBuf, VillagerPoiSyncS2CPacket> CODEC = new PacketCodec<>() {
+    public static final PacketCodec<RegistryByteBuf, VillagerPoiSyncS2CPacket> CODEC = new PacketCodec<>() {
         @Override
         public VillagerPoiSyncS2CPacket decode(RegistryByteBuf buf) {
             VillagerInfo villagerInfo = new VillagerInfo(buf.readInt());

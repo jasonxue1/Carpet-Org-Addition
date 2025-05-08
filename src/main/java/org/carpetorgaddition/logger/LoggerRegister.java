@@ -6,6 +6,7 @@ import carpet.logging.LoggerRegistry;
 
 import java.lang.reflect.Field;
 
+@SuppressWarnings("CanBeFinal")
 public class LoggerRegister {
     // wanderingTrader这个名字已经被另一个Carpet扩展使用了
     @LoggerConfig(name = LoggerNames.WANDERING_TRADER_SPAWN_COUNTDOWN, type = LoggerType.HUD)
