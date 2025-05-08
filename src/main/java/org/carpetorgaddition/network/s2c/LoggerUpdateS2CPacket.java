@@ -14,7 +14,7 @@ public record LoggerUpdateS2CPacket(
         boolean isRemove
 ) implements CustomPayload {
     public static final Id<LoggerUpdateS2CPacket> ID = PacketUtils.createId("logger_update");
-    public static PacketCodec<RegistryByteBuf, LoggerUpdateS2CPacket> CODEC = new PacketCodec<>() {
+    public static final PacketCodec<RegistryByteBuf, LoggerUpdateS2CPacket> CODEC = new PacketCodec<>() {
         @Override
         public LoggerUpdateS2CPacket decode(RegistryByteBuf buf) {
             String logName = buf.readString();

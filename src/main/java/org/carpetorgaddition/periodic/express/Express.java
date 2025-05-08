@@ -54,7 +54,7 @@ public class Express implements Comparable<Express> {
      * 快递单号
      */
     private final int id;
-    MinecraftServer server;
+    private final MinecraftServer server;
     private final LocalDateTime time;
     private final WorldFormat worldFormat;
     public static final String EXPRESS = "express";

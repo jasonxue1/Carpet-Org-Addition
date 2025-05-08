@@ -3,7 +3,7 @@ package org.carpetorgaddition.periodic;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.ServerTickManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
+import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.jetbrains.annotations.NotNull;
@@ -14,17 +14,17 @@ public class PlayerComponentCoordinator {
     @Nullable
     private final FakePlayerActionManager fakePlayerActionManager;
     @Nullable
-    private final BlockBreakManager blockBreakManager;
+    private final BlockExcavator blockExcavator;
     private final NavigatorManager navigatorManager;
 
     public PlayerComponentCoordinator(ServerPlayerEntity player) {
         this.player = player;
         if (player instanceof EntityPlayerMPFake fakePlayer) {
             this.fakePlayerActionManager = new FakePlayerActionManager(fakePlayer);
-            this.blockBreakManager = new BlockBreakManager(fakePlayer);
+            this.blockExcavator = new BlockExcavator(fakePlayer);
         } else {
             this.fakePlayerActionManager = null;
-            this.blockBreakManager = null;
+            this.blockExcavator = null;
         }
         this.navigatorManager = new NavigatorManager(player);
     }
@@ -36,8 +36,8 @@ public class PlayerComponentCoordinator {
                 this.fakePlayerActionManager.tick();
             }
         }
-        if (this.blockBreakManager != null) {
-            this.blockBreakManager.tick();
+        if (this.blockExcavator != null) {
+            this.blockExcavator.tick();
         }
         this.navigatorManager.tick();
     }
@@ -48,8 +48,8 @@ public class PlayerComponentCoordinator {
     }
 
     @Nullable
-    public BlockBreakManager getBlockBreakManager() {
-        return this.blockBreakManager;
+    public BlockExcavator getBlockExcavator() {
+        return this.blockExcavator;
     }
 
     public NavigatorManager getNavigatorManager() {

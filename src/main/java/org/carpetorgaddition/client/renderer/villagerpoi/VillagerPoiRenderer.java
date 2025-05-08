@@ -133,6 +133,7 @@ public class VillagerPoiRenderer implements WorldRenderer {
         }
     }
 
+    @Override
     public boolean shouldStop() {
         return this.villagerEntity.isRemoved();
     }

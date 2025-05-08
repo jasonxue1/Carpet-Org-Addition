@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DelayedLoginTask extends PlayerScheduleTask {
     private final MinecraftServer server;
-    FakePlayerSerializer serial;
+    private final FakePlayerSerializer serial;
     private long delayed;
 
     public DelayedLoginTask(MinecraftServer server, FakePlayerSerializer serial, long delayed) {

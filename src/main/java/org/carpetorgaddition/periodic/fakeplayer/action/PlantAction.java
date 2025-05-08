@@ -22,7 +22,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.periodic.fakeplayer.BlockBreakManager;
+import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.TextUtils;
@@ -148,7 +148,7 @@ public class PlantAction extends AbstractPlayerAction {
                 || world.getBlockState(plantablePos).isOf(Blocks.BAMBOO_SAPLING)) {
             return true;
         }
-        // 排除埋在底下的可种植方块
+        // 排除埋在地下的可种植方块
         if (!world.getBlockState(plantablePos.up()).isAir()
                 && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO)
                 && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO_SAPLING)) {
@@ -254,8 +254,8 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否完成挖掘
      */
     private boolean breakBlock(BlockPos pos) {
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(fakePlayer);
-        boolean breakBlock = breakManager.breakBlock(pos, Direction.DOWN, !fakePlayer.isCreative());
+        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(fakePlayer);
+        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !fakePlayer.isCreative());
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
@@ -267,9 +267,9 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
-        FakePlayerUtils.replenishment(fakePlayer, itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
-        BlockBreakManager breakManager = GenericFetcherUtils.getBlockBreakManager(this.fakePlayer);
-        boolean breakBlock = breakManager.breakBlock(pos, Direction.DOWN);
+        FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
+        BlockExcavator breakManager = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+        boolean breakBlock = breakManager.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
