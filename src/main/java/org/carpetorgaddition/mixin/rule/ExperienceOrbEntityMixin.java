@@ -11,15 +11,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ExperienceOrbEntity.class)
-public class ExperienceOrbEntityMixin {
-    @Shadow
-    private int amount;
-
+public abstract class ExperienceOrbEntityMixin {
     @Shadow
     private int orbAge;
 
     @Shadow
     private int pickingCount;
+
+    @Shadow
+    public abstract int getValue();
+
+    @Shadow
+    protected abstract void setValue(int value);
+
     @Unique
     private final ExperienceOrbEntity thisEntity = (ExperienceOrbEntity) (Object) this;
 
@@ -28,7 +32,7 @@ public class ExperienceOrbEntityMixin {
         if (CarpetOrgAdditionSettings.experienceOrbMerge) {
             boolean combine = ((ExperienceOrbEntityMixin) (Object) orb).combine();
             if (combine) {
-                cir.setReturnValue(!orb.isRemoved() && orb.getExperienceAmount() + amount <= Short.MAX_VALUE);
+                cir.setReturnValue(!orb.isRemoved() && orb.getValue() + amount <= Short.MAX_VALUE);
             }
         }
     }
@@ -37,12 +41,12 @@ public class ExperienceOrbEntityMixin {
     @Inject(method = "merge", at = @At("HEAD"), cancellable = true)
     private void merge(ExperienceOrbEntity other, CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.experienceOrbMerge && this.combine()) {
-            int sum = this.amount * this.pickingCount + other.getExperienceAmount() * ((ExperienceOrbEntityMixin) (Object) other).pickingCount;
+            int sum = this.getValue() * this.pickingCount + other.getValue() * ((ExperienceOrbEntityMixin) (Object) other).pickingCount;
             if (sum > Short.MAX_VALUE) {
                 ci.cancel();
                 return;
             }
-            this.amount = sum;
+            this.setValue(sum);
             this.orbAge = Math.min(this.orbAge, ((ExperienceOrbEntityMixin) (Object) other).orbAge);
             this.pickingCount = 1;
             other.discard();

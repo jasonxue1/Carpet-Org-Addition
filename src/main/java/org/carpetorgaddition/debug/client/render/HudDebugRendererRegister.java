@@ -152,7 +152,7 @@ public class HudDebugRendererRegister {
                                 case ExperienceOrbEntity experienceOrb -> {
                                     experienceOrbEntityCount++;
                                     ExperienceOrbEntityAccessor accessor = (ExperienceOrbEntityAccessor) experienceOrb;
-                                    experienceOrbTotalValue += accessor.getPickingCount() * experienceOrb.getExperienceAmount();
+                                    experienceOrbTotalValue += accessor.getPickingCount() * experienceOrb.getValue();
                                 }
                                 default -> {
                                 }
