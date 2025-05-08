@@ -4,6 +4,7 @@ import carpet.CarpetServer;
 import carpet.api.settings.SettingsManager;
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,6 +20,7 @@ public class CustomSettingsConfig {
         }
         if (IOUtils.createFileIfNotExists(SETTINGS_MANAGER_CONFIG)) {
             JsonObject json = new JsonObject();
+            json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
             json.addProperty("custom_settings_manager", false);
             json.addProperty("identifier", CarpetOrgAddition.MOD_ID);
             json.addProperty("fancy_name", CarpetOrgAddition.MOD_NAME);

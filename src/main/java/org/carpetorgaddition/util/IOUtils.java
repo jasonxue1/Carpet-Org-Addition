@@ -1,11 +1,13 @@
 package org.carpetorgaddition.util;
 
 import com.google.gson.*;
+import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -14,7 +16,10 @@ public class IOUtils {
     public static final String JSON_EXTENSION = ".json";
     public static final String NBT_EXTENSION = ".nbt";
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final File CONFIGURE_DIRECTORY = new File("./config/" + CarpetOrgAddition.MOD_NAME_LOWER_CASE);
+    /**
+     * 模组配置文件路径
+     */
+    private static final Path CONFIGURE_DIRECTORY = FabricLoader.getInstance().getConfigDir().resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
     /**
      * 不能包含在文件名中的字符
      */
@@ -160,7 +165,7 @@ public class IOUtils {
     }
 
     public static File createConfigFile(String fileName, boolean create) {
-        File file = new File(CONFIGURE_DIRECTORY, fileName);
+        File file = CONFIGURE_DIRECTORY.resolve(fileName).toFile();
         if (create) {
             createFileIfNotExists(file);
         }
