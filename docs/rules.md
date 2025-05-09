@@ -11,14 +11,6 @@
 - 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
 - 分类：`Org`，`命令`
 
-### 修改基岩硬度(setBedrockHardness)
-
-将基岩的硬度设置为指定值
-
-- 类型：`小数`
-- 默认值：`-1.0`
-- 分类：`Org`
-
 ### 绑定诅咒无效化(bindingCurseInvalidation)
 
 玩家可以取下带有绑定诅咒的护甲
@@ -39,7 +31,7 @@
 
 ### 创造玩家免疫/kill(creativeImmuneKill)
 
-创造模式的玩家不会被/kill命令杀死
+启用后会阻止/kill命令选中创造和旁观模式的玩家
 
 - 类型：`布尔值`
 - 默认值：`false`
@@ -163,15 +155,6 @@ _对方块的破坏和交互同样有效_<br>
 - 参考选项：`true`，`false`
 - 分类：`Org`，`生存`
 
-### 将镐作为基岩的有效采集工具(pickaxeMinedBedrock)
-
-镐可以更快速的采集基岩
-
-- 类型：`布尔值`
-- 默认值：`false`
-- 参考选项：`true`，`false`
-- 分类：`Org`，`特性`
-
 ### 村民回血(villagerHeal)
 
 村民每4秒回复1生命值
@@ -189,15 +172,6 @@ _对方块的破坏和交互同样有效_<br>
 - 默认值：`false`
 - 参考选项：`true`，`false`
 - 分类：`Org`，`特性`
-
-### 假玩家工具(commandPlayerTools)
-
-启用/playerTools命令用来提供一些假玩家相关的辅助工具
-
-- 类型：`字符串`
-- 默认值：`false`
-- 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
-- 分类：`Org`，`命令`
 
 ### 最大方块放置距离适用于实体(maxBlockPlaceDistanceReferToEntity)
 
@@ -246,15 +220,6 @@ _可以用来制作更新抑制器的潜影盒被发射器放置时会移除自�
 - 类型：`布尔值`
 - 默认值：`false`
 - 参考选项：`true`，`false`
-- 分类：`Org`，`命令`
-
-### 发送可复制文本(commandSendMessage)
-
-启用/sendMessage命令发送一些可复制消息或链接
-
-- 类型：`字符串`
-- 默认值：`ops`
-- 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
 - 分类：`Org`，`命令`
 
 ### 开放/carpet命令权限(openCarpetPermissions)
@@ -725,5 +690,26 @@ _同时安装锂（Lithium）时，此规则与漏斗计数器等功能不兼容
 - 类型：`整数`
 - 默认值：`10`
 - 参考选项：`10`，`15`，`20`，`25`
+- 分类：`Org`，`命令`
+
+### 打开玩家物品栏(playerCommandOpenPlayerInventory)
+
+为/player命令添加inventory子命令用来打开玩家物品栏<br>
+_此规则同时也是enderChest子命令的开关_<br>
+_false：禁用本条规则_<br>
+_fake_player：允许打开假玩家的物品栏_<br>
+_online_player：允许打开任意玩家的物品栏_<br>
+
+- 类型：`枚举`
+- 默认值：`false`
+- 分类：`Org`，`命令`
+
+### 假玩家传送(playerCommandTeleportFakePlayer)
+
+为/player命令添加teleport子命令用来将假玩家传送到自己的位置
+
+- 类型：`布尔值`
+- 默认值：`false`
+- 参考选项：`true`，`false`
 - 分类：`Org`，`命令`
 
