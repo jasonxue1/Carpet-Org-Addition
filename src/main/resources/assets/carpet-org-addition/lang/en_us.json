@@ -402,7 +402,6 @@
   "carpet.logger.fishing.break_free": "The fish will break free in %s tick",
   "carpet.logger.obsidian.generate": "A piece of obsidian has been generated at %s",
   "carpet.inventory.item.placeholder": "PLACEHOLDER",
-  "carpet.text.url.invalid": "Invalid webpage link",
   "carpet.client.commands.highlight": "Click to highlight the waypoint",
   "carpet.client.commands.dictionary.not_matched": "The string does not match any object",
   "carpet.client.commands.dictionary.id": "%s the id is:%s",
