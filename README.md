@@ -25,8 +25,10 @@
 | 1.20.6 | 停更   | [carpet-org-addition-v1.30.0](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v1.30.0)    |
 | 1.21   | 维护中  | -                                                                                                     |
 | 1.21.1 | 维护中  | -                                                                                                     |
+| 1.21.2 | 维护中  | -                                                                                                     |
 | 1.21.3 | 维护中  | -                                                                                                     |
 | 1.21.4 | 维护中  | -                                                                                                     |
+| 1.21.5 | 维护中  | -                                                                                                     |
 
 ## 文档
 
