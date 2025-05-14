@@ -9,7 +9,8 @@
     - 如果指定`filter`参数：则只列出名称中包含该字符串的路径点
 - `locations set <name> [<pos>]`：为指定路径点修改坐标
 - `locations supplement <name> another_pos [<anotherPos>]`：为指定主世界或下界路径点添加或移除另一个坐标
-- `locations supplement <name> illustrate [<illustrate>]`：为指定路径点添加或移除说明文本
+- `locations supplement <name> comment [<comment>]`：为指定路径点添加或移除说明文本
+- `locations here`：发送自己的位置
 
 ## 示例
 
