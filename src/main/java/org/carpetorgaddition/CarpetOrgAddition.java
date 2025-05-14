@@ -39,6 +39,10 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final String MOD_NAME_LOWER_CASE = MOD_NAME.replace(" ", "").toLowerCase(Locale.ROOT);
     /**
+     * 模组的构建时间戳
+     */
+    public static final String BUILD_TIMESTAMP = METADATA.getCustomValue("buildTimestamp").getAsString();
+    /**
      * 当前jvm是否为调试模式
      */
     public static final boolean IS_DEBUG = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.contains("jdwp"));
@@ -72,6 +76,7 @@ public class CarpetOrgAddition implements ModInitializer {
         // 如果当前为调试模式的开发环境，注册测试规则
         if (isDebugDevelopment()) {
             DebugRuleRegistrar.getInstance().registrar();
+            CarpetOrgAddition.LOGGER.info("构建时间戳：{}", BUILD_TIMESTAMP);
         }
     }
 

@@ -6,7 +6,8 @@
 - `finder item <itemStack> [<range>]`：在指定半径内搜索指定物品
 - `finder item <itemStack> from ...`
     - `... <from> to <to>`：在指定范围内搜索指定物品
-    - `... offline_player [inventory|ender_chest]`：在离线玩家的物品栏或末影箱内搜索指定物品
+    - `... offline_player [inventory|ender_chest] [<showUnknown>]`：在离线玩家的物品栏或末影箱内搜索指定物品
+        - 如果`showUnknown`参数为`true`，则显示未查询到玩家名称的玩家
 - `finder trade item <itemStack> [<range>]`：在指定范围内搜索指定交易
 - `finder trade enchanted_book <enchantment> [<range>]`：在指定范围内搜索指定附魔书交易
 

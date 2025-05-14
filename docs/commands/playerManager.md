@@ -2,9 +2,9 @@
 
 ## 语法
 
-- `playerManager annotation <name> [<annotation>]`：为指定玩家数据添加或移除注释
+- `playerManager comment <name> [<comment>]`：为指定玩家数据添加或移除注释
 - `playerManager autologin <name> <autoloing>`：控制假玩家是否在服务器启动时自动登录
-- `playerManager (save|resave) <player> [<annotation>]`：保存或重新保存玩家数据
+- `playerManager (save|resave) <player> [<comment>]`：保存或重新保存玩家数据
 - `playerManager remove <name>`：删除一个玩家数据
 - `playerManager spawn <name>`：生成一个假玩家
 - `playerManager list <filter>`：列出所有保存的玩家

@@ -32,5 +32,8 @@
     "minecraft": "${depend_version}",
     "fabric-api": "*",
     "carpet": "*"
+  },
+  "custom": {
+    "buildTimestamp": "${buildTimestamp}"
   }
 }

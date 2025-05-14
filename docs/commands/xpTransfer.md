@@ -2,11 +2,13 @@
 
 ## 语法
 
-- `xpTransfer <outputPlayer> <inputPlayer> ...`
+- `xpTransfer <from> <to> ...`
     - `... all`：转移所有经验
     - `... half`：转移一半的经验
     - `... level <level>`：转移从0级升级到指定等级所需的经验
     - `... points <number>`：转移指定数量的经验
+    - `... upgrade <level>`：转移从当前等级**升级**指定等级所需的经验
+    - `... upgradeto <level>`：转移从当前等级**升级到**指定等级所需的经验
 
 ## 示例
 
