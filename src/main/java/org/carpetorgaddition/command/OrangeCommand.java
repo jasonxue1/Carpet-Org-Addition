@@ -139,7 +139,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        String version = CarpetOrgAddition.VERSION;
+        MutableText version = TextUtils.hoverText(CarpetOrgAddition.VERSION, CarpetOrgAddition.BUILD_TIMESTAMP);
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
