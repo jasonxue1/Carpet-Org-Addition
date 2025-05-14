@@ -3,7 +3,7 @@
 ## 语法
 
 - `playerAction <player> ...`：具体效果见下文
-    - `... clean [<filter>]`
+    - `... empty [<filter>]`
     - `... craft ...`
         - `... inventory <item1> <item2> <item3> <item4>`
         - `... crafting_table <item1> <item2> <item3> <item4> <item5> <item6> <item7> <item8> <item9>`
@@ -24,7 +24,7 @@
 ## 效果
 
 - `/playerAction <player> ...`
-    - `clean [<filter>]`
+    - `empty [<filter>]`
         - 让假玩家自动清空容器，需要让假玩家打开容器，清空完毕后自动关闭容器
         - 如果指定的`filter`参数，则只清空指定的物品
     - `craft ...`
