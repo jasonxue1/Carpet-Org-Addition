@@ -1,27 +1,25 @@
 package org.carpetorgaddition.mixin.rule;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.command.PermissionLevelPredicate;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.command.TeleportCommand;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(TeleportCommand.class)
 public class TeleportCommandMixin {
     // 开放/tp命令权限
-    @Inject(method = "method_13763", at = @At("HEAD"), cancellable = true)
-    private static void tpPermissions(ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openTpPermissions) {
-            cir.setReturnValue(true);
-        }
+    @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;", ordinal = 0))
+    private static PermissionLevelPredicate<ServerCommandSource> tpPermissions(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
+        return RuleUtils.requireOrOpenPermissionLevel(() -> CarpetOrgAdditionSettings.openTpPermissions, original.call(requiredLevel));
     }
 
-    @Inject(method = "method_13764", at = @At("HEAD"), cancellable = true)
-    private static void teleportPermissions(ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openTpPermissions) {
-            cir.setReturnValue(true);
-        }
+    @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;", ordinal = 1))
+    private static PermissionLevelPredicate<ServerCommandSource> teleportPermissions(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
+        return RuleUtils.requireOrOpenPermissionLevel(() -> CarpetOrgAdditionSettings.openTpPermissions, original.call(requiredLevel));
     }
 }

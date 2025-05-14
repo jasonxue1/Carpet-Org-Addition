@@ -1,20 +1,20 @@
 package org.carpetorgaddition.mixin.rule;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.command.PermissionLevelPredicate;
 import net.minecraft.server.command.SeedCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(SeedCommand.class)
 public class SeedCommandMixin {
     // 开放/seed权限
-    @Inject(method = "method_13618", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/ServerCommandSource;hasPermissionLevel(I)Z"), cancellable = true)
-    private static void privilege(boolean bl, ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openSeedPermissions) {
-            cir.setReturnValue(true);
-        }
+    @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;"))
+    private static PermissionLevelPredicate<ServerCommandSource> privilege(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
+        return RuleUtils.requireOrOpenPermissionLevel(() -> CarpetOrgAdditionSettings.openSeedPermissions, original.call(requiredLevel));
     }
 }

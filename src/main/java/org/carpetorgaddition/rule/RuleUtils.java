@@ -2,6 +2,8 @@ package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
 import carpet.utils.Translations;
+import net.minecraft.command.PermissionLevelPredicate;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
@@ -55,6 +57,27 @@ public class RuleUtils {
         } finally {
             CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.set(changed);
         }
+    }
+
+    /**
+     * @param supplier  命令权限对应规则的开关
+     * @param predicate 原版的权限谓词
+     */
+    public static PermissionLevelPredicate<ServerCommandSource> requireOrOpenPermissionLevel(
+            Supplier<Boolean> supplier,
+            PermissionLevelPredicate<ServerCommandSource> predicate
+    ) {
+        return new PermissionLevelPredicate<>() {
+            @Override
+            public int requiredLevel() {
+                return supplier.get() ? 0 : predicate.requiredLevel();
+            }
+
+            @Override
+            public boolean test(ServerCommandSource source) {
+                return supplier.get() || predicate.test(source);
+            }
+        };
     }
 
     /**

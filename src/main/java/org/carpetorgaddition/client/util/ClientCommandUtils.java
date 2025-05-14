@@ -22,7 +22,7 @@ public class ClientCommandUtils {
             return;
         }
         // 发送命令，发送前移除命令的斜杠
-        player.networkHandler.sendCommand(command.startsWith("/") ? command.substring(1) : command);
+        player.networkHandler.sendChatCommand(command.startsWith("/") ? command.substring(1) : command);
     }
 
     /**
