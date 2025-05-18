@@ -6,7 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
@@ -19,6 +19,7 @@ import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.inventory.OfflinePlayerEnderChestInventory;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.util.screen.OfflinePlayerInventoryScreenHandler;
 import org.carpetorgaddition.util.screen.PlayerEnderChestScreenHandler;
@@ -73,8 +74,8 @@ public class PlayerCommandExtension {
         return 1;
     }
 
-    private static void openOfflinePlayerInventory(String playerName, MinecraftServer server, ServerPlayerEntity sourcePlayer) throws CommandSyntaxException {
-        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
+    private static void openOfflinePlayerInventory(String username, MinecraftServer server, ServerPlayerEntity sourcePlayer) throws CommandSyntaxException {
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
         if (optional.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
         }
@@ -83,7 +84,7 @@ public class PlayerCommandExtension {
                 (syncId, playerInventory, player) -> {
                     OfflinePlayerInventory inventory = new OfflinePlayerInventory(server, gameProfile);
                     return new OfflinePlayerInventoryScreenHandler(syncId, playerInventory, inventory);
-                }, TextUtils.createText(playerName));
+                }, offlinePlayerName(username));
         sourcePlayer.openHandledScreen(factory);
     }
 
@@ -98,26 +99,57 @@ public class PlayerCommandExtension {
 
     // 打开玩家末影箱
     private static int openEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        PlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-        ServerPlayerEntity argumentPlayer = getPlayer(context);
-        switch (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory) {
-            case FALSE:
-                throw new IllegalStateException();
-            case FAKE_PLAYER:
-                CommandUtils.assertFakePlayer(argumentPlayer);
-            case ONLINE_PLAYER: {
-                // 创建GUI对象
-                SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
-                        (i, inventory, playerEntity1) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
-                        argumentPlayer.getName()
-                );
-                // 打开末影箱GUI
-                sourcePlayer.openHandledScreen(screen);
+        MinecraftServer server = context.getSource().getServer();
+        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+        String playerName = getPlayerName(context);
+        ServerPlayerEntity argumentPlayer = getPlayerNullable(playerName, server);
+        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory;
+        switch (argumentPlayer) {
+            case null -> {
+                if (ruleValue.canOpenOfflinePlayer()) {
+                    openOfflinePlayerEnderChest(playerName, server, sourcePlayer);
+                } else {
+                    throw CommandUtils.createPlayerNotFoundException();
+                }
             }
-            default: {
+            case EntityPlayerMPFake player -> {
+                if (ruleValue.canOpenFakePlayer()) {
+                    openOnlinePlayerEnderChest(sourcePlayer, player);
+                }
+            }
+            case ServerPlayerEntity player -> {
+                if (ruleValue.canOpenRealPlayer()) {
+                    openOnlinePlayerEnderChest(sourcePlayer, player);
+                } else {
+                    throw CommandUtils.createNotFakePlayerException(player);
+                }
             }
         }
         return 1;
+    }
+
+    private static void openOfflinePlayerEnderChest(String username, MinecraftServer server, ServerPlayerEntity sourcePlayer) throws CommandSyntaxException {
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
+        if (optional.isEmpty()) {
+            throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
+        }
+        GameProfile gameProfile = optional.get();
+        SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
+                (syncId, playerInventory, player) -> {
+                    OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(server, gameProfile);
+                    return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, inventory);
+                }, offlinePlayerName(username));
+        sourcePlayer.openHandledScreen(factory);
+    }
+
+    private static void openOnlinePlayerEnderChest(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) {
+        // 创建GUI对象
+        SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
+                (i, inventory, player) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
+                argumentPlayer.getName()
+        );
+        // 打开末影箱GUI
+        sourcePlayer.openHandledScreen(screen);
     }
 
     // 传送假玩家
@@ -137,6 +169,10 @@ public class PlayerCommandExtension {
         // 在聊天栏显示命令反馈
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.player.tp.success", fakePlayerName, playerName);
         return 1;
+    }
+
+    private static Text offlinePlayerName(String name) {
+        return TextUtils.translate("carpet.commands.player.inventory.offline.display_name", name);
     }
 
     @NotNull

@@ -36,13 +36,14 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// TODO 测试同一个物品栏被多个玩家同时访问的情况
 public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家
      */
     public static final HashMap<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new HashMap<>();
     private final PlayerProfile profile;
-    private final FakePlayer fabricPlayer;
+    protected final FakePlayer fabricPlayer;
 
     public OfflinePlayerInventory(MinecraftServer server, GameProfile gameProfile) {
         this.fabricPlayer = FakePlayer.get(server.getOverworld(), gameProfile);

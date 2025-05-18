@@ -387,6 +387,7 @@
   "carpet.commands.orange.ruleself.info.player": "Player: %s",
   "carpet.commands.orange.ruleself.info.rule": "Rule: %s",
   "carpet.commands.orange.ruleself.info.enable": "Enable: %s",
+  "carpet.commands.player.inventory.offline.display_name": "%s (offline)",
   "carpet.commands.player.inventory.offline.no_file_found": "The player data file was not found",
   "carpet.commands.player.tp.success": "%s is teleported to %s",
   "carpet.logger.wanderingTrader.time.second": "%ss",

@@ -474,6 +474,7 @@
   "carpet.commands.orange.ruleself.info.player": "玩家：%s",
   "carpet.commands.orange.ruleself.info.rule": "规则：%s",
   "carpet.commands.orange.ruleself.info.enable": "已启用：%s",
+  "carpet.commands.player.inventory.offline.display_name": "%s（离线）",
   "carpet.commands.player.inventory.offline.no_file_found": "未找到该玩家的存储文件",
   "carpet.commands.player.tp.success": "将%s传送至%s",
   "carpet.logger.wanderingTrader.time.second": "%s秒",
