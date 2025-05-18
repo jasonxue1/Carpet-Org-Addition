@@ -15,7 +15,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 控制玩家登录登出的消息是否显示
      */
-    public static boolean hiddenLoginMessages = false;
+    public static final ThreadLocal<Boolean> hiddenLoginMessages = ThreadLocal.withInitial(() -> false);
     /**
      * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
      */

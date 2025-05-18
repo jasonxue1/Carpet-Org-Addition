@@ -21,8 +21,10 @@ public class SimulatePlayerInventory implements Inventory {
     private final DefaultedList<ItemStack> armor = DefaultedList.ofSize(4, ItemStack.EMPTY);
     private final DefaultedList<ItemStack> offHand = DefaultedList.ofSize(1, ItemStack.EMPTY);
     private final List<DefaultedList<ItemStack>> combinedInventory = ImmutableList.of(this.main, this.armor, this.offHand);
+    private final NbtCompound nbt;
 
-    private SimulatePlayerInventory() {
+    private SimulatePlayerInventory(NbtCompound nbt) {
+        this.nbt = nbt;
     }
 
     /**
@@ -30,7 +32,7 @@ public class SimulatePlayerInventory implements Inventory {
      */
     public static SimulatePlayerInventory of(NbtCompound nbt, MinecraftServer server) {
         NbtList nbtList = nbt.getList("Inventory", NbtElement.COMPOUND_TYPE);
-        SimulatePlayerInventory inventory = new SimulatePlayerInventory();
+        SimulatePlayerInventory inventory = new SimulatePlayerInventory(nbt);
         for (int i = 0; i < nbtList.size(); i++) {
             NbtCompound nbtCompound = nbtList.getCompound(i);
             int j = nbtCompound.getByte("Slot") & 255;
@@ -44,6 +46,10 @@ public class SimulatePlayerInventory implements Inventory {
             }
         }
         return inventory;
+    }
+
+    public void save() {
+
     }
 
     @Override

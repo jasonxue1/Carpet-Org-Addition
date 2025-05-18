@@ -129,6 +129,13 @@ public class CommandUtils {
     }
 
     /**
+     * 指定玩家不是假玩家
+     */
+    public static CommandSyntaxException createNotFakePlayerException(PlayerEntity fakePlayer) {
+        return createException("carpet.command.not_fake_player", fakePlayer.getDisplayName());
+    }
+
+    /**
      * 断言指定玩家为假玩家。<br>
      *
      * @param fakePlayer 要检查是否为假玩家的玩家对象
@@ -139,7 +146,7 @@ public class CommandUtils {
             return;
         }
         // 不是假玩家时抛出异常
-        throw createException("carpet.command.not_fake_player", fakePlayer.getDisplayName());
+        throw createNotFakePlayerException(fakePlayer);
     }
 
     /**

@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class OfflinePlayerSearchTask extends ServerTask {
+    public static final String UNKNOWN = "[Unknown]";
     /**
      * 当前虚拟线程的数量
      */
@@ -163,7 +164,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             if (this.showUnknown) {
-                optional = Optional.of(new GameProfile(uuid, "[Unknown]"));
+                optional = Optional.of(new GameProfile(uuid, UNKNOWN));
                 unknownPlayer = true;
             } else {
                 this.skipCount.incrementAndGet();

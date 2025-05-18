@@ -1,0 +1,212 @@
+package org.carpetorgaddition.util.inventory;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.Dynamic;
+import net.fabricmc.fabric.api.entity.FakePlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.UserCache;
+import net.minecraft.util.Uuids;
+import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.World;
+import net.minecraft.world.dimension.DimensionType;
+import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
+import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
+    /**
+     * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家
+     */
+    public static final HashMap<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new HashMap<>();
+    private final PlayerProfile profile;
+    private final FakePlayer fabricPlayer;
+
+    public OfflinePlayerInventory(MinecraftServer server, GameProfile gameProfile) {
+        this.fabricPlayer = FakePlayer.get(server.getOverworld(), gameProfile);
+        this.profile = new PlayerProfile(gameProfile);
+    }
+
+    /**
+     * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
+     */
+    private void initFakePlayer(MinecraftServer server) {
+        Optional<NbtCompound> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer);
+        RegistryKey<World> registryKey = optional.flatMap(nbt -> {
+            Dynamic<NbtElement> dynamic = new Dynamic<>(NbtOps.INSTANCE, nbt.get("Dimension"));
+            //noinspection deprecation
+            DataResult<RegistryKey<World>> dimension = DimensionType.worldFromDimensionNbt(dynamic);
+            return dimension.resultOrPartial(CarpetOrgAddition.LOGGER::error);
+        }).orElse(World.OVERWORLD);
+        ServerWorld world = server.getWorld(registryKey);
+        if (world != null) {
+            // 设置玩家所在维度
+            this.fabricPlayer.setServerWorld(world);
+        }
+    }
+
+    /**
+     * 根据玩家名称获取玩家档案
+     *
+     * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
+     */
+    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
+        try {
+            // 从本地获取玩家的在线UUID
+            JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
+            Optional<GameProfile> entry = readUsercacheJson(username, array, server);
+            if (entry.isPresent()) {
+                return entry;
+            }
+        } catch (IOException | JsonParseException | NullPointerException e) {
+            // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
+            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID.", e);
+        }
+        // 获取玩家的离线UUID
+        UUID uuid = Uuids.getOfflinePlayerUuid(username);
+        if (playerDataExists(uuid, server)) {
+            return Optional.of(new GameProfile(uuid, username));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * 从usercache.json读取玩家档案
+     *
+     * @param username 玩家的名称
+     * @param array    usercache.json保存的json数组
+     * @return 玩家档案，可能为空
+     */
+    private static Optional<GameProfile> readUsercacheJson(String username, JsonArray array, MinecraftServer server) {
+        Set<Map.Entry<String, String>> set = array.asList().stream()
+                .map(JsonElement::getAsJsonObject)
+                .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
+                .collect(Collectors.toSet());
+        for (Map.Entry<String, String> entry : set) {
+            if (Objects.equals(username, entry.getKey())) {
+                UUID uuid = UUID.fromString(entry.getValue());
+                if (playerDataExists(uuid, server)) {
+                    return Optional.of(new GameProfile(uuid, entry.getKey()));
+                }
+                return Optional.empty();
+            }
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
+        if (playerDataExists(uuid, server)) {
+            UserCache userCache = server.getUserCache();
+            if (userCache != null) {
+                return userCache.getByUuid(uuid);
+            }
+            Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
+            return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * @return 玩家数据是否存在
+     */
+    public static boolean playerDataExists(UUID uuid, MinecraftServer server) {
+        String filename = uuid.toString() + ".dat";
+        Path path = server.getSavePath(WorldSavePath.PLAYERDATA).resolve(filename);
+        return Files.exists(path);
+    }
+
+    @Override
+    public int size() {
+        return 54;
+    }
+
+    @Override
+    public boolean canPlayerUse(PlayerEntity player) {
+        return true;
+    }
+
+    @Override
+    public void onOpen(PlayerEntity player) {
+        MinecraftServer server = player.getServer();
+        if (server != null) {
+            this.initFakePlayer(server);
+            INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
+            // 译：{}打开了离线玩家{}的物品栏
+            CarpetOrgAddition.LOGGER.info(
+                    "{} opened the inventory of the offline player {}.",
+                    player.getName().getString(),
+                    this.profile.name
+            );
+        }
+    }
+
+    @Override
+    public void onClose(PlayerEntity player) {
+        try {
+            // 保存玩家数据
+            MinecraftServer server = player.getServer();
+            if (server != null) {
+                PlayerManager playerManager = server.getPlayerManager();
+                PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;
+                accessor.savePlayerEntityData(this.fabricPlayer);
+            }
+        } finally {
+            INVENTORY_OPERATOR_PLAYERS.remove(this.profile);
+        }
+    }
+
+    @Override
+    protected Inventory getInventory() {
+        return this.fabricPlayer.getInventory();
+    }
+
+    public static class PlayerProfile {
+        private final String name;
+        private final UUID uuid;
+
+        public PlayerProfile(GameProfile gameProfile) {
+            this.name = gameProfile.getName();
+            this.uuid = gameProfile.getId();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (this.getClass() == obj.getClass()) {
+                PlayerProfile other = (PlayerProfile) obj;
+                // 玩家名称和玩家UUID有一个匹配成功就视为相同
+                return Objects.equals(this.name, other.name) || Objects.equals(this.uuid, other.uuid);
+            }
+            return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return this.uuid.hashCode();
+        }
+    }
+}
