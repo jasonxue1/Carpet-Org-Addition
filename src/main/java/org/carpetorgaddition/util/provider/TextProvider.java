@@ -18,6 +18,7 @@ public class TextProvider {
      * 换行
      */
     public static final Text NEW_LINE = TextUtils.createText("\n");
+    public static final Text INDENT_SYMBOL = TextUtils.createText("    ");
 
     private TextProvider() {
     }

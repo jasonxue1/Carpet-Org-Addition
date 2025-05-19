@@ -29,7 +29,6 @@ public class CommandProvider {
         return "/%s cancel %s".formatted(getCommandName(MailCommand.class), id);
     }
 
-
     /**
      * 接收所有快递
      */
@@ -138,6 +137,13 @@ public class CommandProvider {
      */
     public static String openPlayerInventory(PlayerEntity player) {
         return "player %s inventory".formatted(player.getName().getString());
+    }
+
+    /**
+     * 翻页
+     */
+    public static String pageTurning(int id, int number) {
+        return "/%s textclickevent pageturning %s %s".formatted(getCommandName(OrangeCommand.class), id, number);
     }
 
     private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {

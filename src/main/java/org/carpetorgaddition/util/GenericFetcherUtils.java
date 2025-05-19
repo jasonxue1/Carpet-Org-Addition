@@ -8,6 +8,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.util.page.PageManager;
 import org.jetbrains.annotations.Contract;
 
 public class GenericFetcherUtils {
@@ -32,6 +33,10 @@ public class GenericFetcherUtils {
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
         return getRuleSelfManager(player.server);
+    }
+
+    public static PageManager getPageManager(MinecraftServer server) {
+        return ServerComponentCoordinator.getManager(server).getPageManager();
     }
 }
 

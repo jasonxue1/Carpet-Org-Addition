@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -135,6 +136,10 @@ public class MessageUtils {
         String error = GameUtils.getExceptionString(e);
         MutableText message = TextUtils.setColor(TextUtils.translate(key, obj), Formatting.RED);
         MessageUtils.sendMessage(source, TextUtils.hoverText(message, TextUtils.createText(error)));
+    }
+
+    public static void sendVanillaErrorMessage(ServerCommandSource source, CommandSyntaxException exception) {
+        source.sendError(TextUtils.create(exception.getRawMessage()));
     }
 
     /**

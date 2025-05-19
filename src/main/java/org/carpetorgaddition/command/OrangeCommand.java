@@ -6,6 +6,7 @@ import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -26,6 +27,8 @@ import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.permission.CommandPermission;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
@@ -96,7 +99,11 @@ public class OrangeCommand extends AbstractServerCommand {
                 .then(CommandManager.literal("textclickevent")
                         .then(CommandManager.literal("queryPlayerName")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
-                                        .executes(this::queryPlayerName)))));
+                                        .executes(this::queryPlayerName)))
+                        .then(CommandManager.literal("pageturning")
+                                .then(CommandManager.argument("id", IntegerArgumentType.integer(0))
+                                        .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
+                                                .executes(OrangeCommand::pageTurning))))));
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
@@ -291,6 +298,20 @@ public class OrangeCommand extends AbstractServerCommand {
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();
+    }
+    private static int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int id = IntegerArgumentType.getInteger(context, "id");
+        int page = IntegerArgumentType.getInteger(context, "page");
+        MinecraftServer server = context.getSource().getServer();
+        PageManager manager = GenericFetcherUtils.getPageManager(server);
+        Optional<PagedCollection> optional = manager.get(id);
+        if (optional.isPresent()) {
+            PagedCollection collection = optional.get();
+            collection.print(page, context.getSource());
+            return page;
+        } else {
+            throw CommandUtils.createException("carpet.command.page.non_existent");
+        }
     }
 
     @Override

@@ -171,4 +171,17 @@ public class CommandUtils {
         CommandManager commandManager = source.getServer().getCommandManager();
         commandManager.executeWithPrefix(source, command);
     }
+
+    public static void handlingException(ThrowingRunnable runnable, ServerCommandSource source) {
+        try {
+            runnable.run();
+        } catch (CommandSyntaxException e) {
+            MessageUtils.sendVanillaErrorMessage(source, e);
+        }
+    }
+
+    @FunctionalInterface
+    public interface ThrowingRunnable {
+        void run() throws CommandSyntaxException;
+    }
 }

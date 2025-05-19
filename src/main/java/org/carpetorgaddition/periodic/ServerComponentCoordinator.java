@@ -8,6 +8,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.util.page.PageManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerComponentCoordinator {
@@ -25,12 +26,17 @@ public class ServerComponentCoordinator {
      * 服务器任务管理器
      */
     private final ServerTaskManager serverTaskManager = new ServerTaskManager();
+    /**
+     * 翻页管理器
+     */
+    private final PageManager pageManager = new PageManager();
     private final RuleSelfManager ruleSelfManager;
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.expressManager = new ExpressManager(server);
         this.server = server;
         this.ruleSelfManager = new RuleSelfManager(server);
+        this.pageManager.tick();
     }
 
     public void tick() {
@@ -49,6 +55,10 @@ public class ServerComponentCoordinator {
 
     public RuleSelfManager getRuleSelfManager() {
         return this.ruleSelfManager;
+    }
+
+    public PageManager getPageManager() {
+        return this.pageManager;
     }
 
     private void onServerSave() {

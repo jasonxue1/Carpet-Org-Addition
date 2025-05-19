@@ -1,5 +1,6 @@
 package org.carpetorgaddition.util;
 
+import com.mojang.brigadier.Message;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
@@ -139,11 +140,15 @@ public class TextUtils {
         return Text.literal(number.toString());
     }
 
+    public static Text create(Message message) {
+        return Text.of(message);
+    }
+
     /**
      * 创建一个不包含任何内容的可变文本对象
      */
     public static MutableText createEmpty() {
-        return Text.literal("");
+        return Text.empty();
     }
 
     /**
