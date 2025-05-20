@@ -5,7 +5,6 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.ServerCommandSource;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class CommandRegister {
     private static final HashMap<Class<? extends AbstractServerCommand>, AbstractServerCommand> commands = new HashMap<>();
@@ -39,21 +38,18 @@ public class CommandRegister {
         // 快递命令
         register(new MailCommand(dispatcher, access));
         register(new OrangeCommand(dispatcher, access));
+        // TODO 检查是否在生产环境注册
+        register(new RuntimeCommand(dispatcher, access));
     }
 
     private static <T extends AbstractServerCommand> void register(T command) {
-        command.register();
-        commands.put(command.getClass(), command);
+        if (command.shouldRegister()) {
+            command.register();
+            commands.put(command.getClass(), command);
+        }
     }
 
     public static <T extends AbstractServerCommand> T getCommandInstance(Class<T> clazz) {
         return clazz.cast(commands.get(clazz));
-    }
-
-    /**
-     * 列出所有命令
-     */
-    public static List<AbstractServerCommand> listCommands() {
-        return commands.values().stream().toList();
     }
 }
