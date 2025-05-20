@@ -50,7 +50,7 @@ public class BlockSearchTask extends ServerTask {
         this.findState = FindState.SEARCH;
         this.tickCount = 0;
         PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection();
+        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 
     @Override
@@ -135,7 +135,7 @@ public class BlockSearchTask extends ServerTask {
         MutableText name = this.blockPredicate.getName();
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find", count, name);
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(() -> this.pagedCollection.print(this.context.getSource()), this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.context);
         this.findState = FindState.END;
     }
 

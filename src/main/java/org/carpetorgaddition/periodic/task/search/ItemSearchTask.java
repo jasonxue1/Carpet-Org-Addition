@@ -64,7 +64,7 @@ public class ItemSearchTask extends ServerTask {
         this.predicate = predicate;
         this.context = context;
         PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection();
+        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 
     @Override
@@ -202,7 +202,7 @@ public class ItemSearchTask extends ServerTask {
         int size = this.results.size();
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(() -> this.pagedCollection.print(this.context.getSource()), this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.context);
         this.findState = FindState.END;
     }
 

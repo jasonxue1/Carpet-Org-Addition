@@ -53,7 +53,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.context = context;
         this.findState = FindState.SEARCH;
         PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection();
+        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 
     @Override
@@ -133,7 +133,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
         MessageUtils.sendMessage(context.getSource(), key, list.toArray(Object[]::new));
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(() -> this.pagedCollection.print(this.context.getSource()), this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.context);
         this.findState = FindState.END;
     }
 

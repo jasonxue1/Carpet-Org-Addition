@@ -90,7 +90,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.showUnknown = context.showUnknown();
         this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
         PageManager manager = GenericFetcherUtils.getPageManager(server);
-        this.pagedCollection = manager.newPagedCollection();
+        this.pagedCollection = manager.newPagedCollection(this.source);
     }
 
     @Override
@@ -236,7 +236,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             MutableText grayItalic = TextUtils.toGrayItalic(translate);
             MessageUtils.sendMessage(this.source, grayItalic);
         }
-        CommandUtils.handlingException(() -> this.pagedCollection.print(source), source);
+        CommandUtils.handlingException(this.pagedCollection::print, source);
     }
 
     /**

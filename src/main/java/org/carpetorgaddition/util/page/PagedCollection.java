@@ -2,6 +2,7 @@ package org.carpetorgaddition.util.page;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -18,9 +19,11 @@ import java.util.function.Supplier;
 public class PagedCollection {
     private final ArrayList<Page> pages = new ArrayList<>();
     private final int id;
+    private final ServerCommandSource source;
 
-    public PagedCollection(int id) {
+    public PagedCollection(int id, ServerCommandSource source) {
         this.id = id;
+        this.source = source;
     }
 
     public void addContent(List<? extends Supplier<Text>> list) {
@@ -33,19 +36,19 @@ public class PagedCollection {
         }
     }
 
-    public void print(ServerCommandSource source) throws CommandSyntaxException {
-        this.print(1, source);
+    public void print() throws CommandSyntaxException {
+        this.print(1);
     }
 
-    public void print(int pagination, ServerCommandSource source) throws CommandSyntaxException {
+    public void print(int pagination) throws CommandSyntaxException {
         if (pagination <= 0 || pagination > this.pages.size()) {
             throw CommandUtils.createException("carpet.command.page.invalid", pagination, this.totalPages());
         }
         if (this.totalPages() == 1) {
             // 只有一页
-            getPage(pagination).print(source);
+            getPage(pagination).print(this.source);
         } else {
-            getPage(pagination).print(source);
+            getPage(pagination).print(this.source);
             MutableText pageTurningButton = TextUtils.appendAll(
                     TextUtils.setColor(TextUtils.createText("  ======"), Formatting.DARK_GRAY),
                     this.prevPageButton(pagination),
@@ -57,7 +60,7 @@ public class PagedCollection {
                     this.nextPageButton(pagination),
                     TextUtils.setColor(TextUtils.createText("======"), Formatting.DARK_GRAY)
             );
-            MessageUtils.sendMessage(source, pageTurningButton);
+            MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
 
@@ -91,6 +94,9 @@ public class PagedCollection {
         return this.pages.size();
     }
 
+    public ServerCommandSource getSource() {
+        return this.source;
+    }
 
     public static int maximumNumberOfRow() {
         return Math.max(CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount, 1);

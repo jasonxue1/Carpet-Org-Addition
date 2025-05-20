@@ -299,6 +299,7 @@ public class OrangeCommand extends AbstractServerCommand {
         }
         throw CommandUtils.createSelfOrFakePlayerException();
     }
+
     private static int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         int id = IntegerArgumentType.getInteger(context, "id");
         int page = IntegerArgumentType.getInteger(context, "page");
@@ -307,7 +308,7 @@ public class OrangeCommand extends AbstractServerCommand {
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {
             PagedCollection collection = optional.get();
-            collection.print(page, context.getSource());
+            collection.print(page);
             return page;
         } else {
             throw CommandUtils.createException("carpet.command.page.non_existent");
