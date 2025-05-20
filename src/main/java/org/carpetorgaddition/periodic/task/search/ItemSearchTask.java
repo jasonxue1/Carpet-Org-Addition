@@ -11,16 +11,20 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
@@ -29,6 +33,7 @@ import org.carpetorgaddition.util.wheel.SelectionArea;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
     private final World world;
@@ -49,6 +54,7 @@ public class ItemSearchTask extends ServerTask {
     private int tickCount;
     private final ItemStackPredicate predicate;
     private final ArrayList<Result> results = new ArrayList<>();
+    private final PagedCollection pagedCollection;
 
     public ItemSearchTask(World world, ItemStackPredicate predicate, SelectionArea selectionArea, CommandContext<ServerCommandSource> context) {
         this.world = world;
@@ -57,6 +63,8 @@ public class ItemSearchTask extends ServerTask {
         this.tickCount = 0;
         this.predicate = predicate;
         this.context = context;
+        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        this.pagedCollection = pageManager.newPagedCollection();
     }
 
     @Override
@@ -192,17 +200,9 @@ public class ItemSearchTask extends ServerTask {
             itemCount = this.shulkerBox ? TextUtils.toItalic(countText) : countText;
         }
         int size = this.results.size();
-        if (size > CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount) {
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find.limit",
-                    size, itemCount, predicate.toText(), CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount);
-        } else {
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find",
-                    size, itemCount, predicate.toText());
-        }
-        for (int i = 0; i < size && i < CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount; i++) {
-            MutableText message = this.results.get(i).toText();
-            MessageUtils.sendMessage(this.context.getSource(), message);
-        }
+        MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
+        this.pagedCollection.addContent(this.results);
+        CommandUtils.handlingException(() -> this.pagedCollection.print(this.context.getSource()), this.context);
         this.findState = FindState.END;
     }
 
@@ -229,8 +229,13 @@ public class ItemSearchTask extends ServerTask {
         return false;
     }
 
-    private record Result(BlockPos blockPos, MutableText containerName, ItemStackStatistics statistics) {
-        private MutableText toText() {
+    private record Result(
+            BlockPos blockPos,
+            MutableText containerName,
+            ItemStackStatistics statistics
+    ) implements Supplier<Text> {
+        @Override
+        public Text get() {
             return TextUtils.translate(
                     "carpet.commands.finder.item.each",
                     TextProvider.blockPos(blockPos, Formatting.GREEN),

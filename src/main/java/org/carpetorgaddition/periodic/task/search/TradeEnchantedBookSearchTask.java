@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.TradeOfferList;
@@ -103,7 +104,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         }
 
         @Override
-        public MutableText toText() {
+        public Text get() {
             // 村民或流浪商人的名称
             MutableText villagerName = merchant.getName().copy();
             // 获取交易名称
@@ -129,8 +130,4 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         }
     }
 
-    @Override
-    protected String getResultLimitKey() {
-        return "carpet.commands.finder.trade.enchanted_book.result.limit";
-    }
 }

@@ -4,16 +4,21 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final World world;
@@ -21,6 +26,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final BlockPos sourcePos;
     protected final CommandContext<ServerCommandSource> context;
     protected Iterator<MerchantEntity> iterator;
+    private final PagedCollection pagedCollection;
     private FindState findState;
     /**
      * tick方法开始执行时的时间
@@ -46,6 +52,8 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.sourcePos = sourcePos;
         this.context = context;
         this.findState = FindState.SEARCH;
+        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        this.pagedCollection = pageManager.newPagedCollection();
     }
 
     @Override
@@ -106,8 +114,6 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
 
     protected abstract MutableText getTradeName();
 
-    protected abstract String getResultLimitKey();
-
     // 对结果进行排序
     private void sort() {
         this.results.sort((o1, o2) -> o1.compare(o1, o2));
@@ -123,21 +129,11 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         // 总交易选项数量
         list.add(this.tradeCount);
         // 消息的翻译键
-        String key;
-        if (this.results.size() > CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount) {
-            // 结果太多，限制只显示前几条
-            key = getResultLimitKey();
-            // 需要限制数量的消息中多一个占位符
-            list.add(CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount);
-        } else {
-            key = "carpet.commands.finder.trade.result";
-        }
+        String key = "carpet.commands.finder.trade.result";
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
         MessageUtils.sendMessage(context.getSource(), key, list.toArray(Object[]::new));
-        // 发送每一条（或前10条）结果
-        for (int i = 0; i < this.results.size() && i < CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount; i++) {
-            MessageUtils.sendMessage(this.context.getSource(), this.results.get(i).toText());
-        }
+        this.pagedCollection.addContent(this.results);
+        CommandUtils.handlingException(() -> this.pagedCollection.print(this.context.getSource()), this.context);
         this.findState = FindState.END;
     }
 
@@ -159,9 +155,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         return (System.currentTimeMillis() - this.startTime) > FinderCommand.MAX_FIND_TIME;
     }
 
-    public interface Result extends Comparator<Result> {
-        MutableText toText();
-
+    public interface Result extends Comparator<Result>, Supplier<Text> {
         BlockPos villagerPos();
     }
 

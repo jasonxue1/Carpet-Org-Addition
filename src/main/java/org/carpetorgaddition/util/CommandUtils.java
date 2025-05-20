@@ -172,6 +172,10 @@ public class CommandUtils {
         commandManager.executeWithPrefix(source, command);
     }
 
+    public static void handlingException(ThrowingRunnable runnable, CommandContext<ServerCommandSource> context) {
+        handlingException(runnable, context.getSource());
+    }
+
     public static void handlingException(ThrowingRunnable runnable, ServerCommandSource source) {
         try {
             runnable.run();
