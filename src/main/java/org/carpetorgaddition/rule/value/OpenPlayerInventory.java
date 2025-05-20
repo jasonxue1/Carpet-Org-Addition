@@ -7,6 +7,7 @@ public enum OpenPlayerInventory {
     FALSE(false, false, false),
     FAKE_PLAYER(true, false, false),
     ONLINE_PLAYER(true, true, false),
+    NON_WHITELIST(true, false, true),
     ALL_PLAYER(true, true, true);
 
     private final boolean fake;
@@ -38,6 +39,13 @@ public enum OpenPlayerInventory {
      */
     public boolean canOpenOfflinePlayer() {
         return this.offline;
+    }
+
+    /**
+     * @return 打开该玩家物品栏是否需要权限
+     */
+    public boolean permissionRequired() {
+        return this == NON_WHITELIST;
     }
 
     public static boolean isEnable(ServerCommandSource ignored) {

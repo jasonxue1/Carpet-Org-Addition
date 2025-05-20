@@ -45,7 +45,8 @@ public class PlayerCommandExtension {
 
     // 打开玩家物品栏
     private static int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         String playerName = getPlayerName(context);
         ServerPlayerEntity argumentPlayer = getPlayerNullable(playerName, server);
@@ -53,19 +54,19 @@ public class PlayerCommandExtension {
         switch (argumentPlayer) {
             case null -> {
                 if (ruleValue.canOpenOfflinePlayer()) {
-                    openOfflinePlayerInventory(playerName, server, sourcePlayer);
+                    openOfflinePlayerInventory(playerName, server, sourcePlayer, source);
                 } else {
                     throw CommandUtils.createPlayerNotFoundException();
                 }
             }
             case EntityPlayerMPFake player -> {
                 if (ruleValue.canOpenFakePlayer()) {
-                    openOnlinePlayerInventory(sourcePlayer, player);
+                    openOnlinePlayerInventory(sourcePlayer, player, server, source);
                 }
             }
             case ServerPlayerEntity player -> {
                 if (ruleValue.canOpenRealPlayer()) {
-                    openOnlinePlayerInventory(sourcePlayer, player);
+                    openOnlinePlayerInventory(sourcePlayer, player, server, source);
                 } else {
                     throw CommandUtils.createNotFakePlayerException(player);
                 }
@@ -74,12 +75,18 @@ public class PlayerCommandExtension {
         return 1;
     }
 
-    private static void openOfflinePlayerInventory(String username, MinecraftServer server, ServerPlayerEntity sourcePlayer) throws CommandSyntaxException {
+    private static void openOfflinePlayerInventory(
+            String username,
+            MinecraftServer server,
+            ServerPlayerEntity sourcePlayer,
+            ServerCommandSource source
+    ) throws CommandSyntaxException {
         Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
         if (optional.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
         }
         GameProfile gameProfile = optional.get();
+        OfflinePlayerInventory.checkPermission(server, gameProfile, source);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
                     OfflinePlayerInventory inventory = new OfflinePlayerInventory(server, gameProfile);
@@ -88,7 +95,13 @@ public class PlayerCommandExtension {
         sourcePlayer.openHandledScreen(factory);
     }
 
-    private static void openOnlinePlayerInventory(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) {
+    private static void openOnlinePlayerInventory(
+            ServerPlayerEntity sourcePlayer,
+            ServerPlayerEntity argumentPlayer,
+            MinecraftServer server,
+            ServerCommandSource source
+    ) throws CommandSyntaxException {
+        OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), source);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
                 (syncId, inventory, player) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
                 argumentPlayer.getName()
@@ -99,7 +112,8 @@ public class PlayerCommandExtension {
 
     // 打开玩家末影箱
     private static int openEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         String playerName = getPlayerName(context);
         ServerPlayerEntity argumentPlayer = getPlayerNullable(playerName, server);
@@ -107,19 +121,19 @@ public class PlayerCommandExtension {
         switch (argumentPlayer) {
             case null -> {
                 if (ruleValue.canOpenOfflinePlayer()) {
-                    openOfflinePlayerEnderChest(playerName, server, sourcePlayer);
+                    openOfflinePlayerEnderChest(playerName, server, sourcePlayer, source);
                 } else {
                     throw CommandUtils.createPlayerNotFoundException();
                 }
             }
             case EntityPlayerMPFake player -> {
                 if (ruleValue.canOpenFakePlayer()) {
-                    openOnlinePlayerEnderChest(sourcePlayer, player);
+                    openOnlinePlayerEnderChest(sourcePlayer, player, server, source);
                 }
             }
             case ServerPlayerEntity player -> {
                 if (ruleValue.canOpenRealPlayer()) {
-                    openOnlinePlayerEnderChest(sourcePlayer, player);
+                    openOnlinePlayerEnderChest(sourcePlayer, player, server, source);
                 } else {
                     throw CommandUtils.createNotFakePlayerException(player);
                 }
@@ -128,12 +142,18 @@ public class PlayerCommandExtension {
         return 1;
     }
 
-    private static void openOfflinePlayerEnderChest(String username, MinecraftServer server, ServerPlayerEntity sourcePlayer) throws CommandSyntaxException {
+    private static void openOfflinePlayerEnderChest(
+            String username,
+            MinecraftServer server,
+            ServerPlayerEntity sourcePlayer,
+            ServerCommandSource source
+    ) throws CommandSyntaxException {
         Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
         if (optional.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
         }
         GameProfile gameProfile = optional.get();
+        OfflinePlayerInventory.checkPermission(server, gameProfile, source);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
                     OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(server, gameProfile);
@@ -142,7 +162,13 @@ public class PlayerCommandExtension {
         sourcePlayer.openHandledScreen(factory);
     }
 
-    private static void openOnlinePlayerEnderChest(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) {
+    private static void openOnlinePlayerEnderChest(
+            ServerPlayerEntity sourcePlayer,
+            ServerPlayerEntity argumentPlayer,
+            MinecraftServer server,
+            ServerCommandSource source
+    ) throws CommandSyntaxException {
+        OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), source);
         // 创建GUI对象
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
                 (i, inventory, player) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),

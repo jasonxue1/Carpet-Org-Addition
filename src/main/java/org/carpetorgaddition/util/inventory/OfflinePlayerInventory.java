@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.Dynamic;
 import net.fabricmc.fabric.api.entity.FakePlayer;
@@ -16,6 +17,7 @@ import net.minecraft.network.ClientConnection;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -25,8 +27,10 @@ import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
 import net.minecraft.world.dimension.DimensionType;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 
@@ -116,6 +120,52 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         return Optional.empty();
     }
 
+    /**
+     * 检查玩家是否有权限打开离线玩家物品栏
+     */
+    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerCommandSource source) throws CommandSyntaxException {
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.permissionRequired()) {
+            if (source.hasPermissionLevel(2)) {
+                return;
+            }
+            PlayerProfile profile = new PlayerProfile(gameProfile);
+            if (isWhitelistPlayer(server, profile) || isOperatorPlayer(server, profile)) {
+                throw CommandUtils.createException("carpet.commands.player.inventory.offline.permission");
+            }
+        }
+    }
+
+    private static boolean isWhitelistPlayer(MinecraftServer server, PlayerProfile profile) {
+        PlayerManager playerManager = server.getPlayerManager();
+        JsonArray array;
+        try {
+            array = IOUtils.loadJson(playerManager.getWhitelist().getFile(), JsonArray.class);
+        } catch (IOException e) {
+            return false;
+        }
+        return contains(profile, array);
+    }
+
+    private static boolean isOperatorPlayer(MinecraftServer server, PlayerProfile profile) {
+        PlayerManager playerManager = server.getPlayerManager();
+        JsonArray array;
+        try {
+            array = IOUtils.loadJson(playerManager.getOpList().getFile(), JsonArray.class);
+        } catch (IOException e) {
+            return false;
+        }
+        return contains(profile, array);
+    }
+
+    private static boolean contains(PlayerProfile profile, JsonArray array) {
+        Set<PlayerProfile> profiles = array.asList().stream()
+                .map(JsonElement::getAsJsonObject)
+                .map(json -> Map.entry(json.get("uuid").getAsString(), json.get("name").getAsString()))
+                .map(entry -> new PlayerProfile(new GameProfile(UUID.fromString(entry.getKey()), entry.getValue())))
+                .collect(Collectors.toSet());
+        return profiles.contains(profile);
+    }
+
     public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
             UserCache userCache = server.getUserCache();
@@ -199,7 +249,9 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             if (this.getClass() == obj.getClass()) {
                 PlayerProfile other = (PlayerProfile) obj;
                 // 玩家名称和玩家UUID有一个匹配成功就视为相同
-                return Objects.equals(this.name, other.name) || Objects.equals(this.uuid, other.uuid);
+                String thisLowerCase = this.name.toLowerCase(Locale.ROOT);
+                String otherLowerCase = other.name.toLowerCase(Locale.ROOT);
+                return Objects.equals(thisLowerCase, otherLowerCase) || Objects.equals(this.uuid, other.uuid);
             }
             return false;
         }
