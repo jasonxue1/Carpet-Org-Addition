@@ -18,7 +18,6 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 
 import java.io.File;
@@ -227,13 +226,13 @@ public class ExpressManager {
      * @return 获取快递发送者的快递被接收者接收的消息
      */
     public static MutableText getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
-        TextBuilder builder = new TextBuilder();
+        ArrayList<Text> list = new ArrayList<>();
         for (Item item : counter) {
-            builder.append(TextUtils.combineAll(item.getName(), "*", counter.getCount(item)));
+            list.add(TextUtils.combineAll(item.getName(), "*", counter.getCount(item)));
         }
         MutableText translate = TextUtils.translate("carpet.commands.mail.sending.notice", player.getDisplayName());
         MutableText message = TextUtils.toGrayItalic(translate);
-        return TextUtils.hoverText(message, builder.toParagraph());
+        return TextUtils.hoverText(message, TextUtils.joinList(list));
     }
 
     /**

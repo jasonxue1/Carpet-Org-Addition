@@ -165,6 +165,16 @@ public class WorldUtils {
         };
     }
 
+    // TODO 移动到TextProvider类
+    public static Text getDimensionName(String dimension) {
+        return switch (dimension) {
+            case OVERWORLD, SIMPLE_OVERWORLD -> TextProvider.OVERWORLD;
+            case THE_NETHER, SIMPLE_THE_NETHER -> TextProvider.THE_NETHER;
+            case THE_END, SIMPLE_THE_END -> TextProvider.THE_END;
+            default -> TextUtils.createText(dimension);
+        };
+    }
+
     /**
      * 在指定位置播放一个音效
      */

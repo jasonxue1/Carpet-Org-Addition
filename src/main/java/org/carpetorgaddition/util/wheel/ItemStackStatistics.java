@@ -10,6 +10,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.TextUtils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.function.Predicate;
 
@@ -105,22 +106,18 @@ public class ItemStackStatistics {
     }
 
     public Text getCountText() {
-        TextBuilder builder = new TextBuilder();
+        ArrayList<Text> list = new ArrayList<>();
         for (Item item : this.counter) {
             MutableText itemCount = itemCount(this.counter.getCount(item), item.getMaxCount());
             if (this.nestingItem.contains(item)) {
-                MutableText line = new TextBuilder().append(item.getName()).blank().append(itemCount).toLine();
-                builder.append(TextUtils.toItalic(line));
+                list.add(TextUtils.toItalic(TextUtils.combineAll(item.getName(), " ", itemCount)));
             } else {
-                builder.append(item.getName()).blank().append(itemCount);
+                list.add(TextUtils.combineAll(item.getName(), " ", itemCount));
             }
-            builder.newLine();
         }
-        builder.removeLast();
         MutableText text = TextUtils.createText(Integer.toString(this.getSum()));
-        MutableText result = TextUtils.hoverText(text, builder.toLine());
+        MutableText result = TextUtils.hoverText(text, TextUtils.joinList(list));
         return this.nestingItem.isEmpty() ? result : TextUtils.toItalic(result);
-
     }
 
     private MutableText itemCount(int count, int maxCount) {

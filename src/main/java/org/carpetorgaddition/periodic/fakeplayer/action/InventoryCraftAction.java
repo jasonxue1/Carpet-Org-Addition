@@ -13,8 +13,8 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -160,18 +160,24 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     // 添加合成配方文本
     private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
         // 配方第一排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[0].getInitialUpperCase())
-                .blank().append(this.predicates[1].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextUtils.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[0].getInitialUpperCase(),
+                        " ",
+                        this.predicates[1].getInitialUpperCase()
+                )
+        );
         // 配方第二排
-        TextBuilder builder = new TextBuilder()
-                .indentation().append(this.predicates[2].getInitialUpperCase())
-                .blank().append(this.predicates[3].getInitialUpperCase());
-        if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
-        }
-        list.add(builder.toLine());
+        list.add(
+                TextUtils.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[2].getInitialUpperCase(),
+                        " ",
+                        this.predicates[3].getInitialUpperCase(),
+                        craftOutput.isEmpty() ? null : TextUtils.combineAll(" -> ", FakePlayerUtils.getWithCountHoverText(craftOutput))
+                )
+        );
     }
 
     // 合成方格内的物品状态

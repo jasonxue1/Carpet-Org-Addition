@@ -48,6 +48,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+// TODO 玩家分组
 public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
 

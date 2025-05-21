@@ -14,8 +14,8 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -170,26 +170,39 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
     private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
         // 配方第一排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[0].getInitialUpperCase())
-                .blank().append(this.predicates[1].getInitialUpperCase())
-                .blank().append(this.predicates[2].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextUtils.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[0].getInitialUpperCase(),
+                        " ",
+                        this.predicates[1].getInitialUpperCase(),
+                        " ",
+                        this.predicates[2].getInitialUpperCase()
+                )
+        );
         // 配方第二排
-        TextBuilder builder = new TextBuilder()
-                .indentation().append(this.predicates[3].getInitialUpperCase())
-                .blank().append(this.predicates[4].getInitialUpperCase())
-                .blank().append(this.predicates[5].getInitialUpperCase());
-        if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
-        }
-        list.add(builder.toLine());
+        list.add(
+                TextUtils.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[3].getInitialUpperCase(),
+                        " ",
+                        this.predicates[4].getInitialUpperCase(),
+                        " ",
+                        this.predicates[5].getInitialUpperCase(),
+                        craftOutput.isEmpty() ? null : TextUtils.combineAll(" -> ", FakePlayerUtils.getWithCountHoverText(craftOutput))
+                )
+        );
         // 配方第三排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[6].getInitialUpperCase())
-                .blank().append(this.predicates[7].getInitialUpperCase())
-                .blank().append(this.predicates[8].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextUtils.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[6].getInitialUpperCase(),
+                        " ",
+                        this.predicates[7].getInitialUpperCase(),
+                        " ",
+                        this.predicates[8].getInitialUpperCase()
+                )
+        );
     }
 
     // 添加当前合成方格的状态

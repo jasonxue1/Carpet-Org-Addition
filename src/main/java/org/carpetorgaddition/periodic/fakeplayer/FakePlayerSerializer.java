@@ -24,7 +24,6 @@ import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.MetaComment;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
 
@@ -195,43 +194,37 @@ public class FakePlayerSerializer {
 
     // 显示文本信息
     public Text info() {
-        TextBuilder build = new TextBuilder();
+        ArrayList<Text> list = new ArrayList<>();
         // 玩家位置
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
-        build.appendTranslateLine("carpet.commands.playerManager.info.pos",
-                pos);
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.pos", pos));
         // 获取朝向
-        build.appendTranslateLine("carpet.commands.playerManager.info.direction",
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.direction",
                 MathUtils.numberToTwoDecimalString(this.yaw),
-                MathUtils.numberToTwoDecimalString(this.pitch));
+                MathUtils.numberToTwoDecimalString(this.pitch)));
         // 维度
-        build.appendTranslateLine("carpet.commands.playerManager.info.dimension", switch (this.dimension) {
-            case "minecraft:overworld", "overworld" -> TextProvider.OVERWORLD;
-            case "minecraft:the_nether", "the_nether" -> TextProvider.THE_NETHER;
-            case "minecraft:the_end", "the_end" -> TextProvider.THE_END;
-            default -> TextUtils.createText(dimension);
-        });
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.dimension", WorldUtils.getDimensionName(this.dimension)));
         // 游戏模式
-        build.appendTranslateLine("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
         // 是否飞行
-        build.appendTranslateLine("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying)));
         // 是否潜行
-        build.appendTranslateLine("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
-        build.appendTranslate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
+        list.add(TextUtils.translate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin)));
         if (this.interactiveAction.hasAction()) {
-            build.newLine().append(this.interactiveAction.toText());
+            list.add(this.interactiveAction.toText());
         }
         if (this.autoAction.hasAction()) {
-            build.newLine().append(this.autoAction.toText());
+            list.add(this.autoAction.toText());
         }
         if (this.comment.hasContent()) {
             // 添加注释
-            build.newLine().appendTranslate("carpet.commands.playerManager.info.comment", this.comment.getText());
+            list.add(TextUtils.translate("carpet.commands.playerManager.info.comment", this.comment.getText()));
         }
-        return build.toLine();
+        return TextUtils.joinList(list);
     }
 
     public JsonObject toJson() {
