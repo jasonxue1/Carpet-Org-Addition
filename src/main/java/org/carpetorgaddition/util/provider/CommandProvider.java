@@ -154,6 +154,10 @@ public class CommandProvider {
         return "/%s textclickevent pageturning %s %s".formatted(getCommandName(OrangeCommand.class), id, number);
     }
 
+    public static String setCarpetRule(String rule, String value) {
+        return "/carpet %s %s".formatted(rule, value);
+    }
+
     private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {
         return CommandRegister.getCommandInstance(clazz).getAvailableName();
     }

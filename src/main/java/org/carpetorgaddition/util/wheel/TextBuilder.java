@@ -1,106 +1,117 @@
 package org.carpetorgaddition.util.wheel;
 
+import com.mojang.brigadier.Message;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.carpetorgaddition.util.TextUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-
-import java.util.ArrayList;
+import org.jetbrains.annotations.Nullable;
 
 public class TextBuilder {
-    private final ArrayList<Text> list = new ArrayList<>();
+    private final MutableText text;
 
-    public TextBuilder() {
+    private TextBuilder(MutableText text) {
+        this.text = text;
+    }
+
+    public static TextBuilder of(@Nullable Object obj) {
+        MutableText result = switch (obj) {
+            case null -> TextUtils.createEmpty();
+            case String str -> TextUtils.createText(str);
+            case Number number -> TextUtils.createText(number);
+            case MutableText text -> text;
+            case Text text -> text.copy();
+            case Message message -> TextUtils.create(message).copy();
+            default -> throw new IllegalArgumentException(obj + " cannot be parsed as a Text type");
+        };
+        return new TextBuilder(result);
+    }
+
+    public static TextBuilder ofTranslate(String key, Object... args) {
+        return new TextBuilder(TextUtils.translate(key, args));
     }
 
     /**
-     * 追加文本
+     * 设置文本单击后在聊天栏输入内容
      */
-    public TextBuilder append(Text text) {
-        this.list.add(text);
+    public TextBuilder setSuggest(String input) {
+        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, input)));
         return this;
     }
 
     /**
-     * 追加字符串
+     * 设置文本颜色
      */
-    public TextBuilder appendString(String text) {
-        return this.append(TextUtils.createText(text));
-    }
-
-    public TextBuilder appendNumber(Number number) {
-        return this.append(TextUtils.createText(number.toString()));
-    }
-
-    /**
-     * 追加文本
-     */
-    public TextBuilder appendTranslate(String key, Object... args) {
-        return this.append(TextUtils.translate(key, args));
-    }
-
-    /**
-     * 追加文本并换行
-     */
-    public TextBuilder appendTranslateLine(String key, Object... args) {
-        this.append(TextUtils.translate(key, args));
-        return this.append(TextProvider.NEW_LINE);
-    }
-
-    /**
-     * 换行
-     */
-    public TextBuilder newLine() {
-        return this.append(TextProvider.NEW_LINE);
-    }
-
-    /**
-     * 追加缩进
-     */
-    public TextBuilder indentation() {
-        return this.appendString("    ");
-    }
-
-    /**
-     * 追加空格
-     */
-    public TextBuilder blank() {
-        return this.appendString(" ");
-    }
-
-    /**
-     * 删除最后一个元素
-     */
-    public TextBuilder removeLast() {
-        this.list.removeLast();
+    public TextBuilder setColor(Formatting formatting) {
+        this.text.styled(style -> style.withColor(formatting));
         return this;
     }
 
     /**
-     * 将当前对象转换为文本对象，每个元素之间不换行
+     * 设置悬停提示
      */
-    public MutableText toLine() {
-        MutableText result = TextUtils.createEmpty();
-        this.list.forEach(result::append);
-        return result;
+    public TextBuilder setHover(Text text) {
+        this.text.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, text)));
+        return this;
     }
 
     /**
-     * @return 将当前对象转换为文本对象，每个元素之间换行
+     * 设置悬停提示
      */
-    public MutableText toParagraph() {
-        MutableText result = TextUtils.createEmpty();
-        for (int i = 0; i < this.list.size(); i++) {
-            result.append(this.list.get(i));
-            if (i < this.list.size() - 1) {
-                result.append(TextProvider.NEW_LINE);
-            }
-        }
-        return result;
+    public TextBuilder setHover(String key, Object... args) {
+        return this.setHover(TextUtils.translate(key, args));
     }
 
-    @Override
-    public String toString() {
-        return this.toLine().getString();
+    /**
+     * 设置单击文本后复制内容到剪贴板
+     */
+    public TextBuilder setCopyToClipboard(String str) {
+        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, str)));
+        return this;
+    }
+
+    /**
+     * 设置单击文本后执行命令
+     */
+    public TextBuilder setCommand(String command) {
+        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command)));
+        return this;
+    }
+
+    /**
+     * 设置为斜体
+     */
+    public TextBuilder setItalic() {
+        this.text.styled(style -> style.withItalic(true));
+        return this;
+    }
+
+    /**
+     * 设置为粗体
+     */
+    public TextBuilder setBold() {
+        this.text.styled(style -> style.withBold(true));
+        return this;
+    }
+
+    /**
+     * 设置有删除线
+     */
+    public TextBuilder setStrikethrough() {
+        this.text.styled(style -> style.withStrikethrough(true));
+        return this;
+    }
+
+    /**
+     * 设置为灰色斜体
+     */
+    public TextBuilder setGrayItalic() {
+        return this.setColor(Formatting.GRAY).setItalic();
+    }
+
+    public MutableText build() {
+        return this.text;
     }
 }
