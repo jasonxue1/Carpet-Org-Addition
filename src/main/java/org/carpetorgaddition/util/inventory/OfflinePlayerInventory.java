@@ -158,6 +158,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     private static boolean contains(PlayerProfile profile, JsonArray array) {
+        // 原版方法似乎要求玩家名称和玩家UUID都要匹配
         Set<PlayerProfile> profiles = array.asList().stream()
                 .map(JsonElement::getAsJsonObject)
                 .map(json -> Map.entry(json.get("uuid").getAsString(), json.get("name").getAsString()))
@@ -170,7 +171,10 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         if (playerDataExists(uuid, server)) {
             UserCache userCache = server.getUserCache();
             if (userCache != null) {
-                return userCache.getByUuid(uuid);
+                Optional<GameProfile> optional = userCache.getByUuid(uuid);
+                if (optional.isPresent()) {
+                    return optional;
+                }
             }
             Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
             return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));

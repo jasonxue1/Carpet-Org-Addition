@@ -4,6 +4,7 @@ import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
 import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -27,6 +28,7 @@ import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.permission.CommandPermission;
@@ -103,7 +105,13 @@ public class OrangeCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("pageturning")
                                 .then(CommandManager.argument("id", IntegerArgumentType.integer(0))
                                         .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
-                                                .executes(OrangeCommand::pageTurning))))));
+                                                .executes(this::pageTurning))))
+                        .then(CommandManager.literal("openInventory")
+                                .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
+                                        .then(CommandManager.literal("inventory")
+                                                .executes(this::openPlayerInventory))
+                                        .then(CommandManager.literal("enderChest")
+                                                .executes(this::openPlayerEnderChest))))));
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
@@ -300,7 +308,7 @@ public class OrangeCommand extends AbstractServerCommand {
         throw CommandUtils.createSelfOrFakePlayerException();
     }
 
-    private static int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         int id = IntegerArgumentType.getInteger(context, "id");
         int page = IntegerArgumentType.getInteger(context, "page");
         MinecraftServer server = context.getSource().getServer();
@@ -313,6 +321,44 @@ public class OrangeCommand extends AbstractServerCommand {
         } else {
             throw CommandUtils.createException("carpet.command.page.non_existent");
         }
+    }
+
+    private int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        if (player == null) {
+            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            PlayerCommandExtension.openOfflinePlayerInventory(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+        } else {
+            PlayerCommandExtension.openOnlinePlayerInventory(CommandUtils.getSourcePlayer(context), player, server, source);
+        }
+        return 1;
+    }
+
+    private int openPlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        if (player == null) {
+            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            PlayerCommandExtension.openOfflinePlayerEnderChest(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+        } else {
+            PlayerCommandExtension.openOnlinePlayerEnderChest(CommandUtils.getSourcePlayer(context), player, server, source);
+        }
+        return 1;
     }
 
     @Override

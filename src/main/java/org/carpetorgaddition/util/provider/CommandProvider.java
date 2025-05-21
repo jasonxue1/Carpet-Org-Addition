@@ -139,6 +139,14 @@ public class CommandProvider {
         return "player %s inventory".formatted(player.getName().getString());
     }
 
+    public static String openPlayerInventory(UUID uuid) {
+        return "/%s textclickevent openInventory %s inventory".formatted(getCommandName(OrangeCommand.class), uuid.toString());
+    }
+
+    public static String openPlayerEnderChest(UUID uuid) {
+        return "/%s textclickevent openInventory %s enderChest".formatted(getCommandName(OrangeCommand.class), uuid.toString());
+    }
+
     /**
      * 翻页
      */

@@ -199,7 +199,8 @@ public class TextUtils {
                 case String str -> textBuilder.appendString(str);
                 case Text text -> textBuilder.append(text);
                 case Number number -> textBuilder.appendTranslate(String.valueOf(number));
-                case null -> throw new NullPointerException();
+                case null -> {
+                }
                 default -> throw new IllegalArgumentException(obj + "即不是可变文本对象，也不是字符串对象");
             }
         }

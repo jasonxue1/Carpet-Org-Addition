@@ -83,9 +83,19 @@ public class PlayerCommandExtension {
     ) throws CommandSyntaxException {
         Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
+            throw createNoFileFoundException();
         }
         GameProfile gameProfile = optional.get();
+        openOfflinePlayerInventory(username, server, sourcePlayer, source, gameProfile);
+    }
+
+    public static void openOfflinePlayerInventory(
+            String username,
+            MinecraftServer server,
+            ServerPlayerEntity sourcePlayer,
+            ServerCommandSource source,
+            GameProfile gameProfile
+    ) throws CommandSyntaxException {
         OfflinePlayerInventory.checkPermission(server, gameProfile, source);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
@@ -95,7 +105,11 @@ public class PlayerCommandExtension {
         sourcePlayer.openHandledScreen(factory);
     }
 
-    private static void openOnlinePlayerInventory(
+    public static CommandSyntaxException createNoFileFoundException() {
+        return CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
+    }
+
+    public static void openOnlinePlayerInventory(
             ServerPlayerEntity sourcePlayer,
             ServerPlayerEntity argumentPlayer,
             MinecraftServer server,
@@ -150,9 +164,19 @@ public class PlayerCommandExtension {
     ) throws CommandSyntaxException {
         Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(username, server);
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
+            throw createNoFileFoundException();
         }
         GameProfile gameProfile = optional.get();
+        openOfflinePlayerEnderChest(username, server, sourcePlayer, source, gameProfile);
+    }
+
+    public static void openOfflinePlayerEnderChest(
+            String username,
+            MinecraftServer server,
+            ServerPlayerEntity sourcePlayer,
+            ServerCommandSource source,
+            GameProfile gameProfile
+    ) throws CommandSyntaxException {
         OfflinePlayerInventory.checkPermission(server, gameProfile, source);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
@@ -162,7 +186,7 @@ public class PlayerCommandExtension {
         sourcePlayer.openHandledScreen(factory);
     }
 
-    private static void openOnlinePlayerEnderChest(
+    public static void openOnlinePlayerEnderChest(
             ServerPlayerEntity sourcePlayer,
             ServerPlayerEntity argumentPlayer,
             MinecraftServer server,
