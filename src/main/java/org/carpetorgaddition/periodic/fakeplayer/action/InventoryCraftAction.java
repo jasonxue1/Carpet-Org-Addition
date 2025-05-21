@@ -177,12 +177,12 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     // 合成方格内的物品状态
     private void addCraftGridState(ArrayList<MutableText> list, PlayerScreenHandler playerScreenHandler) {
         // 合成格第一排
-        list.add(TextUtils.appendAll(
+        list.add(TextUtils.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(1).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(2).getStack())
         ));
         // 合成格第二排和输出槽
-        list.add(TextUtils.appendAll(
+        list.add(TextUtils.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(3).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(4).getStack()),
                 " -> ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(0).getStack())

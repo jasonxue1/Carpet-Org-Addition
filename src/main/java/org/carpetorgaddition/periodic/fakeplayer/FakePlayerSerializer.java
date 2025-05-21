@@ -30,9 +30,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class FakePlayerSerializer {
     public static final String PLAYER_DATA = "player_data";
@@ -286,40 +288,37 @@ public class FakePlayerSerializer {
     }
 
     // 列出每一条玩家信息
-    public static int list(CommandContext<ServerCommandSource> context, WorldFormat worldFormat, Predicate<String> filter) {
+    public static ArrayList<Supplier<Text>> list(WorldFormat worldFormat, Predicate<String> filter) {
         MutableText online = TextUtils.translate("carpet.commands.playerManager.click.online");
         MutableText offline = TextUtils.translate("carpet.commands.playerManager.click.offline");
         // 使用变量记录列出的数量，而不是直接使用集合的长度，因为集合中可能存在一些非json的文件，或者被损坏的json文件
-        int count = 0;
         // 所有json文件
         List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
+        ArrayList<Supplier<Text>> list = new ArrayList<>();
         for (File file : jsonFileList) {
             try {
                 FakePlayerSerializer serial = factory(worldFormat, file.getName());
                 if (filter.test(serial.comment.getComment()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
-                    eachPlayer(context, file, online, offline, serial);
-                    count++;
+                    list.add(() -> eachPlayer(file, online, offline, serial));
                 }
             } catch (IOException | RuntimeException e) {
                 CarpetOrgAddition.LOGGER.warn("无法从文件{}加载玩家信息", file.getName(), e);
             }
         }
-        return count;
+        return list;
     }
 
-    private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
+    private static Text eachPlayer(File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
         // 添加快捷命令
         String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
         String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
         String offlineCommand = CommandProvider.killFakePlayer(playerName);
-        MutableText mutableText = TextUtils.appendAll(
+        return TextUtils.combineAll(
                 TextUtils.command(TextUtils.createText("[↑]"), onlineCommand, online, Formatting.GREEN, false), " ",
                 TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",
                 TextUtils.hoverText(TextUtils.createText("[?]"), serial.info(), Formatting.GRAY), " ",
                 // 如果有注释，在列出的玩家的名字上也添加注释
                 serial.comment.hasContent() ? TextUtils.hoverText(playerName, serial.comment.getText()) : playerName);
-        // 发送消息
-        MessageUtils.sendMessage(context.getSource(), mutableText);
     }
 
     /**

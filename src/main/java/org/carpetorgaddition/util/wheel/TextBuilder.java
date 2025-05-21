@@ -7,7 +7,7 @@ import org.carpetorgaddition.util.provider.TextProvider;
 
 import java.util.ArrayList;
 
-@SuppressWarnings("UnusedReturnValue")
+@Deprecated
 public class TextBuilder {
     private final ArrayList<Text> list = new ArrayList<>();
 

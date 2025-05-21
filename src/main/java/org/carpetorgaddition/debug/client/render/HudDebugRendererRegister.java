@@ -162,11 +162,11 @@ public class HudDebugRendererRegister {
                         List<Text> list = new ArrayList<>();
                         for (Item item : counter) {
                             int count = counter.getCount(item);
-                            list.add(TextUtils.appendAll(item.getName(), "*", count));
+                            list.add(TextUtils.combineAll(item.getName(), "*", count));
                         }
                         if (experienceOrbEntityCount != 0) {
-                            list.add(TextUtils.appendAll("经验球实体数量：", experienceOrbEntityCount));
-                            list.add(TextUtils.appendAll("经验球总价值：", experienceOrbTotalValue));
+                            list.add(TextUtils.combineAll("经验球实体数量：", experienceOrbEntityCount));
+                            list.add(TextUtils.combineAll("经验球总价值：", experienceOrbTotalValue));
                         }
                         Tooltip.drawTooltip(context, list);
                     }

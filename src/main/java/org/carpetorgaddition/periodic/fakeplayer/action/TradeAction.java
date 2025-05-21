@@ -269,7 +269,7 @@ public class TradeAction extends AbstractPlayerAction {
             // 获取当前交易内容的对象
             TradeOffer tradeOffer = merchantScreenHandler.getRecipes().get(index);
             // 将交易的物品和价格添加到集合中
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextUtils.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedFirstBuyItem()), " ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedSecondBuyItem()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getSellItem())));
@@ -280,7 +280,7 @@ public class TradeAction extends AbstractPlayerAction {
             }
             // 将“交易状态”文本信息添加到集合中
             list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.state"));
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextUtils.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(0).getStack()), " ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(1).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(2).getStack())));

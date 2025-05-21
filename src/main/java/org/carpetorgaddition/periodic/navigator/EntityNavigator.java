@@ -59,7 +59,7 @@ public class EntityNavigator extends AbstractNavigator {
             text = getHUDText(eyePos, in, distance);
         } else {
             text = TextUtils.translate(IN, entity.getName(),
-                    TextUtils.appendAll(WorldUtils.getDimensionName(entity.getWorld()),
+                    TextUtils.combineAll(WorldUtils.getDimensionName(entity.getWorld()),
                             TextProvider.simpleBlockPos(entity.getBlockPos())));
         }
         MessageUtils.sendMessageToHud(this.player, text);

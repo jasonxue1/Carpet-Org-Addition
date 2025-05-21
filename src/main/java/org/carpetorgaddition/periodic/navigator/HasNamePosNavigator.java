@@ -33,7 +33,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
             MutableText distance = TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), TextUtils.translate(IN, this.name, posText), distance);
         } else {
-            text = TextUtils.translate(IN, this.name, TextUtils.appendAll(WorldUtils.getDimensionName(this.world), posText));
+            text = TextUtils.translate(IN, this.name, TextUtils.combineAll(WorldUtils.getDimensionName(this.world), posText));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

@@ -81,13 +81,13 @@ public class TextProvider {
                 MutableText highlight = TextUtils.createText(" [H]");
                 TextUtils.command(highlight, CommandProvider.highlightWaypointByOmmc(blockPos),
                         TextUtils.translate("ommc.highlight_waypoint.tooltip"), color, false);
-                yield TextUtils.appendAll(pos, highlight);
+                yield TextUtils.combineAll(pos, highlight);
             }
             case DEFAULT -> {
                 MutableText highlight = TextUtils.createText(" [H]");
                 TextUtils.command(highlight, CommandProvider.highlightWaypoint(blockPos),
                         TextUtils.translate("carpet.client.commands.highlight"), color, false);
-                yield TextUtils.appendAll(pos, highlight);
+                yield TextUtils.combineAll(pos, highlight);
             }
         };
     }
@@ -151,9 +151,9 @@ public class TextProvider {
             if (itemStack.isEmpty()) {
                 continue;
             }
-            list.add(TextUtils.appendAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
+            list.add(TextUtils.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
         }
-        return TextUtils.hoverText(base, TextUtils.appendList(list));
+        return TextUtils.hoverText(base, TextUtils.joinList(list));
     }
 
     /**

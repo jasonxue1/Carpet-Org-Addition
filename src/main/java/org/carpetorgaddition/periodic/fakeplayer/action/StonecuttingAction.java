@@ -184,7 +184,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
             list.add(TextUtils.translate("carpet.commands.playerAction.info.stonecutting.button",
                     (this.button + 1)));
             // 将切石机当前的状态的信息添加到集合
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextUtils.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getStack())));
         } else {

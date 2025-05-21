@@ -54,19 +54,19 @@ public abstract class AbstractNavigator {
         MutableText text;
         // 添加上下箭头
         text = switch (verticalAngle(this.player, vec3d)) {
-            case 1 -> TextUtils.appendAll(in, " ↑ ", distance);
-            case -1 -> TextUtils.appendAll(in, " ↓ ", distance);
-            default -> TextUtils.appendAll(in, "   ", distance);
+            case 1 -> TextUtils.combineAll(in, " ↑ ", distance);
+            case -1 -> TextUtils.combineAll(in, " ↓ ", distance);
+            default -> TextUtils.combineAll(in, "   ", distance);
         };
         // 添加左右箭头
         text = switch (forwardAngle(this.player, vec3d)) {
-            case -3 -> TextUtils.appendAll("    ", text, " >>>");
-            case -2 -> TextUtils.appendAll("    ", text, "  >>");
-            case -1 -> TextUtils.appendAll("    ", text, "   >");
-            case 1 -> TextUtils.appendAll("<   ", text, "    ");
-            case 2 -> TextUtils.appendAll("<<  ", text, "    ");
-            case 3 -> TextUtils.appendAll("<<< ", text, "    ");
-            default -> TextUtils.appendAll("    ", text, "    ");
+            case -3 -> TextUtils.combineAll("    ", text, " >>>");
+            case -2 -> TextUtils.combineAll("    ", text, "  >>");
+            case -1 -> TextUtils.combineAll("    ", text, "   >");
+            case 1 -> TextUtils.combineAll("<   ", text, "    ");
+            case 2 -> TextUtils.combineAll("<<  ", text, "    ");
+            case 3 -> TextUtils.combineAll("<<< ", text, "    ");
+            default -> TextUtils.combineAll("    ", text, "    ");
         };
         return text;
     }

@@ -126,7 +126,7 @@ public class RenameAction extends AbstractPlayerAction {
                 fakePlayer.experienceLevel));
         if (fakePlayer.currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
             // 将铁砧GUI上的物品信息添加到集合
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextUtils.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(0).getStack()), " ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(1).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(2).getStack())));

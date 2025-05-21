@@ -10,15 +10,18 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Supplier;
 
-public class PagedCollection {
+public class PagedCollection implements Iterable<Page> {
     private final ArrayList<Page> pages = new ArrayList<>();
     private final int id;
     private final ServerCommandSource source;
+    private int length = 0;
 
     public PagedCollection(int id, ServerCommandSource source) {
         this.id = id;
@@ -33,6 +36,7 @@ public class PagedCollection {
             this.pages.add(new Page(list, from, to));
             from += max;
         }
+        this.length += list.size();
     }
 
     public void print() throws CommandSyntaxException {
@@ -51,17 +55,17 @@ public class PagedCollection {
             getPage(pagination).print(this.source);
         } else {
             getPage(pagination).print(this.source);
-            MutableText pageTurningButton = TextUtils.appendAll(
-                    TextUtils.setColor(TextUtils.createText("  ======"), Formatting.DARK_GRAY),
-                    this.prevPageButton(pagination),
-                    " [",
-                    TextUtils.setColor(TextUtils.createText(pagination), Formatting.GOLD),
-                    "/",
-                    TextUtils.setColor(TextUtils.createText(this.totalPages()), Formatting.GOLD),
-                    "] ",
-                    this.nextPageButton(pagination),
-                    TextUtils.setColor(TextUtils.createText("======"), Formatting.DARK_GRAY)
-            );
+            ArrayList<Object> list = new ArrayList<>();
+            list.add(TextUtils.setColor(TextUtils.createText("  ======"), Formatting.DARK_GRAY));
+            list.add(this.prevPageButton(pagination));
+            list.add(" [");
+            list.add(TextUtils.setColor(TextUtils.createText(pagination), Formatting.GOLD));
+            list.add("/");
+            list.add(TextUtils.setColor(TextUtils.createText(this.totalPages()), Formatting.GOLD));
+            list.add("] ");
+            list.add(this.nextPageButton(pagination));
+            list.add(TextUtils.setColor(TextUtils.createText("======"), Formatting.DARK_GRAY));
+            MutableText pageTurningButton = TextUtils.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
@@ -92,8 +96,18 @@ public class PagedCollection {
         return this.pages.get(pagination - 1);
     }
 
-    private int totalPages() {
+    /**
+     * @return 页面的数量
+     */
+    public int totalPages() {
         return this.pages.size();
+    }
+
+    /**
+     * @return 所有页面消息数量的总和
+     */
+    public int length() {
+        return this.length;
     }
 
     public ServerCommandSource getSource() {
@@ -102,5 +116,10 @@ public class PagedCollection {
 
     public static int maximumNumberOfRow() {
         return Math.max(CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount, 1);
+    }
+
+    @Override
+    public @NotNull Iterator<Page> iterator() {
+        return this.pages.iterator();
     }
 }

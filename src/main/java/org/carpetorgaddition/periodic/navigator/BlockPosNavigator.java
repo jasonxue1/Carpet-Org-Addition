@@ -36,7 +36,7 @@ public class BlockPosNavigator extends AbstractNavigator {
             MutableText distance = TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), in, distance);
         } else {
-            text = TextUtils.appendAll(WorldUtils.getDimensionName(this.world), TextProvider.simpleBlockPos(this.blockPos));
+            text = TextUtils.combineAll(WorldUtils.getDimensionName(this.world), TextProvider.simpleBlockPos(this.blockPos));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

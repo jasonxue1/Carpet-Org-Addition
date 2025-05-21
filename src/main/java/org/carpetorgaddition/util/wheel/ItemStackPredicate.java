@@ -163,7 +163,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);
             MutableText ellipsis = TextUtils.createText("...");
-            MutableText result = TextUtils.appendAll(substring, ellipsis);
+            MutableText result = TextUtils.combineAll(substring, ellipsis);
             return TextUtils.toGrayItalic(TextUtils.hoverText(result, this.input));
         }
         return TextUtils.createText(this.input);

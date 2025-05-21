@@ -95,7 +95,7 @@ public class FakePlayerUtils {
         GenericFetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(
                 source.getServer(),
-                TextUtils.appendAll(fakePlayer.getDisplayName(), ": ", TextUtils.translate(key, obj))
+                TextUtils.combineAll(fakePlayer.getDisplayName(), ": ", TextUtils.translate(key, obj))
         );
     }
 
@@ -354,13 +354,13 @@ public class FakePlayerUtils {
      */
     public static MutableText getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return TextUtils.hoverText(Text.literal("[A]"), TextUtils.appendAll(Items.AIR.getName()), Formatting.DARK_GRAY);
+            return TextUtils.hoverText(Text.literal("[A]"), TextUtils.combineAll(Items.AIR.getName()), Formatting.DARK_GRAY);
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         String capitalizeFirstLetter = getInitial(itemStack);
         return TextUtils.hoverText(
                 Text.literal(capitalizeFirstLetter),
-                TextUtils.appendAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
+                TextUtils.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
                 null
         );
     }

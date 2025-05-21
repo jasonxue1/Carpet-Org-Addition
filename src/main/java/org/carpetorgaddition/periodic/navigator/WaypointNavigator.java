@@ -65,7 +65,7 @@ public class WaypointNavigator extends AbstractNavigator {
                 Text dimensionName = WorldUtils.getDimensionName(WorldUtils.getWorld(this.player.getServer(),
                         this.waypoint.getDimension()));
                 MutableText in = TextUtils.translate(IN, waypoint.getName(),
-                        TextUtils.appendAll(dimensionName, TextProvider.simpleBlockPos(blockPos)));
+                        TextUtils.combineAll(dimensionName, TextProvider.simpleBlockPos(blockPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
         }

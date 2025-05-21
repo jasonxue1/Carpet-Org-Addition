@@ -202,7 +202,7 @@ public class MailCommand extends AbstractServerCommand {
                 TextUtils.translate(express.getExpress().getTranslationKey()), express.getExpress().getCount()));
         list.add(TextUtils.translate("carpet.commands.mail.list.time", express.getTime()));
         // 拼接字符串
-        text = TextUtils.hoverText(text, TextUtils.appendList(list));
+        text = TextUtils.hoverText(text, TextUtils.joinList(list));
         MessageUtils.sendMessage(player, "carpet.commands.mail.list.each",
                 express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), text);
     }

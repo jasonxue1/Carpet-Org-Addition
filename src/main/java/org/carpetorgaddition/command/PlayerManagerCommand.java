@@ -19,6 +19,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -31,10 +32,9 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.CommandProvider;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.util.*;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class PlayerManagerCommand extends AbstractServerCommand {
@@ -344,15 +345,22 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出每一个玩家
-    private int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) {
+    private int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) throws CommandSyntaxException {
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
-        int count = FakePlayerSerializer.list(context, worldFormat, filter);
-        if (count == 0) {
+        ArrayList<Supplier<Text>> list = FakePlayerSerializer.list(worldFormat, filter);
+        if (list.isEmpty()) {
             // 没有玩家被列出
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
             return 0;
         }
-        return count;
+        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        PagedCollection collection = pageManager.newPagedCollection(context.getSource());
+        collection.addContent(list);
+        if (collection.totalPages() > 1) {
+            MessageUtils.sendEmptyMessage(context);
+        }
+        collection.print();
+        return list.size();
     }
 
     // 保存假玩家数据

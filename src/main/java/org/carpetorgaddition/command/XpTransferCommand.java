@@ -256,7 +256,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputBeforeLevel,
             int outputCurrentLevel
     ) {
-        return TextUtils.appendAll(
+        return TextUtils.combineAll(
                 TextUtils.setColor(
                         TextUtils.translate(
                                 "carpet.commands.xpTransfer.upgrade",

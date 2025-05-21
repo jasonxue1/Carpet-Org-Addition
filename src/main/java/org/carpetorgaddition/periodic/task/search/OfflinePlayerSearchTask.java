@@ -281,7 +281,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             peopleHover.add(TextUtils.translate("carpet.commands.finder.item.offline_player.skipped", this.skipCount.get()));
         }
         // 玩家总数文本
-        return TextUtils.hoverText(TextUtils.createText(resultCount), TextUtils.appendList(peopleHover));
+        return TextUtils.hoverText(TextUtils.createText(resultCount), TextUtils.joinList(peopleHover));
     }
 
     protected Text getInventoryName() {
@@ -344,13 +344,13 @@ public class OfflinePlayerSearchTask extends ServerTask {
             String name = gameProfile.getName();
             String uuid = gameProfile().getId().toString();
             // 悬停提示
-            Text hover = TextUtils.appendAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextProvider.COPY_CLICK);
+            Text hover = TextUtils.combineAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextProvider.COPY_CLICK);
             // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
             Text count = statistics().getCountText();
             MutableText playerName;
             if (isUnknown()) {
                 // 单击复制玩家UUID
-                playerName = TextUtils.appendAll(
+                playerName = TextUtils.combineAll(
                         TextUtils.copy(name, uuid, hover, Formatting.GRAY),
                         " ",
                         openInventoryButton(this.gameProfile)
@@ -366,7 +366,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     loginButton = null;
                 }
                 // 单击复制玩家名
-                playerName = TextUtils.appendAll(
+                playerName = TextUtils.combineAll(
                         TextUtils.copy("[" + name + "]", name, hover, Formatting.GRAY),
                         loginButton,
                         openInventoryButton(this.gameProfile)
@@ -380,7 +380,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             );
             if (isUnknown()) {
                 // 添加搜索按钮
-                MutableText button = TextUtils.appendAll(
+                MutableText button = TextUtils.combineAll(
                         TextUtils.translate("carpet.commands.finder.item.offline_player.query.name"), "\n",
                         TextUtils.setColor(
                                 TextUtils.translate("carpet.commands.finder.item.offline_player.query.non_authentic"),
@@ -393,7 +393,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                         CommandProvider.queryPlayerName(gameProfile().getId()),
                         button, Formatting.AQUA, false
                 );
-                translate = TextUtils.appendAll(TextUtils.toStrikethrough(translate), " ", command);
+                translate = TextUtils.combineAll(TextUtils.toStrikethrough(translate), " ", command);
             }
             return translate;
         }

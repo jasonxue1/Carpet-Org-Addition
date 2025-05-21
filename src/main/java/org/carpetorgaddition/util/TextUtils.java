@@ -7,7 +7,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -187,24 +186,35 @@ public class TextUtils {
     }
 
     /**
-     * 将一堆零散的字符串和可变文本拼接成一个大的可变文本
+     * 将一堆零散的数据拼接成一个大的{@code MutableText}
      *
-     * @param args 要拼接的文本，可以是字符串，也可以是文本，但不能是其他类型，否则抛出非法参数异常
-     * @return 拼接后的可变文本对象
+     * @param args 要拼接的文本
+     * @return 拼接后的 {@code MutableText}对象
      */
-    public static MutableText appendAll(Object... args) {
-        TextBuilder textBuilder = new TextBuilder();
+    public static MutableText combineAll(Object... args) {
+        MutableText result = TextUtils.createEmpty();
         for (Object obj : args) {
-            switch (obj) {
-                case String str -> textBuilder.appendString(str);
-                case Text text -> textBuilder.append(text);
-                case Number number -> textBuilder.appendTranslate(String.valueOf(number));
-                case null -> {
-                }
-                default -> throw new IllegalArgumentException(obj + "即不是可变文本对象，也不是字符串对象");
-            }
+            appendEach(obj, result);
         }
-        return textBuilder.toLine();
+        return result;
+    }
+
+    public static MutableText combineList(List<?> list) {
+        MutableText result = TextUtils.createEmpty();
+        list.forEach(obj -> appendEach(obj, result));
+        return result;
+    }
+
+    private static void appendEach(@Nullable Object obj, MutableText result) {
+        switch (obj) {
+            case String str -> result.append(str);
+            case Text text -> result.append(text);
+            case Number number -> result.append(String.valueOf(number));
+            case null -> {
+            }
+            // 译：%s不可解析为Text类型
+            default -> throw new IllegalArgumentException(obj + " cannot be parsed as a Text type");
+        }
     }
 
     /**
@@ -212,7 +222,7 @@ public class TextUtils {
      *
      * @return 拼接后的文本对象
      */
-    public static MutableText appendList(List<? extends Text> list) {
+    public static MutableText joinList(List<? extends Text> list) {
         MutableText result = createEmpty();
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));

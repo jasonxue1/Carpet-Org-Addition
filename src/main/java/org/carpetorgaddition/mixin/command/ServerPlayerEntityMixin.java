@@ -101,7 +101,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.source", source));
         list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getName()));
         list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.amount", String.valueOf(amount)));
-        return TextUtils.appendList(list);
+        return TextUtils.joinList(list);
     }
 
     // 假玩家是否可以触发图腾

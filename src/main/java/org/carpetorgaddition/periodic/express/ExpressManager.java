@@ -229,7 +229,7 @@ public class ExpressManager {
     public static MutableText getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
         TextBuilder builder = new TextBuilder();
         for (Item item : counter) {
-            builder.append(TextUtils.appendAll(item.getName(), "*", counter.getCount(item)));
+            builder.append(TextUtils.combineAll(item.getName(), "*", counter.getCount(item)));
         }
         MutableText translate = TextUtils.translate("carpet.commands.mail.sending.notice", player.getDisplayName());
         MutableText message = TextUtils.toGrayItalic(translate);

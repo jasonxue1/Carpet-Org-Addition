@@ -195,20 +195,20 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     // 添加当前合成方格的状态
     private void addCraftGridState(CraftingScreenHandler currentScreenHandler, ArrayList<MutableText> list) {
         // 合成格第一排
-        list.add(TextUtils.appendAll(
+        list.add(TextUtils.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(1).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(2).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(3).getStack())
         ));
         // 合成格第二排和输出槽
-        list.add(TextUtils.appendAll(
+        list.add(TextUtils.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(4).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(5).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(6).getStack()),
                 " -> ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(0).getStack())
         ));
         // 合成格第三排
-        list.add(TextUtils.appendAll(
+        list.add(TextUtils.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(7).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(8).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(9).getStack())

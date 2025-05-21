@@ -32,7 +32,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         super(world, selectionArea, sourcePos, context);
         // 获取附魔名称，不带等级
         MutableText text = EnchantmentUtils.getName(enchantment);
-        this.treadName = TextUtils.appendAll(text, Items.ENCHANTED_BOOK.getName());
+        this.treadName = TextUtils.combineAll(text, Items.ENCHANTED_BOOK.getName());
         this.enchantment = enchantment;
     }
 
