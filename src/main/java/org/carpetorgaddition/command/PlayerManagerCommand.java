@@ -337,7 +337,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     safeAfk.setHealthThreshold(threshold);
                     // 广播阈值设置的消息
                     String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
-                    MutableText message = TextUtils.translate(key, player.getDisplayName(), threshold);
+                    MutableText message = TextBuilder.translate(key, player.getDisplayName(), threshold);
                     MessageUtils.broadcastMessage(player.server, TextUtils.toGrayItalic(message));
                 } catch (NumberFormatException e) {
                     CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", player.getName().getString(), e);

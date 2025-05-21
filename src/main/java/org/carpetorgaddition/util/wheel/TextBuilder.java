@@ -6,9 +6,10 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class TextBuilder {
     private final MutableText text;
@@ -31,7 +32,7 @@ public class TextBuilder {
     }
 
     public static TextBuilder ofTranslate(String key, Object... args) {
-        return new TextBuilder(TextUtils.translate(key, args));
+        return new TextBuilder(translate(key, args));
     }
 
     public static MutableText empty() {
@@ -74,7 +75,7 @@ public class TextBuilder {
      * 设置悬停提示
      */
     public TextBuilder setHover(String key, Object... args) {
-        return this.setHover(TextUtils.translate(key, args));
+        return this.setHover(translate(key, args));
     }
 
     /**
@@ -127,5 +128,64 @@ public class TextBuilder {
 
     public MutableText build() {
         return this.text;
+    }
+
+    /**
+     * 将一堆零散的数据拼接成一个大的{@code MutableText}
+     *
+     * @param args 要拼接的文本
+     * @return 拼接后的 {@code MutableText}对象
+     */
+    public static MutableText combineAll(Object... args) {
+        MutableText result = empty();
+        for (Object obj : args) {
+            appendEach(obj, result);
+        }
+        return result;
+    }
+
+    public static MutableText combineList(List<?> list) {
+        MutableText result = empty();
+        list.forEach(obj -> appendEach(obj, result));
+        return result;
+    }
+
+    private static void appendEach(@Nullable Object obj, MutableText result) {
+        switch (obj) {
+            case String str -> result.append(str);
+            case Text text -> result.append(text);
+            case Number number -> result.append(String.valueOf(number));
+            case null -> {
+            }
+            // 译：%s不可解析为Text类型
+            default -> throw new IllegalArgumentException(obj + " cannot be parsed as a Text type");
+        }
+    }
+
+    /**
+     * 将一个集合的文本对象拼接起来，每个元素之间换行符分割
+     *
+     * @return 拼接后的文本对象
+     */
+    public static MutableText joinList(List<? extends Text> list) {
+        MutableText result = empty();
+        for (int i = 0; i < list.size(); i++) {
+            result.append(list.get(i));
+            if (i < list.size() - 1) {
+                result.append(TextProvider.NEW_LINE);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 获取一个可翻译文本对象
+     *
+     * @param key 翻译键
+     * @return 可翻译文本
+     */
+    public static MutableText translate(String key, Object... obj) {
+        String value = Translation.getTranslateValue(key);
+        return Text.translatableWithFallback(key, value, obj);
     }
 }

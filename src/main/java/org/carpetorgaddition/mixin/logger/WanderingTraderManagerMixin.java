@@ -23,6 +23,7 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -66,14 +67,14 @@ public class WanderingTraderManagerMixin {
             HUDLogger logger = Loggers.getWanderingTraderLogger();
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
-            MutableText message = TextUtils.translate("carpet.logger.wanderingTrader.message",
+            MutableText message = TextBuilder.translate("carpet.logger.wanderingTrader.message",
                     TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN));
             // 带点击导航的消息
-            MutableText command = TextUtils.command(TextUtils.translate("carpet.logger.wanderingTrader.message.navigate"),
+            MutableText command = TextUtils.command(TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate"),
                     CommandProvider.navigateToUuidEntity(trader.getUuid()),
-                    TextUtils.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()),
+                    TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()),
                     Formatting.AQUA, false);
-            MutableText canClickMessage = TextUtils.translate("carpet.logger.wanderingTrader.message.click",
+            MutableText canClickMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click",
                     TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN), command);
             for (Map.Entry<String, String> entry : entries) {
                 ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());

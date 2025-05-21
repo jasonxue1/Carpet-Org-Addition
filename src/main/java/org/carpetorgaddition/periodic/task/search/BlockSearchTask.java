@@ -16,6 +16,7 @@ import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -170,7 +171,7 @@ public class BlockSearchTask extends ServerTask {
     }
 
     protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
-        return TextUtils.translate("carpet.commands.finder.block.feedback",
+        return TextBuilder.translate("carpet.commands.finder.block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
                 TextProvider.blockPos(blockPos, Formatting.GREEN));
     }

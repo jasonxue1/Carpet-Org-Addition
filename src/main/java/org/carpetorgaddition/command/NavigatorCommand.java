@@ -23,7 +23,6 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
@@ -158,7 +157,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     private int stopNavigate(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().clearNavigator();
-        MessageUtils.sendMessageToHud(player, TextUtils.translate("carpet.commands.navigate.hud.stop"));
+        MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.commands.navigate.hud.stop"));
         return 1;
     }
 
@@ -178,7 +177,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     // 导航到重生点
     private int navigateToSpawnPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MutableText spawnPoint = TextUtils.translate("carpet.commands.navigate.name.spawnpoint");
+        MutableText spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(Objects.requireNonNull(player.getSpawnPointPosition()),
                     player.server.getWorld(Objects.requireNonNull(player.getSpawnPointDimension())), spawnPoint);
@@ -195,12 +194,12 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity target = self ? player : CommandUtils.getArgumentPlayer(context);
         Optional<GlobalPos> lastDeathPos = target.getLastDeathPos();
         // 导航器目标的名称
-        MutableText death = TextUtils.translate("carpet.commands.navigate.name.last_death_location");
+        MutableText death = TextBuilder.translate("carpet.commands.navigate.name.last_death_location");
         // 非空判断
         if (lastDeathPos.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", target.getDisplayName(), death);
         }
-        MutableText name = self ? death : TextUtils.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
+        MutableText name = self ? death : TextBuilder.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
         // 获取死亡坐标和死亡维度
         GlobalPos globalPos = lastDeathPos.get();
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(globalPos.pos(),

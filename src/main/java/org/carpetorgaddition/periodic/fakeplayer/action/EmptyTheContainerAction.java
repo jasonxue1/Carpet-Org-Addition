@@ -9,8 +9,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -60,13 +60,13 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
         ArrayList<MutableText> list = new ArrayList<>();
         Text text = this.predicate.toText();
         Text playerName = this.fakePlayer.getDisplayName();
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
         return list;
     }
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.clean");
+        return TextBuilder.translate("carpet.commands.playerAction.action.clean");
     }
 
     @Override

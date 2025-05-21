@@ -9,8 +9,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.mixin.rule.entityplayeractionpack.ActionAccessor;
 import org.carpetorgaddition.mixin.rule.entityplayeractionpack.EntityPlayerActionPackAccessor;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -87,28 +87,28 @@ public class EntityPlayerActionPackSerial {
         // 左键行为
         Action attack = this.actionMap.get(ActionType.ATTACK);
         if (attack != null) {
-            list.add(TextUtils.translate("carpet.commands.playerManager.info.left_click"));
+            list.add(TextBuilder.translate("carpet.commands.playerManager.info.left_click"));
             if (((ActionAccessor) attack).isContinuous()) {
                 // 左键长按
-                list.add(TextUtils.combineAll(TextProvider.INDENT_SYMBOL, TextUtils.translate("carpet.commands.playerManager.info.continuous")));
+                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
             } else {
                 // 左键单击
-                list.add(TextUtils.combineAll(TextProvider.INDENT_SYMBOL, TextUtils.translate("carpet.commands.playerManager.info.interval", attack.interval)));
+                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.interval", attack.interval)));
             }
         }
         // 右键行为
         Action use = this.actionMap.get(ActionType.USE);
         if (use != null) {
-            list.add(TextUtils.translate("carpet.commands.playerManager.info.right_click"));
+            list.add(TextBuilder.translate("carpet.commands.playerManager.info.right_click"));
             if (((ActionAccessor) use).isContinuous()) {
                 // 右键长按
-                list.add(TextUtils.combineAll(TextProvider.INDENT_SYMBOL, TextUtils.translate("carpet.commands.playerManager.info.continuous")));
+                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
             } else {
                 // 右键单击
-                list.add(TextUtils.combineAll(TextProvider.INDENT_SYMBOL, TextUtils.translate("carpet.commands.playerManager.info.interval", use.interval)));
+                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.interval", use.interval)));
             }
         }
-        return TextUtils.joinList(list);
+        return TextBuilder.joinList(list);
     }
 
     public JsonObject toJson() {

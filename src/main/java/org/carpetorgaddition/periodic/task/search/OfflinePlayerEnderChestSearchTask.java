@@ -15,6 +15,7 @@ import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("JavadocReference")
@@ -44,7 +45,7 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
     protected Text openInventoryButton(GameProfile gameProfile) {
         if (CommandHelper.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
-            MutableText clickLogin = TextUtils.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
+            MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             return TextUtils.command(TextUtils.createText("[O]"), command, clickLogin, Formatting.GRAY);
         }
         return null;
@@ -52,6 +53,6 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
 
     @Override
     protected Text getInventoryName() {
-        return TextUtils.translate("container.enderchest");
+        return TextBuilder.translate("container.enderchest");
     }
 }

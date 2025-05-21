@@ -260,20 +260,20 @@ public class LocationsCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
-            case WorldUtils.OVERWORLD -> TextUtils.translate("carpet.commands.locations.here.overworld",
+            case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
                     player.getDisplayName(),
                     TextProvider.blockPos(blockPos, Formatting.GREEN),
                     TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED)
             );
-            case WorldUtils.THE_NETHER -> TextUtils.translate("carpet.commands.locations.here.the_nether",
+            case WorldUtils.THE_NETHER -> TextBuilder.translate("carpet.commands.locations.here.the_nether",
                     player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
                     TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN)
             );
-            case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.here.the_end",
+            case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.here.the_end",
                     player.getDisplayName(),
                     TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE)
             );
-            default -> TextUtils.translate("carpet.commands.locations.here.default",
+            default -> TextBuilder.translate("carpet.commands.locations.here.default",
                     player.getDisplayName(),
                     WorldUtils.getDimensionId(player.getWorld()),
                     TextProvider.blockPos(blockPos, null));

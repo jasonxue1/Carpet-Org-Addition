@@ -10,6 +10,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -65,7 +66,7 @@ public class PagedCollection implements Iterable<Page> {
             list.add("] ");
             list.add(this.nextPageButton(pagination));
             list.add(TextUtils.setColor(TextUtils.createText("======"), Formatting.DARK_GRAY));
-            MutableText pageTurningButton = TextUtils.combineList(list);
+            MutableText pageTurningButton = TextBuilder.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
@@ -76,7 +77,7 @@ public class PagedCollection implements Iterable<Page> {
             // 已经是第一页，没有上一页了
             return TextUtils.setColor(prev, Formatting.GRAY);
         } else {
-            MutableText hover = TextUtils.translate("carpet.command.page.prev");
+            MutableText hover = TextBuilder.translate("carpet.command.page.prev");
             return TextUtils.command(prev, CommandProvider.pageTurning(this.id, pagination - 1), hover, Formatting.AQUA);
         }
     }
@@ -87,7 +88,7 @@ public class PagedCollection implements Iterable<Page> {
             // 已经是最后一页，没有下一页了
             return TextUtils.setColor(next, Formatting.GRAY);
         } else {
-            MutableText hover = TextUtils.translate("carpet.command.page.next");
+            MutableText hover = TextBuilder.translate("carpet.command.page.next");
             return TextUtils.command(next, CommandProvider.pageTurning(this.id, pagination + 1), hover, Formatting.AQUA);
         }
     }

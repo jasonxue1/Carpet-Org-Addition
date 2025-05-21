@@ -10,6 +10,7 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,7 +55,7 @@ public class WaypointNavigator extends AbstractNavigator {
                     && anotherBlockPos != null) {
                 // 玩家和路径点在不同的维度，但是维度可以互相转换
                 // 将坐标设置为斜体
-                Text in = TextUtils.translate(IN, waypoint.getName(),
+                Text in = TextBuilder.translate(IN, waypoint.getName(),
                         TextUtils.toItalic(TextProvider.simpleBlockPos(blockPos)));
                 Text text = this.getHUDText(anotherBlockPos.toCenterPos(), in,
                         getDistance(playerBlockPos, anotherBlockPos));
@@ -64,8 +65,8 @@ public class WaypointNavigator extends AbstractNavigator {
                 // 玩家和路径点在不同维度
                 Text dimensionName = WorldUtils.getDimensionName(WorldUtils.getWorld(this.player.getServer(),
                         this.waypoint.getDimension()));
-                MutableText in = TextUtils.translate(IN, waypoint.getName(),
-                        TextUtils.combineAll(dimensionName, TextProvider.simpleBlockPos(blockPos)));
+                MutableText in = TextBuilder.translate(IN, waypoint.getName(),
+                        TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(blockPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
         }
@@ -76,7 +77,7 @@ public class WaypointNavigator extends AbstractNavigator {
         if (Objects.equals(WorldUtils.getDimensionId(this.player.getWorld()), this.waypointDimension)
                 && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪
-            MessageUtils.sendMessageToHud(this.player, TextUtils.translate(REACH));
+            MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();
             return true;
         }
@@ -93,11 +94,11 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @NotNull
     private MutableText getIn(BlockPos blockPos) {
-        return TextUtils.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(blockPos));
+        return TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(blockPos));
     }
 
     @NotNull
     private static MutableText getDistance(BlockPos playerBlockPos, BlockPos blockPos) {
-        return TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(playerBlockPos, blockPos));
+        return TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(playerBlockPos, blockPos));
     }
 }

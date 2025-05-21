@@ -10,6 +10,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -39,13 +40,13 @@ public abstract class FishingBobberEntityMixin {
             if (this.getPlayerOwner() instanceof ServerPlayerEntity player && logger.isSubscribed(player)) {
                 if (this.waitCountdown > 0) {
                     // 鱼出现
-                    MessageUtils.sendMessageToHud(player, TextUtils.translate("carpet.logger.fishing.appear", this.waitCountdown));
+                    MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.logger.fishing.appear", this.waitCountdown));
                 } else if (this.fishTravelCountdown > 0) {
                     // 鱼上钩
-                    MessageUtils.sendMessageToHud(player, TextUtils.translate("carpet.logger.fishing.bite", this.fishTravelCountdown));
+                    MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.logger.fishing.bite", this.fishTravelCountdown));
                 } else if (this.hookCountdown > 0) {
                     // 鱼挣脱
-                    MutableText translate = TextUtils.translate("carpet.logger.fishing.break_free", this.hookCountdown);
+                    MutableText translate = TextBuilder.translate("carpet.logger.fishing.break_free", this.hookCountdown);
                     MessageUtils.sendMessageToHud(player, TextUtils.setColor(translate, Formatting.GREEN));
                 }
             }

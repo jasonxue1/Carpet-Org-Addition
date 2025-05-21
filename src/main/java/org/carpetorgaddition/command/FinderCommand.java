@@ -34,7 +34,6 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -62,7 +61,7 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 村民的游戏内名称
      */
-    public static final MutableText VILLAGER = TextUtils.translate("entity.minecraft.villager");
+    public static final MutableText VILLAGER = TextBuilder.translate("entity.minecraft.villager");
     /**
      * 查找超时时抛出异常的反馈消息
      */
@@ -349,7 +348,7 @@ public class FinderCommand extends AbstractServerCommand {
 
         @Override
         public MutableText getName() {
-            return TextUtils.translate("carpet.commands.finder.may_affect_world_eater_block.name");
+            return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
         }
     }
 

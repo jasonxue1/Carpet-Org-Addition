@@ -5,7 +5,6 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.Objects;
@@ -30,7 +29,7 @@ public class ClientMessageUtils {
      * 向客户端玩家发送一条聊天消息
      */
     public static void sendMessage(String key, Object... args) {
-        sendMessage(TextUtils.translate(key, args));
+        sendMessage(TextBuilder.translate(key, args));
     }
 
     /**

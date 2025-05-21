@@ -29,6 +29,7 @@ import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.ItemStackStatistics;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -135,7 +136,7 @@ public class ItemSearchTask extends ServerTask {
             Entity entity = this.entitySearchIterator.next();
             // 掉落物
             if (entity instanceof ItemEntity itemEntity) {
-                MutableText drops = TextUtils.translate("carpet.commands.finder.item.drops");
+                MutableText drops = TextBuilder.translate("carpet.commands.finder.item.drops");
                 this.count(new SimpleInventory(itemEntity.getStack()), itemEntity.getBlockPos(), drops);
                 continue;
             }
@@ -237,7 +238,7 @@ public class ItemSearchTask extends ServerTask {
     ) implements Supplier<Text> {
         @Override
         public Text get() {
-            return TextUtils.translate(
+            return TextBuilder.translate(
                     "carpet.commands.finder.item.each",
                     TextProvider.blockPos(blockPos, Formatting.GREEN),
                     containerName,

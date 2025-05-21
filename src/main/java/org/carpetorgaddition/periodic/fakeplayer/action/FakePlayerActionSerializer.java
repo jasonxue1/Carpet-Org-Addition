@@ -4,8 +4,8 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.GenericFetcherUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -61,10 +61,10 @@ public class FakePlayerActionSerializer {
 
     public Text toText() {
         ArrayList<Text> list = new ArrayList<>();
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.action"));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.action"));
         list.add(TextProvider.NEW_LINE);
-        list.add(TextUtils.combineAll(TextProvider.INDENT_SYMBOL, this.action.getDisplayName()));
-        return TextUtils.combineList(list);
+        list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, this.action.getDisplayName()));
+        return TextBuilder.combineList(list);
     }
 
     public JsonObject toJson() {

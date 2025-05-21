@@ -11,7 +11,7 @@ import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractNavigator {
@@ -54,19 +54,19 @@ public abstract class AbstractNavigator {
         MutableText text;
         // 添加上下箭头
         text = switch (verticalAngle(this.player, vec3d)) {
-            case 1 -> TextUtils.combineAll(in, " ↑ ", distance);
-            case -1 -> TextUtils.combineAll(in, " ↓ ", distance);
-            default -> TextUtils.combineAll(in, "   ", distance);
+            case 1 -> TextBuilder.combineAll(in, " ↑ ", distance);
+            case -1 -> TextBuilder.combineAll(in, " ↓ ", distance);
+            default -> TextBuilder.combineAll(in, "   ", distance);
         };
         // 添加左右箭头
         text = switch (forwardAngle(this.player, vec3d)) {
-            case -3 -> TextUtils.combineAll("    ", text, " >>>");
-            case -2 -> TextUtils.combineAll("    ", text, "  >>");
-            case -1 -> TextUtils.combineAll("    ", text, "   >");
-            case 1 -> TextUtils.combineAll("<   ", text, "    ");
-            case 2 -> TextUtils.combineAll("<<  ", text, "    ");
-            case 3 -> TextUtils.combineAll("<<< ", text, "    ");
-            default -> TextUtils.combineAll("    ", text, "    ");
+            case -3 -> TextBuilder.combineAll("    ", text, " >>>");
+            case -2 -> TextBuilder.combineAll("    ", text, "  >>");
+            case -1 -> TextBuilder.combineAll("    ", text, "   >");
+            case 1 -> TextBuilder.combineAll("<   ", text, "    ");
+            case 2 -> TextBuilder.combineAll("<<  ", text, "    ");
+            case 3 -> TextBuilder.combineAll("<<< ", text, "    ");
+            default -> TextBuilder.combineAll("    ", text, "    ");
         };
         return text;
     }

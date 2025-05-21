@@ -110,13 +110,13 @@ public class ItemStackStatistics {
         for (Item item : this.counter) {
             MutableText itemCount = itemCount(this.counter.getCount(item), item.getMaxCount());
             if (this.nestingItem.contains(item)) {
-                list.add(TextUtils.toItalic(TextUtils.combineAll(item.getName(), " ", itemCount)));
+                list.add(TextUtils.toItalic(TextBuilder.combineAll(item.getName(), " ", itemCount)));
             } else {
-                list.add(TextUtils.combineAll(item.getName(), " ", itemCount));
+                list.add(TextBuilder.combineAll(item.getName(), " ", itemCount));
             }
         }
         MutableText text = TextUtils.createText(Integer.toString(this.getSum()));
-        MutableText result = TextUtils.hoverText(text, TextUtils.joinList(list));
+        MutableText result = TextUtils.hoverText(text, TextBuilder.joinList(list));
         return this.nestingItem.isEmpty() ? result : TextUtils.toItalic(result);
     }
 
@@ -127,11 +127,11 @@ public class ItemStackStatistics {
         int remainder = count % maxCount;
         // 为文本添加悬停提示
         if (group == 0) {
-            return TextUtils.translate("carpet.command.item.remainder", remainder);
+            return TextBuilder.translate("carpet.command.item.remainder", remainder);
         } else if (remainder == 0) {
-            return TextUtils.translate("carpet.command.item.group", group);
+            return TextBuilder.translate("carpet.command.item.group", group);
         } else {
-            return TextUtils.translate("carpet.command.item.count", group, remainder);
+            return TextBuilder.translate("carpet.command.item.count", group, remainder);
         }
     }
 }

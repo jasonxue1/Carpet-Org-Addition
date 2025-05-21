@@ -7,9 +7,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class HasNamePosNavigator extends BlockPosNavigator {
@@ -30,10 +30,10 @@ public class HasNamePosNavigator extends BlockPosNavigator {
         MutableText posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
         if (this.player.getWorld().equals(this.world)) {
-            MutableText distance = TextUtils.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
-            text = getHUDText(this.blockPos.toCenterPos(), TextUtils.translate(IN, this.name, posText), distance);
+            MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
+            text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {
-            text = TextUtils.translate(IN, this.name, TextUtils.combineAll(WorldUtils.getDimensionName(this.world), posText));
+            text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(WorldUtils.getDimensionName(this.world), posText));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

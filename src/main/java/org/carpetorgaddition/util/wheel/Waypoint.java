@@ -105,20 +105,20 @@ public class Waypoint {
     public void show(ServerCommandSource source) {
         MutableText text = switch (this.dimension) {
             case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
-                    ? TextUtils.translate("carpet.commands.locations.show.overworld",
+                    ? TextBuilder.translate("carpet.commands.locations.show.overworld",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN))
-                    : TextUtils.translate("carpet.commands.locations.show.overworld_and_the_nether",
+                    : TextBuilder.translate("carpet.commands.locations.show.overworld_and_the_nether",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN),
                     TextProvider.blockPos(this.anotherBlockPos, Formatting.RED));
             case WorldUtils.THE_NETHER -> this.anotherBlockPos == null
-                    ? TextUtils.translate("carpet.commands.locations.show.the_nether",
+                    ? TextBuilder.translate("carpet.commands.locations.show.the_nether",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED))
-                    : TextUtils.translate("carpet.commands.locations.show.the_nether_and_overworld",
+                    : TextBuilder.translate("carpet.commands.locations.show.the_nether_and_overworld",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED),
                     TextProvider.blockPos(this.anotherBlockPos, Formatting.GREEN));
-            case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.show.the_end",
+            case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.show.the_end",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.DARK_PURPLE));
-            default -> TextUtils.translate("carpet.commands.locations.show.custom_dimension",
+            default -> TextBuilder.translate("carpet.commands.locations.show.custom_dimension",
                     this.formatName(), this.dimension, TextProvider.blockPos(this.blockPos, Formatting.GREEN));
         };
         MessageUtils.sendMessage(source, text);

@@ -11,6 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -101,11 +102,11 @@ public class MessageUtils {
     }
 
     public static void sendMessage(ServerCommandSource source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextUtils.translate(key, obj));
+        MessageUtils.sendMessage(source, TextBuilder.translate(key, obj));
     }
 
     public static void sendMessage(ServerPlayerEntity player, String key, Object... obj) {
-        MessageUtils.sendMessage(player, TextUtils.translate(key, obj));
+        MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
     }
 
     /**
@@ -116,7 +117,7 @@ public class MessageUtils {
     }
 
     public static void sendErrorMessage(ServerCommandSource source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextUtils.setColor(TextUtils.translate(key, obj), Formatting.RED));
+        MessageUtils.sendMessage(source, TextUtils.setColor(TextBuilder.translate(key, obj), Formatting.RED));
     }
 
     public static void sendErrorMessage(ServerCommandSource source, Text message) {
@@ -134,7 +135,7 @@ public class MessageUtils {
      */
     public static void sendErrorMessage(ServerCommandSource source, Throwable e, String key, Object... obj) {
         String error = GameUtils.getExceptionString(e);
-        MutableText message = TextUtils.setColor(TextUtils.translate(key, obj), Formatting.RED);
+        MutableText message = TextUtils.setColor(TextBuilder.translate(key, obj), Formatting.RED);
         MessageUtils.sendMessage(source, TextUtils.hoverText(message, TextUtils.createText(error)));
     }
 

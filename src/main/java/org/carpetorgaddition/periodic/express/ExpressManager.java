@@ -18,6 +18,7 @@ import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 
 import java.io.File;
@@ -209,7 +210,7 @@ public class ExpressManager {
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            Text message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
+            Text message = TextUtils.toGrayItalic(TextBuilder.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
             for (String name : players) {
                 PlayerManager playerManager = player.server.getPlayerManager();
                 ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
@@ -228,11 +229,11 @@ public class ExpressManager {
     public static MutableText getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
         ArrayList<Text> list = new ArrayList<>();
         for (Item item : counter) {
-            list.add(TextUtils.combineAll(item.getName(), "*", counter.getCount(item)));
+            list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));
         }
-        MutableText translate = TextUtils.translate("carpet.commands.mail.sending.notice", player.getDisplayName());
+        MutableText translate = TextBuilder.translate("carpet.commands.mail.sending.notice", player.getDisplayName());
         MutableText message = TextUtils.toGrayItalic(translate);
-        return TextUtils.hoverText(message, TextUtils.joinList(list));
+        return TextUtils.hoverText(message, TextBuilder.joinList(list));
     }
 
     /**

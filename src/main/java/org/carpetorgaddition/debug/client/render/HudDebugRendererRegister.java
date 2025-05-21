@@ -42,6 +42,7 @@ import org.carpetorgaddition.mixin.debug.HandledScreenAccessor;
 import org.carpetorgaddition.mixin.debug.ScreenAccessor;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.Counter;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
@@ -162,11 +163,11 @@ public class HudDebugRendererRegister {
                         List<Text> list = new ArrayList<>();
                         for (Item item : counter) {
                             int count = counter.getCount(item);
-                            list.add(TextUtils.combineAll(item.getName(), "*", count));
+                            list.add(TextBuilder.combineAll(item.getName(), "*", count));
                         }
                         if (experienceOrbEntityCount != 0) {
-                            list.add(TextUtils.combineAll("经验球实体数量：", experienceOrbEntityCount));
-                            list.add(TextUtils.combineAll("经验球总价值：", experienceOrbTotalValue));
+                            list.add(TextBuilder.combineAll("经验球实体数量：", experienceOrbEntityCount));
+                            list.add(TextBuilder.combineAll("经验球总价值：", experienceOrbTotalValue));
                         }
                         Tooltip.drawTooltip(context, list);
                     }

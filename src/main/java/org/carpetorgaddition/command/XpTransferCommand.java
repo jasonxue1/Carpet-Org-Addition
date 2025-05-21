@@ -17,7 +17,6 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.OperationTimeoutException;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ExperienceTransfer;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -259,7 +258,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputBeforeLevel,
             int outputCurrentLevel
     ) {
-        return TextUtils.combineAll(
+        return TextBuilder.combineAll(
                 TextBuilder.ofTranslate("carpet.commands.xpTransfer.upgrade",
                                 inputPlayer.getDisplayName(),
                                 inputCurrentLevel - inputBeforeLevel,

@@ -18,12 +18,12 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.OfflinePlayerEnderChestInventory;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.util.screen.OfflinePlayerInventoryScreenHandler;
 import org.carpetorgaddition.util.screen.PlayerEnderChestScreenHandler;
 import org.carpetorgaddition.util.screen.PlayerInventoryScreenHandler;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -222,7 +222,7 @@ public class PlayerCommandExtension {
     }
 
     private static Text offlinePlayerName(String name) {
-        return TextUtils.translate("carpet.commands.player.inventory.offline.display_name", name);
+        return TextBuilder.translate("carpet.commands.player.inventory.offline.display_name", name);
     }
 
     @NotNull

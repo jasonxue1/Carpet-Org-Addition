@@ -200,21 +200,21 @@ public class FakePlayerSerializer {
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.pos", pos));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.pos", pos));
         // 获取朝向
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.direction",
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.direction",
                 MathUtils.numberToTwoDecimalString(this.yaw),
                 MathUtils.numberToTwoDecimalString(this.pitch)));
         // 维度
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.dimension", WorldUtils.getDimensionName(this.dimension)));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.dimension", WorldUtils.getDimensionName(this.dimension)));
         // 游戏模式
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
         // 是否飞行
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying)));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying)));
         // 是否潜行
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking)));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
-        list.add(TextUtils.translate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin)));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin)));
         if (this.interactiveAction.hasAction()) {
             list.add(this.interactiveAction.toText());
         }
@@ -223,9 +223,9 @@ public class FakePlayerSerializer {
         }
         if (this.comment.hasContent()) {
             // 添加注释
-            list.add(TextUtils.translate("carpet.commands.playerManager.info.comment", this.comment.getText()));
+            list.add(TextBuilder.translate("carpet.commands.playerManager.info.comment", this.comment.getText()));
         }
-        return TextUtils.joinList(list);
+        return TextBuilder.joinList(list);
     }
 
     public JsonObject toJson() {
@@ -283,8 +283,8 @@ public class FakePlayerSerializer {
 
     // 列出每一条玩家信息
     public static ArrayList<Supplier<Text>> list(WorldFormat worldFormat, Predicate<String> filter) {
-        MutableText online = TextUtils.translate("carpet.commands.playerManager.click.online");
-        MutableText offline = TextUtils.translate("carpet.commands.playerManager.click.offline");
+        MutableText online = TextBuilder.translate("carpet.commands.playerManager.click.online");
+        MutableText offline = TextBuilder.translate("carpet.commands.playerManager.click.offline");
         // 使用变量记录列出的数量，而不是直接使用集合的长度，因为集合中可能存在一些非json的文件，或者被损坏的json文件
         // 所有json文件
         List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
@@ -315,7 +315,7 @@ public class FakePlayerSerializer {
             // 如果有注释，在列出的玩家的名字上也添加注释
             playerName.setHover(serial.comment.getText());
         }
-        return TextUtils.combineAll(login, " ", logout, " ", info, " ", playerName.build());
+        return TextBuilder.combineAll(login, " ", logout, " ", info, " ", playerName.build());
     }
 
     /**

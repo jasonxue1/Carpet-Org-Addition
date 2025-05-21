@@ -10,6 +10,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -84,12 +85,12 @@ public class CommandUtils {
      * @return 命令语法参数异常
      */
     public static CommandSyntaxException createException(String key, Object... obj) {
-        return new SimpleCommandExceptionType(TextUtils.translate(key, obj)).create();
+        return new SimpleCommandExceptionType(TextBuilder.translate(key, obj)).create();
     }
 
     public static CommandSyntaxException createException(Throwable e, String key, Object... obj) {
         String exceptionMessage = GameUtils.getExceptionString(e);
-        MutableText message = TextUtils.translate(key, obj);
+        MutableText message = TextBuilder.translate(key, obj);
         return new SimpleCommandExceptionType(TextUtils.hoverText(message, exceptionMessage)).create();
     }
 

@@ -14,6 +14,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -114,15 +115,15 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
         // 获取假玩家的显示名称
         Text fakeName = this.fakePlayer.getDisplayName();
         // 将假玩家正在分拣物品的消息添加到集合中
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
         // 获取分拣物品要丢出的方向
         MutableText thisPos = posText(this.thisVec.getX(), this.thisVec.getY(), this.thisVec.getZ());
         // 获取非分拣物品要丢出的方向
         MutableText otherPos = posText(this.otherVec.getX(), this.otherVec.getY(), this.otherVec.getZ());
         // 将丢要分拣物品的方向的信息添加到集合
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.sorting.this", itemName, thisPos));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.this", itemName, thisPos));
         // 将丢其他物品的方向的信息添加到集合
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.sorting.other", otherPos));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.other", otherPos));
         return list;
     }
 
@@ -152,7 +153,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.sorting");
+        return TextBuilder.translate("carpet.commands.playerAction.action.sorting");
     }
 
     @Override

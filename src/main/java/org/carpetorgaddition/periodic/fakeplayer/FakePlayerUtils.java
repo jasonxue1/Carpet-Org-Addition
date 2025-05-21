@@ -27,6 +27,7 @@ import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.function.Predicate;
 
@@ -95,7 +96,7 @@ public class FakePlayerUtils {
         GenericFetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(
                 source.getServer(),
-                TextUtils.combineAll(fakePlayer.getDisplayName(), ": ", TextUtils.translate(key, obj))
+                TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", TextBuilder.translate(key, obj))
         );
     }
 
@@ -354,13 +355,13 @@ public class FakePlayerUtils {
      */
     public static MutableText getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return TextUtils.hoverText(Text.literal("[A]"), TextUtils.combineAll(Items.AIR.getName()), Formatting.DARK_GRAY);
+            return TextUtils.hoverText(Text.literal("[A]"), TextBuilder.combineAll(Items.AIR.getName()), Formatting.DARK_GRAY);
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         String capitalizeFirstLetter = getInitial(itemStack);
         return TextUtils.hoverText(
                 Text.literal(capitalizeFirstLetter),
-                TextUtils.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
+                TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
                 null
         );
     }

@@ -8,6 +8,7 @@ import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -26,25 +27,25 @@ public class TextProvider {
     /**
      * 主世界
      */
-    public static final Text OVERWORLD = TextUtils.translate("carpet.command.dimension.overworld");
+    public static final Text OVERWORLD = TextBuilder.translate("carpet.command.dimension.overworld");
     /**
      * 下界
      */
-    public static final Text THE_NETHER = TextUtils.translate("carpet.command.dimension.the_nether");
+    public static final Text THE_NETHER = TextBuilder.translate("carpet.command.dimension.the_nether");
     /**
      * 末地
      */
-    public static final Text THE_END = TextUtils.translate("carpet.command.dimension.the_end");
-    public static final Text TRUE = TextUtils.translate("carpet.command.boolean.true");
-    public static final Text FALSE = TextUtils.translate("carpet.command.boolean.false");
+    public static final Text THE_END = TextBuilder.translate("carpet.command.dimension.the_end");
+    public static final Text TRUE = TextBuilder.translate("carpet.command.boolean.true");
+    public static final Text FALSE = TextBuilder.translate("carpet.command.boolean.false");
     /**
      * [这里]
      */
-    public static final Text CLICK_HERE = TextUtils.translate("carpet.command.text.click.here");
+    public static final Text CLICK_HERE = TextBuilder.translate("carpet.command.text.click.here");
     /**
      * 物品
      */
-    public static final Text ITEM = TextUtils.translate("carpet.command.item.item");
+    public static final Text ITEM = TextBuilder.translate("carpet.command.item.item");
     /**
      * 单击复制到剪贴板
      *
@@ -54,7 +55,7 @@ public class TextProvider {
     /**
      * 自己
      */
-    public static final Text SELF = TextUtils.translate("carpet.command.text.self");
+    public static final Text SELF = TextBuilder.translate("carpet.command.text.self");
 
     public static Text getBoolean(boolean value) {
         return value ? TRUE : FALSE;
@@ -80,14 +81,14 @@ public class TextProvider {
             case OMMC -> {
                 MutableText highlight = TextUtils.createText(" [H]");
                 TextUtils.command(highlight, CommandProvider.highlightWaypointByOmmc(blockPos),
-                        TextUtils.translate("ommc.highlight_waypoint.tooltip"), color, false);
-                yield TextUtils.combineAll(pos, highlight);
+                        TextBuilder.translate("ommc.highlight_waypoint.tooltip"), color, false);
+                yield TextBuilder.combineAll(pos, highlight);
             }
             case DEFAULT -> {
                 MutableText highlight = TextUtils.createText(" [H]");
                 TextUtils.command(highlight, CommandProvider.highlightWaypoint(blockPos),
-                        TextUtils.translate("carpet.client.commands.highlight"), color, false);
-                yield TextUtils.combineAll(pos, highlight);
+                        TextBuilder.translate("carpet.client.commands.highlight"), color, false);
+                yield TextBuilder.combineAll(pos, highlight);
             }
         };
     }
@@ -104,7 +105,7 @@ public class TextProvider {
      */
     @SuppressWarnings("unused")
     public static MutableText clickInput(String command) {
-        return TextUtils.translate("carpet.command.text.click.input", command);
+        return TextBuilder.translate("carpet.command.text.click.input", command);
     }
 
     /**
@@ -115,7 +116,7 @@ public class TextProvider {
     public static MutableText clickRun(String command) {
         MutableText run = CLICK_HERE.copy();
         // 文本的悬停提示
-        MutableText hoverText = TextUtils.translate("carpet.command.text.click.run", command);
+        MutableText hoverText = TextBuilder.translate("carpet.command.text.click.run", command);
         return TextUtils.command(run, command, hoverText, Formatting.AQUA, false);
     }
 
@@ -132,11 +133,11 @@ public class TextProvider {
         MutableText text = TextUtils.createText(String.valueOf(count));
         // 为文本添加悬停提示
         if (group == 0) {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.remainder", remainder));
+            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.remainder", remainder));
         } else if (remainder == 0) {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.group", group));
+            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.group", group));
         } else {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.count", group, remainder));
+            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.count", group, remainder));
         }
     }
 
@@ -151,9 +152,9 @@ public class TextProvider {
             if (itemStack.isEmpty()) {
                 continue;
             }
-            list.add(TextUtils.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
+            list.add(TextBuilder.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
         }
-        return TextUtils.hoverText(base, TextUtils.joinList(list));
+        return TextUtils.hoverText(base, TextBuilder.joinList(list));
     }
 
     /**
@@ -164,26 +165,26 @@ public class TextProvider {
     public static MutableText tickToTime(long tick) {
         // 游戏刻
         if (tick < 20L) {
-            return TextUtils.translate("carpet.command.time.tick", tick);
+            return TextBuilder.translate("carpet.command.time.tick", tick);
         }
         // 秒
         if (tick < 1200L) {
-            return TextUtils.translate("carpet.command.time.second", tick / 20L);
+            return TextBuilder.translate("carpet.command.time.second", tick / 20L);
         }
         // 整分
         if (tick < 72000L && (tick % 1200L == 0 || (tick / 20L) % 60L == 0)) {
-            return TextUtils.translate("carpet.command.time.minute", tick / 1200L);
+            return TextBuilder.translate("carpet.command.time.minute", tick / 1200L);
         }
         // 分和秒
         if (tick < 72000L) {
-            return TextUtils.translate("carpet.command.time.minute_second", tick / 1200L, (tick / 20L) % 60L);
+            return TextBuilder.translate("carpet.command.time.minute_second", tick / 1200L, (tick / 20L) % 60L);
         }
         // 整小时
         if (tick % 72000L == 0 || (tick / 20L / 60L) % 60L == 0) {
-            return TextUtils.translate("carpet.command.time.hour", tick / 72000L);
+            return TextBuilder.translate("carpet.command.time.hour", tick / 72000L);
         }
         // 小时和分钟
-        return TextUtils.translate("carpet.command.time.hour_minute", tick / 72000L, (tick / 20L / 60L) % 60L);
+        return TextBuilder.translate("carpet.command.time.hour_minute", tick / 72000L, (tick / 20L / 60L) % 60L);
     }
 
     /**
@@ -194,7 +195,7 @@ public class TextProvider {
      */
     public static MutableText tickToRealTime(long offset) {
         LocalDateTime time = LocalDateTime.now().plusSeconds(offset / 20);
-        return TextUtils.translate("carpet.command.time.format",
+        return TextBuilder.translate("carpet.command.time.format",
                 time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),
                 time.getHour(), time.getMinute(), time.getSecond());
     }

@@ -9,6 +9,7 @@ import net.minecraft.item.Items;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.function.Supplier;
 
@@ -20,7 +21,7 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
 
     static {
         ItemStack itemStack = new ItemStack(Items.RED_STAINED_GLASS_PANE);
-        itemStack.set(DataComponentTypes.CUSTOM_NAME, TextUtils.setColor(TextUtils.translate("carpet.inventory.item.placeholder"), Formatting.RED));
+        itemStack.set(DataComponentTypes.CUSTOM_NAME, TextUtils.setColor(TextBuilder.translate("carpet.inventory.item.placeholder"), Formatting.RED));
         PLACEHOLDER = itemStack;
     }
 

@@ -25,7 +25,6 @@ import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -170,7 +169,7 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case BIOME -> {
                     Identifier id = Objects.requireNonNull(registry.get(RegistryKeys.BIOME).getId((Biome) obj), "无法获取生物群系id");
                     String key = id.toTranslationKey("biome");
-                    yield TextUtils.translate(key);
+                    yield TextBuilder.translate(key);
                 }
             };
         }
