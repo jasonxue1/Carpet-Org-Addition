@@ -232,6 +232,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Text itemCount = getItemCount();
         Text numberOfPeople = getNumberOfPeople(resultCount);
         MutableText message = getFirstFeedback(numberOfPeople, itemCount);
+        MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, TextUtils.hoverText(message, hoverPrompt));
         int skip = this.skipCount.get();
         if (skip != 0) {

@@ -200,6 +200,7 @@ public class ItemSearchTask extends ServerTask {
             itemCount = this.shulkerBox ? TextUtils.toItalic(countText) : countText;
         }
         int size = this.results.size();
+        MessageUtils.sendEmptyMessage(this.context);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.context);

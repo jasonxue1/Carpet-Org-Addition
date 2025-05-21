@@ -2,7 +2,6 @@ package org.carpetorgaddition.util.page;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -37,12 +36,15 @@ public class PagedCollection {
     }
 
     public void print() throws CommandSyntaxException {
-        this.print(1);
+        this.print(1, false);
     }
 
-    public void print(int pagination) throws CommandSyntaxException {
+    public void print(int pagination, boolean printBlankLine) throws CommandSyntaxException {
         if (pagination <= 0 || pagination > this.pages.size()) {
             throw CommandUtils.createException("carpet.command.page.invalid", pagination, this.totalPages());
+        }
+        if (printBlankLine) {
+            MessageUtils.sendEmptyMessage(this.source);
         }
         if (this.totalPages() == 1) {
             // 只有一页

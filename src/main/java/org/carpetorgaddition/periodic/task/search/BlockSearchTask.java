@@ -133,6 +133,7 @@ public class BlockSearchTask extends ServerTask {
     protected void sendFeedback() {
         int count = this.results.size();
         MutableText name = this.blockPredicate.getName();
+        MessageUtils.sendEmptyMessage(this.context);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find", count, name);
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.context);

@@ -316,7 +316,7 @@ public class OrangeCommand extends AbstractServerCommand {
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {
             PagedCollection collection = optional.get();
-            collection.print(page);
+            collection.print(page, true);
             return page;
         } else {
             throw CommandUtils.createException("carpet.command.page.non_existent");

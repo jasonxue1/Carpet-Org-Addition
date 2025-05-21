@@ -130,6 +130,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         list.add(this.tradeCount);
         // 消息的翻译键
         String key = "carpet.commands.finder.trade.result";
+        MessageUtils.sendEmptyMessage(this.context);
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
         MessageUtils.sendMessage(context.getSource(), key, list.toArray(Object[]::new));
         this.pagedCollection.addContent(this.results);
