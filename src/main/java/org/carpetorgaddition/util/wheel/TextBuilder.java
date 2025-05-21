@@ -7,6 +7,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 public class TextBuilder {
@@ -18,12 +19,12 @@ public class TextBuilder {
 
     public static TextBuilder of(@Nullable Object obj) {
         MutableText result = switch (obj) {
-            case null -> TextUtils.createEmpty();
-            case String str -> TextUtils.createText(str);
-            case Number number -> TextUtils.createText(number);
+            case null -> empty();
+            case String str -> create(str);
+            case Number number -> create(number.toString());
             case MutableText text -> text;
             case Text text -> text.copy();
-            case Message message -> TextUtils.create(message).copy();
+            case Message message -> create(message);
             default -> throw new IllegalArgumentException(obj + " cannot be parsed as a Text type");
         };
         return new TextBuilder(result);
@@ -31,6 +32,18 @@ public class TextBuilder {
 
     public static TextBuilder ofTranslate(String key, Object... args) {
         return new TextBuilder(TextUtils.translate(key, args));
+    }
+
+    public static MutableText empty() {
+        return Text.empty();
+    }
+
+    public static MutableText create(String str) {
+        return Text.literal(str);
+    }
+
+    public static MutableText create(Message message) {
+        return Text.of(message).copy();
     }
 
     /**
@@ -69,6 +82,7 @@ public class TextBuilder {
      */
     public TextBuilder setCopyToClipboard(String str) {
         this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, str)));
+        this.setHover(TextProvider.COPY_CLICK);
         return this;
     }
 

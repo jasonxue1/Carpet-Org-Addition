@@ -40,6 +40,7 @@ import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.File;
 import java.util.Locale;
@@ -275,9 +276,9 @@ public class FinderCommand extends AbstractServerCommand {
 
     // 将物品数量转换为“多少组多少个”的形式
     public static MutableText showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
-        MutableText text = TextProvider.itemCount(count, itemStack.getMaxCount());
+        TextBuilder builder = TextBuilder.of(TextProvider.itemCount(count, itemStack.getMaxCount()));
         // 如果包含在潜影盒内找到的物品，在数量上添加斜体效果
-        return inTheShulkerBox ? TextUtils.toItalic(text) : text;
+        return inTheShulkerBox ? builder.setItalic().build() : builder.build();
     }
 
     @Override

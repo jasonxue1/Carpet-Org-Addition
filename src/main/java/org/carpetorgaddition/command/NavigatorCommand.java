@@ -16,7 +16,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
@@ -29,6 +28,7 @@ import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Waypoint;
 
 import java.io.IOException;
@@ -87,13 +87,14 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Entity entity = EntityArgumentType.getEntity(context, arguments);
         // 如果目标是玩家，广播消息
-        MutableText text = TextUtils.translate(START_NAVIGATION, player.getDisplayName(), entity.getDisplayName());
+        TextBuilder builder = TextBuilder.ofTranslate(START_NAVIGATION, player.getDisplayName(), entity.getDisplayName());
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(entity, isContinue);
         if (shouldBeBroadcast(entity, player)) {
             // 设置为斜体淡灰色
-            MessageUtils.broadcastMessage(context.getSource().getServer(), TextUtils.toGrayItalic(text));
+            builder.setGrayItalic();
+            MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
         } else {
-            MessageUtils.sendMessage(context.getSource(), text);
+            MessageUtils.sendMessage(context.getSource(), builder.build());
         }
         return 1;
     }
@@ -131,13 +132,13 @@ public class NavigatorCommand extends AbstractServerCommand {
                 continue;
             }
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(entity, false);
-            MutableText text = TextUtils.translate(START_NAVIGATION, player.getDisplayName(), entity.getDisplayName());
+            TextBuilder builder = TextBuilder.ofTranslate(START_NAVIGATION, player.getDisplayName(), entity.getDisplayName());
             if (shouldBeBroadcast(entity, player)) {
                 // 将字体设置为灰色斜体
-                text = TextUtils.toItalic(TextUtils.setColor(text, Formatting.GRAY));
-                MessageUtils.broadcastMessage(context.getSource().getServer(), text);
+                builder.setGrayItalic();
+                MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
             } else {
-                MessageUtils.sendMessage(context.getSource(), text);
+                MessageUtils.sendMessage(context.getSource(), builder.build());
             }
             return 1;
         }
@@ -194,22 +195,22 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity target = self ? player : CommandUtils.getArgumentPlayer(context);
         Optional<GlobalPos> lastDeathPos = target.getLastDeathPos();
         // 导航器目标的名称
-        MutableText lastDeathLocation = TextUtils.translate("carpet.commands.navigate.name.last_death_location");
+        MutableText death = TextUtils.translate("carpet.commands.navigate.name.last_death_location");
         // 非空判断
         if (lastDeathPos.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", target.getDisplayName(), lastDeathLocation);
+            throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", target.getDisplayName(), death);
         }
-        MutableText name = self ? lastDeathLocation
-                : TextUtils.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), lastDeathLocation);
+        MutableText name = self ? death : TextUtils.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
         // 获取死亡坐标和死亡维度
         GlobalPos globalPos = lastDeathPos.get();
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(globalPos.pos(),
                 context.getSource().getServer().getWorld(globalPos.dimension()), name);
-        MutableText message = TextUtils.translate(START_NAVIGATION, player.getDisplayName(), name);
+        TextBuilder builder = TextBuilder.ofTranslate(START_NAVIGATION, player.getDisplayName(), name);
         if (self || player == target) {
-            MessageUtils.sendMessage(player, message);
+            MessageUtils.sendMessage(player, builder.build());
         } else {
-            MessageUtils.broadcastMessage(context.getSource().getServer(), TextUtils.setColor(TextUtils.toItalic(message), Formatting.GRAY));
+            builder.setGrayItalic();
+            MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
         }
         return 1;
     }

@@ -29,6 +29,7 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.screen.ShipExpressScreenHandler;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -179,21 +180,23 @@ public class MailCommand extends AbstractServerCommand {
 
     private void list(ServerPlayerEntity player, Express express) {
         ArrayList<MutableText> list = new ArrayList<>();
-        MutableText text;
+        TextBuilder builder;
         if (express.isRecipient(player)) {
-            text = TextUtils.createText("[R]");
+            builder = TextBuilder.of("[R]");
             // 点击接收
-            TextUtils.command(text, CommandProvider.receiveExpress(express.getId()), null, Formatting.AQUA, false);
+            builder.setCommand(CommandProvider.receiveExpress(express.getId()));
+            builder.setColor(Formatting.AQUA);
             list.add(TextUtils.translate("carpet.commands.mail.list.receive"));
-            list.add(TextUtils.createEmpty());
+            list.add(TextBuilder.empty());
         } else if (express.isSender(player)) {
-            text = TextUtils.createText("[C]");
+            builder = TextBuilder.of("[C]");
             // 点击撤回
-            TextUtils.command(text, CommandProvider.cancelExpress(express.getId()), null, Formatting.AQUA, false);
+            builder.setCommand(CommandProvider.cancelExpress(express.getId()));
+            builder.setColor(Formatting.AQUA);
             list.add(TextUtils.translate("carpet.commands.mail.list.sending"));
-            list.add(TextUtils.createEmpty());
+            list.add(TextBuilder.empty());
         } else {
-            text = TextUtils.createText("[?]");
+            builder = TextBuilder.of("[?]");
         }
         list.add(TextUtils.translate("carpet.commands.mail.list.id", express.getId()));
         list.add(TextUtils.translate("carpet.commands.mail.list.sender", express.getSender()));
@@ -202,9 +205,9 @@ public class MailCommand extends AbstractServerCommand {
                 TextUtils.translate(express.getExpress().getTranslationKey()), express.getExpress().getCount()));
         list.add(TextUtils.translate("carpet.commands.mail.list.time", express.getTime()));
         // 拼接字符串
-        text = TextUtils.hoverText(text, TextUtils.joinList(list));
+        builder.setHover(TextUtils.joinList(list));
         MessageUtils.sendMessage(player, "carpet.commands.mail.list.each",
-                express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), text);
+                express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), builder.build());
     }
 
     // 获取快递

@@ -10,7 +10,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -20,6 +19,7 @@ import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -62,26 +62,26 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         }
         // 安全挂机触发失败，玩家已死亡
         if (this.afkTriggerFail()) {
-            MutableText message = TextUtils.translate("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
+            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
             // 设置为斜体
-            message = TextUtils.toItalic(message);
+            builder.setItalic();
             // 设置为红色
-            message = TextUtils.setColor(message, Formatting.RED);
+            builder.setColor(Formatting.RED);
             // 添加悬停提示
-            message = TextUtils.hoverText(message, report(source, amount));
-            MessageUtils.broadcastMessage(thisPlayer.server, message);
+            builder.setHover(report(source, amount));
+            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
             return;
         }
         // 玩家安全挂机触发成功
         if (thisPlayer.getHealth() <= this.safeAfkThreshold) {
             // 假玩家剩余血量
             String health = MathUtils.numberToTwoDecimalString(thisPlayer.getHealth());
-            MutableText message = TextUtils.translate("carpet.commands.playerManager.safeafk.trigger.success",
-                    thisPlayer.getDisplayName(), health);
+            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.playerManager.safeafk.trigger.success", thisPlayer.getDisplayName(), health);
             // 添加悬停提示
-            message = TextUtils.hoverText(message, report(source, amount));
+            builder.setHover(report(source, amount));
+            builder.setGrayItalic();
             // 广播触发消息，斜体淡灰色
-            MessageUtils.broadcastMessage(thisPlayer.server, TextUtils.toGrayItalic(message));
+            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
             // 恢复饥饿值
             thisPlayer.getHungerManager().setFoodLevel(20);
             // 退出假人

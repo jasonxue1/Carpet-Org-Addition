@@ -13,31 +13,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@Deprecated(forRemoval = true)
 public class TextUtils {
     private TextUtils() {
-    }
-
-    /**
-     * 获取一个可以单击并在聊天框输入文本的可变文本组件
-     *
-     * @param text      原始文本，直接显示在聊天页面上
-     * @param input     点击后输入在聊天框里的文本
-     * @param hoverText 光标放在原始文本上显示的内容，如果为null，不显示悬停文本
-     * @param color     文本的颜色，如果为null，默认为白色
-     */
-    public static MutableText suggest(@NotNull MutableText text, @Nullable String input, @Nullable Text hoverText, @Nullable Formatting color) {
-        if (input != null) {
-            //添加单击事件
-            text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, input)));
-        }
-        if (hoverText != null) {
-            //添加鼠标悬停事件
-            text.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
-        }
-        if (color != null) {
-            text.styled(style -> style.withColor(color));
-        }
-        return text;
     }
 
     /**
@@ -61,10 +39,6 @@ public class TextUtils {
             text.styled(style -> style.withColor(color));
         }
         return text;
-    }
-
-    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText) {
-        return command(text, command, hoverText, null, false);
     }
 
     public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText, @Nullable Formatting color) {
@@ -93,16 +67,6 @@ public class TextUtils {
             text.styled(style -> style.withColor(color));
         }
         return text;
-    }
-
-    /**
-     * 获取一个带有悬浮文本的可变文本对象
-     *
-     * @param text  要显示的文本
-     * @param hover 显示在文本上的悬浮文字
-     */
-    public static MutableText hoverText(String text, String hover) {
-        return Text.literal(text).styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Text.literal(hover))));
     }
 
     public static MutableText hoverText(MutableText text, String hover) {
@@ -155,13 +119,6 @@ public class TextUtils {
      */
     public static MutableText toItalic(MutableText mutableText) {
         return mutableText.styled(style -> style.withItalic(true));
-    }
-
-    /**
-     * 将一个可变文本对象设置为粗体
-     */
-    public static MutableText toBold(MutableText mutableText) {
-        return mutableText.styled(style -> style.withBold(true));
     }
 
     /**

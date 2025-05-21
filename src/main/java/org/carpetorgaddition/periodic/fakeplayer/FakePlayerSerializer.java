@@ -24,6 +24,7 @@ import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.MetaComment;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
 
@@ -277,7 +278,7 @@ public class FakePlayerSerializer {
 
     // 获取显示名称
     public Text getDisplayName() {
-        return TextUtils.hoverText(this.fakePlayerName, this.info());
+        return TextBuilder.of(this.fakePlayerName).setHover(this.info()).build();
     }
 
     // 列出每一条玩家信息
@@ -301,17 +302,20 @@ public class FakePlayerSerializer {
         return list;
     }
 
-    private static Text eachPlayer(File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
+    private static Text eachPlayer(File file, MutableText logonHover, MutableText logoutHover, FakePlayerSerializer serial) {
         // 添加快捷命令
-        String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
-        String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
-        String offlineCommand = CommandProvider.killFakePlayer(playerName);
-        return TextUtils.combineAll(
-                TextUtils.command(TextUtils.createText("[↑]"), onlineCommand, online, Formatting.GREEN, false), " ",
-                TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",
-                TextUtils.hoverText(TextUtils.createText("[?]"), serial.info(), Formatting.GRAY), " ",
-                // 如果有注释，在列出的玩家的名字上也添加注释
-                serial.comment.hasContent() ? TextUtils.hoverText(playerName, serial.comment.getText()) : playerName);
+        String name = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
+        String logonCommand = CommandProvider.playerManagerSpawn(name);
+        String logoutCommand = CommandProvider.killFakePlayer(name);
+        MutableText login = TextBuilder.of("[↑]").setCommand(logonCommand).setHover(logonHover).setColor(Formatting.GREEN).build();
+        MutableText logout = TextBuilder.of("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
+        MutableText info = TextBuilder.of("[?]").setHover(serial.info()).setColor(Formatting.GRAY).build();
+        TextBuilder playerName = TextBuilder.of(name);
+        if (serial.comment.hasContent()) {
+            // 如果有注释，在列出的玩家的名字上也添加注释
+            playerName.setHover(serial.comment.getText());
+        }
+        return TextUtils.combineAll(login, " ", logout, " ", info, " ", playerName.build());
     }
 
     /**

@@ -182,13 +182,11 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     }
 
     public static class ClientBiomeArgumentType extends ClientObjectArgumentType<Biome> {
-
         @Override
         protected String objectToString(Biome biome) {
             assert MinecraftClient.getInstance().player != null;
             Registry<Biome> biomes = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().get(RegistryKeys.BIOME);
             return TextUtils.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
-
         }
 
         @Override

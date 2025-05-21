@@ -20,6 +20,7 @@ import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -211,7 +212,7 @@ public class Express implements Comparable<Express> {
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Supplier<Text> message = () -> TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
+        Supplier<Text> message = () -> TextBuilder.ofTranslate("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
         this.ifItExistsSendIt(this.recipient, message);
         this.cancel = true;
     }
@@ -314,7 +315,7 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 将消息设置为灰色斜体
-        MutableText message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.sending.permission"));
+        MutableText message = TextBuilder.ofTranslate("carpet.commands.mail.sending.permission").setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 

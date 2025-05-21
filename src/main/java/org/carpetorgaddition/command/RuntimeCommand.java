@@ -12,7 +12,7 @@ import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
 
@@ -86,7 +86,7 @@ public class RuntimeCommand extends AbstractServerCommand {
         long size = runtime.freeMemory() - l;
         Text free = displayMemory(size);
         MessageUtils.sendMessage(context, "carpet.commands.runtime.gc", free);
-        MutableText prompt = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.runtime.gc.prompt"));
+        MutableText prompt = TextBuilder.ofTranslate("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
         MessageUtils.sendMessage(context.getSource(), prompt);
         return (int) size;
     }
@@ -102,8 +102,10 @@ public class RuntimeCommand extends AbstractServerCommand {
     private Text displayMemory(long size) {
         DecimalFormat format = new DecimalFormat("#.00");
         String mb = format.format(size / 1024.0 / 1024.0);
-        MutableText hover = TextUtils.translate("carpet.command.data.unit.byte", size);
-        return TextUtils.hoverText(TextUtils.createText("%s MB".formatted(mb)), hover, Formatting.GRAY);
+        TextBuilder builder = TextBuilder.of("%s MB".formatted(mb))
+                .setHover("carpet.command.data.unit.byte", size)
+                .setColor(Formatting.GRAY);
+        return builder.build();
     }
 
     @Override

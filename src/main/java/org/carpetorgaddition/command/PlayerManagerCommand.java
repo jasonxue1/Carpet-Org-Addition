@@ -39,6 +39,7 @@ import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 
@@ -525,13 +526,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix) {
             return true;
         }
-        // 文本内容：[这里]
-        MutableText here = TextUtils.translate("carpet.command.text.click.here");
         // 单击后输入的命令
-        String command = "/carpet fakePlayerSpawnMemoryLeakFix true";
-        // [这里]的悬停提示
-        MutableText input = TextUtils.translate("carpet.command.text.click.input", command);
-        here = TextUtils.suggest(here, command, input, Formatting.AQUA);
+        String command = CommandProvider.setCarpetRule("fakePlayerSpawnMemoryLeakFix", "true");
+        // 文本内容：[这里]
+        Text here = TextBuilder.ofTranslate("carpet.command.text.click.here")
+                .setSuggest(command)
+                .setColor(Formatting.AQUA)
+                .setHover("carpet.command.text.click.input", command)
+                .build();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.condition", here);
         return false;
     }

@@ -27,7 +27,10 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
-import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
@@ -35,6 +38,7 @@ import org.carpetorgaddition.util.permission.CommandPermission;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -154,7 +158,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        MutableText version = TextUtils.hoverText(CarpetOrgAddition.VERSION, CarpetOrgAddition.BUILD_TIMESTAMP);
+        MutableText version = TextBuilder.of(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
@@ -199,12 +203,9 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
-        MessageUtils.sendMessage(
-                context,
-                "carpet.commands.orange.textclickevent.queryPlayerName.success",
-                TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
-                TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
-        );
+        MutableText uuid = TextBuilder.of(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
+        MutableText name = TextBuilder.of(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
+        MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
     }
 
     /**
@@ -265,18 +266,17 @@ public class OrangeCommand extends AbstractServerCommand {
             ruleSelfManager.setEnabled(player, ruleString, value);
             Text ruleName = RuleUtils.simpleTranslationName(rule);
             Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
-            MutableText translate;
+            TextBuilder builder;
             if (value) {
-                translate = TextUtils.translate("carpet.commands.orange.ruleself.enable", ruleName, playerName);
+                builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.enable", ruleName, playerName);
             } else {
-                translate = TextUtils.translate("carpet.commands.orange.ruleself.disable", ruleName, playerName);
+                builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
             if (RuleHelper.isInDefaultValue(rule)) {
-                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
-                translate = TextUtils.hoverText(translate, hover);
-                translate = TextUtils.toStrikethrough(translate);
+                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setStrikethrough();
             }
-            MessageUtils.sendMessage(context.getSource(), translate);
+            MessageUtils.sendMessage(context.getSource(), builder.build());
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();
@@ -296,13 +296,12 @@ public class OrangeCommand extends AbstractServerCommand {
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
             Text displayName = RuleUtils.simpleTranslationName(rule);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
-            MutableText translate = TextUtils.translate("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
             if (RuleHelper.isInDefaultValue(rule)) {
-                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
-                translate = TextUtils.hoverText(translate, hover);
-                translate = TextUtils.toStrikethrough(translate);
+                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setStrikethrough();
             }
-            MessageUtils.sendMessage(context.getSource(), translate);
+            MessageUtils.sendMessage(context.getSource(), builder.build());
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();

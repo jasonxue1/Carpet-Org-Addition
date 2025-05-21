@@ -27,6 +27,7 @@ import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -85,7 +86,11 @@ public class DictionaryCommand extends AbstractClientCommand {
     // 将字符串id转换成可以单击复制的形式
     @NotNull
     private MutableText canCopyId(String id) {
-        return TextUtils.copy(id, id, TextProvider.COPY_CLICK, Formatting.GREEN);
+        return TextBuilder.of(id)
+                .setCopyToClipboard(id)
+                .setHover(TextProvider.COPY_CLICK)
+                .setColor(Formatting.GREEN)
+                .build();
     }
 
     @Override

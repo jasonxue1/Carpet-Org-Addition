@@ -20,6 +20,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
@@ -125,7 +126,7 @@ public class LocationsCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
             return 0;
         }
-        MutableText dividerLine = TextUtils.createText("------------------------------");
+        MutableText dividerLine = TextBuilder.create("------------------------------");
         // 显示分隔线
         MessageUtils.sendMessage(context.getSource(), dividerLine);
         int count = 0;
@@ -260,15 +261,21 @@ public class LocationsCommand extends AbstractServerCommand {
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
             case WorldUtils.OVERWORLD -> TextUtils.translate("carpet.commands.locations.here.overworld",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.GREEN),
-                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
+                    player.getDisplayName(),
+                    TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED)
+            );
             case WorldUtils.THE_NETHER -> TextUtils.translate("carpet.commands.locations.here.the_nether",
                     player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
-                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN)
+            );
             case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.here.the_end",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE));
+                    player.getDisplayName(),
+                    TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE)
+            );
             default -> TextUtils.translate("carpet.commands.locations.here.default",
-                    player.getDisplayName(), WorldUtils.getDimensionId(player.getWorld()),
+                    player.getDisplayName(),
+                    WorldUtils.getDimensionId(player.getWorld()),
                     TextProvider.blockPos(blockPos, null));
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
