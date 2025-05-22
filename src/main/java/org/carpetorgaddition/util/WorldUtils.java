@@ -195,6 +195,13 @@ public class WorldUtils {
     }
 
     /**
+     * @return 两个世界的坐标是否可以互相转换
+     */
+    public static boolean canMappingPos(World world1, World world2) {
+        return (isOverworld(world1) && isTheNether(world2)) || (isOverworld(world2) && isTheNether(world1));
+    }
+
+    /**
      * @return 两个维度ID是否表示的是同一个世界
      * @throws InvalidIdentifierException 如果维度ID不合法
      */
@@ -227,7 +234,30 @@ public class WorldUtils {
     /**
      * @return 维度ID是否表示末地
      */
+    @SuppressWarnings("unused")
     public static boolean isTheEnd(String worldId) {
         return THE_END.equals(worldId) || SIMPLE_THE_END.equals(worldId);
+    }
+
+    /**
+     * @return 维度ID是否表示主世界
+     */
+    public static boolean isOverworld(World world) {
+        return world.getRegistryKey() == World.OVERWORLD;
+    }
+
+    /**
+     * @return 维度ID是否表示下界
+     */
+    public static boolean isTheNether(World world) {
+        return world.getRegistryKey() == World.NETHER;
+    }
+
+    /**
+     * @return 维度ID是否表示末地
+     */
+    @SuppressWarnings("unused")
+    public static boolean isTheEnd(World world) {
+        return world.getRegistryKey() == World.END;
     }
 }

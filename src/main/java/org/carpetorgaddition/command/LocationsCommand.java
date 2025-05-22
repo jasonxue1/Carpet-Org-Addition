@@ -105,10 +105,10 @@ public class LocationsCommand extends AbstractServerCommand {
             throw CommandUtils.createException("carpet.commands.locations.add.fail.already_exists", name);
         }
         // 创建一个路径点对象
-        Waypoint waypoint = new Waypoint(blockPos, name, WorldUtils.getDimensionId(context.getSource().getWorld()), player.getName().getString());
+        Waypoint waypoint = new Waypoint(blockPos, name, player);
         try {
             // 将路径点写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             // 成功添加路径点
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.locations.add.success", name, WorldUtils.toPosString(blockPos));
         } catch (IOException e) {
@@ -167,7 +167,7 @@ public class LocationsCommand extends AbstractServerCommand {
             }
             waypoint.setComment(comment);
             // 将路径点对象重新写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             if (remove) {
                 // 移除路径点的说明文本
                 MessageUtils.sendMessage(source, "carpet.commands.locations.comment.remove", name);
@@ -204,7 +204,7 @@ public class LocationsCommand extends AbstractServerCommand {
                 throw CommandUtils.createException("carpet.commands.locations.another.add.fail");
             }
             // 将修改后的路径点重新写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             //添加对向坐标
             MessageUtils.sendMessage(source, "carpet.commands.locations.another.add");
         } catch (IOException | NullPointerException e) {
@@ -246,7 +246,7 @@ public class LocationsCommand extends AbstractServerCommand {
             Waypoint waypoint = Waypoint.load(context.getSource().getServer(), fileName);
             waypoint.setBlockPos(blockPos);
             // 将修改完坐标的路径点对象重新写入本地文件
-            waypoint.save(context.getSource().getServer());
+            waypoint.save();
             //发送命令执行后的反馈
             MessageUtils.sendMessage(source, "carpet.commands.locations.set", fileName);
         } catch (IOException | NullPointerException e) {

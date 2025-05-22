@@ -3,10 +3,13 @@ package org.carpetorgaddition.util.wheel;
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.waypoint.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
@@ -24,21 +27,27 @@ public class Waypoint {
     private BlockPos blockPos;
     @Nullable
     private BlockPos anotherBlockPos;
-    private final String dimension;
+    private final World world;
     @NotNull
     private MetaComment comment = new MetaComment();
     private final String creator;
+    private final MinecraftServer server;
     public final String name;
 
-    public Waypoint(BlockPos blockPos, String name, String dimension, String creator) {
+    public Waypoint(BlockPos blockPos, String name, World world, String creator, MinecraftServer server) {
         this.name = name;
         this.blockPos = blockPos;
-        this.dimension = dimension;
+        this.world = world;
         this.creator = creator;
+        this.server = server;
+    }
+
+    public Waypoint(BlockPos blockPos, String name, ServerPlayerEntity player) {
+        this(blockPos, name, player.getWorld(), player.getName().getString(), player.getServer());
     }
 
     // 将路径点写入本地文件
-    public void save(MinecraftServer server) throws IOException {
+    public void save() throws IOException {
         JsonObject json = new JsonObject();
         // 数据版本
         json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
@@ -49,7 +58,7 @@ public class Waypoint {
         pos.addProperty("z", this.blockPos.getZ());
         json.add("pos", pos);
         // 路径点所在维度
-        json.addProperty("dimension", this.dimension);
+        json.addProperty("dimension", this.getWorldAsString());
         // 路径点的创建者
         json.addProperty("creator", this.creator);
         // 路径点的注释
@@ -62,7 +71,7 @@ public class Waypoint {
             anotherPos.addProperty("z", this.anotherBlockPos.getZ());
         }
         json.add("another_pos", anotherPos);
-        WorldFormat worldFormat = new WorldFormat(server, WAYPOINT);
+        WorldFormat worldFormat = new WorldFormat(this.server, WAYPOINT);
         File file = worldFormat.file(this.name + IOUtils.JSON_EXTENSION);
         IOUtils.saveJson(file, json);
     }
@@ -84,7 +93,8 @@ public class Waypoint {
         String dimension = IOUtils.jsonHasElement(json, "dimension") ? json.get("dimension").getAsString() : WorldUtils.OVERWORLD;
         // 路径点的创建者
         String creator = IOUtils.jsonHasElement(json, "creator") ? json.get("creator").getAsString() : "#none";
-        Waypoint waypoint = new Waypoint(blockPos, name, dimension, creator);
+        ServerWorld world = WorldUtils.getWorld(server, dimension);
+        Waypoint waypoint = new Waypoint(blockPos, name, world, creator, server);
         // 添加路径点的另一个坐标
         if (json.has("another_pos")) {
             JsonObject anotherPos = json.get("another_pos").getAsJsonObject();
@@ -102,7 +112,7 @@ public class Waypoint {
 
     // 显示路径点
     public void show(ServerCommandSource source) {
-        MutableText text = switch (this.dimension) {
+        MutableText text = switch (getWorldAsString()) {
             case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
                     ? TextBuilder.translate("carpet.commands.locations.show.overworld",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN))
@@ -118,7 +128,7 @@ public class Waypoint {
             case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.show.the_end",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.DARK_PURPLE));
             default -> TextBuilder.translate("carpet.commands.locations.show.custom_dimension",
-                    this.formatName(), this.dimension, TextProvider.blockPos(this.blockPos, Formatting.GREEN));
+                    this.formatName(), getWorldAsString(), TextProvider.blockPos(this.blockPos, Formatting.GREEN));
         };
         MessageUtils.sendMessage(source, text);
     }
@@ -154,8 +164,12 @@ public class Waypoint {
         return this.anotherBlockPos;
     }
 
-    public String getDimension() {
-        return dimension;
+    public World getWorld() {
+        return this.world;
+    }
+
+    public String getWorldAsString() {
+        return WorldUtils.getDimensionId(this.world);
     }
 
     public String getName() {
@@ -164,6 +178,6 @@ public class Waypoint {
 
     // 是否可以添加对向坐标
     public boolean canAddAnother() {
-        return WorldUtils.isOverworld(this.dimension) || WorldUtils.isTheNether(this.dimension);
+        return this.world.getRegistryKey() == World.OVERWORLD || this.world.getRegistryKey() == World.NETHER;
     }
 }

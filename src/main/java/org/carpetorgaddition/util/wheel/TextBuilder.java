@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+@SuppressWarnings("UnusedReturnValue")
 public class TextBuilder {
     @NotNull
     private MutableText text;
@@ -222,6 +223,7 @@ public class TextBuilder {
      *
      * @param key 翻译键
      * @return 可翻译文本
+     * @apiNote 客户端不需要有对应的翻译
      */
     public static MutableText translate(String key, Object... obj) {
         String value = Translation.getTranslateValue(key);
