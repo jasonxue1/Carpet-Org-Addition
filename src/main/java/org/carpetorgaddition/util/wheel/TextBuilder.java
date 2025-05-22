@@ -75,8 +75,11 @@ public class TextBuilder {
     /**
      * 设置文本颜色
      */
-    public TextBuilder setColor(Formatting formatting) {
-        this.text.styled(style -> style.withColor(formatting));
+    public TextBuilder setColor(Formatting color) {
+        if (color == null) {
+            return this;
+        }
+        this.text.styled(style -> style.withColor(color));
         return this;
     }
 

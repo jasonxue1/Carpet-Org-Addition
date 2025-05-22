@@ -2,11 +2,12 @@ package org.carpetorgaddition.util.provider;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.*;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -18,8 +19,8 @@ public class TextProvider {
     /**
      * 换行
      */
-    public static final Text NEW_LINE = TextUtils.createText("\n");
-    public static final Text INDENT_SYMBOL = TextUtils.createText("    ");
+    public static final Text NEW_LINE = TextBuilder.create("\n");
+    public static final Text INDENT_SYMBOL = TextBuilder.create("    ");
 
     private TextProvider() {
     }
@@ -67,30 +68,22 @@ public class TextProvider {
      * @param color 文本的颜色，如果为null，不修改颜色
      */
     public static MutableText blockPos(BlockPos blockPos, @Nullable Formatting color) {
-        MutableText pos = simpleBlockPos(blockPos);
-        //添加单击事件，复制方块坐标
-        pos.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, WorldUtils.toPosString(blockPos))));
-        //添加光标悬停事件：单击复制到剪贴板
-        pos.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, COPY_CLICK)));
-        if (color != null) {
-            //修改文本颜色
-            pos.styled(style -> style.withColor(color));
+        TextBuilder builder = new TextBuilder(simpleBlockPos(blockPos));
+        // 添加单击事件，复制方块坐标
+        builder.setCopyToClipboard(WorldUtils.toPosString(blockPos));
+        switch (CarpetOrgAdditionSettings.canHighlightBlockPos) {
+            case OMMC -> builder.append(new TextBuilder(" [H]")
+                    .setCommand(CommandProvider.highlightWaypointByOmmc(blockPos))
+                    .setHover("ommc.highlight_waypoint.tooltip"));
+            case DEFAULT -> builder.append(new TextBuilder(" [H]")
+                    .setCommand(CommandProvider.highlightWaypoint(blockPos))
+                    .setHover("carpet.client.commands.highlight"));
+            default -> {
+            }
         }
-        return switch (CarpetOrgAdditionSettings.canHighlightBlockPos) {
-            case FALSE -> pos;
-            case OMMC -> {
-                MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, CommandProvider.highlightWaypointByOmmc(blockPos),
-                        TextBuilder.translate("ommc.highlight_waypoint.tooltip"), color, false);
-                yield TextBuilder.combineAll(pos, highlight);
-            }
-            case DEFAULT -> {
-                MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, CommandProvider.highlightWaypoint(blockPos),
-                        TextBuilder.translate("carpet.client.commands.highlight"), color, false);
-                yield TextBuilder.combineAll(pos, highlight);
-            }
-        };
+        // 修改文本颜色
+        builder.setColor(color);
+        return builder.build();
     }
 
     /**
@@ -101,7 +94,7 @@ public class TextProvider {
     }
 
     /**
-     * 单击输入"{@code 命令}"
+     * 单击输入命令
      */
     @SuppressWarnings("unused")
     public static MutableText clickInput(String command) {
@@ -109,15 +102,16 @@ public class TextProvider {
     }
 
     /**
-     * 单击执行{@code 命令}
+     * 单击执行命令
      *
      * @param command 要执行的命令
      */
     public static MutableText clickRun(String command) {
-        MutableText run = CLICK_HERE.copy();
-        // 文本的悬停提示
-        MutableText hoverText = TextBuilder.translate("carpet.command.text.click.run", command);
-        return TextUtils.command(run, command, hoverText, Formatting.AQUA, false);
+        TextBuilder builder = new TextBuilder(CLICK_HERE);
+        builder.setCommand(command);
+        builder.setHover("carpet.command.text.click.run", command);
+        builder.setColor(Formatting.AQUA);
+        return builder.build();
     }
 
     /**
@@ -130,15 +124,16 @@ public class TextProvider {
         int group = count / maxCount;
         // 计算物品余几个
         int remainder = count % maxCount;
-        MutableText text = TextUtils.createText(String.valueOf(count));
+        TextBuilder builder = new TextBuilder(count);
         // 为文本添加悬停提示
         if (group == 0) {
-            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.remainder", remainder));
+            builder.setHover("carpet.command.item.remainder", remainder);
         } else if (remainder == 0) {
-            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.group", group));
+            builder.setHover("carpet.command.item.group", group);
         } else {
-            return TextUtils.hoverText(text, TextBuilder.translate("carpet.command.item.count", group, remainder));
+            builder.setHover("carpet.command.item.count", group, remainder);
         }
+        return builder.build();
     }
 
     /**
@@ -146,6 +141,7 @@ public class TextProvider {
      * @return 获取物品栏中物品的名称和堆叠数量并用“*”连接，每个物品独占一行
      */
     public static MutableText inventory(Text base, Inventory inventory) {
+        TextBuilder builder = new TextBuilder(base);
         ArrayList<Text> list = new ArrayList<>();
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack itemStack = inventory.getStack(i);
@@ -154,7 +150,7 @@ public class TextProvider {
             }
             list.add(TextBuilder.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
         }
-        return TextUtils.hoverText(base, TextBuilder.joinList(list));
+        return builder.setHover(TextBuilder.joinList(list)).build();
     }
 
     /**
