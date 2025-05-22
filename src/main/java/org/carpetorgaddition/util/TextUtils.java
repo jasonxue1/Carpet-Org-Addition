@@ -1,6 +1,5 @@
 package org.carpetorgaddition.util;
 
-import com.mojang.brigadier.Message;
 import net.minecraft.text.ClickEvent;
 import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
@@ -99,10 +98,6 @@ public class TextUtils {
         return Text.literal(number.toString());
     }
 
-    public static Text create(Message message) {
-        return Text.of(message);
-    }
-
     /**
      * 将一个可变文本对象设置为斜体
      */
@@ -122,12 +117,5 @@ public class TextUtils {
      */
     public static MutableText toGrayItalic(MutableText mutableText) {
         return toItalic(setColor(mutableText, Formatting.GRAY));
-    }
-
-    /**
-     * 为一段文本添加删除线
-     */
-    public static MutableText toStrikethrough(MutableText mutableText) {
-        return mutableText.styled(style -> style.withStrikethrough(true));
     }
 }

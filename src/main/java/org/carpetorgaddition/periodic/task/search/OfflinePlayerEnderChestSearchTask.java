@@ -12,7 +12,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -41,12 +40,15 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
     }
 
     @Override
-    @Nullable
     protected Text openInventoryButton(GameProfile gameProfile) {
         if (CommandHelper.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
             MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
-            return TextUtils.command(TextUtils.createText("[O]"), command, clickLogin, Formatting.GRAY);
+            TextBuilder builder = new TextBuilder("[O]");
+            builder.setColor(Formatting.GRAY);
+            builder.setHover(clickLogin);
+            builder.setCommand(command);
+            return builder.build();
         }
         return null;
     }

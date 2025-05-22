@@ -222,21 +222,19 @@ public class OfflinePlayerSearchTask extends ServerTask {
         int resultCount = this.list.size();
         this.list.sort((o1, o2) -> o2.statistics().getSum() - o1.statistics().getSum());
         this.pagedCollection.addContent(this.list);
-        MutableText hoverPrompt = TextBuilder.translate(
-                "carpet.commands.finder.item.offline_player.prompt",
-                this.getInventoryName()
-        );
         Text itemCount = getItemCount();
         Text numberOfPeople = getNumberOfPeople(resultCount);
         MutableText message = getFirstFeedback(numberOfPeople, itemCount);
+        TextBuilder builder = new TextBuilder(message);
+        builder.setHover("carpet.commands.finder.item.offline_player.prompt", this.getInventoryName());
         MessageUtils.sendEmptyMessage(this.source);
-        MessageUtils.sendMessage(this.source, TextUtils.hoverText(message, hoverPrompt));
+        MessageUtils.sendMessage(this.source, builder.build());
         int skip = this.skipCount.get();
         if (skip != 0) {
             // 如果this.unknownPlayer为true，那么代码不应该执行到这里
-            MutableText translate = TextBuilder.translate("carpet.commands.finder.item.offline_player.skip", skip);
-            MutableText grayItalic = TextUtils.toGrayItalic(translate);
-            MessageUtils.sendMessage(this.source, grayItalic);
+            TextBuilder prompt = TextBuilder.of("carpet.commands.finder.item.offline_player.skip", skip);
+            prompt.setGrayItalic();
+            MessageUtils.sendMessage(this.source, prompt.build());
         }
         CommandUtils.handlingException(this.pagedCollection::print, source);
     }
@@ -261,8 +259,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (this.predicate.isConvertible()) {
             return FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
         } else {
-            MutableText text = TextUtils.createText(Integer.toString(this.itemCount.get()));
-            return this.shulkerBox.get() ? TextUtils.toItalic(text) : text;
+            TextBuilder builder = new TextBuilder(this.itemCount);
+            return this.shulkerBox.get() ? builder.setItalic().build() : builder.build();
         }
     }
 
@@ -277,8 +275,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (!this.showUnknown) {
             peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.skipped", this.skipCount.get()));
         }
+        TextBuilder builder = new TextBuilder(resultCount);
+        builder.setHover(TextBuilder.joinList(peopleHover));
         // 玩家总数文本
-        return TextUtils.hoverText(TextUtils.createText(resultCount), TextBuilder.joinList(peopleHover));
+        return builder.build();
     }
 
     protected Text getInventoryName() {
@@ -310,8 +310,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
     protected Text openInventoryButton(GameProfile gameProfile) {
         if (CommandHelper.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
             String command = CommandProvider.openPlayerInventory(gameProfile.getId());
-            MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.inventory");
-            return TextUtils.command(TextUtils.createText("[O]"), command, clickLogin, Formatting.GRAY);
+            TextBuilder builder = new TextBuilder("[O]");
+            builder.setCommand(command);
+            builder.setHover("carpet.commands.finder.item.offline_player.open.inventory");
+            builder.setColor(Formatting.GRAY);
+            return builder.build();
         }
         return null;
     }
@@ -341,58 +344,68 @@ public class OfflinePlayerSearchTask extends ServerTask {
             String name = gameProfile.getName();
             String uuid = gameProfile().getId().toString();
             // 悬停提示
-            Text hover = TextBuilder.combineAll(TextUtils.createText("UUID: %s\n".formatted(uuid)), TextProvider.COPY_CLICK);
+            Text hover = TextBuilder.combineAll("UUID: %s\n".formatted(uuid), TextProvider.COPY_CLICK);
             // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
             Text count = statistics().getCountText();
-            MutableText playerName;
+            TextBuilder builder = getDisplayPlayerName(name, uuid, hover, count);
+            if (isUnknown()) {
+                // 设置删除线
+                builder.setStrikethrough();
+                addSearchButton(builder);
+            }
+            return builder.build();
+        }
+
+        // 添加搜索按钮
+        private void addSearchButton(TextBuilder builder) {
+            // 按钮的悬停提示
+            ArrayList<Text> list = new ArrayList<>();
+            list.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.query.name"));
+            list.add(TextBuilder.of("carpet.commands.finder.item.offline_player.query.non_authentic").setColor(Formatting.RED).build());
+            TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
+            // 设置单击按钮执行命令
+            button.setCommand(CommandProvider.queryPlayerName(gameProfile().getId()));
+            // 设置按钮悬停提示
+            button.setHover(TextBuilder.joinList(list));
+            // 设置按钮颜色
+            button.setColor(Formatting.AQUA);
+            builder.append(button);
+        }
+
+        // 获取玩家显示名称
+        private TextBuilder getDisplayPlayerName(String name, String uuid, Text hover, Text count) {
+            TextBuilder builder;
             if (isUnknown()) {
                 // 单击复制玩家UUID
-                playerName = TextBuilder.combineAll(
-                        TextUtils.copy(name, uuid, hover, Formatting.GRAY),
-                        " ",
-                        openInventoryButton(this.gameProfile)
-                );
+                builder = new TextBuilder(name)
+                        .setCopyToClipboard(uuid)
+                        .setHover(hover)
+                        .setColor(Formatting.GRAY)
+                        .append(" ")
+                        .append(openInventoryButton(this.gameProfile));
             } else {
-                // 添加单击上线按钮
-                Text loginButton;
-                if (CommandHelper.canUseCommand(source, CarpetSettings.commandPlayer)) {
-                    String command = CommandProvider.spawnFakePlayer(gameProfile().getName());
-                    MutableText clickLogin = TextBuilder.translate("carpet.command.text.click.login");
-                    loginButton = TextUtils.command(TextUtils.createText(" [↑]"), command, clickLogin, Formatting.GRAY);
-                } else {
-                    loginButton = null;
-                }
                 // 单击复制玩家名
-                playerName = TextBuilder.combineAll(
-                        TextUtils.copy("[" + name + "]", name, hover, Formatting.GRAY),
-                        loginButton,
-                        openInventoryButton(this.gameProfile)
-                );
+                builder = new TextBuilder("[" + name + "]")
+                        .setCopyToClipboard(name)
+                        .setHover(hover)
+                        .setColor(Formatting.GRAY)
+                        .append(createLoginButton())
+                        .append(openInventoryButton(this.gameProfile));
             }
-            MutableText translate = TextBuilder.translate(
-                    "carpet.commands.finder.item.offline_player.each",
-                    playerName,
-                    getInventoryName(),
-                    count
-            );
-            if (isUnknown()) {
-                // 添加搜索按钮
-                MutableText button = TextBuilder.combineAll(
-                        TextBuilder.translate("carpet.commands.finder.item.offline_player.query.name"), "\n",
-                        TextUtils.setColor(
-                                TextBuilder.translate("carpet.commands.finder.item.offline_player.query.non_authentic"),
-                                Formatting.RED
-                        ));
-                MutableText command = TextUtils.command(
-                        // 一个Unicode字符集中的放大镜字符，这在原版游戏中看起来并没有什么问题
-                        // 但是在其他字体（例如服务器控制台的字体）下会显得有些格格不入，这还是首次在游戏中使用Emoji字符
-                        TextUtils.createText("[\uD83D\uDD0D]"),
-                        CommandProvider.queryPlayerName(gameProfile().getId()),
-                        button, Formatting.AQUA, false
-                );
-                translate = TextBuilder.combineAll(TextUtils.toStrikethrough(translate), " ", command);
+            return TextBuilder.of("carpet.commands.finder.item.offline_player.each", builder.build(), getInventoryName(), count);
+        }
+
+        // 添加单击上线按钮
+        private Text createLoginButton() {
+            if (CommandHelper.canUseCommand(source, CarpetSettings.commandPlayer)) {
+                String command = CommandProvider.spawnFakePlayer(gameProfile().getName());
+                TextBuilder builder = new TextBuilder(" [↑]");
+                builder.setColor(Formatting.GRAY);
+                builder.setCommand(command);
+                builder.setHover("carpet.command.text.click.login");
+                return builder.build();
             }
-            return translate;
+            return TextBuilder.empty();
         }
 
         public GameProfile gameProfile() {

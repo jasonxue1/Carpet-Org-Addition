@@ -8,7 +8,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -117,11 +116,15 @@ public class MessageUtils {
     }
 
     public static void sendErrorMessage(ServerCommandSource source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextUtils.setColor(TextBuilder.translate(key, obj), Formatting.RED));
+        TextBuilder builder = TextBuilder.of(key, obj);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
     }
 
     public static void sendErrorMessage(ServerCommandSource source, Text message) {
-        MessageUtils.sendMessage(source, TextUtils.setColor(message.copy(), Formatting.RED));
+        TextBuilder builder = new TextBuilder(message);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
     }
 
     /**
@@ -135,12 +138,14 @@ public class MessageUtils {
      */
     public static void sendErrorMessage(ServerCommandSource source, Throwable e, String key, Object... obj) {
         String error = GameUtils.getExceptionString(e);
-        MutableText message = TextUtils.setColor(TextBuilder.translate(key, obj), Formatting.RED);
-        MessageUtils.sendMessage(source, TextUtils.hoverText(message, TextUtils.createText(error)));
+        TextBuilder builder = TextBuilder.of(key, obj);
+        builder.setStringHover(error);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
     }
 
-    public static void sendVanillaErrorMessage(ServerCommandSource source, CommandSyntaxException exception) {
-        source.sendError(TextUtils.create(exception.getRawMessage()));
+    public static void sendVanillaErrorMessage(ServerCommandSource source, CommandSyntaxException e) {
+        source.sendError(TextBuilder.create(e.getRawMessage()));
     }
 
     /**

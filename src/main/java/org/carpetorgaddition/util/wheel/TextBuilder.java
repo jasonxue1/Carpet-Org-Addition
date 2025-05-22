@@ -7,12 +7,14 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class TextBuilder {
-    private final MutableText text;
+    @NotNull
+    private MutableText text;
 
     public TextBuilder() {
         this(empty());
@@ -22,7 +24,7 @@ public class TextBuilder {
         this(text.copy());
     }
 
-    public TextBuilder(MutableText text) {
+    public TextBuilder(@NotNull MutableText text) {
         this.text = text;
     }
 
@@ -42,12 +44,20 @@ public class TextBuilder {
         return new TextBuilder(translate(key, args));
     }
 
+    public static TextBuilder fromCombined(Object... args) {
+        return new TextBuilder(combineAll(args));
+    }
+
     public static MutableText empty() {
         return Text.empty();
     }
 
     public static MutableText create(String str) {
         return Text.literal(str);
+    }
+
+    public static MutableText create(Number number) {
+        return Text.literal(number.toString());
     }
 
     public static MutableText create(Message message) {
@@ -78,11 +88,12 @@ public class TextBuilder {
         return this;
     }
 
-    /**
-     * 设置悬停提示
-     */
     public TextBuilder setHover(String key, Object... args) {
         return this.setHover(translate(key, args));
+    }
+
+    public TextBuilder setStringHover(String hover) {
+        return this.setHover(create(hover));
     }
 
     /**
@@ -133,12 +144,20 @@ public class TextBuilder {
         return this.setColor(Formatting.GRAY).setItalic();
     }
 
-    public TextBuilder append(TextBuilder builder) {
-        return this.append(builder.text);
+    public TextBuilder append(String str) {
+        return this.append(create(str));
     }
 
-    public TextBuilder append(Text text) {
-        return new TextBuilder(empty().append(this.text).append(text));
+    public TextBuilder append(@Nullable Text text) {
+        if (text == null) {
+            return this;
+        }
+        this.text = empty().append(this.text).append(text);
+        return this;
+    }
+
+    public TextBuilder append(TextBuilder builder) {
+        return this.append(builder.text);
     }
 
     public MutableText build() {
@@ -169,6 +188,7 @@ public class TextBuilder {
         switch (obj) {
             case String str -> result.append(str);
             case Text text -> result.append(text);
+            case Message message -> result.append(create(message));
             case Number number -> result.append(String.valueOf(number));
             case null -> {
             }
