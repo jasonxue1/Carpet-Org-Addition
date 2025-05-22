@@ -7,7 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -49,16 +48,18 @@ public class WaypointNavigator extends AbstractNavigator {
             MessageUtils.sendMessageToHud(this.player, text);
             this.syncWaypoint(new WaypointUpdateS2CPacket(blockPos.toCenterPos(), waypointDimension));
         } else {
+            // TODO 跨维度时，不显示anotherBlockPos坐标，而是原本维度的坐标
             BlockPos anotherBlockPos = this.waypoint.getAnotherBlockPos();
             if (((playerDimension.equals(WorldUtils.OVERWORLD) && waypointDimension.equals(WorldUtils.THE_NETHER))
                     || (playerDimension.equals(WorldUtils.THE_NETHER) && waypointDimension.equals(WorldUtils.OVERWORLD)))
                     && anotherBlockPos != null) {
+                // TODO 可能不同步
                 // 玩家和路径点在不同的维度，但是维度可以互相转换
                 // 将坐标设置为斜体
-                Text in = TextBuilder.translate(IN, waypoint.getName(),
-                        TextUtils.toItalic(TextProvider.simpleBlockPos(blockPos)));
-                Text text = this.getHUDText(anotherBlockPos.toCenterPos(), in,
-                        getDistance(playerBlockPos, anotherBlockPos));
+                TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(blockPos));
+                builder.setItalic();
+                Text in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
+                Text text = this.getHUDText(anotherBlockPos.toCenterPos(), in, getDistance(playerBlockPos, anotherBlockPos));
                 MessageUtils.sendMessageToHud(this.player, text);
                 this.syncWaypoint(new WaypointUpdateS2CPacket(anotherBlockPos.toCenterPos(), playerDimension));
             } else {

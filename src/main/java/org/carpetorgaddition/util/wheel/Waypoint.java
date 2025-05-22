@@ -11,7 +11,6 @@ import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.waypoint.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -126,11 +125,13 @@ public class Waypoint {
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象
     private Text formatName() {
-        String name = "[" + this.name.split("\\.")[0] + "]";
+        // TODO 很多位置都不显示注释，应统一使用此方法获取名称
+        TextBuilder builder = new TextBuilder("[" + this.name.split("\\.")[0] + "]");
         if (this.comment.isEmpty()) {
-            return TextUtils.createText(name);
+            return builder.build();
         }
-        return TextUtils.hoverText(name, this.comment.getText());
+        builder.setHover(this.comment.getText());
+        return builder.build();
     }
 
     public void setAnotherBlockPos(@Nullable BlockPos anotherBlockPos) {

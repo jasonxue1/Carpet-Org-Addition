@@ -32,7 +32,10 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.permission.PermissionLevel;
@@ -337,8 +340,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     safeAfk.setHealthThreshold(threshold);
                     // 广播阈值设置的消息
                     String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
-                    MutableText message = TextBuilder.translate(key, player.getDisplayName(), threshold);
-                    MessageUtils.broadcastMessage(player.server, TextUtils.toGrayItalic(message));
+                    TextBuilder builder = TextBuilder.of(key, player.getDisplayName(), threshold);
+                    builder.setGrayItalic();
+                    MessageUtils.broadcastMessage(player.server, builder.build());
                 } catch (NumberFormatException e) {
                     CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", player.getName().getString(), e);
                 }
@@ -563,7 +567,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
+        MutableText time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         if (optional.isEmpty()) {
             // 添加上线任务
             WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
@@ -585,9 +589,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 修改上线时间
             DelayedLoginTask task = optional.get();
             // 为名称添加悬停文本
-            MutableText info = TextUtils.hoverText(name, task.getInfo());
+            TextBuilder builder = new TextBuilder(name);
+            builder.setHover(task.getInfo());
             task.setDelayed(tick);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.modify", info, time);
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.modify", builder.build(), time);
         }
         return (int) tick;
     }
@@ -598,7 +603,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        MutableText time = TextUtils.hoverText(TextProvider.tickToTime(tick), TextProvider.tickToRealTime(tick));
+        MutableText time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))

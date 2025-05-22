@@ -16,6 +16,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -161,7 +162,7 @@ public class WorldUtils {
             case OVERWORLD -> TextProvider.OVERWORLD;
             case THE_NETHER -> TextProvider.THE_NETHER;
             case THE_END -> TextProvider.THE_END;
-            default -> TextUtils.createText(dimension);
+            default -> TextBuilder.create(dimension);
         };
     }
 
@@ -171,7 +172,7 @@ public class WorldUtils {
             case OVERWORLD, SIMPLE_OVERWORLD -> TextProvider.OVERWORLD;
             case THE_NETHER, SIMPLE_THE_NETHER -> TextProvider.THE_NETHER;
             case THE_END, SIMPLE_THE_END -> TextProvider.THE_END;
-            default -> TextUtils.createText(dimension);
+            default -> TextBuilder.create(dimension);
         };
     }
 
