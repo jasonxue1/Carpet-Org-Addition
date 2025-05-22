@@ -206,7 +206,7 @@ public class FakePlayerSerializer {
                 MathUtils.numberToTwoDecimalString(this.yaw),
                 MathUtils.numberToTwoDecimalString(this.pitch)));
         // 维度
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.dimension", WorldUtils.getDimensionName(this.dimension)));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.dimension", TextProvider.getDimensionName(this.dimension)));
         // 游戏模式
         list.add(TextBuilder.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
         // 是否飞行

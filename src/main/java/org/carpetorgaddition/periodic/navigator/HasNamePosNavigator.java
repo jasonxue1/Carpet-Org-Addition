@@ -7,7 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +32,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
             MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {
-            text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(WorldUtils.getDimensionName(this.world), posText));
+            text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(TextProvider.getDimensionName(this.world), posText));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

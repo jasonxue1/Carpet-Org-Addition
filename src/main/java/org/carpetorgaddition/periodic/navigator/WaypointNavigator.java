@@ -63,7 +63,7 @@ public class WaypointNavigator extends AbstractNavigator {
                 targetPos = anotherPos;
             } else {
                 // 玩家和路径点在不同维度
-                Text dimensionName = WorldUtils.getDimensionName(WorldUtils.getWorld(this.player.getServer(), this.waypoint.getWorldAsString()));
+                Text dimensionName = TextProvider.getDimensionName(WorldUtils.getWorld(this.player.getServer(), this.waypoint.getWorldAsString()));
                 MutableText in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(targetPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }

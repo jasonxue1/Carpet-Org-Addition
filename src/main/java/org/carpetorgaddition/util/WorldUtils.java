@@ -8,15 +8,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -148,32 +145,6 @@ public class WorldUtils {
             return entity;
         }
         return null;
-    }
-
-    /**
-     * 获取维度名称
-     *
-     * @param world 要获取维度名称的世界对象
-     * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
-     */
-    public static Text getDimensionName(World world) {
-        String dimension = WorldUtils.getDimensionId(world);
-        return switch (dimension) {
-            case OVERWORLD -> TextProvider.OVERWORLD;
-            case THE_NETHER -> TextProvider.THE_NETHER;
-            case THE_END -> TextProvider.THE_END;
-            default -> TextBuilder.create(dimension);
-        };
-    }
-
-    // TODO 移动到TextProvider类
-    public static Text getDimensionName(String dimension) {
-        return switch (dimension) {
-            case OVERWORLD, SIMPLE_OVERWORLD -> TextProvider.OVERWORLD;
-            case THE_NETHER, SIMPLE_THE_NETHER -> TextProvider.THE_NETHER;
-            case THE_END, SIMPLE_THE_END -> TextProvider.THE_END;
-            default -> TextBuilder.create(dimension);
-        };
     }
 
     /**

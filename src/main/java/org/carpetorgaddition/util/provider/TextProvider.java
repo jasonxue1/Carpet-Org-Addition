@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -194,5 +195,30 @@ public class TextProvider {
         return TextBuilder.translate("carpet.command.time.format",
                 time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),
                 time.getHour(), time.getMinute(), time.getSecond());
+    }
+
+    /**
+     * 获取维度名称
+     *
+     * @param world 要获取维度名称的世界对象
+     * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
+     */
+    public static Text getDimensionName(World world) {
+        String dimension = WorldUtils.getDimensionId(world);
+        return switch (dimension) {
+            case WorldUtils.OVERWORLD -> OVERWORLD;
+            case WorldUtils.THE_NETHER -> THE_NETHER;
+            case WorldUtils.THE_END -> THE_END;
+            default -> TextBuilder.create(dimension);
+        };
+    }
+
+    public static Text getDimensionName(String dimension) {
+        return switch (dimension) {
+            case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> OVERWORLD;
+            case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER -> THE_NETHER;
+            case WorldUtils.THE_END, WorldUtils.SIMPLE_THE_END -> THE_END;
+            default -> TextBuilder.create(dimension);
+        };
     }
 }

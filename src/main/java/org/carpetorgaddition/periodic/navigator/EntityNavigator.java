@@ -11,7 +11,6 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +58,7 @@ public class EntityNavigator extends AbstractNavigator {
             text = getHUDText(eyePos, in, distance);
         } else {
             text = TextBuilder.translate(IN, entity.getName(),
-                    TextBuilder.combineAll(WorldUtils.getDimensionName(entity.getWorld()),
+                    TextBuilder.combineAll(TextProvider.getDimensionName(entity.getWorld()),
                             TextProvider.simpleBlockPos(entity.getBlockPos())));
         }
         MessageUtils.sendMessageToHud(this.player, text);
