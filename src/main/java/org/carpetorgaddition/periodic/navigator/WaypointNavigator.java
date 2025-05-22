@@ -51,11 +51,10 @@ public class WaypointNavigator extends AbstractNavigator {
             Text text = this.getHUDText(targetPos.toCenterPos(), getIn(targetPos), getDistance(playerPos, targetPos));
             MessageUtils.sendMessageToHud(this.player, text);
         } else {
-            // TODO 跨维度时，不显示anotherPos坐标，而是原本维度的坐标
             BlockPos anotherPos = this.waypoint.getAnotherBlockPos();
             if (WorldUtils.canMappingPos(this.world, playerWorld) && anotherPos != null) {
                 // 玩家和路径点在不同的维度，但是两个世界的坐标可以互相转换
-                TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(targetPos));
+                TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(anotherPos));
                 // 将坐标设置为斜体
                 builder.setItalic();
                 Text in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
