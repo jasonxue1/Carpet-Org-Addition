@@ -36,12 +36,12 @@ public class ClientMessageUtils {
      * 向客户端玩家发送一条红色的聊天消息
      */
     public static void sendErrorMessage(Text message) {
-        sendMessage(TextBuilder.of(message).setColor(Formatting.RED).build());
+        sendMessage(new TextBuilder(message).setColor(Formatting.RED).build());
     }
 
     public static void sendErrorMessage(Throwable e, String key, Object... args) {
         // TODO 修改异常消息内容
-        TextBuilder builder = TextBuilder.ofTranslate(key, args);
+        TextBuilder builder = TextBuilder.of(key, args);
         builder.setHover(Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName()));
         sendErrorMessage(builder.build());
     }

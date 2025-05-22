@@ -73,7 +73,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int fromCurrentLevel = from.getLevel();
             int toCurrentLevel = to.getLevel();
-            TextBuilder builder = TextBuilder.ofTranslate(
+            TextBuilder builder = TextBuilder.of(
                     "carpet.commands.xpTransfer.all",
                     from.player().getDisplayName(),
                     number.toString(),
@@ -111,7 +111,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
             MutableText hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
-            TextBuilder builder = TextBuilder.ofTranslate(
+            TextBuilder builder = TextBuilder.of(
                     "carpet.commands.xpTransfer.half",
                     from.player().getDisplayName(),
                     number.toString(),
@@ -211,7 +211,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
-            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.xpTransfer.point",
+            TextBuilder builder = TextBuilder.of("carpet.commands.xpTransfer.point",
                     from.player().getDisplayName(),
                     count.toString(),
                     to.player().getDisplayName());
@@ -259,14 +259,14 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel
     ) {
         return TextBuilder.combineAll(
-                TextBuilder.ofTranslate("carpet.commands.xpTransfer.upgrade",
+                TextBuilder.of("carpet.commands.xpTransfer.upgrade",
                                 inputPlayer.getDisplayName(),
                                 inputCurrentLevel - inputBeforeLevel,
                                 inputBeforeLevel,
                                 inputCurrentLevel)
                         .setColor(Formatting.GREEN).build(),
                 TextProvider.NEW_LINE,
-                TextBuilder.ofTranslate(
+                TextBuilder.of(
                                 "carpet.commands.xpTransfer.degrade",
                                 outputPlayer.getDisplayName(),
                                 outputBeforeLevel - outputCurrentLevel,

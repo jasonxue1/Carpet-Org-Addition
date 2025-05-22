@@ -212,7 +212,7 @@ public class Express implements Comparable<Express> {
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Supplier<Text> message = () -> TextBuilder.ofTranslate("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
+        Supplier<Text> message = () -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
         this.ifItExistsSendIt(this.recipient, message);
         this.cancel = true;
     }
@@ -315,7 +315,7 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 将消息设置为灰色斜体
-        MutableText message = TextBuilder.ofTranslate("carpet.commands.mail.sending.permission").setGrayItalic().build();
+        MutableText message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 

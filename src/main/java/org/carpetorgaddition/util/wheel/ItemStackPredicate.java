@@ -26,7 +26,6 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.TextUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -119,28 +118,30 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      * @return 谓词的字符串首字母
      */
     public Text getInitialUpperCase() {
-        Text result = null;
         if (this.isEmpty()) {
-            result = TextUtils.createText("[A]");
-            result = TextUtils.setColor(result.copy(), Formatting.DARK_GRAY);
-            return TextUtils.hoverText(result, Items.AIR.getName());
+            TextBuilder builder = new TextBuilder("[A]");
+            builder.setColor(Formatting.DARK_GRAY);
+            builder.setHover(Items.AIR.getName());
+            return builder.build();
         }
+        TextBuilder builder = null;
         if (this.input.startsWith("#")) {
-            result = TextUtils.createText("[#]");
+            builder = new TextBuilder("[#]");
         } else if (this.input.startsWith("*")) {
-            result = TextUtils.createText("[*]");
+            builder = new TextBuilder("[*]");
         } else if (this.input.contains("[")) {
-            result = TextUtils.createText("[@]");
+            // 不会执行到这里
+            builder = new TextBuilder("[@]");
         }
-        if (result != null) {
-            return TextUtils.hoverText(result.copy(), this.input);
+        if (builder != null) {
+            return builder.setHover(this.input).build();
         }
         // 如果有命名空间，将“:”后的单词首字母取出，否则直接获取首字母
         String[] split = this.input.split(":");
         int index = split.length == 1 ? 0 : 1;
-        result = TextUtils.createText("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
+        builder = new TextBuilder("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
         Text name = Registries.ITEM.get(Identifier.of(this.input)).getName();
-        return TextUtils.hoverText(result, name);
+        return builder.setHover(name).build();
     }
 
     /**
@@ -162,11 +163,12 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);
-            MutableText ellipsis = TextUtils.createText("...");
+            MutableText ellipsis = TextBuilder.create("...");
             MutableText result = TextBuilder.combineAll(substring, ellipsis);
-            return TextUtils.toGrayItalic(TextUtils.hoverText(result, this.input));
+            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
+            return builder.build();
         }
-        return TextUtils.createText(this.input);
+        return TextBuilder.create(this.input);
     }
 
     /**

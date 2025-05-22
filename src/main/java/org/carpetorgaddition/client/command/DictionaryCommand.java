@@ -85,7 +85,7 @@ public class DictionaryCommand extends AbstractClientCommand {
     // 将字符串id转换成可以单击复制的形式
     @NotNull
     private MutableText canCopyId(String id) {
-        return TextBuilder.of(id)
+        return new TextBuilder(id)
                 .setCopyToClipboard(id)
                 .setHover(TextProvider.COPY_CLICK)
                 .setColor(Formatting.GREEN)

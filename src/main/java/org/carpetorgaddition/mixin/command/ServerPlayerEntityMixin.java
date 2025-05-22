@@ -61,7 +61,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         }
         // 安全挂机触发失败，玩家已死亡
         if (this.afkTriggerFail()) {
-            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
+            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
             // 设置为斜体
             builder.setItalic();
             // 设置为红色
@@ -75,7 +75,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         if (thisPlayer.getHealth() <= this.safeAfkThreshold) {
             // 假玩家剩余血量
             String health = MathUtils.numberToTwoDecimalString(thisPlayer.getHealth());
-            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.playerManager.safeafk.trigger.success", thisPlayer.getDisplayName(), health);
+            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.success", thisPlayer.getDisplayName(), health);
             // 添加悬停提示
             builder.setHover(report(source, amount));
             builder.setGrayItalic();

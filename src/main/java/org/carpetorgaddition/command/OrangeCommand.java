@@ -158,7 +158,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        MutableText version = TextBuilder.of(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
+        MutableText version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
@@ -203,8 +203,8 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
-        MutableText uuid = TextBuilder.of(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
-        MutableText name = TextBuilder.of(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
+        MutableText uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
+        MutableText name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
     }
 
@@ -268,9 +268,9 @@ public class OrangeCommand extends AbstractServerCommand {
             Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
             TextBuilder builder;
             if (value) {
-                builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.enable", ruleName, playerName);
+                builder = TextBuilder.of("carpet.commands.orange.ruleself.enable", ruleName, playerName);
             } else {
-                builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.disable", ruleName, playerName);
+                builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
             if (RuleHelper.isInDefaultValue(rule)) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
@@ -296,7 +296,7 @@ public class OrangeCommand extends AbstractServerCommand {
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
             Text displayName = RuleUtils.simpleTranslationName(rule);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
-            TextBuilder builder = TextBuilder.ofTranslate("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
             if (RuleHelper.isInDefaultValue(rule)) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();

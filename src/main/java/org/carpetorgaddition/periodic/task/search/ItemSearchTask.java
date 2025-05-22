@@ -22,7 +22,6 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.provider.TextProvider;
@@ -197,8 +196,11 @@ public class ItemSearchTask extends ServerTask {
             // 为数量添加鼠标悬停效果
             itemCount = FinderCommand.showCount(predicate.asItem().getDefaultStack(), this.count, this.shulkerBox);
         } else {
-            MutableText countText = TextUtils.createText(this.count);
-            itemCount = this.shulkerBox ? TextUtils.toItalic(countText) : countText;
+            TextBuilder builder = new TextBuilder(this.count);
+            if (this.shulkerBox) {
+                builder.setItalic();
+            }
+            itemCount = builder.build();
         }
         int size = this.results.size();
         MessageUtils.sendEmptyMessage(this.context);

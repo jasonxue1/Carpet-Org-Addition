@@ -278,7 +278,7 @@ public class FakePlayerSerializer {
 
     // 获取显示名称
     public Text getDisplayName() {
-        return TextBuilder.of(this.fakePlayerName).setHover(this.info()).build();
+        return new TextBuilder(this.fakePlayerName).setHover(this.info()).build();
     }
 
     // 列出每一条玩家信息
@@ -307,10 +307,10 @@ public class FakePlayerSerializer {
         String name = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
         String logonCommand = CommandProvider.playerManagerSpawn(name);
         String logoutCommand = CommandProvider.killFakePlayer(name);
-        MutableText login = TextBuilder.of("[↑]").setCommand(logonCommand).setHover(logonHover).setColor(Formatting.GREEN).build();
-        MutableText logout = TextBuilder.of("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
-        MutableText info = TextBuilder.of("[?]").setHover(serial.info()).setColor(Formatting.GRAY).build();
-        TextBuilder playerName = TextBuilder.of(name);
+        MutableText login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(logonHover).setColor(Formatting.GREEN).build();
+        MutableText logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
+        MutableText info = new TextBuilder("[?]").setHover(serial.info()).setColor(Formatting.GRAY).build();
+        TextBuilder playerName = new TextBuilder(name);
         if (serial.comment.hasContent()) {
             // 如果有注释，在列出的玩家的名字上也添加注释
             playerName.setHover(serial.comment.getText());

@@ -166,7 +166,7 @@ public class WaypointRenderer implements WorldRenderer {
         // 计算距离
         double distance = offset.length();
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
-        TextBuilder builder = TextBuilder.of(formatted);
+        TextBuilder builder = new TextBuilder(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
         if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
             builder.setItalic();

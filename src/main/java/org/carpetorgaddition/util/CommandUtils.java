@@ -9,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.IOException;
@@ -84,14 +83,15 @@ public class CommandUtils {
      * @param key 异常信息的翻译键
      * @return 命令语法参数异常
      */
-    public static CommandSyntaxException createException(String key, Object... obj) {
-        return new SimpleCommandExceptionType(TextBuilder.translate(key, obj)).create();
+    public static CommandSyntaxException createException(String key, Object... args) {
+        return new SimpleCommandExceptionType(TextBuilder.translate(key, args)).create();
     }
 
-    public static CommandSyntaxException createException(Throwable e, String key, Object... obj) {
-        String exceptionMessage = GameUtils.getExceptionString(e);
-        MutableText message = TextBuilder.translate(key, obj);
-        return new SimpleCommandExceptionType(TextUtils.hoverText(message, exceptionMessage)).create();
+    public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
+        String message = GameUtils.getExceptionString(e);
+        TextBuilder builder = TextBuilder.of(key, args);
+        builder.setHover(message);
+        return new SimpleCommandExceptionType(builder.build()).create();
     }
 
     /**

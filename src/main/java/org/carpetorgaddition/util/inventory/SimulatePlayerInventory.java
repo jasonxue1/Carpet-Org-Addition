@@ -23,6 +23,7 @@ public class SimulatePlayerInventory implements Inventory {
     private final List<DefaultedList<ItemStack>> combinedInventory = ImmutableList.of(this.main, this.armor, this.offHand);
     private final NbtCompound nbt;
 
+    // TODO 移除不必要的变量
     private SimulatePlayerInventory(NbtCompound nbt) {
         this.nbt = nbt;
     }

@@ -3,13 +3,11 @@ package org.carpetorgaddition.mixin.logger;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.logger.FunctionLogger;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -46,8 +44,9 @@ public abstract class FishingBobberEntityMixin {
                     MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.logger.fishing.bite", this.fishTravelCountdown));
                 } else if (this.hookCountdown > 0) {
                     // 鱼挣脱
-                    MutableText translate = TextBuilder.translate("carpet.logger.fishing.break_free", this.hookCountdown);
-                    MessageUtils.sendMessageToHud(player, TextUtils.setColor(translate, Formatting.GREEN));
+                    TextBuilder builder = TextBuilder.of("carpet.logger.fishing.break_free", this.hookCountdown);
+                    builder.setColor(Formatting.GREEN);
+                    MessageUtils.sendMessageToHud(player, builder.build());
                 }
             }
         }

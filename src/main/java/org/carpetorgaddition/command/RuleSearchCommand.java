@@ -42,7 +42,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
         if (CarpetServer.settingsManager == null) {
             return 0;
         }
-        MutableText text = TextBuilder.ofTranslate("carpet.commands.ruleSearch.feedback", filter).setBold().build();
+        MutableText text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter).setBold().build();
         // 将文本设置为粗体
         text.styled(style -> style.withBold(true));
         MessageUtils.sendMessage(context.getSource(), text);
@@ -64,7 +64,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
                     ruleCount.increment();
                 } else if (RuleHelper.translatedDescription(rule).contains(filter)) {
                     // 规则名中不包含字符串，但是规则描述中包含
-                    Text message = TextBuilder.of(accessor.displayInteractiveSettings(rule)).setItalic().build();
+                    Text message = new TextBuilder(accessor.displayInteractiveSettings(rule)).setItalic().build();
                     MessageUtils.sendMessage(context.getSource(), message.copy());
                     ruleCount.increment();
                 }

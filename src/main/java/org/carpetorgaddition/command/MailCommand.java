@@ -181,21 +181,21 @@ public class MailCommand extends AbstractServerCommand {
         ArrayList<MutableText> list = new ArrayList<>();
         TextBuilder builder;
         if (express.isRecipient(player)) {
-            builder = TextBuilder.of("[R]");
+            builder = new TextBuilder("[R]");
             // 点击接收
             builder.setCommand(CommandProvider.receiveExpress(express.getId()));
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.receive"));
             list.add(TextBuilder.empty());
         } else if (express.isSender(player)) {
-            builder = TextBuilder.of("[C]");
+            builder = new TextBuilder("[C]");
             // 点击撤回
             builder.setCommand(CommandProvider.cancelExpress(express.getId()));
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.sending"));
             list.add(TextBuilder.empty());
         } else {
-            builder = TextBuilder.of("[?]");
+            builder = new TextBuilder("[?]");
         }
         list.add(TextBuilder.translate("carpet.commands.mail.list.id", express.getId()));
         list.add(TextBuilder.translate("carpet.commands.mail.list.sender", express.getSender()));

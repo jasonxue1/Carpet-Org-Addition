@@ -40,7 +40,6 @@ import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.mixin.debug.ExperienceOrbEntityAccessor;
 import org.carpetorgaddition.mixin.debug.HandledScreenAccessor;
 import org.carpetorgaddition.mixin.debug.ScreenAccessor;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Contract;
@@ -85,7 +84,7 @@ public class HudDebugRendererRegister {
                     } else if (formatted.endsWith("0")) {
                         formatted = formatted.substring(0, formatted.length() - 1);
                     }
-                    Tooltip.drawTooltip(context, TextUtils.createText("挖掘速度：" + formatted));
+                    Tooltip.drawTooltip(context, TextBuilder.create("挖掘速度：" + formatted));
                 }
             }
         });
@@ -110,7 +109,7 @@ public class HudDebugRendererRegister {
                         if (level == 0) {
                             return;
                         }
-                        Tooltip.drawTooltip(context, TextUtils.createText("红石信号等级：" + level));
+                        Tooltip.drawTooltip(context, TextBuilder.create("红石信号等级：" + level));
                     }
                 }
             }

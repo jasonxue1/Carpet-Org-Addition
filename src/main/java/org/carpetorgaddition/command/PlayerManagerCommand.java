@@ -529,7 +529,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 单击后输入的命令
         String command = CommandProvider.setCarpetRule("fakePlayerSpawnMemoryLeakFix", "true");
         // 文本内容：[这里]
-        Text here = TextBuilder.ofTranslate("carpet.command.text.click.here")
+        Text here = TextBuilder.of("carpet.command.text.click.here")
                 .setSuggest(command)
                 .setColor(Formatting.AQUA)
                 .setHover("carpet.command.text.click.input", command)

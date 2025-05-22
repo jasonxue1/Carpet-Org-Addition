@@ -9,8 +9,8 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayedLoginTask extends PlayerScheduleTask {
@@ -58,7 +58,9 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     // 获取带有悬停提示的时间
     private @NotNull MutableText getDisplayTime() {
-        return TextUtils.hoverText(TextProvider.tickToTime(this.delayed), TextProvider.tickToRealTime(this.delayed));
+        TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
+        builder.setHover(TextProvider.tickToRealTime(this.delayed));
+        return builder.build();
     }
 
     @Override

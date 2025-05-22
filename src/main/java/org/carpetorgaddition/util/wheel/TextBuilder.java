@@ -14,24 +14,31 @@ import java.util.List;
 public class TextBuilder {
     private final MutableText text;
 
-    private TextBuilder(MutableText text) {
+    public TextBuilder() {
+        this(empty());
+    }
+
+    public TextBuilder(Text text) {
+        this(text.copy());
+    }
+
+    public TextBuilder(MutableText text) {
         this.text = text;
     }
 
-    public static TextBuilder of(@Nullable Object obj) {
-        MutableText result = switch (obj) {
-            case null -> empty();
-            case String str -> create(str);
-            case Number number -> create(number.toString());
-            case MutableText text -> text;
-            case Text text -> text.copy();
-            case Message message -> create(message);
-            default -> throw new IllegalArgumentException(obj + " cannot be parsed as a Text type");
-        };
-        return new TextBuilder(result);
+    public TextBuilder(String str) {
+        this(create(str));
     }
 
-    public static TextBuilder ofTranslate(String key, Object... args) {
+    public TextBuilder(Number number) {
+        this(number.toString());
+    }
+
+    public TextBuilder(Message message) {
+        this(create(message));
+    }
+
+    public static TextBuilder of(String key, Object... args) {
         return new TextBuilder(translate(key, args));
     }
 
@@ -124,6 +131,14 @@ public class TextBuilder {
      */
     public TextBuilder setGrayItalic() {
         return this.setColor(Formatting.GRAY).setItalic();
+    }
+
+    public TextBuilder append(TextBuilder builder) {
+        return this.append(builder.text);
+    }
+
+    public TextBuilder append(Text text) {
+        return new TextBuilder(empty().append(this.text).append(text));
     }
 
     public MutableText build() {

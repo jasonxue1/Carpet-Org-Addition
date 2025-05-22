@@ -12,7 +12,6 @@ import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
@@ -148,7 +147,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     }
 
     private MutableText posText(double x, double y, double z) {
-        return TextUtils.createText(String.format("%.2f %.2f %.2f", x, y, z));
+        return TextBuilder.create(String.format("%.2f %.2f %.2f", x, y, z));
     }
 
     @Override
