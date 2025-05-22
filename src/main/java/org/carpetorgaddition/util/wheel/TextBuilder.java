@@ -190,6 +190,7 @@ public class TextBuilder {
             case Text text -> result.append(text);
             case Message message -> result.append(create(message));
             case Number number -> result.append(String.valueOf(number));
+            case TextBuilder builder -> result.append(builder.text);
             case null -> {
             }
             // 译：%s不可解析为Text类型

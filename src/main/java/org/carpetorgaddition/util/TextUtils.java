@@ -14,33 +14,6 @@ public class TextUtils {
     }
 
     /**
-     * 获取一个可以单击复制指定字符串内容到剪贴板的可变文本组件
-     *
-     * @param original  原始的文本，直接显示在聊天栏中的文本
-     * @param copy      单击后要复制的内容
-     * @param hoverText 悬停在原始文本上的内容
-     * @param color     文本的颜色
-     * @return 可以单击复制内容的可变文本组件
-     */
-    public static MutableText copy(@NotNull String original, @Nullable String copy, @Nullable Text hoverText, @Nullable Formatting color) {
-        MutableText text = Text.literal(original);
-        if (copy != null) {
-            text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, copy)));
-        }
-        if (hoverText != null) {
-            text.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hoverText)));
-        }
-        if (color != null) {
-            text.styled(style -> style.withColor(color));
-        }
-        return text;
-    }
-
-    public static MutableText command(@NotNull MutableText text, @NotNull String command, @Nullable Text hoverText, @Nullable Formatting color) {
-        return command(text, command, hoverText, color, false);
-    }
-
-    /**
      * 获取一个可以单击执行命令的可变文本组件
      *
      * @param underline 是否带有下划线
@@ -92,10 +65,6 @@ public class TextUtils {
      */
     public static MutableText createText(String text) {
         return Text.literal(text);
-    }
-
-    public static MutableText createText(Number number) {
-        return Text.literal(number.toString());
     }
 
     /**

@@ -15,7 +15,6 @@ import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("JavadocReference")
 public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {

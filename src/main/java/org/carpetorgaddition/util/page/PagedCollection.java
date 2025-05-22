@@ -8,7 +8,6 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -57,40 +56,44 @@ public class PagedCollection implements Iterable<Page> {
         } else {
             getPage(pagination).print(this.source);
             ArrayList<Object> list = new ArrayList<>();
-            list.add(TextUtils.setColor(TextUtils.createText("  ======"), Formatting.DARK_GRAY));
+            list.add(new TextBuilder("  ======").setColor(Formatting.DARK_GRAY));
             list.add(this.prevPageButton(pagination));
             list.add(" [");
-            list.add(TextUtils.setColor(TextUtils.createText(pagination), Formatting.GOLD));
+            list.add(new TextBuilder(pagination).setColor(Formatting.GOLD));
             list.add("/");
-            list.add(TextUtils.setColor(TextUtils.createText(this.totalPages()), Formatting.GOLD));
+            list.add(new TextBuilder(this.totalPages()).setColor(Formatting.GOLD));
             list.add("] ");
             list.add(this.nextPageButton(pagination));
-            list.add(TextUtils.setColor(TextUtils.createText("======"), Formatting.DARK_GRAY));
+            list.add(new TextBuilder("======").setColor(Formatting.DARK_GRAY));
             MutableText pageTurningButton = TextBuilder.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
 
     private Text prevPageButton(int pagination) {
-        MutableText prev = TextUtils.createText(" <<< ");
+        TextBuilder builder = new TextBuilder(" <<< ");
         if (pagination == 1) {
             // 已经是第一页，没有上一页了
-            return TextUtils.setColor(prev, Formatting.GRAY);
+            builder.setColor(Formatting.GRAY);
         } else {
-            MutableText hover = TextBuilder.translate("carpet.command.page.prev");
-            return TextUtils.command(prev, CommandProvider.pageTurning(this.id, pagination - 1), hover, Formatting.AQUA);
+            builder.setHover("carpet.command.page.prev");
+            builder.setCommand(CommandProvider.pageTurning(this.id, pagination - 1));
+            builder.setColor(Formatting.AQUA);
         }
+        return builder.build();
     }
 
     private Text nextPageButton(int pagination) {
-        MutableText next = TextUtils.createText(" >>> ");
+        TextBuilder builder = new TextBuilder(" >>> ");
         if (pagination == this.totalPages()) {
             // 已经是最后一页，没有下一页了
-            return TextUtils.setColor(next, Formatting.GRAY);
+            builder.setColor(Formatting.GRAY);
         } else {
-            MutableText hover = TextBuilder.translate("carpet.command.page.next");
-            return TextUtils.command(next, CommandProvider.pageTurning(this.id, pagination + 1), hover, Formatting.AQUA);
+            builder.setHover("carpet.command.page.next");
+            builder.setCommand(CommandProvider.pageTurning(this.id, pagination + 1));
+            builder.setColor(Formatting.AQUA);
         }
+        return builder.build();
     }
 
     private Page getPage(int pagination) {
