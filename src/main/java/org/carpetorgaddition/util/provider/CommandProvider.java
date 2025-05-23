@@ -7,7 +7,6 @@ import org.carpetorgaddition.client.command.AbstractClientCommand;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.command.HighlightCommand;
 import org.carpetorgaddition.command.*;
-import org.carpetorgaddition.util.wheel.MetaComment;
 
 import java.util.UUID;
 
@@ -60,9 +59,8 @@ public class CommandProvider {
     /**
      * 将一名玩家重新保存到玩家管理器
      */
-    public static String playerManagerResave(String playerName, MetaComment comment) {
-        String str = "/%s resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
-        return comment.hasContent() ? str + " \"" + comment.getComment() + "\"" : str;
+    public static String playerManagerResave(String playerName) {
+        return "/%s modify resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
     }
 
     /**

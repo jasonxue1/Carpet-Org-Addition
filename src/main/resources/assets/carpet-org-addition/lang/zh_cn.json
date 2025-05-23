@@ -362,6 +362,7 @@
   "carpet.commands.playerManager.save.file_already_exist": "玩家数据已存在，点击%s重新保存",
   "carpet.commands.playerManager.save.resave": "将%s的玩家数据重新保存到本地文件",
   "carpet.commands.playerManager.save.fail": "尝试保存%s的玩家数据时出现意外问题",
+  "carpet.commands.playerManager.read.fail": "尝试读取玩家数据时出现意外问题",
   "carpet.commands.playerManager.spawn.fail": "尝试生成假玩家时出现意外问题",
   "carpet.commands.playerManager.spawn.player_exist": "玩家已存在",
   "carpet.commands.playerManager.comment.modify": "将%s玩家数据的注释设置为[%s]",
