@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -88,6 +87,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     @NotNull
     private final FakePlayerActionSerializer autoAction;
+    /**
+     * 当前对象是否已经修改，即是否需要重新保存
+     */
+    private boolean isChanged = false;
     private final File file;
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
@@ -155,18 +158,6 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.file = file;
     }
 
-    public void save(MinecraftServer server) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(server, PlayerSerializationManager.PLAYER_DATA);
-        File file = worldFormat.file(this.fakePlayerName + IOUtils.JSON_EXTENSION);
-        try {
-            IOUtils.saveJson(file, this.toJson());
-        } catch (IOException e) {
-            ServerPlayerEntity player = server.getPlayerManager().getPlayer(this.fakePlayerName);
-            Object name = player == null ? this.fakePlayerName : player.getDisplayName();
-            throw CommandUtils.createException("carpet.commands.playerManager.save.fail", name);
-        }
-    }
-
     public void save() {
         try {
             IOUtils.saveJson(this.file, this.toJson());
@@ -174,6 +165,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             // 译：未能成功保存玩家数据
             CarpetOrgAddition.LOGGER.warn("Failed to successfully save player data", e);
         }
+        this.isChanged = false;
     }
 
     // 从json加载并生成假玩家
@@ -182,11 +174,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
         // 生成假玩家
-        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, yaw, pitch,
-                WorldUtils.getWorld(dimension), this.gameMode, flying);
-        fakePlayer.setSneaking(sneaking);
+        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, this.yaw, this.pitch,
+                WorldUtils.getWorld(this.dimension), this.gameMode, this.flying);
+        fakePlayer.setSneaking(this.sneaking);
         // 设置玩家动作
         this.interactiveAction.startAction(fakePlayer);
+        this.autoAction.clearPlayer();
         this.autoAction.startAction(fakePlayer);
     }
 
@@ -261,11 +254,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     // 修改注释
     public void setComment(@Nullable String comment) {
         this.comment.setComment(comment);
+        this.isChanged = true;
     }
 
     // 设置自动登录
     public void setAutologin(boolean autologin) {
         this.autologin = autologin;
+        this.isChanged = true;
     }
 
     // 获取玩家名
@@ -322,6 +317,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public String getComment() {
         return this.comment.getComment();
+    }
+
+    public boolean isChanged() {
+        return this.isChanged;
     }
 
     @Override

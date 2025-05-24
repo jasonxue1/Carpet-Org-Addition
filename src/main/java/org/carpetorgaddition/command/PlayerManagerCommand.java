@@ -100,6 +100,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("resave")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(this::modifyPlayer))))
+                .then(CommandManager.literal("reload")
+                        .executes(this::reload))
                 .then(CommandManager.literal("autologin")
                         .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
                         .then(CommandManager.argument("name", StringArgumentType.string())
@@ -155,6 +157,17 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("query")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(this::querySafeAfk)))));
+    }
+
+    /**
+     * 重新加载玩家数据
+     */
+    private int reload(CommandContext<ServerCommandSource> context) {
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        manager.reload();
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.reload");
+        return 1;
     }
 
     private @NotNull Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<ServerCommandSource> context) {

@@ -55,6 +55,10 @@ public class FakePlayerActionSerializer {
         actionManager.setAction(this.action);
     }
 
+    public void clearPlayer() {
+        this.action.setFakePlayer(null);
+    }
+
     public boolean hasAction() {
         return !this.action.isStop();
     }

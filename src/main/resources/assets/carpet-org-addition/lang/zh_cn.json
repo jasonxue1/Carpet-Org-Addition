@@ -358,6 +358,7 @@
   "carpet.commands.playerAction.action.farm": "种植",
   "carpet.commands.playerAction.action.bedrock": "破基岩",
   "carpet.commands.playerManager.cannot_find_file": "找不到%s的玩家数据",
+  "carpet.commands.playerManager.reload": "已重新加载玩家数据",
   "carpet.commands.playerManager.save.success": "将%s的玩家数据保存到本地文件",
   "carpet.commands.playerManager.save.file_already_exist": "玩家数据已存在，点击%s重新保存",
   "carpet.commands.playerManager.save.resave": "将%s的玩家数据重新保存到本地文件",
