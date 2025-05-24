@@ -27,6 +27,7 @@ import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
@@ -108,11 +109,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .then(CommandManager.literal("list")
                         .executes(context -> list(context, s -> true))
                         .then(CommandManager.argument("filter", StringArgumentType.string())
-                                .executes(context -> list(context, s -> s.contains(StringArgumentType.getString(context, "filter").toLowerCase(Locale.ROOT))))))
+                                .executes(context -> list(context, serializerPredicate(context)))))
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .executes(this::delete)))
+                                .executes(this::remove)))
                 .then(CommandManager.literal("schedule")
                         .then(CommandManager.literal("relogin")
                                 .requires(PermissionManager.register("playerManager.schedule.relogin", PermissionLevel.PASS))
@@ -156,6 +157,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .executes(this::querySafeAfk)))));
     }
 
+    private @NotNull Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<ServerCommandSource> context) {
+        return serializer -> {
+            Predicate<String> predicate = s -> s.contains(StringArgumentType.getString(context, "filter").toLowerCase(Locale.ROOT));
+            return predicate.test(serializer.getFakePlayerName().toLowerCase()) || predicate.test(serializer.getComment());
+        };
+    }
+
     // cancel子命令自动补全
     @NotNull
     private SuggestionProvider<ServerCommandSource> cancelSuggests() {
@@ -169,7 +177,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 自动补全玩家名
     private SuggestionProvider<ServerCommandSource> defaultSuggests() {
         return (context, builder) -> CommandSource.suggestMatching(new WorldFormat(context.getSource().getServer(),
-                FakePlayerSerializer.PLAYER_DATA).toImmutableFileList().stream()
+                PlayerSerializationManager.PLAYER_DATA).toImmutableFileList().stream()
                 .filter(file -> file.getName().endsWith(IOUtils.JSON_EXTENSION))
                 .map(file -> IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION))
                 .map(StringArgumentType::escapeIfRequired), builder);
@@ -349,15 +357,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出每一个玩家
-    private int list(CommandContext<ServerCommandSource> context, Predicate<String> filter) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
-        ArrayList<Supplier<Text>> list = FakePlayerSerializer.list(worldFormat, filter);
+    private int list(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> filter) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = getSerializationManager(server);
+        List<Supplier<Text>> list = manager.list().stream().filter(filter).map(FakePlayerSerializer::toTextSupplier).toList();
         if (list.isEmpty()) {
             // 没有玩家被列出
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
             return 0;
         }
-        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        PageManager pageManager = GenericFetcherUtils.getPageManager(server);
         PagedCollection collection = pageManager.newPagedCollection(context.getSource());
         collection.addContent(list);
         if (collection.totalPages() > 1) {
@@ -370,13 +379,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 设置注释
     private int setComment(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         // 修改注释
         String comment = remove ? null : StringArgumentType.getString(context, "comment");
-        FakePlayerSerializer serializer = FakePlayerSerializer.load(worldFormat, name);
+        FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         serializer.setComment(comment);
-        // 将玩家信息重新保存的本地文件
-        serializer.save(context.getSource().getServer());
         // 发送命令反馈
         if (remove) {
             // 移除注释
@@ -390,18 +396,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 设置自动登录
     private int setAutoLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         String name = StringArgumentType.getString(context, "name");
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
-        FakePlayerSerializer serial = FakePlayerSerializer.load(worldFormat, name);
+        FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         // 设置自动登录
-        serial.setAutologin(autologin);
-        serial.save(context.getSource().getServer());
+        serializer.setAutologin(autologin);
         // 发送命令反馈
         if (autologin) {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.setup", serial.getDisplayName());
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.setup", serializer.getDisplayName());
         } else {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.cancel", serial.getDisplayName());
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.cancel", serializer.getDisplayName());
         }
         return 1;
     }
@@ -410,38 +414,43 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int savePlayerData(CommandContext<ServerCommandSource> context, boolean hasComment) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         MinecraftServer server = context.getSource().getServer();
-        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
+        PlayerSerializationManager manager = getSerializationManager(server);
         // 玩家数据是否已存在
         String name = fakePlayer.getName().getString();
-        boolean exists = worldFormat.hasFile(name, IOUtils.JSON_EXTENSION);
-        if (exists) {
+        Optional<FakePlayerSerializer> optional = manager.get(name);
+        if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
             // 单击执行命令
             MutableText clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
             return 0;
-        }
-        FakePlayerSerializer serializer;
-        if (hasComment) {
-            String comment = StringArgumentType.getString(context, "comment");
-            serializer = new FakePlayerSerializer(fakePlayer, comment);
         } else {
-            serializer = new FakePlayerSerializer(fakePlayer);
+            FakePlayerSerializer serializer;
+            if (hasComment) {
+                String comment = StringArgumentType.getString(context, "comment");
+                serializer = new FakePlayerSerializer(fakePlayer, comment);
+            } else {
+                serializer = new FakePlayerSerializer(fakePlayer);
+            }
+            manager.add(serializer);
+            // 首次保存
+            MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.success", fakePlayer.getDisplayName());
+            return 1;
         }
-        serializer.save(server);
-        // 首次保存
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.success", fakePlayer.getDisplayName());
-        return 1;
     }
 
     // 修改玩家数据
     private int modifyPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        MinecraftServer server = context.getSource().getServer();
-        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
-        FakePlayerSerializer serializer = FakePlayerSerializer.load(worldFormat, fakePlayer.getName().getString());
-        serializer.setPlayerData(fakePlayer);
-        serializer.save(server);
+        String name = fakePlayer.getName().getString();
+        FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
+        String comment = oldSerializer.getComment();
+        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
+        FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer);
+        if (!comment.isEmpty()) {
+            newSerializer.setComment(comment);
+        }
+        manager.add(newSerializer);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.resave", fakePlayer.getDisplayName());
         return 1;
     }
@@ -449,11 +458,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 生成假玩家
     private int spawnPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
         try {
-            FakePlayerSerializer serial = FakePlayerSerializer.load(worldFormat, name);
             // 生成假玩家
-            serial.spawn(context.getSource().getServer());
+            getFakePlayerSerializer(context, name).spawn(context.getSource().getServer());
         } catch (RuntimeException e) {
             // 尝试生成假玩家时出现意外问题
             throw CommandUtils.createException(e, "carpet.commands.playerManager.spawn.fail");
@@ -461,16 +468,26 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
+    private FakePlayerSerializer getFakePlayerSerializer(CommandContext<ServerCommandSource> context, String name) throws CommandSyntaxException {
+        PlayerSerializationManager manager = getSerializationManager(context);
+        Optional<FakePlayerSerializer> optional = manager.get(name);
+        if (optional.isEmpty()) {
+            throw CommandUtils.createException("carpet.commands.playerManager.cannot_find_file", name);
+        }
+        return optional.get();
+    }
+
     // 删除玩家信息
-    private int delete(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), FakePlayerSerializer.PLAYER_DATA);
+    private int remove(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
-        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
-        // 文件存在且文件删除成功
-        if (file.isFile() && file.delete()) {
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.delete.success");
-        } else {
+        PlayerSerializationManager manager = getSerializationManager(context);
+        Optional<FakePlayerSerializer> optional = manager.get(name);
+        if (optional.isEmpty() || !manager.remove(optional.get())) {
+            // TODO 更改命令反馈
             throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
+        } else {
+            // 文件存在且文件删除成功
+            MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.delete.success");
         }
         return 1;
     }
@@ -544,9 +561,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 延时上线
     private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
-        Optional<DelayedLoginTask> optional = manager.stream(DelayedLoginTask.class)
+        Optional<DelayedLoginTask> optional = taskManager.stream(DelayedLoginTask.class)
                 .filter(task -> Objects.equals(name, task.getPlayerName()))
                 .findFirst();
         // 等待时间
@@ -554,16 +571,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MutableText time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         if (optional.isEmpty()) {
             // 添加上线任务
-            WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
-            FakePlayerSerializer serial = FakePlayerSerializer.load(worldFormat, name);
-            manager.addTask(new DelayedLoginTask(server, serial, tick));
+            FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+            taskManager.addTask(new DelayedLoginTask(server, serializer, tick));
             String key = server.getPlayerManager().getPlayer(name) == null
                     // <玩家>将于<时间>后上线
                     ? "carpet.commands.playerManager.schedule.login"
                     // <玩家>将于<时间>后再次尝试上线
                     : "carpet.commands.playerManager.schedule.login.try";
             // 发送命令反馈
-            MessageUtils.sendMessage(context, key, serial.getDisplayName(), time);
+            MessageUtils.sendMessage(context, key, serializer.getDisplayName(), time);
         } else {
             // 修改上线时间
             DelayedLoginTask task = optional.get();
@@ -625,6 +641,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             list.forEach(task -> task.sendEachMessage(context.getSource()));
         }
         return list.size();
+    }
+
+    private PlayerSerializationManager getSerializationManager(MinecraftServer server) {
+        return GenericFetcherUtils.getFakePlayerSerializationManager(server);
+    }
+
+    private PlayerSerializationManager getSerializationManager(CommandContext<ServerCommandSource> context) {
+        return getSerializationManager(context.getSource().getServer());
     }
 
     @Override

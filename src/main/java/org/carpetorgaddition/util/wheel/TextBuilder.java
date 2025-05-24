@@ -92,6 +92,13 @@ public class TextBuilder {
         return this;
     }
 
+    public TextBuilder setHover(MetaComment comment) {
+        if (comment.hasContent()) {
+            this.setHover(comment.getText());
+        }
+        return this;
+    }
+
     public TextBuilder setHover(String key, Object... args) {
         return this.setHover(translate(key, args));
     }

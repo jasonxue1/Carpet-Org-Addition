@@ -6,6 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTickManager;
 import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.periodic.express.ExpressManager;
+import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.util.page.PageManager;
@@ -31,12 +32,14 @@ public class ServerComponentCoordinator {
      */
     private final PageManager pageManager = new PageManager();
     private final RuleSelfManager ruleSelfManager;
+    private final PlayerSerializationManager playerSerializationManager ;
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.expressManager = new ExpressManager(server);
         this.server = server;
         this.ruleSelfManager = new RuleSelfManager(server);
         this.pageManager.tick();
+        this.playerSerializationManager = new PlayerSerializationManager(server);
     }
 
     public void tick() {
@@ -61,8 +64,13 @@ public class ServerComponentCoordinator {
         return this.pageManager;
     }
 
+    public PlayerSerializationManager getPlayerSerializationManager() {
+        return this.playerSerializationManager;
+    }
+
     private void onServerSave() {
         this.ruleSelfManager.onServerSave();
+        this.playerSerializationManager.onServerSave();
     }
 
     @NotNull

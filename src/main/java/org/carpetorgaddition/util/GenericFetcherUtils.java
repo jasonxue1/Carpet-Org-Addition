@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
+import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.util.page.PageManager;
@@ -37,6 +38,10 @@ public class GenericFetcherUtils {
 
     public static PageManager getPageManager(MinecraftServer server) {
         return ServerComponentCoordinator.getManager(server).getPageManager();
+    }
+
+    public static PlayerSerializationManager getFakePlayerSerializationManager(MinecraftServer server) {
+        return ServerComponentCoordinator.getManager(server).getPlayerSerializationManager();
     }
 }
 
