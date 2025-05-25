@@ -7,21 +7,17 @@ import org.carpetorgaddition.util.wheel.WorldFormat;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class PlayerSerializationManager {
     public static final String PLAYER_DATA = "player_data";
     public static final String SCRIPT_ACTION = "script_action";
-    private final MinecraftServer server;
     private final WorldFormat worldFormat;
     private final HashSet<FakePlayerSerializer> fakePlayerSerializers = new HashSet<>();
     private boolean initialize = false;
 
     public PlayerSerializationManager(MinecraftServer server) {
-        this.server = server;
         this.worldFormat = new WorldFormat(server, PLAYER_DATA);
     }
 
@@ -48,7 +44,7 @@ public class PlayerSerializationManager {
                 try {
                     this.fakePlayerSerializers.add(new FakePlayerSerializer(file));
                 } catch (IOException e) {
-                    // 译：Failed to load player data successfully
+                    // 译：未能成功加载玩家数据
                     CarpetOrgAddition.LOGGER.warn("Failed to load player data successfully", e);
                 }
             }
@@ -66,12 +62,32 @@ public class PlayerSerializationManager {
         return this.fakePlayerSerializers.stream().sorted(FakePlayerSerializer::compareTo).toList();
     }
 
+    public HashMap<String, HashSet<FakePlayerSerializer>> listGroup(Predicate<FakePlayerSerializer> predicate) {
+        HashMap<String, HashSet<FakePlayerSerializer>> map = new HashMap<>();
+        List<FakePlayerSerializer> list = this.fakePlayerSerializers.stream().filter(predicate).toList();
+        for (FakePlayerSerializer serializer : list) {
+            for (String group : serializer.getGroups()) {
+                HashSet<FakePlayerSerializer> set = map.get(group);
+                if (set == null) {
+                    HashSet<FakePlayerSerializer> value = new HashSet<>();
+                    value.add(serializer);
+                    map.put(group, value);
+                } else {
+                    set.add(serializer);
+                }
+            }
+        }
+        return map;
+    }
+
     public void add(FakePlayerSerializer serializer) {
+        this.initializeIfNeeded();
         this.fakePlayerSerializers.add(serializer);
         serializer.save();
     }
 
     public Optional<FakePlayerSerializer> get(String name) {
+        this.initializeIfNeeded();
         if (name.endsWith(IOUtils.JSON_EXTENSION)) {
             // 如果玩家名称为“xxx.json”，执行到这里可能会抛出异常，但不考虑这种情况
             throw new IllegalArgumentException();
@@ -84,7 +100,12 @@ public class PlayerSerializationManager {
         return Optional.empty();
     }
 
+    public int size() {
+        return this.fakePlayerSerializers.size();
+    }
+
     public void onServerSave() {
+        // 如果没有被初始化，则不需要重新保存
         for (FakePlayerSerializer serializer : this.fakePlayerSerializers) {
             if (serializer.isChanged()) {
                 serializer.save();
@@ -93,6 +114,7 @@ public class PlayerSerializationManager {
     }
 
     public boolean remove(FakePlayerSerializer serializer) {
+        this.initializeIfNeeded();
         boolean remove = this.fakePlayerSerializers.remove(serializer);
         return remove && serializer.remove();
     }

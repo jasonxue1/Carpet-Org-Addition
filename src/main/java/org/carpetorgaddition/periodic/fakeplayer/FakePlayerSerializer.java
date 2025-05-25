@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.fakes.ServerPlayerInterface;
 import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -29,8 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
@@ -87,6 +87,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     @NotNull
     private final FakePlayerActionSerializer autoAction;
+    private final HashSet<String> groups = new HashSet<>();
     /**
      * 当前对象是否已经修改，即是否需要重新保存
      */
@@ -154,6 +155,11 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             this.autoAction = new FakePlayerActionSerializer(scriptJson);
         } else {
             this.autoAction = FakePlayerActionSerializer.NO_ACTION;
+        }
+        // 玩家组
+        if (json.has("group")) {
+            List<String> list = json.getAsJsonArray("group").asList().stream().map(JsonElement::getAsString).toList();
+            this.groups.addAll(list);
         }
         this.file = file;
     }
@@ -248,6 +254,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         json.add("hand_action", interactiveAction.toJson());
         // 添加玩家动作
         json.add(PlayerSerializationManager.SCRIPT_ACTION, this.autoAction.toJson());
+        // 添加玩家组
+        JsonArray groups = new JsonArray();
+        for (String group : this.groups) {
+            groups.add(group);
+        }
+        json.add("group", groups);
         return json;
     }
 
@@ -261,6 +273,25 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     public void setAutologin(boolean autologin) {
         this.autologin = autologin;
         this.isChanged = true;
+    }
+
+    /**
+     * 将玩家添加到组
+     */
+    public void addToGroup(String group) {
+        this.groups.add(group);
+        this.isChanged = true;
+    }
+
+    /**
+     * 将玩家从组中删除
+     *
+     * @return 是否删除成功
+     */
+    public boolean removeFromGroup(String group) {
+        boolean remove = this.groups.remove(group);
+        this.isChanged = true;
+        return remove;
     }
 
     // 获取玩家名
@@ -321,6 +352,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public boolean isChanged() {
         return this.isChanged;
+    }
+
+    public Set<String> getGroups() {
+        return this.groups.isEmpty() ? Collections.singleton(null) : Collections.unmodifiableSet(this.groups);
     }
 
     @Override

@@ -46,6 +46,7 @@ import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -56,7 +57,7 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-// TODO 玩家分组
+// TODO 玩家分组：需要测试
 public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
 
@@ -100,6 +101,34 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("resave")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(this::modifyPlayer))))
+                .then(CommandManager.literal("group")
+                        .then(CommandManager.literal("add")
+                                .then(CommandManager.argument("name", StringArgumentType.string())
+                                        .suggests(defaultSuggests())
+                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                                                .suggests(groupSuggests())
+                                                .executes(this::addToGroup))))
+                        .then(CommandManager.literal("remove")
+                                .then(CommandManager.argument("name", StringArgumentType.string())
+                                        .suggests(defaultSuggests())
+                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                                                .suggests(groupSuggests())
+                                                .executes(this::removeFromGroup))))
+                        .then(CommandManager.literal("list")
+                                .then(CommandManager.literal("group")
+                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                                                .suggests(groupSuggests())
+                                                .executes(context -> listGroup(context, serializer -> true))
+                                                .then(CommandManager.argument("filter", StringArgumentType.string())
+                                                        .executes(context -> listGroup(context, serializerPredicate(context))))))
+                                .then(CommandManager.literal("ungrouped")
+                                        .executes(context -> listUngrouped(context, serializer -> true))
+                                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                                                .executes(context -> listUngrouped(context, serializerPredicate(context)))))
+                                .then(CommandManager.literal("all")
+                                        .executes(context -> listAll(context, serializer -> true))
+                                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                                                .executes(context -> listAll(context, serializerPredicate(context)))))))
                 .then(CommandManager.literal("reload")
                         .executes(this::reload))
                 .then(CommandManager.literal("autologin")
@@ -109,9 +138,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(CommandManager.argument("autologin", BoolArgumentType.bool())
                                         .executes(this::setAutoLogin))))
                 .then(CommandManager.literal("list")
-                        .executes(context -> list(context, s -> true))
+                        .executes(context -> list(context, null))
                         .then(CommandManager.argument("filter", StringArgumentType.string())
-                                .executes(context -> list(context, serializerPredicate(context)))))
+                                .executes(context -> list(context, StringArgumentType.getString(context, "filter")))))
                 .then(CommandManager.literal("remove")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
@@ -159,6 +188,76 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .executes(this::querySafeAfk)))));
     }
 
+    private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+        String group = StringArgumentType.getString(context, "group");
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
+        HashSet<FakePlayerSerializer> set = map.get(group);
+        // 不存在的组
+        if (set == null) {
+            throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", group);
+        }
+        List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
+        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        collection.addContent(list);
+        MessageUtils.sendEmptyMessage(context);
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list", group);
+        collection.print();
+        return collection.length();
+    }
+
+    private int listUngrouped(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
+        HashSet<FakePlayerSerializer> set = map.get(null);
+        if (set == null) {
+            MutableText translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
+            throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", translate);
+        }
+        List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
+        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        collection.addContent(list);
+        MessageUtils.sendEmptyMessage(context);
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
+        collection.print();
+        return collection.length();
+    }
+
+    private int listAll(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        List<Supplier<Text>> list = manager.list().stream().filter(predicate).map(FakePlayerSerializer::toTextSupplier).toList();
+        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        collection.addContent(list);
+        MessageUtils.sendEmptyMessage(context);
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.all");
+        collection.print();
+        return collection.length();
+    }
+
+    private int addToGroup(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        String name = StringArgumentType.getString(context, "name");
+        String group = StringArgumentType.getString(context, "group");
+        FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+        serializer.addToGroup(group);
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.add", serializer.getDisplayName(), group);
+        return 1;
+    }
+
+    private int removeFromGroup(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        String name = StringArgumentType.getString(context, "name");
+        String group = StringArgumentType.getString(context, "group");
+        FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+        if (serializer.removeFromGroup(group)) {
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.remove", serializer.getDisplayName(), group);
+        } else {
+            throw CommandUtils.createException("carpet.commands.playerManager.group.remove.fail");
+        }
+        return 1;
+    }
+
     /**
      * 重新加载玩家数据
      */
@@ -170,11 +269,20 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
-    private @NotNull Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<ServerCommandSource> context) {
-        return serializer -> {
-            Predicate<String> predicate = s -> s.contains(StringArgumentType.getString(context, "filter").toLowerCase(Locale.ROOT));
-            return predicate.test(serializer.getFakePlayerName().toLowerCase()) || predicate.test(serializer.getComment());
-        };
+    private Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<ServerCommandSource> context) {
+        return serializer -> serializerPredicate(serializer, StringArgumentType.getString(context, "filter"));
+    }
+
+    private Predicate<FakePlayerSerializer> serializerPredicate(@Nullable String filter) {
+        if (filter == null) {
+            return serializer -> true;
+        }
+        return serializer -> serializerPredicate(serializer, filter);
+    }
+
+    private boolean serializerPredicate(FakePlayerSerializer serializer, String filter) {
+        Predicate<String> predicate = s -> s.contains(filter.toLowerCase(Locale.ROOT));
+        return predicate.test(serializer.getFakePlayerName().toLowerCase()) || predicate.test(serializer.getComment());
     }
 
     // cancel子命令自动补全
@@ -189,11 +297,26 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 自动补全玩家名
     private SuggestionProvider<ServerCommandSource> defaultSuggests() {
-        return (context, builder) -> CommandSource.suggestMatching(new WorldFormat(context.getSource().getServer(),
-                PlayerSerializationManager.PLAYER_DATA).toImmutableFileList().stream()
-                .filter(file -> file.getName().endsWith(IOUtils.JSON_EXTENSION))
-                .map(file -> IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION))
-                .map(StringArgumentType::escapeIfRequired), builder);
+        return (context, builder) -> {
+            Stream<String> stream = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer())
+                    .list()
+                    .stream()
+                    .map(FakePlayerSerializer::getFakePlayerName)
+                    .map(StringArgumentType::escapeIfRequired);
+            return CommandSource.suggestMatching(stream, builder);
+        };
+    }
+
+    private SuggestionProvider<ServerCommandSource> groupSuggests() {
+        return (context, builder) -> {
+            PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
+            Stream<String> stream = manager.listGroup(serializer -> true)
+                    .keySet()
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(StringArgumentType::escapeIfRequired);
+            return CommandSource.suggestMatching(stream, builder);
+        };
     }
 
     // relogin子命令自动补全
@@ -252,8 +375,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 列出所有设置了安全挂机的在线假玩家
     private int listSafeAfk(CommandContext<ServerCommandSource> context) {
-        List<ServerPlayerEntity> list = context.getSource().getServer().getPlayerManager().getPlayerList()
-                .stream().filter(player -> player instanceof EntityPlayerMPFake).toList();
+        List<ServerPlayerEntity> list = context.getSource().getServer()
+                .getPlayerManager()
+                .getPlayerList()
+                .stream()
+                .filter(player -> player instanceof EntityPlayerMPFake)
+                .toList();
         int count = 0;
         // 遍历所有在线并且设置了安全挂机的假玩家
         for (ServerPlayerEntity player : list) {
@@ -370,23 +497,66 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出每一个玩家
-    private int list(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> filter) throws CommandSyntaxException {
+    private int list(CommandContext<ServerCommandSource> context, @Nullable String filter) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
-        List<Supplier<Text>> list = manager.list().stream().filter(filter).map(FakePlayerSerializer::toTextSupplier).toList();
-        if (list.isEmpty()) {
+        HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(serializerPredicate(filter));
+        if (map.isEmpty()) {
             // 没有玩家被列出
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
             return 0;
         }
-        PageManager pageManager = GenericFetcherUtils.getPageManager(server);
-        PagedCollection collection = pageManager.newPagedCollection(context.getSource());
-        collection.addContent(list);
-        if (collection.totalPages() > 1) {
+        if (map.size() == 1) {
+            // 只有一个组，直接展示玩家
+            Map.Entry<String, HashSet<FakePlayerSerializer>> entry = map.entrySet().iterator().next();
+            List<Supplier<Text>> list = entry.getValue()
+                    .stream()
+                    .sorted(Comparator.naturalOrder())
+                    .map(FakePlayerSerializer::toTextSupplier)
+                    .toList();
+            PageManager pageManager = GenericFetcherUtils.getPageManager(server);
+            PagedCollection collection = pageManager.newPagedCollection(context.getSource());
+            collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
+            if (entry.getKey() == null) {
+                MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
+            } else {
+                MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list", entry.getKey());
+            }
+            collection.print();
+            return list.size();
+        } else {
+            ArrayList<Text> list = new ArrayList<>();
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.expand");
+            // 未分组，在倒数第二个展示
+            TextBuilder ungrouped = null;
+            for (Map.Entry<String, HashSet<FakePlayerSerializer>> entry : map.entrySet()) {
+                if (entry.getKey() == null) {
+                    ungrouped = TextBuilder.of("carpet.commands.playerManager.group.name.ungrouped");
+                    setStyle(ungrouped, entry.getValue().size(), CommandProvider.listUngroupedPlayer(filter));
+                    continue;
+                }
+                TextBuilder builder = new TextBuilder("[" + entry.getKey() + "]");
+                setStyle(builder, entry.getValue().size(), CommandProvider.listGroupPlayer(entry.getKey(), filter));
+                list.add(builder.build());
+            }
+            if (ungrouped != null) {
+                list.add(ungrouped.build());
+            }
+            // 包含所有玩家的组，在最后一个展示
+            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.group.name.all");
+            setStyle(builder, manager.size(), CommandProvider.listAllPlayer(filter));
+            list.add(builder.build());
+            MutableText message = TextBuilder.joinList(list, TextBuilder.create(" "));
+            MessageUtils.sendMessage(context.getSource(), message);
+            return list.size();
         }
-        collection.print();
-        return list.size();
+    }
+
+    private void setStyle(TextBuilder builder, int size, String command) {
+        builder.setColor(Formatting.AQUA);
+        builder.setHover("carpet.commands.playerManager.group.player", size);
+        builder.setCommand(command);
     }
 
     // 设置注释

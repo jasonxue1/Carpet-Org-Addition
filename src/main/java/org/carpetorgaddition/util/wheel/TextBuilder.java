@@ -215,11 +215,20 @@ public class TextBuilder {
      * @return 拼接后的文本对象
      */
     public static MutableText joinList(List<? extends Text> list) {
+        return joinList(list, TextProvider.NEW_LINE);
+    }
+
+    /**
+     * 将一个集合的文本对象拼接起来
+     *
+     * @return 拼接后的文本对象
+     */
+    public static MutableText joinList(List<? extends Text> list, Text separator) {
         MutableText result = empty();
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));
             if (i < list.size() - 1) {
-                result.append(TextProvider.NEW_LINE);
+                result.append(separator);
             }
         }
         return result;

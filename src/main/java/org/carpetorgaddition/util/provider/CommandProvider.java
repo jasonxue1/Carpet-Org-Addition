@@ -1,13 +1,16 @@
 package org.carpetorgaddition.util.provider;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.client.command.AbstractClientCommand;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.command.HighlightCommand;
 import org.carpetorgaddition.command.*;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.StringJoiner;
 import java.util.UUID;
 
 public class CommandProvider {
@@ -79,6 +82,37 @@ public class CommandProvider {
         String commandName = getCommandName(PlayerManagerCommand.class);
         String playerName = player.getName().getString();
         return "/%s safeafk set %s -1 true".formatted(commandName, playerName);
+    }
+
+    public static String listGroupPlayer(String group, @Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list group");
+        joiner.add(StringArgumentType.escapeIfRequired(group));
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
+    }
+
+    public static String listUngroupedPlayer(@Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list ungrouped");
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
+    }
+
+    public static String listAllPlayer(@Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list all");
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
     }
 
     /**
