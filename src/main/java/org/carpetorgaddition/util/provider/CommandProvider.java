@@ -196,6 +196,10 @@ public class CommandProvider {
 
     @SuppressWarnings("SameParameterValue")
     private static <T extends AbstractClientCommand> String getClientCommandName(Class<T> clazz) {
-        return ClientCommandRegister.getCommandInstance(clazz).getAvailableName();
+        T instance = ClientCommandRegister.getCommandInstance(clazz);
+        if (instance == null) {
+            return ClientCommandRegister.DEFAULT_COMMAND_NAMES.get(clazz);
+        }
+        return instance.getAvailableName();
     }
 }

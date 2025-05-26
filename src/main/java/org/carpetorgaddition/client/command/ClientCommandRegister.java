@@ -6,10 +6,12 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
 import org.carpetorgaddition.config.CustomCommandConfig;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 
 public class ClientCommandRegister {
+    public static final HashMap<Class<? extends AbstractClientCommand>, String> DEFAULT_COMMAND_NAMES = new HashMap<>();
     private static final HashMap<Class<? extends AbstractClientCommand>, AbstractClientCommand> commands = new HashMap<>();
 
     public static void register() {
@@ -27,7 +29,16 @@ public class ClientCommandRegister {
 
     private static <T extends AbstractClientCommand> void register(T command) {
         command.register();
-        commands.put(command.getClass(), command);
+        Class<? extends AbstractClientCommand> clazz = command.getClass();
+        try {
+            Field field = clazz.getField("DEFAULT_COMMAND_NAME");
+            String name = (String) field.get(null);
+            DEFAULT_COMMAND_NAMES.put(clazz, name);
+        } catch (Exception e) {
+            // 不处理，直接抛出，阻止游戏启动
+            throw new RuntimeException(e);
+        }
+        commands.put(clazz, command);
     }
 
     public static <T extends AbstractClientCommand> T getCommandInstance(Class<T> clazz) {
