@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-@SuppressWarnings("SpellCheckingInspection")
 public class BlockHardnessModifiers {
     /**
      * 深板岩和与深板岩硬度相同的变种
@@ -50,8 +49,10 @@ public class BlockHardnessModifiers {
     public static Optional<Float> getHardness(Block block, BlockView world, BlockPos pos) {
         // 设置基岩硬度
         if (block == Blocks.BEDROCK) {
-            float bedrockHardness = CarpetOrgAdditionSettings.setBedrockHardness;
-            return Optional.of(bedrockHardness < 0 ? -1 : bedrockHardness);
+            float hardness = CarpetOrgAdditionSettings.setBedrockHardness;
+            if (CarpetOrgAdditionSettings.setBedrockHardness != -1F) {
+                return Optional.of(hardness);
+            }
         }
         // 易碎深板岩
         if (CarpetOrgAdditionSettings.softDeepslate) {
