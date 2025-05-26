@@ -18,6 +18,8 @@ import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.jetbrains.annotations.Nullable;
 
 public class HighlightCommand extends AbstractClientCommand {
+    public static final String DEFAULT_COMMAND_NAME = "highlight";
+
     public HighlightCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -78,6 +80,6 @@ public class HighlightCommand extends AbstractClientCommand {
 
     @Override
     public String getDefaultName() {
-        return "highlight";
+        return DEFAULT_COMMAND_NAME;
     }
 }
