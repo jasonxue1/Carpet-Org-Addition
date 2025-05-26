@@ -5,11 +5,14 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.ObjectShare;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
@@ -17,11 +20,22 @@ import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Supplier;
+
 public class HighlightCommand extends AbstractClientCommand {
     public static final String DEFAULT_COMMAND_NAME = "highlight";
 
     public HighlightCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
+        ObjectShare share = FabricLoader.getInstance().getObjectShare();
+        Supplier<String> supplier = () -> {
+            try {
+                return getCustomNames()[0];
+            } catch (RuntimeException e) {
+                return DEFAULT_COMMAND_NAME;
+            }
+        };
+        share.put("%s:%s".formatted(CarpetOrgAddition.MOD_ID, "highlight"), supplier);
     }
 
     @Override

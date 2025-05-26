@@ -102,7 +102,8 @@ public class CommandProvider {
      * 高亮路径点
      */
     public static String highlightWaypoint(BlockPos blockPos) {
-        return "/%s %s %s %s".formatted(getClientCommandName(HighlightCommand.class), blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        String name = getClientCommandName(HighlightCommand.class, HighlightCommand.DEFAULT_COMMAND_NAME);
+        return "/%s %s %s %s".formatted(name, blockPos.getX(), blockPos.getY(), blockPos.getZ());
     }
 
     /**
@@ -145,10 +146,10 @@ public class CommandProvider {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static <T extends AbstractClientCommand> String getClientCommandName(Class<T> clazz) {
+    private static <T extends AbstractClientCommand> String getClientCommandName(Class<T> clazz, String other) {
         T instance = ClientCommandRegister.getCommandInstance(clazz);
         if (instance == null) {
-            return ClientCommandRegister.DEFAULT_COMMAND_NAMES.get(clazz);
+            return other;
         }
         return instance.getAvailableName();
     }
