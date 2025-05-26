@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class DictionaryCommand extends AbstractClientCommand {
+    public static final String DEFAULT_COMMAND_NAME = "dictionary";
+
     public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -90,7 +92,7 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     @Override
     public String getDefaultName() {
-        return "dictionary";
+        return DEFAULT_COMMAND_NAME;
     }
 
     private enum DictionaryType {
