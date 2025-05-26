@@ -17,10 +17,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.RuleSelfConstants;
-import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -67,16 +65,10 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
     // 方块掉落物直接进入物品栏
     @Unique
     private boolean tryCollect(ItemStack itemStack) {
-        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
-            ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
-            if (player == null) {
-                return true;
-            }
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-            if (ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory)) {
-                player.getInventory().insertStack(itemStack);
-                return !itemStack.isEmpty();
-            }
+        ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
+        if (RuleUtils.canCollectBlock(player)) {
+            player.getInventory().insertStack(itemStack);
+            return !itemStack.isEmpty();
         }
         return true;
     }

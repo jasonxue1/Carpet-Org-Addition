@@ -1,7 +1,6 @@
 package org.carpetorgaddition.command;
 
 import carpet.api.settings.CarpetRule;
-import carpet.api.settings.RuleHelper;
 import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
@@ -24,6 +23,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
@@ -272,7 +272,7 @@ public class OrangeCommand extends AbstractServerCommand {
             } else {
                 builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
-            if (RuleHelper.isInDefaultValue(rule)) {
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }
@@ -297,7 +297,7 @@ public class OrangeCommand extends AbstractServerCommand {
             Text displayName = RuleUtils.simpleTranslationName(rule);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
             TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
-            if (RuleHelper.isInDefaultValue(rule)) {
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }

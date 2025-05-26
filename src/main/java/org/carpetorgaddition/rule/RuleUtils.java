@@ -2,9 +2,11 @@ package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
 import carpet.utils.Translations;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
+import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,6 +57,23 @@ public class RuleUtils {
         } finally {
             CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.set(changed);
         }
+    }
+
+    /**
+     * @return 规则方块掉落物直接进入物品栏是否可用
+     */
+    public static boolean canCollectBlock(@Nullable ServerPlayerEntity player) {
+        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
+            case TRUE -> true;
+            case FALSE -> false;
+            case CUSTOM -> {
+                if (player == null) {
+                    yield false;
+                }
+                RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+                yield ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory);
+            }
+        };
     }
 
     /**

@@ -351,7 +351,7 @@ public class CarpetOrgAdditionSettings {
     // 方块掉落物直接进入物品栏
     @RuleSelf
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
-    public static boolean blockDropsDirectlyEnterInventory = false;
+    public static BlockDropsDirectlyEnterInventory blockDropsDirectlyEnterInventory = BlockDropsDirectlyEnterInventory.FALSE;
 
     // 海龟蛋快速采集
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
