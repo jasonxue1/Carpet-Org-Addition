@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.TradeOfferList;
@@ -15,9 +16,9 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         super(world, selectionArea, sourcePos, context);
         // 获取附魔名称，不带等级
         MutableText text = EnchantmentUtils.getName(enchantment);
-        this.treadName = TextUtils.appendAll(text, Items.ENCHANTED_BOOK.getName());
+        this.treadName = TextBuilder.combineAll(text, Items.ENCHANTED_BOOK.getName());
         this.enchantment = enchantment;
     }
 
@@ -103,12 +104,12 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         }
 
         @Override
-        public MutableText toText() {
+        public Text get() {
             // 村民或流浪商人的名称
             MutableText villagerName = merchant.getName().copy();
             // 获取交易名称
             MutableText enchantmentName = EnchantmentUtils.getName(enchantment, level);
-            return TextUtils.translate("carpet.commands.finder.trade.enchanted_book.each",
+            return TextBuilder.translate("carpet.commands.finder.trade.enchanted_book.each",
                     TextProvider.blockPos(this.villagerPos(), Formatting.GREEN), villagerName, getIndexArray(this.list), enchantmentName);
         }
 
@@ -129,8 +130,4 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         }
     }
 
-    @Override
-    protected String getResultLimitKey() {
-        return "carpet.commands.finder.trade.enchanted_book.result.limit";
-    }
 }

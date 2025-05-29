@@ -46,6 +46,10 @@ public class SimulatePlayerInventory implements Inventory {
         return inventory;
     }
 
+    public void save() {
+
+    }
+
     @Override
     public int size() {
         return this.main.size() + this.armor.size() + this.offHand.size();

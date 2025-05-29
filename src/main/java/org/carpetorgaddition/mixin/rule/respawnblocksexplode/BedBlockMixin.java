@@ -9,7 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -22,7 +22,7 @@ public class BedBlockMixin {
     @Inject(method = "onUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BedBlock;isBedWorking(Lnet/minecraft/world/World;)Z"), cancellable = true)
     private void onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
         if (CarpetOrgAdditionSettings.disableRespawnBlocksExplode && !BedBlock.isBedWorking(world)) {
-            MessageUtils.sendMessageToHud(player, TextUtils.translate("carpet.rule.message.disableRespawnBlocksExplode"));
+            MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.disableRespawnBlocksExplode"));
             cir.setReturnValue(ActionResult.SUCCESS);
         }
     }

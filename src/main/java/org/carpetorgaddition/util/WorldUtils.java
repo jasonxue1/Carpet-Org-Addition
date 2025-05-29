@@ -8,14 +8,12 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -151,22 +149,6 @@ public class WorldUtils {
     }
 
     /**
-     * 获取维度名称
-     *
-     * @param world 要获取维度名称的世界对象
-     * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
-     */
-    public static Text getDimensionName(World world) {
-        String dimension = WorldUtils.getDimensionId(world);
-        return switch (dimension) {
-            case OVERWORLD -> TextProvider.OVERWORLD;
-            case THE_NETHER -> TextProvider.THE_NETHER;
-            case THE_END -> TextProvider.THE_END;
-            default -> TextUtils.createText(dimension);
-        };
-    }
-
-    /**
      * 在指定位置播放一个音效
      */
     public static void playSound(World world, BlockPos blockPos, SoundEvent soundEvent, SoundCategory soundCategory) {
@@ -182,6 +164,13 @@ public class WorldUtils {
     public static void playSound(ServerPlayerEntity player, SoundEvent soundEvent, SoundCategory soundCategory) {
         World world = player.getWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, soundCategory, 1F, 1F);
+    }
+
+    /**
+     * @return 两个世界的坐标是否可以互相转换
+     */
+    public static boolean canMappingPos(World world1, World world2) {
+        return (isOverworld(world1) && isTheNether(world2)) || (isOverworld(world2) && isTheNether(world1));
     }
 
     /**
@@ -217,8 +206,31 @@ public class WorldUtils {
     /**
      * @return 维度ID是否表示末地
      */
+    @SuppressWarnings("unused")
     public static boolean isTheEnd(String worldId) {
         return THE_END.equals(worldId) || SIMPLE_THE_END.equals(worldId);
+    }
+
+    /**
+     * @return 维度ID是否表示主世界
+     */
+    public static boolean isOverworld(World world) {
+        return world.getRegistryKey() == World.OVERWORLD;
+    }
+
+    /**
+     * @return 维度ID是否表示下界
+     */
+    public static boolean isTheNether(World world) {
+        return world.getRegistryKey() == World.NETHER;
+    }
+
+    /**
+     * @return 维度ID是否表示末地
+     */
+    @SuppressWarnings("unused")
+    public static boolean isTheEnd(World world) {
+        return world.getRegistryKey() == World.END;
     }
 
     /**

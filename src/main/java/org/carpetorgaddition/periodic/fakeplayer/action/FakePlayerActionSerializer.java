@@ -4,8 +4,11 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 
 public class FakePlayerActionSerializer {
     private final AbstractPlayerAction action;
@@ -52,17 +55,20 @@ public class FakePlayerActionSerializer {
         actionManager.setAction(this.action);
     }
 
+    public void clearPlayer() {
+        this.action.setFakePlayer(null);
+    }
+
     public boolean hasAction() {
         return !this.action.isStop();
     }
 
     public Text toText() {
-        TextBuilder builder = new TextBuilder();
-        builder.appendTranslate("carpet.commands.playerManager.info.action")
-                .newLine()
-                .indentation()
-                .append(this.action.getDisplayName());
-        return builder.toLine();
+        ArrayList<Text> list = new ArrayList<>();
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.action"));
+        list.add(TextProvider.NEW_LINE);
+        list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, this.action.getDisplayName()));
+        return TextBuilder.combineList(list);
     }
 
     public JsonObject toJson() {

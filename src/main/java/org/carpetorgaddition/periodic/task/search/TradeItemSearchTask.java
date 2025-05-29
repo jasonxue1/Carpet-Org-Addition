@@ -4,6 +4,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.TradeOfferList;
@@ -11,10 +12,10 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -57,12 +58,12 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
             }
 
             @Override
-            public MutableText toText() {
+            public Text get() {
                 // 村民所在坐标
                 BlockPos blockPos = merchant.getBlockPos();
                 // 村民或流浪商人的名称
                 MutableText villagerName = merchant.getName().copy();
-                return TextUtils.translate("carpet.commands.finder.trade.item.each",
+                return TextBuilder.translate("carpet.commands.finder.trade.item.each",
                         TextProvider.blockPos(blockPos, Formatting.GREEN), villagerName, getIndexArray(list));
             }
 
@@ -85,8 +86,4 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
         return this.treadName;
     }
 
-    @Override
-    protected String getResultLimitKey() {
-        return "carpet.commands.finder.trade.result.limit";
-    }
 }

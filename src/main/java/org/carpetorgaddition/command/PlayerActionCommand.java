@@ -27,10 +27,10 @@ import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.util.screen.StonecutterSetRecipeScreenHandler;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.Arrays;
 
@@ -260,7 +260,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inventory, playerEntity) -> {
             ScreenHandlerContext screenHandlerContext = ScreenHandlerContext.create(player.getWorld(), player.getBlockPos());
             return new StonecutterSetRecipeScreenHandler(i, inventory, screenHandlerContext, fakePlayer);
-        }, TextUtils.translate("carpet.commands.playerAction.info.stonecutter.gui"));
+        }, TextBuilder.translate("carpet.commands.playerAction.info.stonecutter.gui"));
         player.openHandledScreen(screen);
         return 1;
     }
@@ -334,7 +334,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity)
                 -> new CraftingSetRecipeScreenHandler(i, playerInventory, fakePlayer,
                 ScreenHandlerContext.create(player.getWorld(), player.getBlockPos())),
-                TextUtils.translate("carpet.commands.playerAction.info.craft.gui"));
+                TextBuilder.translate("carpet.commands.playerAction.info.craft.gui"));
         player.openHandledScreen(screen);
         return 1;
     }

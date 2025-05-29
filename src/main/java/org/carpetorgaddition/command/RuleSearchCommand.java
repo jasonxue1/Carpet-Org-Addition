@@ -16,7 +16,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.rule.carpet.SettingsManagerAccessor;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.Collection;
 
@@ -42,7 +42,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
         if (CarpetServer.settingsManager == null) {
             return 0;
         }
-        MutableText text = TextUtils.toBold(TextUtils.translate("carpet.commands.ruleSearch.feedback", filter));
+        MutableText text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter).setBold().build();
         // 将文本设置为粗体
         text.styled(style -> style.withBold(true));
         MessageUtils.sendMessage(context.getSource(), text);
@@ -64,8 +64,8 @@ public class RuleSearchCommand extends AbstractServerCommand {
                     ruleCount.increment();
                 } else if (RuleHelper.translatedDescription(rule).contains(filter)) {
                     // 规则名中不包含字符串，但是规则描述中包含
-                    Text message = accessor.displayInteractiveSettings(rule);
-                    MessageUtils.sendMessage(context.getSource(), TextUtils.toItalic(message.copy()));
+                    Text message = new TextBuilder(accessor.displayInteractiveSettings(rule)).setItalic().build();
+                    MessageUtils.sendMessage(context.getSource(), message.copy());
                     ruleCount.increment();
                 }
             }

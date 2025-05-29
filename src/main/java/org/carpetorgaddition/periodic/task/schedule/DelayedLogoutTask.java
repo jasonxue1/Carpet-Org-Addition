@@ -7,8 +7,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayedLogoutTask extends PlayerScheduleTask {
@@ -65,7 +65,9 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     }
 
     private @NotNull MutableText getDisplayTime() {
-        return TextUtils.hoverText(TextProvider.tickToTime(this.delayed), TextProvider.tickToRealTime(this.delayed));
+        TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
+        builder.setHover(TextProvider.tickToRealTime(this.delayed));
+        return builder.build();
     }
 
     @Override

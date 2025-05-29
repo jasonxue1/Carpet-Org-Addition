@@ -2,12 +2,11 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.fakes.ServerPlayerInterface;
 import carpet.patches.EntityPlayerMPFake;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -26,17 +25,15 @@ import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.MetaComment;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.Predicate;
+import java.util.*;
+import java.util.function.Supplier;
 
-public class FakePlayerSerializer {
-    public static final String PLAYER_DATA = "player_data";
-    public static final String SCRIPT_ACTION = "script_action";
+public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 玩家名称
      */
@@ -48,6 +45,7 @@ public class FakePlayerSerializer {
     /**
      * 位置
      */
+    @NotNull
     private final Vec3d playerPos;
     /**
      * 偏航角
@@ -60,10 +58,12 @@ public class FakePlayerSerializer {
     /**
      * 维度
      */
+    @NotNull
     private final String dimension;
     /**
      * 游戏模式
      */
+    @NotNull
     private final GameMode gameMode;
     /**
      * 是否飞行
@@ -80,11 +80,19 @@ public class FakePlayerSerializer {
     /**
      * 假玩家手部动作
      */
+    @NotNull
     private final EntityPlayerActionPackSerial interactiveAction;
     /**
      * 假玩家自动动作
      */
+    @NotNull
     private final FakePlayerActionSerializer autoAction;
+    private final HashSet<String> groups = new HashSet<>();
+    /**
+     * 当前对象是否已经修改，即是否需要重新保存
+     */
+    private boolean isChanged = false;
+    private final File file;
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.fakePlayerName = fakePlayer.getName().getString();
@@ -97,6 +105,15 @@ public class FakePlayerSerializer {
         this.sneaking = fakePlayer.isSneaking();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
+        this.file = new WorldFormat(fakePlayer.server, PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
+    }
+
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
+        this(fakePlayer);
+        this.groups.addAll(serializer.getGroups());
+        this.autologin = serializer.autologin;
+        this.comment.setComment(serializer.comment.getComment());
+        this.isChanged = true;
     }
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
@@ -104,9 +121,16 @@ public class FakePlayerSerializer {
         this.comment.setComment(comment);
     }
 
-    private FakePlayerSerializer(JsonObject json, String fakePlayerName) {
+    public FakePlayerSerializer(File file) throws IOException {
+        JsonObject json = IOUtils.loadJson(file);
+        int version = DataUpdater.getVersion(json);
+        if (version < DataUpdater.VERSION) {
+            FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
+            // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
+            json = dataUpdater.update(json, version);
+        }
         // 玩家名
-        this.fakePlayerName = fakePlayerName;
+        this.fakePlayerName = file.getName().split("\\.")[0];
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3d(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -134,47 +158,28 @@ public class FakePlayerSerializer {
             this.interactiveAction = EntityPlayerActionPackSerial.NO_ACTION;
         }
         // 假玩家动作，自动合成自动交易等
-        if (json.has(SCRIPT_ACTION)) {
-            JsonObject scriptJson = json.get(SCRIPT_ACTION).getAsJsonObject();
+        if (json.has(PlayerSerializationManager.SCRIPT_ACTION)) {
+            JsonObject scriptJson = json.get(PlayerSerializationManager.SCRIPT_ACTION).getAsJsonObject();
             this.autoAction = new FakePlayerActionSerializer(scriptJson);
         } else {
             this.autoAction = FakePlayerActionSerializer.NO_ACTION;
         }
+        // 玩家组
+        if (json.has("group")) {
+            List<String> list = json.getAsJsonArray("group").asList().stream().map(JsonElement::getAsString).toList();
+            this.groups.addAll(list);
+        }
+        this.file = file;
     }
 
-    public static FakePlayerSerializer factory(WorldFormat worldFormat, String nameOrFileName) throws IOException {
-        JsonObject json = IOUtils.loadJson(worldFormat.file(nameOrFileName, IOUtils.JSON_EXTENSION));
-        int version = DataUpdater.getVersion(json);
-        if (version < DataUpdater.VERSION) {
-            FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
-            // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
-            json = dataUpdater.update(json, version);
+    public void save() {
+        try {
+            IOUtils.saveJson(this.file, this.toJson());
+        } catch (IOException e) {
+            // 译：未能成功保存玩家数据
+            CarpetOrgAddition.LOGGER.warn("Failed to successfully save player data", e);
         }
-        String fakePlayerName = IOUtils.removeExtension(nameOrFileName, IOUtils.JSON_EXTENSION);
-        return new FakePlayerSerializer(json, fakePlayerName);
-    }
-
-    /**
-     * 将当前对象保存到本地文件
-     *
-     * @return 如果是首次保存，返回0，如果是重新保存，返回1，如果未能保存，返回-1
-     */
-    public int save(CommandContext<ServerCommandSource> context, boolean resave) throws IOException {
-        MinecraftServer server = context.getSource().getServer();
-        WorldFormat worldFormat = new WorldFormat(server, PLAYER_DATA);
-        String name = this.fakePlayerName;
-        File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
-        // 玩家数据是否已存在
-        boolean exists = file.exists();
-        if (exists && !resave) {
-            String command = CommandProvider.playerManagerResave(name, this.comment);
-            // 单击执行命令
-            MutableText clickResave = TextProvider.clickRun(command);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
-            return -1;
-        }
-        IOUtils.saveJson(file, this.toJson());
-        return exists ? 1 : 0;
+        this.isChanged = false;
     }
 
     // 从json加载并生成假玩家
@@ -183,53 +188,48 @@ public class FakePlayerSerializer {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
         // 生成假玩家
-        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, yaw, pitch,
-                WorldUtils.getWorld(dimension), this.gameMode, flying);
-        fakePlayer.setSneaking(sneaking);
+        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, this.yaw, this.pitch,
+                WorldUtils.getWorld(this.dimension), this.gameMode, this.flying);
+        fakePlayer.setSneaking(this.sneaking);
         // 设置玩家动作
         this.interactiveAction.startAction(fakePlayer);
+        this.autoAction.clearPlayer();
         this.autoAction.startAction(fakePlayer);
     }
 
     // 显示文本信息
     public Text info() {
-        TextBuilder build = new TextBuilder();
+        ArrayList<Text> list = new ArrayList<>();
         // 玩家位置
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
                 + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
-        build.appendTranslateLine("carpet.commands.playerManager.info.pos",
-                pos);
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.pos", pos));
         // 获取朝向
-        build.appendTranslateLine("carpet.commands.playerManager.info.direction",
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.direction",
                 MathUtils.numberToTwoDecimalString(this.yaw),
-                MathUtils.numberToTwoDecimalString(this.pitch));
+                MathUtils.numberToTwoDecimalString(this.pitch)));
         // 维度
-        build.appendTranslateLine("carpet.commands.playerManager.info.dimension", switch (this.dimension) {
-            case "minecraft:overworld", "overworld" -> TextProvider.OVERWORLD;
-            case "minecraft:the_nether", "the_nether" -> TextProvider.THE_NETHER;
-            case "minecraft:the_end", "the_end" -> TextProvider.THE_END;
-            default -> TextUtils.createText(dimension);
-        });
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.dimension", TextProvider.getDimensionName(this.dimension)));
         // 游戏模式
-        build.appendTranslateLine("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
         // 是否飞行
-        build.appendTranslateLine("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying)));
         // 是否潜行
-        build.appendTranslateLine("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
-        build.appendTranslate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin)));
         if (this.interactiveAction.hasAction()) {
-            build.newLine().append(this.interactiveAction.toText());
+            list.add(this.interactiveAction.toText());
         }
         if (this.autoAction.hasAction()) {
-            build.newLine().append(this.autoAction.toText());
+            list.add(this.autoAction.toText());
         }
         if (this.comment.hasContent()) {
             // 添加注释
-            build.newLine().appendTranslate("carpet.commands.playerManager.info.comment", this.comment.getText());
+            list.add(TextBuilder.translate("carpet.commands.playerManager.info.comment", this.comment.getText()));
         }
-        return build.toLine();
+        return TextBuilder.joinList(list);
     }
 
     public JsonObject toJson() {
@@ -261,18 +261,45 @@ public class FakePlayerSerializer {
         // 添加左键右键动作
         json.add("hand_action", interactiveAction.toJson());
         // 添加玩家动作
-        json.add(SCRIPT_ACTION, this.autoAction.toJson());
+        json.add(PlayerSerializationManager.SCRIPT_ACTION, this.autoAction.toJson());
+        // 添加玩家组
+        JsonArray groups = new JsonArray();
+        for (String group : this.groups) {
+            groups.add(group);
+        }
+        json.add("group", groups);
         return json;
     }
 
     // 修改注释
     public void setComment(@Nullable String comment) {
         this.comment.setComment(comment);
+        this.isChanged = true;
     }
 
     // 设置自动登录
     public void setAutologin(boolean autologin) {
         this.autologin = autologin;
+        this.isChanged = true;
+    }
+
+    /**
+     * 将玩家添加到组
+     */
+    public void addToGroup(String group) {
+        this.groups.add(group);
+        this.isChanged = true;
+    }
+
+    /**
+     * 将玩家从组中删除
+     *
+     * @return 是否删除成功
+     */
+    public boolean removeFromGroup(String group) {
+        boolean remove = this.groups.remove(group);
+        this.isChanged = true;
+        return remove;
     }
 
     // 获取玩家名
@@ -282,44 +309,25 @@ public class FakePlayerSerializer {
 
     // 获取显示名称
     public Text getDisplayName() {
-        return TextUtils.hoverText(this.fakePlayerName, this.info());
+        return new TextBuilder(this.fakePlayerName).setHover(this.info()).build();
     }
 
-    // 列出每一条玩家信息
-    public static int list(CommandContext<ServerCommandSource> context, WorldFormat worldFormat, Predicate<String> filter) {
-        MutableText online = TextUtils.translate("carpet.commands.playerManager.click.online");
-        MutableText offline = TextUtils.translate("carpet.commands.playerManager.click.offline");
-        // 使用变量记录列出的数量，而不是直接使用集合的长度，因为集合中可能存在一些非json的文件，或者被损坏的json文件
-        int count = 0;
-        // 所有json文件
-        List<File> jsonFileList = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
-        for (File file : jsonFileList) {
-            try {
-                FakePlayerSerializer serial = factory(worldFormat, file.getName());
-                if (filter.test(serial.comment.getComment()) || filter.test(serial.fakePlayerName.toLowerCase(Locale.ROOT))) {
-                    eachPlayer(context, file, online, offline, serial);
-                    count++;
-                }
-            } catch (IOException | RuntimeException e) {
-                CarpetOrgAddition.LOGGER.warn("无法从文件{}加载玩家信息", file.getName(), e);
-            }
-        }
-        return count;
+    public Supplier<Text> toTextSupplier() {
+        return this::toText;
     }
 
-    private static void eachPlayer(CommandContext<ServerCommandSource> context, File file, MutableText online, MutableText offline, FakePlayerSerializer serial) {
-        // 添加快捷命令
-        String playerName = IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION);
-        String onlineCommand = CommandProvider.playerManagerSpawn(playerName);
-        String offlineCommand = CommandProvider.killFakePlayer(playerName);
-        MutableText mutableText = TextUtils.appendAll(
-                TextUtils.command(TextUtils.createText("[↑]"), onlineCommand, online, Formatting.GREEN, false), " ",
-                TextUtils.command(TextUtils.createText("[↓]"), offlineCommand, offline, Formatting.RED, false), " ",
-                TextUtils.hoverText(TextUtils.createText("[?]"), serial.info(), Formatting.GRAY), " ",
-                // 如果有注释，在列出的玩家的名字上也添加注释
-                serial.comment.hasContent() ? TextUtils.hoverText(playerName, serial.comment.getText()) : playerName);
-        // 发送消息
-        MessageUtils.sendMessage(context.getSource(), mutableText);
+    private Text toText() {
+        MutableText loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
+        MutableText logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
+        String name = this.getFakePlayerName();
+        String logonCommand = CommandProvider.playerManagerSpawn(name);
+        String logoutCommand = CommandProvider.killFakePlayer(name);
+        MutableText login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(Formatting.GREEN).build();
+        MutableText logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
+        MutableText info = new TextBuilder("[?]").setHover(this.info()).setColor(Formatting.GRAY).build();
+        TextBuilder builder = new TextBuilder(name);
+        builder.setHover(this.comment);
+        return TextBuilder.combineAll(login, " ", logout, " ", info, " ", builder.build());
     }
 
     /**
@@ -328,33 +336,52 @@ public class FakePlayerSerializer {
     public static void autoLogin(MinecraftServer server) {
         ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         try {
-            tryAutoLogin(server, manager);
+            List<FakePlayerSerializer> list = GenericFetcherUtils.getFakePlayerSerializationManager(server).list();
+            int count = server.getCurrentPlayerCount();
+            for (FakePlayerSerializer serializer : list) {
+                if (serializer.autologin) {
+                    manager.addTask(new DelayedLoginTask(server, serializer, 1));
+                    count++;
+                    // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
+                    if (count >= server.getMaxPlayerCount() - 1) {
+                        CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");
+                        break;
+                    }
+                }
+            }
         } catch (RuntimeException | CommandSyntaxException e) {
             CarpetOrgAddition.LOGGER.error("玩家自动登录出现意外错误", e);
         }
     }
 
-    private static void tryAutoLogin(MinecraftServer server, ServerTaskManager manager) throws CommandSyntaxException {
-        WorldFormat worldFormat = new WorldFormat(server, FakePlayerSerializer.PLAYER_DATA);
-        List<File> files = worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
-        int count = server.getCurrentPlayerCount();
-        for (File file : files) {
-            FakePlayerSerializer fakePlayerSerializer;
-            try {
-                fakePlayerSerializer = factory(worldFormat, file.getName());
-            } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.error("无法读取{}玩家数据", IOUtils.removeExtension(file.getName(), IOUtils.JSON_EXTENSION), e);
-                continue;
-            }
-            if (fakePlayerSerializer.autologin) {
-                manager.addTask(new DelayedLoginTask(server, fakePlayerSerializer, 1));
-                count++;
-                // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
-                if (count >= server.getMaxPlayerCount() - 1) {
-                    CarpetOrgAddition.LOGGER.warn("服务器玩家即将达到上限");
-                    return;
-                }
-            }
-        }
+    public String getComment() {
+        return this.comment.getComment();
+    }
+
+    public boolean isChanged() {
+        return this.isChanged;
+    }
+
+    public Set<String> getGroups() {
+        return this.groups.isEmpty() ? Collections.singleton(null) : Collections.unmodifiableSet(this.groups);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (this.getClass() == obj.getClass() && this.fakePlayerName.equals(((FakePlayerSerializer) obj).fakePlayerName));
+    }
+
+    @Override
+    public int hashCode() {
+        return this.fakePlayerName.hashCode();
+    }
+
+    @Override
+    public int compareTo(@NotNull FakePlayerSerializer o) {
+        return this.fakePlayerName.compareTo(o.fakePlayerName);
+    }
+
+    public boolean remove() {
+        return this.file.delete();
     }
 }
