@@ -20,6 +20,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.Optional;
 
@@ -103,7 +104,7 @@ public class EnchantmentUtils {
     public static MutableText getName(Enchantment enchantment, int level) {
         MutableText mutableText = getName(enchantment);
         if (level != 1 || enchantment.getMaxLevel() != 1) {
-            mutableText = TextUtils.appendAll(mutableText, ScreenTexts.SPACE, TextUtils.translate("enchantment.level." + level));
+            mutableText = TextBuilder.combineAll(mutableText, ScreenTexts.SPACE, TextBuilder.translate("enchantment.level." + level));
         }
         return mutableText;
     }

@@ -45,4 +45,8 @@ public abstract class AbstractCommand {
     }
 
     public abstract String getDefaultName();
+
+    public boolean shouldRegister() {
+        return true;
+    }
 }

@@ -11,7 +11,6 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -20,7 +19,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -49,7 +48,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
     @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageTracker;getDeathMessage()Lnet/minecraft/text/Text;"))
     private Text getDeathMessage(DamageTracker instance, Operation<Text> original) {
         if (CarpetOrgAdditionSettings.committingSuicide.get()) {
-            return TextUtils.translate("carpet.commands.killMe.suicide", thisPlayer.getDisplayName());
+            return TextBuilder.translate("carpet.commands.killMe.suicide", thisPlayer.getDisplayName());
         }
         return original.call(instance);
     }
@@ -63,26 +62,26 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         }
         // 安全挂机触发失败，玩家已死亡
         if (this.afkTriggerFail()) {
-            MutableText message = TextUtils.translate("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
+            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
             // 设置为斜体
-            message = TextUtils.toItalic(message);
+            builder.setItalic();
             // 设置为红色
-            message = TextUtils.setColor(message, Formatting.RED);
+            builder.setColor(Formatting.RED);
             // 添加悬停提示
-            message = TextUtils.hoverText(message, report(source, amount));
-            MessageUtils.broadcastMessage(thisPlayer.server, message);
+            builder.setHover(report(source, amount));
+            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
             return;
         }
         // 玩家安全挂机触发成功
         if (thisPlayer.getHealth() <= this.safeAfkThreshold) {
             // 假玩家剩余血量
             String health = MathUtils.numberToTwoDecimalString(thisPlayer.getHealth());
-            MutableText message = TextUtils.translate("carpet.commands.playerManager.safeafk.trigger.success",
-                    thisPlayer.getDisplayName(), health);
+            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.success", thisPlayer.getDisplayName(), health);
             // 添加悬停提示
-            message = TextUtils.hoverText(message, report(source, amount));
+            builder.setHover(report(source, amount));
+            builder.setGrayItalic();
             // 广播触发消息，斜体淡灰色
-            MessageUtils.broadcastMessage(thisPlayer.server, TextUtils.toGrayItalic(message));
+            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
             // 恢复饥饿值
             thisPlayer.getHungerManager().setFoodLevel(20);
             // 退出假人
@@ -98,11 +97,11 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         Object attacker = Optional.ofNullable(damageSource.getAttacker()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
         // 获取伤害来源
         Object source = Optional.ofNullable(damageSource.getSource()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
-        list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.attacker", attacker));
-        list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.source", source));
-        list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getName()));
-        list.add(TextUtils.translate("carpet.commands.playerManager.safeafk.info.amount", String.valueOf(amount)));
-        return TextUtils.appendList(list);
+        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.attacker", attacker));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.source", source));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getName()));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.amount", String.valueOf(amount)));
+        return TextBuilder.joinList(list);
     }
 
     // 假玩家是否可以触发图腾

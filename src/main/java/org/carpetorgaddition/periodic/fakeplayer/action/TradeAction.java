@@ -20,7 +20,7 @@ import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.mixin.rule.MerchantScreenHandlerAccessor;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.UUID;
@@ -264,29 +264,29 @@ public class TradeAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         // 获取按钮的索引
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.item", fakePlayer.getDisplayName(), index + 1));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.item", fakePlayer.getDisplayName(), index + 1));
         if (fakePlayer.currentScreenHandler instanceof MerchantScreenHandler merchantScreenHandler) {
             // 获取当前交易内容的对象
             TradeOffer tradeOffer = merchantScreenHandler.getRecipes().get(index);
             // 将交易的物品和价格添加到集合中
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedFirstBuyItem()), " ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getDisplayedSecondBuyItem()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getSellItem())));
             // 如果当前交易已被锁定，将交易已锁定的消息添加到集合，然后直接结束方法并返回集合
             if (tradeOffer.isDisabled()) {
-                list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.disabled"));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.disabled"));
                 return list;
             }
             // 将“交易状态”文本信息添加到集合中
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.state"));
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.state"));
+            list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(0).getStack()), " ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(1).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(2).getStack())));
         } else {
             // 将假玩家没有打开交易界面的消息添加到集合中
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.trade.no_villager", fakePlayer.getDisplayName()));
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.no_villager", fakePlayer.getDisplayName()));
         }
         return list;
     }
@@ -301,7 +301,7 @@ public class TradeAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.trade");
+        return TextBuilder.translate("carpet.commands.playerAction.action.trade");
     }
 
     @Override

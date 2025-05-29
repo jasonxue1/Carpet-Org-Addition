@@ -12,8 +12,8 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
@@ -148,19 +148,19 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 3, this.fakePlayer);
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Text itemText = craftOutput.isEmpty() ? TextUtils.translate("carpet.command.item.item") : craftOutput.getItem().getName();
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.craft.result", this.fakePlayer.getDisplayName(), itemText));
+        Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", this.fakePlayer.getDisplayName(), itemText));
         this.addCraftRecipe(list, craftOutput);
         // 判断假玩家是否打开了一个工作台
         if (this.fakePlayer.currentScreenHandler instanceof CraftingScreenHandler currentScreenHandler) {
             // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.craft.state", this.fakePlayer.getDisplayName()));
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.state", this.fakePlayer.getDisplayName()));
             // 如果打开了，将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
             addCraftGridState(currentScreenHandler, list);
         } else {
             // 如果没有打开工作台，将未打开工作台的信息添加到集合
             list.add(
-                    TextUtils.translate(
+                    TextBuilder.translate(
                             "carpet.commands.playerAction.info.craft.no_crafting_table",
                             this.fakePlayer.getDisplayName(), Items.CRAFTING_TABLE.getName()
                     ));
@@ -170,45 +170,58 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
     private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
         // 配方第一排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[0].getInitialUpperCase())
-                .blank().append(this.predicates[1].getInitialUpperCase())
-                .blank().append(this.predicates[2].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextBuilder.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[0].getInitialUpperCase(),
+                        " ",
+                        this.predicates[1].getInitialUpperCase(),
+                        " ",
+                        this.predicates[2].getInitialUpperCase()
+                )
+        );
         // 配方第二排
-        TextBuilder builder = new TextBuilder()
-                .indentation().append(this.predicates[3].getInitialUpperCase())
-                .blank().append(this.predicates[4].getInitialUpperCase())
-                .blank().append(this.predicates[5].getInitialUpperCase());
-        if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
-        }
-        list.add(builder.toLine());
+        list.add(
+                TextBuilder.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[3].getInitialUpperCase(),
+                        " ",
+                        this.predicates[4].getInitialUpperCase(),
+                        " ",
+                        this.predicates[5].getInitialUpperCase(),
+                        craftOutput.isEmpty() ? null : TextBuilder.combineAll(" -> ", FakePlayerUtils.getWithCountHoverText(craftOutput))
+                )
+        );
         // 配方第三排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[6].getInitialUpperCase())
-                .blank().append(this.predicates[7].getInitialUpperCase())
-                .blank().append(this.predicates[8].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextBuilder.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[6].getInitialUpperCase(),
+                        " ",
+                        this.predicates[7].getInitialUpperCase(),
+                        " ",
+                        this.predicates[8].getInitialUpperCase()
+                )
+        );
     }
 
     // 添加当前合成方格的状态
     private void addCraftGridState(CraftingScreenHandler currentScreenHandler, ArrayList<MutableText> list) {
         // 合成格第一排
-        list.add(TextUtils.appendAll(
+        list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(1).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(2).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(3).getStack())
         ));
         // 合成格第二排和输出槽
-        list.add(TextUtils.appendAll(
+        list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(4).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(5).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(6).getStack()),
                 " -> ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(0).getStack())
         ));
         // 合成格第三排
-        list.add(TextUtils.appendAll(
+        list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(7).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(8).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(9).getStack())
@@ -226,7 +239,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.crafting_table_craft");
+        return TextBuilder.translate("carpet.commands.playerAction.action.crafting_table_craft");
     }
 
     @Override

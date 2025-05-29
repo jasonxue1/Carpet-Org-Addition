@@ -1,14 +1,15 @@
 package org.carpetorgaddition.util;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -99,11 +100,11 @@ public class MessageUtils {
     }
 
     public static void sendMessage(ServerCommandSource source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextUtils.translate(key, obj));
+        MessageUtils.sendMessage(source, TextBuilder.translate(key, obj));
     }
 
     public static void sendMessage(ServerPlayerEntity player, String key, Object... obj) {
-        MessageUtils.sendMessage(player, TextUtils.translate(key, obj));
+        MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
     }
 
     /**
@@ -114,11 +115,15 @@ public class MessageUtils {
     }
 
     public static void sendErrorMessage(ServerCommandSource source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextUtils.setColor(TextUtils.translate(key, obj), Formatting.RED));
+        TextBuilder builder = TextBuilder.of(key, obj);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
     }
 
     public static void sendErrorMessage(ServerCommandSource source, Text message) {
-        MessageUtils.sendMessage(source, TextUtils.setColor(message.copy(), Formatting.RED));
+        TextBuilder builder = new TextBuilder(message);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
     }
 
     /**
@@ -132,8 +137,14 @@ public class MessageUtils {
      */
     public static void sendErrorMessage(ServerCommandSource source, Throwable e, String key, Object... obj) {
         String error = GameUtils.getExceptionString(e);
-        MutableText message = TextUtils.setColor(TextUtils.translate(key, obj), Formatting.RED);
-        MessageUtils.sendMessage(source, TextUtils.hoverText(message, TextUtils.createText(error)));
+        TextBuilder builder = TextBuilder.of(key, obj);
+        builder.setStringHover(error);
+        builder.setColor(Formatting.RED);
+        MessageUtils.sendMessage(source, builder.build());
+    }
+
+    public static void sendVanillaErrorMessage(ServerCommandSource source, CommandSyntaxException e) {
+        source.sendError(TextBuilder.create(e.getRawMessage()));
     }
 
     /**

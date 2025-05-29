@@ -4,22 +4,24 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
-import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
@@ -38,6 +40,7 @@ public class BlockSearchTask extends ServerTask {
     private int tickCount;
     private final FinderCommand.BlockPredicate blockPredicate;
     private final ArrayList<Result> results = new ArrayList<>();
+    private final PagedCollection pagedCollection;
 
     public BlockSearchTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
         this.world = world;
@@ -47,6 +50,8 @@ public class BlockSearchTask extends ServerTask {
         this.blockPredicate = blockPredicate;
         this.findState = FindState.SEARCH;
         this.tickCount = 0;
+        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 
     @Override
@@ -129,17 +134,10 @@ public class BlockSearchTask extends ServerTask {
     protected void sendFeedback() {
         int count = this.results.size();
         MutableText name = this.blockPredicate.getName();
-        if (count > CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount) {
-            // 数量过多，只输出距离最近的前十个
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find.limit",
-                    count, name, CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount);
-        } else {
-            MessageUtils.sendMessage(context.getSource(),
-                    "carpet.commands.finder.block.find", count, name);
-        }
-        for (int i = 0; i < this.results.size() && i < CarpetOrgAdditionSettings.finderCommandMaxFeedbackCount; i++) {
-            MessageUtils.sendMessage(context.getSource(), this.results.get(i).toText());
-        }
+        MessageUtils.sendEmptyMessage(this.context);
+        MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find", count, name);
+        this.pagedCollection.addContent(this.results);
+        CommandUtils.handlingException(this.pagedCollection::print, this.context);
         this.findState = FindState.END;
     }
 
@@ -153,7 +151,7 @@ public class BlockSearchTask extends ServerTask {
         return this.findState == FindState.END;
     }
 
-    private class Result {
+    private class Result implements Supplier<Text> {
         private final BlockPos sourcteBlockPos;
         private final BlockPos blockPos;
 
@@ -162,7 +160,8 @@ public class BlockSearchTask extends ServerTask {
             this.blockPos = blockPos;
         }
 
-        public MutableText toText() {
+        @Override
+        public Text get() {
             return getResultMessage(sourcteBlockPos, blockPos);
         }
 
@@ -172,7 +171,7 @@ public class BlockSearchTask extends ServerTask {
     }
 
     protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
-        return TextUtils.translate("carpet.commands.finder.block.feedback",
+        return TextBuilder.translate("carpet.commands.finder.block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
                 TextProvider.blockPos(blockPos, Formatting.GREEN));
     }

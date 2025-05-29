@@ -1,7 +1,6 @@
 package org.carpetorgaddition.util.wheel;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +41,7 @@ public class MetaComment {
     }
 
     public Text getText() {
-        return TextUtils.createText(this.comment);
+        return TextBuilder.create(this.comment);
     }
 
     @Override

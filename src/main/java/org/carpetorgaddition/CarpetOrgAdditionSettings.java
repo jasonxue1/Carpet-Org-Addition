@@ -15,7 +15,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 控制玩家登录登出的消息是否显示
      */
-    public static boolean hiddenLoginMessages = false;
+    public static final ThreadLocal<Boolean> hiddenLoginMessages = ThreadLocal.withInitial(() -> false);
     /**
      * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
      */
@@ -351,7 +351,7 @@ public class CarpetOrgAdditionSettings {
     // 方块掉落物直接进入物品栏
     @RuleSelf
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})
-    public static boolean blockDropsDirectlyEnterInventory = false;
+    public static BlockDropsDirectlyEnterInventory blockDropsDirectlyEnterInventory = BlockDropsDirectlyEnterInventory.FALSE;
 
     // 海龟蛋快速采集
     @Rule(categories = {ORG, RuleCategory.SURVIVAL})

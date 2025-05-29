@@ -1,14 +1,16 @@
 package org.carpetorgaddition.util.provider;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.client.command.AbstractClientCommand;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.command.HighlightCommand;
 import org.carpetorgaddition.command.*;
-import org.carpetorgaddition.util.wheel.MetaComment;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.StringJoiner;
 import java.util.UUID;
 
 public class CommandProvider {
@@ -28,7 +30,6 @@ public class CommandProvider {
     public static String cancelExpress(int id) {
         return "/%s cancel %s".formatted(getCommandName(MailCommand.class), id);
     }
-
 
     /**
      * 接收所有快递
@@ -61,9 +62,8 @@ public class CommandProvider {
     /**
      * 将一名玩家重新保存到玩家管理器
      */
-    public static String playerManagerResave(String playerName, MetaComment comment) {
-        String str = "/%s resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
-        return comment.hasContent() ? str + " \"" + comment.getComment() + "\"" : str;
+    public static String playerManagerResave(String playerName) {
+        return "/%s modify resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
     }
 
     /**
@@ -82,6 +82,37 @@ public class CommandProvider {
         String commandName = getCommandName(PlayerManagerCommand.class);
         String playerName = player.getName().getString();
         return "/%s safeafk set %s -1 true".formatted(commandName, playerName);
+    }
+
+    public static String listGroupPlayer(String group, @Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list group");
+        joiner.add(StringArgumentType.escapeIfRequired(group));
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
+    }
+
+    public static String listUngroupedPlayer(@Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list ungrouped");
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
+    }
+
+    public static String listAllPlayer(@Nullable String filter) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(PlayerManagerCommand.class));
+        joiner.add("group list all");
+        if (filter != null) {
+            joiner.add(StringArgumentType.escapeIfRequired(filter));
+        }
+        return joiner.toString();
     }
 
     /**
@@ -139,6 +170,25 @@ public class CommandProvider {
      */
     public static String openPlayerInventory(PlayerEntity player) {
         return "player %s inventory".formatted(player.getName().getString());
+    }
+
+    public static String openPlayerInventory(UUID uuid) {
+        return "/%s textclickevent openInventory %s inventory".formatted(getCommandName(OrangeCommand.class), uuid.toString());
+    }
+
+    public static String openPlayerEnderChest(UUID uuid) {
+        return "/%s textclickevent openInventory %s enderChest".formatted(getCommandName(OrangeCommand.class), uuid.toString());
+    }
+
+    /**
+     * 翻页
+     */
+    public static String pageTurning(int id, int number) {
+        return "/%s textclickevent pageturning %s %s".formatted(getCommandName(OrangeCommand.class), id, number);
+    }
+
+    public static String setCarpetRule(String rule, String value) {
+        return "/carpet %s %s".formatted(rule, value);
     }
 
     private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {

@@ -25,8 +25,8 @@ import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -87,7 +87,11 @@ public class DictionaryCommand extends AbstractClientCommand {
     // 将字符串id转换成可以单击复制的形式
     @NotNull
     private MutableText canCopyId(String id) {
-        return TextUtils.copy(id, id, TextProvider.COPY_CLICK, Formatting.GREEN);
+        return new TextBuilder(id)
+                .setCopyToClipboard(id)
+                .setHover(TextProvider.COPY_CLICK)
+                .setColor(Formatting.GREEN)
+                .build();
     }
 
     @Override
@@ -167,7 +171,7 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case BIOME -> {
                     Identifier id = Objects.requireNonNull(registry.getOrThrow(RegistryKeys.BIOME).getId((Biome) obj), "无法获取生物群系id");
                     String key = id.toTranslationKey("biome");
-                    yield TextUtils.translate(key);
+                    yield TextBuilder.translate(key);
                 }
             };
         }

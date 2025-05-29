@@ -11,8 +11,8 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
@@ -145,11 +145,11 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 2, this.fakePlayer);
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Text itemText = craftOutput.isEmpty() ? TextUtils.translate("carpet.command.item.item") : craftOutput.getItem().getName();
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.craft.result", playerName, itemText));
+        Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", playerName, itemText));
         this.addCraftRecipe(list, craftOutput);
         // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.craft.state", playerName));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.state", playerName));
         // 获取玩家的生存模式物品栏对象
         PlayerScreenHandler playerScreenHandler = this.fakePlayer.playerScreenHandler;
         // 将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
@@ -160,29 +160,35 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     // 添加合成配方文本
     private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
         // 配方第一排
-        list.add(new TextBuilder()
-                .indentation().append(this.predicates[0].getInitialUpperCase())
-                .blank().append(this.predicates[1].getInitialUpperCase())
-                .toLine());
+        list.add(
+                TextBuilder.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[0].getInitialUpperCase(),
+                        " ",
+                        this.predicates[1].getInitialUpperCase()
+                )
+        );
         // 配方第二排
-        TextBuilder builder = new TextBuilder()
-                .indentation().append(this.predicates[2].getInitialUpperCase())
-                .blank().append(this.predicates[3].getInitialUpperCase());
-        if (!craftOutput.isEmpty()) {
-            builder.appendString(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
-        }
-        list.add(builder.toLine());
+        list.add(
+                TextBuilder.combineAll(
+                        TextProvider.INDENT_SYMBOL,
+                        this.predicates[2].getInitialUpperCase(),
+                        " ",
+                        this.predicates[3].getInitialUpperCase(),
+                        craftOutput.isEmpty() ? null : TextBuilder.combineAll(" -> ", FakePlayerUtils.getWithCountHoverText(craftOutput))
+                )
+        );
     }
 
     // 合成方格内的物品状态
     private void addCraftGridState(ArrayList<MutableText> list, PlayerScreenHandler playerScreenHandler) {
         // 合成格第一排
-        list.add(TextUtils.appendAll(
+        list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(1).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(2).getStack())
         ));
         // 合成格第二排和输出槽
-        list.add(TextUtils.appendAll(
+        list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(3).getStack()),
                 " ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(4).getStack()),
                 " -> ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(0).getStack())
@@ -200,7 +206,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.inventory_craft");
+        return TextBuilder.translate("carpet.commands.playerAction.action.inventory_craft");
     }
 
     @Override

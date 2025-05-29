@@ -11,9 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.RuleSelfConstants;
-import org.carpetorgaddition.rule.RuleSelfManager;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.rule.RuleUtils;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -42,20 +40,14 @@ public abstract class BlockMixin {
      */
     @Unique
     private static List<ItemStack> collect(List<ItemStack> list) {
-        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
-            ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
-            if (player == null) {
-                return list;
+        ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
+        if (RuleUtils.canCollectBlock(player)) {
+            // 将物品直接插入玩家物品栏
+            for (ItemStack itemStack : list) {
+                player.getInventory().insertStack(itemStack);
             }
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
-            if (ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory)) {
-                // 将物品直接插入玩家物品栏
-                for (ItemStack itemStack : list) {
-                    player.getInventory().insertStack(itemStack);
-                }
-                // 如果物品完全插入玩家物品栏，返回空集合，否则将剩余物品返回，然后掉落
-                return list.isEmpty() ? List.of() : list.stream().filter(itemStack -> !itemStack.isEmpty()).toList();
-            }
+            // 如果物品完全插入玩家物品栏，返回空集合，否则将剩余物品返回，然后掉落
+            return list.isEmpty() ? List.of() : list.stream().filter(itemStack -> !itemStack.isEmpty()).toList();
         }
         return list;
     }
