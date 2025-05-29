@@ -283,6 +283,7 @@
   "carpet.commands.playerManager.autologin.setup": "Automatic login has been set for %s",
   "carpet.commands.playerManager.autologin.cancel": "Cancel the automatic login setting for %s",
   "carpet.commands.playerManager.delete.success": "Successfully removed player data",
+  "carpet.commands.playerManager.delete.non_existent": "The player does not exist",
   "carpet.commands.playerManager.delete.fail": "Failed to remove player data",
   "carpet.commands.playerManager.click.online": "Join",
   "carpet.commands.playerManager.click.offline": "Leave",

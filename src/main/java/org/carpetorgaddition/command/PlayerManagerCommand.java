@@ -57,7 +57,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-// TODO 玩家分组：需要测试
 public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
 
@@ -657,14 +656,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String name = StringArgumentType.getString(context, "name");
         PlayerSerializationManager manager = getSerializationManager(context);
         Optional<FakePlayerSerializer> optional = manager.get(name);
-        if (optional.isEmpty() || !manager.remove(optional.get())) {
-            // TODO 更改命令反馈
-            throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
-        } else {
+        if (optional.isEmpty()) {
+            throw CommandUtils.createException("carpet.commands.playerManager.delete.non_existent");
+        }
+        if (manager.remove(optional.get())) {
             // 文件存在且文件删除成功
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.delete.success");
+            return 1;
         }
-        return 1;
+        throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
     }
 
     // 设置不断重新上线下线

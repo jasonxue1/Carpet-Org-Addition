@@ -370,6 +370,7 @@
   "carpet.commands.playerManager.autologin.setup": "已为%s设置自动登录",
   "carpet.commands.playerManager.autologin.cancel": "取消设置%s的自动登录",
   "carpet.commands.playerManager.delete.success": "已成功删除玩家数据",
+  "carpet.commands.playerManager.delete.non_existent": "玩家不存在",
   "carpet.commands.playerManager.delete.fail": "未能成功删除玩家数据",
   "carpet.commands.playerManager.click.online": "点击上线",
   "carpet.commands.playerManager.click.offline": "点击下线",
