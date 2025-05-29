@@ -69,7 +69,7 @@ public class TextBuilder {
      * 设置文本单击后在聊天栏输入内容
      */
     public TextBuilder setSuggest(String input) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, input)));
+        this.text.styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(input)));
         return this;
     }
 
@@ -88,7 +88,7 @@ public class TextBuilder {
      * 设置悬停提示
      */
     public TextBuilder setHover(Text text) {
-        this.text.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, text)));
+        this.text.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(text)));
         return this;
     }
 
@@ -111,7 +111,7 @@ public class TextBuilder {
      * 设置单击文本后复制内容到剪贴板
      */
     public TextBuilder setCopyToClipboard(String str) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, str)));
+        this.text.styled(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(str)));
         this.setHover(TextProvider.COPY_CLICK);
         return this;
     }
@@ -120,7 +120,7 @@ public class TextBuilder {
      * 设置单击文本后执行命令
      */
     public TextBuilder setCommand(String command) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command)));
+        this.text.styled(style -> style.withClickEvent(new ClickEvent.RunCommand(command)));
         return this;
     }
 

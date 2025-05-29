@@ -18,7 +18,6 @@ import org.carpetorgaddition.client.renderer.WorldRenderer;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientRenderUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
