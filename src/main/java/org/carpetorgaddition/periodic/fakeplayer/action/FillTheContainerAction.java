@@ -7,8 +7,8 @@ import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.stream.IntStream;
@@ -83,7 +83,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     @Override
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
-        MutableText translate = TextUtils.translate(
+        MutableText translate = TextBuilder.translate(
                 "carpet.commands.playerAction.info.fill.predicate",
                 this.fakePlayer.getDisplayName(),
                 this.predicate.toText()
@@ -104,7 +104,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.fill");
+        return TextBuilder.translate("carpet.commands.playerAction.action.fill");
     }
 
     @Override

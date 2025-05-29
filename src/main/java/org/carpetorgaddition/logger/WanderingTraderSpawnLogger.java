@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 /**
  * 流浪商人生成记录器
@@ -23,23 +23,23 @@ public class WanderingTraderSpawnLogger {
                 int spawnCountdown = WanderingTraderSpawnLogger.spawnCountdown.countdown + 1;
                 if (spawnCountdown <= 60) {
                     // 小于60秒
-                    time = TextUtils.translate("carpet.logger.wanderingTrader.time.second", spawnCountdown);
+                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.second", spawnCountdown);
                 } else if (spawnCountdown % 60 == 0) {
                     // 整分
-                    time = TextUtils.translate("carpet.logger.wanderingTrader.time.minutes", spawnCountdown / 60);
+                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes", spawnCountdown / 60);
                 } else {
                     // %s分%s秒
-                    time = TextUtils.translate("carpet.logger.wanderingTrader.time.minutes_and_seconds",
+                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes_and_seconds",
                             spawnCountdown / 60, spawnCountdown % 60);
                 }
                 Loggers.getWanderingTraderLogger().log((s, playerEntity) -> new Text[]{
-                        TextUtils.translate("carpet.logger.wanderingTrader.hud", time, (String.format("%.1f", chance) + "%"))
+                        TextBuilder.translate("carpet.logger.wanderingTrader.hud", time, (String.format("%.1f", chance) + "%"))
                 });
             }
         } else {
             Loggers.getWanderingTraderLogger().log((s, playerEntity)
-                    -> new Text[]{TextUtils.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
-                    TextUtils.translate(GameRules.DO_TRADER_SPAWNING.getTranslationKey()))});
+                    -> new Text[]{TextBuilder.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
+                    TextBuilder.translate(GameRules.DO_TRADER_SPAWNING.getTranslationKey()))});
         }
     }
 

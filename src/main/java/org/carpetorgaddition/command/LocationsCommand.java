@@ -20,6 +20,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.Waypoint;
 import org.carpetorgaddition.util.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
@@ -104,10 +105,10 @@ public class LocationsCommand extends AbstractServerCommand {
             throw CommandUtils.createException("carpet.commands.locations.add.fail.already_exists", name);
         }
         // 创建一个路径点对象
-        Waypoint waypoint = new Waypoint(blockPos, name, WorldUtils.getDimensionId(context.getSource().getWorld()), player.getName().getString());
+        Waypoint waypoint = new Waypoint(blockPos, name, player);
         try {
             // 将路径点写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             // 成功添加路径点
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.locations.add.success", name, WorldUtils.toPosString(blockPos));
         } catch (IOException e) {
@@ -125,7 +126,7 @@ public class LocationsCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
             return 0;
         }
-        MutableText dividerLine = TextUtils.createText("------------------------------");
+        MutableText dividerLine = TextBuilder.create("------------------------------");
         // 显示分隔线
         MessageUtils.sendMessage(context.getSource(), dividerLine);
         int count = 0;
@@ -166,7 +167,7 @@ public class LocationsCommand extends AbstractServerCommand {
             }
             waypoint.setComment(comment);
             // 将路径点对象重新写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             if (remove) {
                 // 移除路径点的说明文本
                 MessageUtils.sendMessage(source, "carpet.commands.locations.comment.remove", name);
@@ -203,7 +204,7 @@ public class LocationsCommand extends AbstractServerCommand {
                 throw CommandUtils.createException("carpet.commands.locations.another.add.fail");
             }
             // 将修改后的路径点重新写入本地文件
-            waypoint.save(server);
+            waypoint.save();
             //添加对向坐标
             MessageUtils.sendMessage(source, "carpet.commands.locations.another.add");
         } catch (IOException | NullPointerException e) {
@@ -245,7 +246,7 @@ public class LocationsCommand extends AbstractServerCommand {
             Waypoint waypoint = Waypoint.load(context.getSource().getServer(), fileName);
             waypoint.setBlockPos(blockPos);
             // 将修改完坐标的路径点对象重新写入本地文件
-            waypoint.save(context.getSource().getServer());
+            waypoint.save();
             //发送命令执行后的反馈
             MessageUtils.sendMessage(source, "carpet.commands.locations.set", fileName);
         } catch (IOException | NullPointerException e) {
@@ -259,16 +260,22 @@ public class LocationsCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
         MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
-            case WorldUtils.OVERWORLD -> TextUtils.translate("carpet.commands.locations.here.overworld",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.GREEN),
-                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED));
-            case WorldUtils.THE_NETHER -> TextUtils.translate("carpet.commands.locations.here.the_nether",
+            case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
+                    player.getDisplayName(),
+                    TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED)
+            );
+            case WorldUtils.THE_NETHER -> TextBuilder.translate("carpet.commands.locations.here.the_nether",
                     player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
-                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN));
-            case WorldUtils.THE_END -> TextUtils.translate("carpet.commands.locations.here.the_end",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE));
-            default -> TextUtils.translate("carpet.commands.locations.here.default",
-                    player.getDisplayName(), WorldUtils.getDimensionId(player.getWorld()),
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN)
+            );
+            case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.here.the_end",
+                    player.getDisplayName(),
+                    TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE)
+            );
+            default -> TextBuilder.translate("carpet.commands.locations.here.default",
+                    player.getDisplayName(),
+                    WorldUtils.getDimensionId(player.getWorld()),
                     TextProvider.blockPos(blockPos, null));
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);

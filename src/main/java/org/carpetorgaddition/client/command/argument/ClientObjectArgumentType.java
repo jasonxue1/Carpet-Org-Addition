@@ -22,7 +22,7 @@ import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -182,12 +182,11 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     }
 
     public static class ClientBiomeArgumentType extends ClientObjectArgumentType<Biome> {
-
         @Override
         protected String objectToString(Biome biome) {
             assert MinecraftClient.getInstance().player != null;
             Registry<Biome> biomes = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
-            return TextUtils.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
+            return TextBuilder.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
 
         }
 
