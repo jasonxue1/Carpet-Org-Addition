@@ -9,7 +9,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -83,14 +83,15 @@ public class CommandUtils {
      * @param key 异常信息的翻译键
      * @return 命令语法参数异常
      */
-    public static CommandSyntaxException createException(String key, Object... obj) {
-        return new SimpleCommandExceptionType(TextUtils.translate(key, obj)).create();
+    public static CommandSyntaxException createException(String key, Object... args) {
+        return new SimpleCommandExceptionType(TextBuilder.translate(key, args)).create();
     }
 
-    public static CommandSyntaxException createException(Throwable e, String key, Object... obj) {
-        String exceptionMessage = GameUtils.getExceptionString(e);
-        MutableText message = TextUtils.translate(key, obj);
-        return new SimpleCommandExceptionType(TextUtils.hoverText(message, exceptionMessage)).create();
+    public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
+        String message = GameUtils.getExceptionString(e);
+        TextBuilder builder = TextBuilder.of(key, args);
+        builder.setHover(message);
+        return new SimpleCommandExceptionType(builder.build()).create();
     }
 
     /**
@@ -129,6 +130,13 @@ public class CommandUtils {
     }
 
     /**
+     * 指定玩家不是假玩家
+     */
+    public static CommandSyntaxException createNotFakePlayerException(PlayerEntity fakePlayer) {
+        return createException("carpet.command.not_fake_player", fakePlayer.getDisplayName());
+    }
+
+    /**
      * 断言指定玩家为假玩家。<br>
      *
      * @param fakePlayer 要检查是否为假玩家的玩家对象
@@ -139,7 +147,7 @@ public class CommandUtils {
             return;
         }
         // 不是假玩家时抛出异常
-        throw createException("carpet.command.not_fake_player", fakePlayer.getDisplayName());
+        throw createNotFakePlayerException(fakePlayer);
     }
 
     /**
@@ -163,5 +171,22 @@ public class CommandUtils {
     public static void execute(ServerCommandSource source, String command) {
         CommandManager commandManager = source.getServer().getCommandManager();
         commandManager.executeWithPrefix(source, command);
+    }
+
+    public static void handlingException(ThrowingRunnable runnable, CommandContext<ServerCommandSource> context) {
+        handlingException(runnable, context.getSource());
+    }
+
+    public static void handlingException(ThrowingRunnable runnable, ServerCommandSource source) {
+        try {
+            runnable.run();
+        } catch (CommandSyntaxException e) {
+            MessageUtils.sendVanillaErrorMessage(source, e);
+        }
+    }
+
+    @FunctionalInterface
+    public interface ThrowingRunnable {
+        void run() throws CommandSyntaxException;
     }
 }

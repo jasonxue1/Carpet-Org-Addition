@@ -18,8 +18,8 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -176,20 +176,20 @@ public class StonecuttingAction extends AbstractPlayerAction {
             itemName = outputItemStack.toHoverableText();
         }
         ArrayList<MutableText> list = new ArrayList<>();
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.stonecutting.item",
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.item",
                 this.fakePlayer.getDisplayName(), Items.STONECUTTER.getName(),
                 this.item.getDefaultStack().toHoverableText(), itemName));
         if (fakePlayer.currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
             // 将按钮索引的信息添加到集合，按钮在之前减去了1，这里再加回来
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.stonecutting.button",
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.button",
                     (this.button + 1)));
             // 将切石机当前的状态的信息添加到集合
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getStack())));
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",
                     this.fakePlayer.getDisplayName(), Items.STONECUTTER.getName()));
         }
         return list;
@@ -205,7 +205,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.stonecutting");
+        return TextBuilder.translate("carpet.commands.playerAction.action.stonecutting");
     }
 
     @Override

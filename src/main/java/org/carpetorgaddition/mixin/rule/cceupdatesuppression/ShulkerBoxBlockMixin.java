@@ -11,8 +11,8 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.exception.CCEUpdateSuppressException;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -48,7 +48,7 @@ public class ShulkerBoxBlockMixin {
                        CallbackInfoReturnable<ActionResult> cir) {
         // 提示玩家不能打开用于更新抑制的潜影盒
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {
-            MessageUtils.sendMessageToHud(player, TextUtils.translate("carpet.rule.message.CCEUpdateSuppression"));
+            MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.CCEUpdateSuppression"));
             cir.setReturnValue(ActionResult.SUCCESS);
         }
     }

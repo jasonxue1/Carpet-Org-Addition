@@ -32,6 +32,10 @@ public class IOUtils {
             "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
             "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"
     };
+    /**
+     * {@code usercache.json}文件
+     */
+    public static final File USERCACHE_JSON = FabricLoader.getInstance().getGameDir().resolve("usercache.json").toFile();
 
     private IOUtils() {
     }
@@ -64,9 +68,13 @@ public class IOUtils {
      * 从文件加载一个json对象
      */
     public static JsonObject loadJson(File file) throws IOException {
+        return loadJson(file, JsonObject.class);
+    }
+
+    public static <T> T loadJson(File file, Class<T> type) throws IOException {
         BufferedReader reader = toReader(file);
         try (reader) {
-            return GSON.fromJson(reader, JsonObject.class);
+            return GSON.fromJson(reader, type);
         }
     }
 

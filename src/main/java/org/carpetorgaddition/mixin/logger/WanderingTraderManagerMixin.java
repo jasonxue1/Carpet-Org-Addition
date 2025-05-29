@@ -19,10 +19,10 @@ import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,8 +55,8 @@ public class WanderingTraderManagerMixin {
     }
 
     @WrapOperation(method = "trySpawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/passive/WanderingTraderEntity;setPositionTarget(Lnet/minecraft/util/math/BlockPos;I)V"))
-    private void broadcastSpawnSuccess(WanderingTraderEntity trader, BlockPos blockPos, int i, Operation<Void> original) {
-        original.call(trader, blockPos, i);
+    private void broadcastSpawnSuccess(WanderingTraderEntity trader, BlockPos pos, int i, Operation<Void> original) {
+        original.call(trader, pos, i);
         if (LoggerRegister.wanderingTrader && WanderingTraderSpawnLogger.spawnCountdownNonNull()) {
             // 获取流浪商人所在的服务器
             MinecraftServer server = trader.getWorld().getServer();
@@ -66,23 +66,27 @@ public class WanderingTraderManagerMixin {
             HUDLogger logger = Loggers.getWanderingTraderLogger();
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
-            MutableText message = TextUtils.translate("carpet.logger.wanderingTrader.message",
-                    TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN));
-            // 带点击导航的消息
-            MutableText command = TextUtils.command(TextUtils.translate("carpet.logger.wanderingTrader.message.navigate"),
-                    CommandProvider.navigateToUuidEntity(trader.getUuid()),
-                    TextUtils.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()),
-                    Formatting.AQUA, false);
-            MutableText canClickMessage = TextUtils.translate("carpet.logger.wanderingTrader.message.click",
-                    TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN), command);
+            MutableText blockPos = TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN);
+            MutableText message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
             for (Map.Entry<String, String> entry : entries) {
                 ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
                 if (player == null) {
                     continue;
                 }
                 // 广播流浪商人生成成功
-                MessageUtils.sendMessage(player, CommandHelper.canUseCommand(player.getCommandSource(),
-                        CarpetOrgAdditionSettings.commandNavigate) ? canClickMessage : message);
+                boolean canNavigate = CommandHelper.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
+                if (canNavigate) {
+                    // 带点击导航的消息
+                    MutableText button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
+                            .setCommand(CommandProvider.navigateToUuidEntity(trader.getUuid()))
+                            .setHover(TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()))
+                            .setColor(Formatting.AQUA)
+                            .build();
+                    MutableText canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
+                    MessageUtils.sendMessage(player, canNavigateMessage);
+                } else {
+                    MessageUtils.sendMessage(player, message);
+                }
                 // 播放音效通知流浪商人生成
                 WorldUtils.playSound(trader.getWorld(), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
             }

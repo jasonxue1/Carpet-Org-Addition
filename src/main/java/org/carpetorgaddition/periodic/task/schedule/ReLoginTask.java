@@ -128,17 +128,17 @@ public class ReLoginTask extends PlayerScheduleTask {
         if (content instanceof TranslatableTextContent text) {
             if (text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
                 try {
-                    CarpetOrgAdditionSettings.hiddenLoginMessages = true;
+                    CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
                     fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
                 } finally {
-                    CarpetOrgAdditionSettings.hiddenLoginMessages = false;
+                    CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
                 }
                 return;
             }
         }
         this.server.send(new ServerTask(this.server.getTicks(), () -> {
             try {
-                CarpetOrgAdditionSettings.hiddenLoginMessages = true;
+                CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
                 /*
                  * 如果不加这个判断并提前返回，可能导致玩家的骑乘实体消失，可能的原因如下：
                  * 1. 玩家在下线后会保存一次数据，其中包括了当前骑乘的实体，下一次上线时，游戏就会从NBT中读取并生成骑乘实体。
@@ -153,7 +153,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 }
                 fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
             } finally {
-                CarpetOrgAdditionSettings.hiddenLoginMessages = false;
+                CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
             }
         }));
     }
@@ -225,7 +225,7 @@ public class ReLoginTask extends PlayerScheduleTask {
         EntityPlayerMPFake fakePlayer = EntityPlayerMPFake.respawnFake(server, worldIn, gameprofile, SyncedClientOptions.createDefault());
         fakePlayer.fixStartingPosition = GameUtils::pass;
         try {
-            CarpetOrgAdditionSettings.hiddenLoginMessages = true;
+            CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
             server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), fakePlayer, new ConnectedClientData(gameprofile, 0, fakePlayer.getClientOptions(), false));
         } catch (NullPointerException e) {
             CarpetOrgAddition.LOGGER.warn("{}在尝试在服务器关闭时上线", this.playerName, e);
@@ -233,7 +233,7 @@ public class ReLoginTask extends PlayerScheduleTask {
             return;
         } finally {
             // 假玩家加入游戏后，这个变量必须重写设置为false，防止影响其它广播消息的方法
-            CarpetOrgAdditionSettings.hiddenLoginMessages = false;
+            CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
         }
         fakePlayer.setHealth(20.0F);
         ((EntityAccessor) fakePlayer).cancelRemoved();
