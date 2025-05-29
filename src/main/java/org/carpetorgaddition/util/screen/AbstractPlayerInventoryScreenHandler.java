@@ -4,7 +4,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
@@ -17,21 +16,6 @@ import org.carpetorgaddition.util.wheel.DisabledSlot;
 import java.util.Map;
 
 public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> extends ScreenHandler implements UnavailableSlotSyncInterface, BackgroundSpriteSyncServer {
-    /**
-     * 容器的背景精灵图
-     */
-    protected static final Map<Integer, Identifier> BACKGROUND_SPRITE_MAP = Map.of(
-            36, PlayerScreenHandler.EMPTY_HELMET_SLOT_TEXTURE,
-            37, PlayerScreenHandler.EMPTY_CHESTPLATE_SLOT_TEXTURE,
-            38, PlayerScreenHandler.EMPTY_LEGGINGS_SLOT_TEXTURE,
-            39, PlayerScreenHandler.EMPTY_BOOTS_SLOT_TEXTURE,
-            40, PlayerScreenHandler.EMPTY_OFFHAND_ARMOR_SLOT
-    );
-
-    /**
-     * 玩家物品栏的大小
-     */
-    protected static final int SIZE = 41;
     /**
      * 玩家正在操作的物品栏
      */

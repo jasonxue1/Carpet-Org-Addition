@@ -40,6 +40,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Shadow
     public abstract HungerManager getHungerManager();
 
+    @Override
     @Shadow
     public abstract boolean isSpectator();
 
