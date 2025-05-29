@@ -5,14 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.Dynamic;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
@@ -21,11 +16,12 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.ReadView;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
-import net.minecraft.world.dimension.DimensionType;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
@@ -57,17 +53,15 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
      */
     private void initFakePlayer(MinecraftServer server) {
-        Optional<NbtCompound> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer);
-        RegistryKey<World> registryKey = optional.flatMap(nbt -> {
-            Dynamic<NbtElement> dynamic = new Dynamic<>(NbtOps.INSTANCE, nbt.get("Dimension"));
-            //noinspection deprecation
-            DataResult<RegistryKey<World>> dimension = DimensionType.worldFromDimensionNbt(dynamic);
-            return dimension.resultOrPartial(CarpetOrgAddition.LOGGER::error);
-        }).orElse(World.OVERWORLD);
-        ServerWorld world = server.getWorld(registryKey);
-        if (world != null) {
-            // 设置玩家所在维度
-            this.fabricPlayer.setServerWorld(world);
+        ErrorReporter.Logging logging = new ErrorReporter.Logging(CarpetOrgAddition.LOGGER);
+        try (logging) {
+            Optional<ReadView> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer, logging);
+            RegistryKey<World> registryKey = optional.flatMap(nbt -> nbt.read("Dimension", World.CODEC)).orElse(World.OVERWORLD);
+            ServerWorld world = server.getWorld(registryKey);
+            if (world != null) {
+                // 设置玩家所在维度
+                this.fabricPlayer.setServerWorld(world);
+            }
         }
     }
 
