@@ -518,6 +518,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             PagedCollection collection = pageManager.newPagedCollection(context.getSource());
             collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
+            // TODO 显示“所有玩家”
             if (entry.getKey() == null) {
                 MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
             } else {
