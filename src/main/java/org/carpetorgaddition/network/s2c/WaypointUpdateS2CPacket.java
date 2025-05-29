@@ -3,6 +3,7 @@ package org.carpetorgaddition.network.s2c;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.PacketUtils;
@@ -37,6 +38,10 @@ public record WaypointUpdateS2CPacket(Vec3d target, String worldId) implements C
 
     public WaypointUpdateS2CPacket(Vec3d target, World world) {
         this(target, WorldUtils.getDimensionId(world));
+    }
+
+    public WaypointUpdateS2CPacket(BlockPos blockPos, World world) {
+        this(blockPos.toCenterPos(), WorldUtils.getDimensionId(world));
     }
 
     @Override

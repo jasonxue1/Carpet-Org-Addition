@@ -14,7 +14,6 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
@@ -210,7 +209,9 @@ public class ExpressManager {
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            Text message = TextUtils.toGrayItalic(TextUtils.translate("carpet.commands.mail.cancel.notice", player.getDisplayName()));
+            TextBuilder builder = TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName());
+            builder.setGrayItalic();
+            Text message = builder.build();
             for (String name : players) {
                 PlayerManager playerManager = player.getWorld().getServer().getPlayerManager();
                 ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
@@ -227,13 +228,14 @@ public class ExpressManager {
      * @return 获取快递发送者的快递被接收者接收的消息
      */
     public static MutableText getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
-        TextBuilder builder = new TextBuilder();
+        ArrayList<Text> list = new ArrayList<>();
         for (Item item : counter) {
-            builder.append(TextUtils.appendAll(item.getName(), "*", counter.getCount(item)));
+            list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));
         }
-        MutableText translate = TextUtils.translate("carpet.commands.mail.sending.notice", player.getDisplayName());
-        MutableText message = TextUtils.toGrayItalic(translate);
-        return TextUtils.hoverText(message, builder.toParagraph());
+        TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.notice", player.getDisplayName());
+        builder.setGrayItalic();
+        builder.setHover(TextBuilder.joinList(list));
+        return builder.build();
     }
 
     /**

@@ -14,6 +14,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 public class ItemShadowingCommand extends AbstractServerCommand {
     public ItemShadowingCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -40,11 +41,9 @@ public class ItemShadowingCommand extends AbstractServerCommand {
             // 制作物品分身
             player.setStackInHand(Hand.OFF_HAND, main);
             // 广播制作物品分身的消息
-            MessageUtils.broadcastMessage(context.getSource().getServer(),
-                    TextUtils.translate("carpet.commands.itemshadowing.broadcast",
-                            player.getDisplayName(),
-                            main.toHoverableText()
-                    )
+            MessageUtils.broadcastMessage(
+                    context.getSource().getServer(),
+                    TextBuilder.translate("carpet.commands.itemshadowing.broadcast", player.getDisplayName(), main.toHoverableText())
             );
             // 将玩家制作物品分身的消息写入日志
             if (InventoryUtils.isShulkerBoxItem(main)) {

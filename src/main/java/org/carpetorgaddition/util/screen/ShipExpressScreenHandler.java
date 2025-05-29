@@ -15,11 +15,11 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.IOException;
 
@@ -129,7 +129,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             }
             case 2 -> {
                 // 不显示物品堆叠组数，但鼠标悬停可以显示物品栏
-                MutableText itemText = TextUtils.translate("carpet.command.item.item");
+                MutableText itemText = TextBuilder.translate("carpet.command.item.item");
                 yield new Object[]{playerName, count, TextProvider.inventory(itemText, inventory), command};
             }
             default -> throw new IllegalStateException();

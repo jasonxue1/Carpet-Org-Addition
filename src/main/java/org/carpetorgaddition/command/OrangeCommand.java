@@ -1,11 +1,12 @@
 package org.carpetorgaddition.command;
 
 import carpet.api.settings.CarpetRule;
-import carpet.api.settings.RuleHelper;
 import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -22,14 +23,22 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
-import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
+import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.util.page.PagedCollection;
 import org.carpetorgaddition.util.permission.CommandPermission;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
 import org.jetbrains.annotations.NotNull;
 
@@ -96,7 +105,17 @@ public class OrangeCommand extends AbstractServerCommand {
                 .then(CommandManager.literal("textclickevent")
                         .then(CommandManager.literal("queryPlayerName")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
-                                        .executes(this::queryPlayerName)))));
+                                        .executes(this::queryPlayerName)))
+                        .then(CommandManager.literal("pageturning")
+                                .then(CommandManager.argument("id", IntegerArgumentType.integer(0))
+                                        .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
+                                                .executes(this::pageTurning))))
+                        .then(CommandManager.literal("openInventory")
+                                .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
+                                        .then(CommandManager.literal("inventory")
+                                                .executes(this::openPlayerInventory))
+                                        .then(CommandManager.literal("enderChest")
+                                                .executes(this::openPlayerEnderChest))))));
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
@@ -139,7 +158,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        MutableText version = TextUtils.hoverText(CarpetOrgAddition.VERSION, CarpetOrgAddition.BUILD_TIMESTAMP);
+        MutableText version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
@@ -184,12 +203,9 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
-        MessageUtils.sendMessage(
-                context,
-                "carpet.commands.orange.textclickevent.queryPlayerName.success",
-                TextUtils.copy(playerUuid, playerUuid, TextProvider.COPY_CLICK, Formatting.GRAY),
-                TextUtils.copy(playerName, playerName, TextProvider.COPY_CLICK, Formatting.GRAY)
-        );
+        MutableText uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
+        MutableText name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
+        MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
     }
 
     /**
@@ -250,18 +266,17 @@ public class OrangeCommand extends AbstractServerCommand {
             ruleSelfManager.setEnabled(player, ruleString, value);
             Text ruleName = RuleUtils.simpleTranslationName(rule);
             Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
-            MutableText translate;
+            TextBuilder builder;
             if (value) {
-                translate = TextUtils.translate("carpet.commands.orange.ruleself.enable", ruleName, playerName);
+                builder = TextBuilder.of("carpet.commands.orange.ruleself.enable", ruleName, playerName);
             } else {
-                translate = TextUtils.translate("carpet.commands.orange.ruleself.disable", ruleName, playerName);
+                builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
-            if (RuleHelper.isInDefaultValue(rule)) {
-                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
-                translate = TextUtils.hoverText(translate, hover);
-                translate = TextUtils.toStrikethrough(translate);
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
+                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setStrikethrough();
             }
-            MessageUtils.sendMessage(context.getSource(), translate);
+            MessageUtils.sendMessage(context.getSource(), builder.build());
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();
@@ -281,16 +296,68 @@ public class OrangeCommand extends AbstractServerCommand {
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
             Text displayName = RuleUtils.simpleTranslationName(rule);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
-            MutableText translate = TextUtils.translate("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
-            if (RuleHelper.isInDefaultValue(rule)) {
-                MutableText hover = TextUtils.translate("carpet.commands.orange.ruleself.invalid");
-                translate = TextUtils.hoverText(translate, hover);
-                translate = TextUtils.toStrikethrough(translate);
+            TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
+                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setStrikethrough();
             }
-            MessageUtils.sendMessage(context.getSource(), translate);
+            MessageUtils.sendMessage(context.getSource(), builder.build());
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();
+    }
+
+    private int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int id = IntegerArgumentType.getInteger(context, "id");
+        int page = IntegerArgumentType.getInteger(context, "page");
+        MinecraftServer server = context.getSource().getServer();
+        PageManager manager = GenericFetcherUtils.getPageManager(server);
+        Optional<PagedCollection> optional = manager.get(id);
+        if (optional.isPresent()) {
+            PagedCollection collection = optional.get();
+            collection.print(page, true);
+            return page;
+        } else {
+            throw CommandUtils.createException("carpet.command.page.non_existent");
+        }
+    }
+
+    private int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        if (player == null) {
+            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            PlayerCommandExtension.openOfflinePlayerInventory(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+        } else {
+            PlayerCommandExtension.openOnlinePlayerInventory(CommandUtils.getSourcePlayer(context), player, server, source);
+        }
+        return 1;
+    }
+
+    private int openPlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        if (player == null) {
+            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            PlayerCommandExtension.openOfflinePlayerEnderChest(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+        } else {
+            PlayerCommandExtension.openOnlinePlayerEnderChest(CommandUtils.getSourcePlayer(context), player, server, source);
+        }
+        return 1;
     }
 
     @Override

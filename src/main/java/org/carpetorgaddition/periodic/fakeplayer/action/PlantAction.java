@@ -24,8 +24,8 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
@@ -299,7 +299,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     public ArrayList<MutableText> info() {
-        return Lists.newArrayList(TextUtils.translate("carpet.commands.playerAction.info.farm", this.fakePlayer.getDisplayName()));
+        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.fakePlayer.getDisplayName()));
     }
 
     @Override
@@ -309,7 +309,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.farm");
+        return TextBuilder.translate("carpet.commands.playerAction.action.farm");
     }
 
     @Override

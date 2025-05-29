@@ -8,9 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -86,50 +84,6 @@ public class WorldFormat {
     }
 
     /**
-     * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
-     *
-     * @param fileName 文件名，如果没有扩展名，则自动添加json作为扩展名
-     */
-    @Deprecated(forRemoval = true)
-    public File jsonFile(String fileName) {
-        return new File(this.directory, suppJsonFileName(fileName));
-    }
-
-    /**
-     * 获取一个当前目录下的指定名称的文件对象
-     *
-     * @param fileName 文件的名称，如果没有扩展名，则自动添加一个.json作为扩展名
-     */
-    @Deprecated(forRemoval = true)
-    public File getJsonFile(String fileName) {
-        fileName = suppJsonFileName(fileName);
-        return new File(this.directory, fileName);
-    }
-
-    // 补全文件扩展名
-    @Deprecated(forRemoval = true)
-    private static String suppJsonFileName(String fileName) {
-        if (fileName.split("\\.").length == 1) {
-            return fileName + IOUtils.JSON_EXTENSION;
-        }
-        return fileName;
-    }
-
-    /**
-     * @return 包含目录下所有文件的Set集合
-     * @deprecated 因为是Set集合，所以集合内的元素是无序的，并且，该集合可变，可以任意添加或修改元素
-     */
-    @Deprecated(forRemoval = true)
-    public HashSet<File> listFiles() {
-        File[] files = this.directory.listFiles();
-        if (files == null) {
-            // 返回空集合
-            return new HashSet<>();
-        }
-        return new HashSet<>(Arrays.asList(files));
-    }
-
-    /**
      * @return 包含该目录所有文件的不可变的List集合
      * @apiNote Java貌似没有对中文的拼音排序做很好的支持，因此，中文的排序依然是无序的
      */
@@ -151,12 +105,8 @@ public class WorldFormat {
         return Stream.of(files).filter(filter).sorted(Comparator.comparing(file -> file.getName().toLowerCase())).toList();
     }
 
-    // 检查该目录下的文件是否存在
-    @Deprecated(forRemoval = true)
-    public boolean fileExists(String fileName) {
-        fileName = suppJsonFileName(fileName);
-        File file = this.jsonFile(fileName);
-        return file.exists();
+    public boolean hasFile(String fileName, String extension) {
+        return this.file(fileName, extension).isFile();
     }
 
     @Override

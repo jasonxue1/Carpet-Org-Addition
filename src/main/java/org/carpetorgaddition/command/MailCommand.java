@@ -26,9 +26,9 @@ import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
 import org.carpetorgaddition.util.screen.ShipExpressScreenHandler;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -107,7 +107,7 @@ public class MailCommand extends AbstractServerCommand {
         SimpleInventory inventory = new SimpleInventory(27);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inv, player)
                 -> new ShipExpressScreenHandler(i, inv, sourcePlayer, targetPlayer, inventory),
-                TextUtils.translate("carpet.commands.mail.multiple.gui"));
+                TextBuilder.translate("carpet.commands.mail.multiple.gui"));
         sourcePlayer.openHandledScreen(screen);
         return 1;
     }
@@ -179,32 +179,34 @@ public class MailCommand extends AbstractServerCommand {
 
     private void list(ServerPlayerEntity player, Express express) {
         ArrayList<MutableText> list = new ArrayList<>();
-        MutableText text;
+        TextBuilder builder;
         if (express.isRecipient(player)) {
-            text = TextUtils.createText("[R]");
+            builder = new TextBuilder("[R]");
             // 点击接收
-            TextUtils.command(text, CommandProvider.receiveExpress(express.getId()), null, Formatting.AQUA, false);
-            list.add(TextUtils.translate("carpet.commands.mail.list.receive"));
-            list.add(TextUtils.createEmpty());
+            builder.setCommand(CommandProvider.receiveExpress(express.getId()));
+            builder.setColor(Formatting.AQUA);
+            list.add(TextBuilder.translate("carpet.commands.mail.list.receive"));
+            list.add(TextBuilder.empty());
         } else if (express.isSender(player)) {
-            text = TextUtils.createText("[C]");
+            builder = new TextBuilder("[C]");
             // 点击撤回
-            TextUtils.command(text, CommandProvider.cancelExpress(express.getId()), null, Formatting.AQUA, false);
-            list.add(TextUtils.translate("carpet.commands.mail.list.sending"));
-            list.add(TextUtils.createEmpty());
+            builder.setCommand(CommandProvider.cancelExpress(express.getId()));
+            builder.setColor(Formatting.AQUA);
+            list.add(TextBuilder.translate("carpet.commands.mail.list.sending"));
+            list.add(TextBuilder.empty());
         } else {
-            text = TextUtils.createText("[?]");
+            builder = new TextBuilder("[?]");
         }
-        list.add(TextUtils.translate("carpet.commands.mail.list.id", express.getId()));
-        list.add(TextUtils.translate("carpet.commands.mail.list.sender", express.getSender()));
-        list.add(TextUtils.translate("carpet.commands.mail.list.recipient", express.getRecipient()));
-        list.add(TextUtils.translate("carpet.commands.mail.list.item",
-                TextUtils.translate(express.getExpress().getItem().getTranslationKey()), express.getExpress().getCount()));
-        list.add(TextUtils.translate("carpet.commands.mail.list.time", express.getTime()));
+        list.add(TextBuilder.translate("carpet.commands.mail.list.id", express.getId()));
+        list.add(TextBuilder.translate("carpet.commands.mail.list.sender", express.getSender()));
+        list.add(TextBuilder.translate("carpet.commands.mail.list.recipient", express.getRecipient()));
+        list.add(TextBuilder.translate("carpet.commands.mail.list.item",
+                TextBuilder.translate(express.getExpress().getItem().getTranslationKey()), express.getExpress().getCount()));
+        list.add(TextBuilder.translate("carpet.commands.mail.list.time", express.getTime()));
         // 拼接字符串
-        text = TextUtils.hoverText(text, TextUtils.appendList(list));
+        builder.setHover(TextBuilder.joinList(list));
         MessageUtils.sendMessage(player, "carpet.commands.mail.list.each",
-                express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), text);
+                express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), builder.build());
     }
 
     // 获取快递

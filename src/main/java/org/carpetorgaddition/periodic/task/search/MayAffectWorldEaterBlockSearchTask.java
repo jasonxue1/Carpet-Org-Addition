@@ -8,9 +8,9 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
     public MayAffectWorldEaterBlockSearchTask(ServerWorld world, BlockPos sourcePos, SelectionArea selectionArea, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
@@ -19,7 +19,7 @@ public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
 
     @Override
     protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
-        return TextUtils.translate(
+        return TextBuilder.translate(
                 "carpet.commands.finder.may_affect_world_eater_block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
                 TextProvider.blockPos(blockPos, Formatting.GREEN),

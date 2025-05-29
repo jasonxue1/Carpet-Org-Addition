@@ -6,22 +6,17 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.server.network.ServerPlayerEntity;
 
 public class ServerPlayerInventory extends AbstractCustomSizeInventory {
-    private final ServerPlayerEntity fakePlayer;
+    private final ServerPlayerEntity player;
     private final PlayerInventory inventory;
 
-    public ServerPlayerInventory(ServerPlayerEntity fakePlayer) {
-        this.fakePlayer = fakePlayer;
-        this.inventory = fakePlayer.getInventory();
+    public ServerPlayerInventory(ServerPlayerEntity player) {
+        this.player = player;
+        this.inventory = player.getInventory();
     }
 
     @Override
     public int size() {
         return 54;
-    }
-
-    @Override
-    protected int getActualSize() {
-        return 41;
     }
 
     @Override
@@ -32,6 +27,6 @@ public class ServerPlayerInventory extends AbstractCustomSizeInventory {
     @Override
     public boolean canPlayerUse(PlayerEntity player) {
         // 玩家活着，并且玩家没有被删除
-        return !this.fakePlayer.isDead() && !this.fakePlayer.isRemoved();
+        return !this.player.isDead() && !this.player.isRemoved();
     }
 }

@@ -34,12 +34,12 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.permission.PermissionLevel;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.File;
 import java.util.Locale;
@@ -61,7 +61,7 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 村民的游戏内名称
      */
-    public static final MutableText VILLAGER = TextUtils.translate("entity.minecraft.villager");
+    public static final MutableText VILLAGER = TextBuilder.translate("entity.minecraft.villager");
     /**
      * 查找超时时抛出异常的反馈消息
      */
@@ -275,9 +275,9 @@ public class FinderCommand extends AbstractServerCommand {
 
     // 将物品数量转换为“多少组多少个”的形式
     public static MutableText showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
-        MutableText text = TextProvider.itemCount(count, itemStack.getMaxCount());
+        TextBuilder builder = new TextBuilder(TextProvider.itemCount(count, itemStack.getMaxCount()));
         // 如果包含在潜影盒内找到的物品，在数量上添加斜体效果
-        return inTheShulkerBox ? TextUtils.toItalic(text) : text;
+        return inTheShulkerBox ? builder.setItalic().build() : builder.build();
     }
 
     @Override
@@ -348,7 +348,7 @@ public class FinderCommand extends AbstractServerCommand {
 
         @Override
         public MutableText getName() {
-            return TextUtils.translate("carpet.commands.finder.may_affect_world_eater_block.name");
+            return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
         }
     }
 

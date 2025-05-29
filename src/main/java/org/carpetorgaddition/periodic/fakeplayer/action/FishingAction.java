@@ -11,7 +11,7 @@ import net.minecraft.item.Items;
 import net.minecraft.text.MutableText;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.mixin.command.FishingBobberEntityAccessor;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -128,7 +128,7 @@ public class FishingAction extends AbstractPlayerAction {
     @Override
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.fishing", this.fakePlayer.getDisplayName()));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.fishing", this.fakePlayer.getDisplayName()));
         return list;
     }
 
@@ -139,7 +139,7 @@ public class FishingAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.fishing");
+        return TextBuilder.translate("carpet.commands.playerAction.action.fishing");
     }
 
     @Override
