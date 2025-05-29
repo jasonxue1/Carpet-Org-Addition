@@ -518,12 +518,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             PagedCollection collection = pageManager.newPagedCollection(context.getSource());
             collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
-            // TODO 显示“所有玩家”
-            if (entry.getKey() == null) {
-                MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
-            } else {
-                MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list", entry.getKey());
-            }
+            MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.all");
             collection.print();
             return list.size();
         } else {
@@ -628,12 +623,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         String name = fakePlayer.getName().getString();
         FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
-        String comment = oldSerializer.getComment();
         PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
-        FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer);
-        if (!comment.isEmpty()) {
-            newSerializer.setComment(comment);
-        }
+        FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer, oldSerializer);
         manager.add(newSerializer);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.resave", fakePlayer.getDisplayName());
         return 1;

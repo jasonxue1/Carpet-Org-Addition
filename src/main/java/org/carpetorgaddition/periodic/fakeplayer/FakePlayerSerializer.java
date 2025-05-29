@@ -108,6 +108,14 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.file = new WorldFormat(fakePlayer.server, PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
     }
 
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
+        this(fakePlayer);
+        this.groups.addAll(serializer.getGroups());
+        this.autologin = serializer.autologin;
+        this.comment.setComment(serializer.comment.getComment());
+        this.isChanged = true;
+    }
+
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
         this(fakePlayer);
         this.comment.setComment(comment);
