@@ -5,13 +5,10 @@ import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.StackWithSlot;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.storage.NbtReadView;
 import net.minecraft.storage.ReadView;
 import net.minecraft.text.Text;
 import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.UserCache;
 import org.carpetorgaddition.util.TextUtils;
 
 @SuppressWarnings("JavadocReference")

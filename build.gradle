@@ -32,7 +32,7 @@ dependencies {
     // Fabric API. This is technically optional, but you probably want it anyway.
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     // fabric-carpet
-    modImplementation(files("lib/fabric-carpet-25w20a-1.4.174+v250513.jar"))
+    modImplementation(files("lib/fabric-carpet-1.21.6-pre1-1.4.175+v250528.jar"))
     // modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
     // mixinextras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))

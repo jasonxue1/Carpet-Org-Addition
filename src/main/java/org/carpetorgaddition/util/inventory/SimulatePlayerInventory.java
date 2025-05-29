@@ -26,7 +26,7 @@ public class SimulatePlayerInventory implements Inventory {
     }
 
     /**
-     * @see net.minecraft.entity.player.PlayerInventory#readNbt(NbtList)
+     * @see net.minecraft.entity.player.PlayerInventory#readData(ReadView.TypedListReadView)
      */
     public static SimulatePlayerInventory of(NbtCompound nbt, MinecraftServer server) {
         ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, server.getRegistryManager(), nbt);
