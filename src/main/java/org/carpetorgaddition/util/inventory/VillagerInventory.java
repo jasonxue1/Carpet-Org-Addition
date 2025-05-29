@@ -20,11 +20,6 @@ public class VillagerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    protected int getActualSize() {
-        return 8;
-    }
-
-    @Override
     protected Inventory getInventory() {
         return this.inventory;
     }

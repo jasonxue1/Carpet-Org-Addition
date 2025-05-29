@@ -29,8 +29,8 @@ import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -565,7 +565,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     public ArrayList<MutableText> info() {
-        return Lists.newArrayList(TextUtils.translate("carpet.commands.playerAction.info.bedrock", fakePlayer.getDisplayName()));
+        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", fakePlayer.getDisplayName()));
     }
 
     @Override
@@ -588,7 +588,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.bedrock");
+        return TextBuilder.translate("carpet.commands.playerAction.action.bedrock");
     }
 
     @Override

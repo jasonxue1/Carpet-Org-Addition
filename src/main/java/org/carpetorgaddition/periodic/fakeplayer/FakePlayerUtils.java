@@ -16,7 +16,6 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Direction;
@@ -25,8 +24,8 @@ import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.function.Predicate;
 
@@ -95,7 +94,7 @@ public class FakePlayerUtils {
         GenericFetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(
                 source.getServer(),
-                TextUtils.appendAll(fakePlayer.getDisplayName(), ": ", TextUtils.translate(key, obj))
+                TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", TextBuilder.translate(key, obj))
         );
     }
 
@@ -354,15 +353,12 @@ public class FakePlayerUtils {
      */
     public static MutableText getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return TextUtils.hoverText(Text.literal("[A]"), TextUtils.appendAll(Items.AIR.getName()), Formatting.DARK_GRAY);
+            return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(Formatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         String capitalizeFirstLetter = getInitial(itemStack);
-        return TextUtils.hoverText(
-                Text.literal(capitalizeFirstLetter),
-                TextUtils.appendAll(itemStack.getItem().getName(), "*" + itemStack.getCount()),
-                null
-        );
+        MutableText hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
+        return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
     }
 
     /**

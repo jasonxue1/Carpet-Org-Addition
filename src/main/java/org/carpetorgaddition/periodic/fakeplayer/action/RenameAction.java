@@ -11,7 +11,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.TextUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
@@ -119,20 +119,20 @@ public class RenameAction extends AbstractPlayerAction {
         // 获取假玩家的显示名称
         Text playerName = fakePlayer.getDisplayName();
         // 将假玩家要重命名的物品和物品新名称的信息添加到集合
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.rename.item",
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.item",
                 playerName, this.item.getDefaultStack().toHoverableText(), newName));
         // 将假玩家剩余经验的信息添加到集合
-        list.add(TextUtils.translate("carpet.commands.playerAction.info.rename.xp",
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.xp",
                 fakePlayer.experienceLevel));
         if (fakePlayer.currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
             // 将铁砧GUI上的物品信息添加到集合
-            list.add(TextUtils.appendAll("    ",
+            list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(0).getStack()), " ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(1).getStack()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(2).getStack())));
         } else {
             // 将假玩家没有打开铁砧的信息添加到集合
-            list.add(TextUtils.translate("carpet.commands.playerAction.info.rename.no_anvil",
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.no_anvil",
                     playerName, Items.ANVIL.getName()));
         }
         return list;
@@ -148,7 +148,7 @@ public class RenameAction extends AbstractPlayerAction {
 
     @Override
     public MutableText getDisplayName() {
-        return TextUtils.translate("carpet.commands.playerAction.action.rename");
+        return TextBuilder.translate("carpet.commands.playerAction.action.rename");
     }
 
     @Override

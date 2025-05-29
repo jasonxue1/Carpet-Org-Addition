@@ -38,44 +38,38 @@ public class RuleSelfManager {
      */
     public boolean isEnabled(ServerPlayerEntity player, String rule) {
         if (this.disabledRules.isEmpty()) {
-            return true;
+            return false;
         }
         HashSet<String> rules = this.disabledRules.get(player.getName().getString());
         if (rules == null) {
-            return true;
+            return false;
         }
-        return !rules.contains(rule);
+        return rules.contains(rule);
     }
 
     /**
      * 设置规则是否对自己生效
-     *
-     * @return 是否设置成功
      */
-    @SuppressWarnings("UnusedReturnValue")
-    public boolean setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
-        String playerName = player.getName().getString();
+    public void setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
+        String playerName = player.getGameProfile().getName();
         HashSet<String> rules = this.disabledRules.get(playerName);
         if (rules == null) {
             if (enabled) {
-                return false;
-            } else {
                 HashSet<String> value = new HashSet<>();
                 value.add(rule);
                 this.disabledRules.put(playerName, value);
                 this.changed = true;
-                return true;
             }
+            return;
         }
-        boolean changed = enabled ? rules.remove(rule) : rules.add(rule);
+        boolean changed = enabled ? rules.add(rule) : rules.remove(rule);
         if (changed) {
             this.changed = true;
         }
-        // 玩家已经删除了所有仅对自己生效的规则，从集合中删除
+        // 玩家已经关闭了所有仅对自己生效的规则，从集合中删除
         if (rules.isEmpty()) {
             this.disabledRules.remove(playerName);
         }
-        return changed;
     }
 
     public void onServerSave() {

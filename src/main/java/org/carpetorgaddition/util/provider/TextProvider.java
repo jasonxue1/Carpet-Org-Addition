@@ -2,12 +2,15 @@ package org.carpetorgaddition.util.provider;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.*;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
@@ -17,7 +20,8 @@ public class TextProvider {
     /**
      * 换行
      */
-    public static final Text NEW_LINE = TextUtils.createText("\n");
+    public static final Text NEW_LINE = TextBuilder.create("\n");
+    public static final Text INDENT_SYMBOL = TextBuilder.create("    ");
 
     private TextProvider() {
     }
@@ -25,25 +29,25 @@ public class TextProvider {
     /**
      * 主世界
      */
-    public static final Text OVERWORLD = TextUtils.translate("carpet.command.dimension.overworld");
+    public static final Text OVERWORLD = TextBuilder.translate("carpet.command.dimension.overworld");
     /**
      * 下界
      */
-    public static final Text THE_NETHER = TextUtils.translate("carpet.command.dimension.the_nether");
+    public static final Text THE_NETHER = TextBuilder.translate("carpet.command.dimension.the_nether");
     /**
      * 末地
      */
-    public static final Text THE_END = TextUtils.translate("carpet.command.dimension.the_end");
-    public static final Text TRUE = TextUtils.translate("carpet.command.boolean.true");
-    public static final Text FALSE = TextUtils.translate("carpet.command.boolean.false");
+    public static final Text THE_END = TextBuilder.translate("carpet.command.dimension.the_end");
+    public static final Text TRUE = TextBuilder.translate("carpet.command.boolean.true");
+    public static final Text FALSE = TextBuilder.translate("carpet.command.boolean.false");
     /**
      * [这里]
      */
-    public static final Text CLICK_HERE = TextUtils.translate("carpet.command.text.click.here");
+    public static final Text CLICK_HERE = TextBuilder.translate("carpet.command.text.click.here");
     /**
      * 物品
      */
-    public static final Text ITEM = TextUtils.translate("carpet.command.item.item");
+    public static final Text ITEM = TextBuilder.translate("carpet.command.item.item");
     /**
      * 单击复制到剪贴板
      *
@@ -53,7 +57,7 @@ public class TextProvider {
     /**
      * 自己
      */
-    public static final Text SELF = TextUtils.translate("carpet.command.text.self");
+    public static final Text SELF = TextBuilder.translate("carpet.command.text.self");
 
     public static Text getBoolean(boolean value) {
         return value ? TRUE : FALSE;
@@ -65,30 +69,22 @@ public class TextProvider {
      * @param color 文本的颜色，如果为null，不修改颜色
      */
     public static MutableText blockPos(BlockPos blockPos, @Nullable Formatting color) {
-        MutableText pos = simpleBlockPos(blockPos);
-        //添加单击事件，复制方块坐标
-        pos.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, WorldUtils.toPosString(blockPos))));
-        //添加光标悬停事件：单击复制到剪贴板
-        pos.styled(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, COPY_CLICK)));
-        if (color != null) {
-            //修改文本颜色
-            pos.styled(style -> style.withColor(color));
+        TextBuilder builder = new TextBuilder(simpleBlockPos(blockPos));
+        // 添加单击事件，复制方块坐标
+        builder.setCopyToClipboard(WorldUtils.toPosString(blockPos));
+        switch (CarpetOrgAdditionSettings.canHighlightBlockPos) {
+            case OMMC -> builder.append(new TextBuilder(" [H]")
+                    .setCommand(CommandProvider.highlightWaypointByOmmc(blockPos))
+                    .setHover("ommc.highlight_waypoint.tooltip"));
+            case DEFAULT -> builder.append(new TextBuilder(" [H]")
+                    .setCommand(CommandProvider.highlightWaypoint(blockPos))
+                    .setHover("carpet.client.commands.highlight"));
+            default -> {
+            }
         }
-        return switch (CarpetOrgAdditionSettings.canHighlightBlockPos) {
-            case FALSE -> pos;
-            case OMMC -> {
-                MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, CommandProvider.highlightWaypointByOmmc(blockPos),
-                        TextUtils.translate("ommc.highlight_waypoint.tooltip"), color, false);
-                yield TextUtils.appendAll(pos, highlight);
-            }
-            case DEFAULT -> {
-                MutableText highlight = TextUtils.createText(" [H]");
-                TextUtils.command(highlight, CommandProvider.highlightWaypoint(blockPos),
-                        TextUtils.translate("carpet.client.commands.highlight"), color, false);
-                yield TextUtils.appendAll(pos, highlight);
-            }
-        };
+        // 修改文本颜色
+        builder.setColor(color);
+        return builder.build();
     }
 
     /**
@@ -99,23 +95,24 @@ public class TextProvider {
     }
 
     /**
-     * 单击输入"{@code 命令}"
+     * 单击输入命令
      */
     @SuppressWarnings("unused")
     public static MutableText clickInput(String command) {
-        return TextUtils.translate("carpet.command.text.click.input", command);
+        return TextBuilder.translate("carpet.command.text.click.input", command);
     }
 
     /**
-     * 单击执行{@code 命令}
+     * 单击执行命令
      *
      * @param command 要执行的命令
      */
     public static MutableText clickRun(String command) {
-        MutableText run = CLICK_HERE.copy();
-        // 文本的悬停提示
-        MutableText hoverText = TextUtils.translate("carpet.command.text.click.run", command);
-        return TextUtils.command(run, command, hoverText, Formatting.AQUA, false);
+        TextBuilder builder = new TextBuilder(CLICK_HERE);
+        builder.setCommand(command);
+        builder.setHover("carpet.command.text.click.run", command);
+        builder.setColor(Formatting.AQUA);
+        return builder.build();
     }
 
     /**
@@ -128,15 +125,16 @@ public class TextProvider {
         int group = count / maxCount;
         // 计算物品余几个
         int remainder = count % maxCount;
-        MutableText text = TextUtils.createText(String.valueOf(count));
+        TextBuilder builder = new TextBuilder(count);
         // 为文本添加悬停提示
         if (group == 0) {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.remainder", remainder));
+            builder.setHover("carpet.command.item.remainder", remainder);
         } else if (remainder == 0) {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.group", group));
+            builder.setHover("carpet.command.item.group", group);
         } else {
-            return TextUtils.hoverText(text, TextUtils.translate("carpet.command.item.count", group, remainder));
+            builder.setHover("carpet.command.item.count", group, remainder);
         }
+        return builder.build();
     }
 
     /**
@@ -144,15 +142,16 @@ public class TextProvider {
      * @return 获取物品栏中物品的名称和堆叠数量并用“*”连接，每个物品独占一行
      */
     public static MutableText inventory(Text base, Inventory inventory) {
+        TextBuilder builder = new TextBuilder(base);
         ArrayList<Text> list = new ArrayList<>();
         for (int i = 0; i < inventory.size(); i++) {
             ItemStack itemStack = inventory.getStack(i);
             if (itemStack.isEmpty()) {
                 continue;
             }
-            list.add(TextUtils.appendAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
+            list.add(TextBuilder.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
         }
-        return TextUtils.hoverText(base, TextUtils.appendList(list));
+        return builder.setHover(TextBuilder.joinList(list)).build();
     }
 
     /**
@@ -163,26 +162,26 @@ public class TextProvider {
     public static MutableText tickToTime(long tick) {
         // 游戏刻
         if (tick < 20L) {
-            return TextUtils.translate("carpet.command.time.tick", tick);
+            return TextBuilder.translate("carpet.command.time.tick", tick);
         }
         // 秒
         if (tick < 1200L) {
-            return TextUtils.translate("carpet.command.time.second", tick / 20L);
+            return TextBuilder.translate("carpet.command.time.second", tick / 20L);
         }
         // 整分
         if (tick < 72000L && (tick % 1200L == 0 || (tick / 20L) % 60L == 0)) {
-            return TextUtils.translate("carpet.command.time.minute", tick / 1200L);
+            return TextBuilder.translate("carpet.command.time.minute", tick / 1200L);
         }
         // 分和秒
         if (tick < 72000L) {
-            return TextUtils.translate("carpet.command.time.minute_second", tick / 1200L, (tick / 20L) % 60L);
+            return TextBuilder.translate("carpet.command.time.minute_second", tick / 1200L, (tick / 20L) % 60L);
         }
         // 整小时
         if (tick % 72000L == 0 || (tick / 20L / 60L) % 60L == 0) {
-            return TextUtils.translate("carpet.command.time.hour", tick / 72000L);
+            return TextBuilder.translate("carpet.command.time.hour", tick / 72000L);
         }
         // 小时和分钟
-        return TextUtils.translate("carpet.command.time.hour_minute", tick / 72000L, (tick / 20L / 60L) % 60L);
+        return TextBuilder.translate("carpet.command.time.hour_minute", tick / 72000L, (tick / 20L / 60L) % 60L);
     }
 
     /**
@@ -193,8 +192,33 @@ public class TextProvider {
      */
     public static MutableText tickToRealTime(long offset) {
         LocalDateTime time = LocalDateTime.now().plusSeconds(offset / 20);
-        return TextUtils.translate("carpet.command.time.format",
+        return TextBuilder.translate("carpet.command.time.format",
                 time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),
                 time.getHour(), time.getMinute(), time.getSecond());
+    }
+
+    /**
+     * 获取维度名称
+     *
+     * @param world 要获取维度名称的世界对象
+     * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
+     */
+    public static Text getDimensionName(World world) {
+        String dimension = WorldUtils.getDimensionId(world);
+        return switch (dimension) {
+            case WorldUtils.OVERWORLD -> OVERWORLD;
+            case WorldUtils.THE_NETHER -> THE_NETHER;
+            case WorldUtils.THE_END -> THE_END;
+            default -> TextBuilder.create(dimension);
+        };
+    }
+
+    public static Text getDimensionName(String dimension) {
+        return switch (dimension) {
+            case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> OVERWORLD;
+            case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER -> THE_NETHER;
+            case WorldUtils.THE_END, WorldUtils.SIMPLE_THE_END -> THE_END;
+            default -> TextBuilder.create(dimension);
+        };
     }
 }

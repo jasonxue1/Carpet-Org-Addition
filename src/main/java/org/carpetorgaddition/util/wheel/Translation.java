@@ -101,7 +101,7 @@ public class Translation {
      * 根据键获取{@code Carpet Org Addition}的翻译，原版和其他模组的翻译不会从这里获取到
      *
      * @param key 翻译键
-     * @return 如果翻译来着本模组，返回对应的翻译，如果翻译键本身错误，或着翻译键来自原版或其他模组，返回null
+     * @return 如果翻译来着本模组，返回对应的翻译，如果翻译键本身错误，或着翻译键来自原版或其他模组，返回{@code null}
      */
     @Nullable
     public static String getTranslateValue(String key) {

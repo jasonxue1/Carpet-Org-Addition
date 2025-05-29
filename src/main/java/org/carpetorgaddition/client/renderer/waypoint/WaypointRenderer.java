@@ -10,7 +10,6 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.mob.EndermanEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.util.Colors;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -20,8 +19,8 @@ import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
-import org.carpetorgaddition.util.TextUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -169,10 +168,10 @@ public class WaypointRenderer implements WorldRenderer {
         // 计算距离
         double distance = offset.length();
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
-        MutableText text = TextUtils.createText(formatted);
+        TextBuilder builder = new TextBuilder(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
         if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
-            text = TextUtils.toItalic(text);
+            builder.setItalic();
         }
         // 获取文本宽度
         int width = textRenderer.getWidth(formatted);
@@ -183,7 +182,7 @@ public class WaypointRenderer implements WorldRenderer {
         // 缩小文字
         matrixStack.scale(0.15F, 0.15F, 0.15F);
         // 渲染文字
-        textRenderer.draw(text, -width / 2F, 8, Colors.WHITE, false,
+        textRenderer.draw(builder.build(), -width / 2F, 8, Colors.WHITE, false,
                 matrixStack.peek().getPositionMatrix(), context.consumers(),
                 TextRenderer.TextLayerType.SEE_THROUGH, opacity, 1);
         tessellator.clear();
