@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
+    "accessor.PlayerEntityAccessor",
     "accessor.PlayerManagerAccessor",
     "command.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",

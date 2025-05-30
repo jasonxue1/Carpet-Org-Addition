@@ -13,13 +13,16 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.provider.CommandProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -28,6 +31,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntityMixin {
@@ -69,45 +73,54 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
                 }
             case TRUE:
                 if (openQuickCraftGui(entity)) {
-                    return;
+                    cir.setReturnValue(ActionResult.SUCCESS);
                 }
-                cir.setReturnValue(ActionResult.SUCCESS);
             default: {
             }
         }
     }
 
-    // 打开合成配方设置GUI
+    /**
+     * 打开合成配方设置GUI
+     *
+     * @return 是否执行成功
+     */
     @Unique
     private boolean openQuickCraftGui(Entity entity) {
-        Optional<String> optional = getOpenQuickCraftGuiCommand(thisPlayer);
+        Optional<Function<EntityPlayerMPFake, String>> optional = getOpenQuickCraftGuiCommand(thisPlayer.getMainHandStack());
         if (optional.isEmpty()) {
-            return true;
+            return false;
         }
-        if (entity instanceof EntityPlayerMPFake fakePlayer && thisPlayer instanceof ServerPlayerEntity player) {
-            // 玩家有执行命令的权限
-            boolean hasPermission = CommandHelper.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandPlayerAction);
-            if (hasPermission) {
-                CommandUtils.execute(player, optional.get().formatted(fakePlayer.getName().getString()));
-            }
+        if (thisPlayer instanceof ServerPlayerEntity player && entity instanceof EntityPlayerMPFake fakePlayer) {
+            CommandUtils.execute(player, optional.get().apply(fakePlayer));
         }
-        return false;
+        // 客户端虽然不执行命令，但仍要返回true，否则不会显示摆动手动画
+        return true;
     }
 
     // 获取打开GUI所需要的命令
     @Unique
-    private Optional<String> getOpenQuickCraftGuiCommand(PlayerEntity player) {
-        ItemStack itemStack = player.getMainHandStack();
-        if (itemStack.isEmpty()) {
-            return Optional.empty();
+    private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
+        boolean canUseCommand;
+        if (thisPlayer instanceof ServerPlayerEntity player) {
+            ServerCommandSource source = player.getCommandSource();
+            canUseCommand = CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
+        } else {
+            int level = ((PlayerEntityAccessor) thisPlayer).permissionLevel();
+            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction);
         }
-        // 工作台
-        if (itemStack.isOf(Items.CRAFTING_TABLE)) {
-            return Optional.of("/playerAction %s craft gui");
-        }
-        // 切石机
-        if (itemStack.isOf(Items.STONECUTTER)) {
-            return Optional.of("/playerAction %s stonecutting gui");
+        if (canUseCommand) {
+            if (itemStack.isEmpty()) {
+                return Optional.empty();
+            }
+            // 工作台
+            if (itemStack.isOf(Items.CRAFTING_TABLE)) {
+                return Optional.of(CommandProvider::openPlayerCraftGui);
+            }
+            // 切石机
+            if (itemStack.isOf(Items.STONECUTTER)) {
+                return Optional.of(CommandProvider::openPlayerStonecuttingGui);
+            }
         }
         return Optional.empty();
     }

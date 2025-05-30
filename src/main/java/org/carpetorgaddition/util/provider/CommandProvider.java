@@ -191,6 +191,20 @@ public class CommandProvider {
         return "/carpet %s %s".formatted(rule, value);
     }
 
+    /**
+     * 打开玩家设置合成GUI
+     */
+    public static String openPlayerCraftGui(EntityPlayerMPFake fakePlayer) {
+        return "/playerAction %s craft gui".formatted(fakePlayer.getName().getString());
+    }
+
+    /**
+     * 打开玩家设置切石机GUI
+     */
+    public static String openPlayerStonecuttingGui(EntityPlayerMPFake fakePlayer) {
+        return "/playerAction %s stonecutting gui".formatted(fakePlayer.getName().getString());
+    }
+
     private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {
         return CommandRegister.getCommandInstance(clazz).getAvailableName();
     }
