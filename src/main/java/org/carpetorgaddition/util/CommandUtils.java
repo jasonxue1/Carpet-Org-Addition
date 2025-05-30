@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
+import carpet.utils.CommandHelper;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
@@ -12,6 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.UUID;
 
 public class CommandUtils {
@@ -183,6 +185,24 @@ public class CommandUtils {
         } catch (CommandSyntaxException e) {
             MessageUtils.sendVanillaErrorMessage(source, e);
         }
+    }
+
+    /**
+     * @return 玩家是否有执行某一命令的权限
+     * @see CommandHelper#canUseCommand(ServerCommandSource, Object)
+     */
+    public static boolean canUseCommand(int level, Object value) {
+        return switch (value) {
+            case Boolean bool -> bool;
+            case String str -> switch (str.toLowerCase(Locale.ROOT)) {
+                case "ops", "2" -> level >= 2;
+                case "0", "1", "3", "4" -> level >= Integer.parseInt(str);
+                case "true" -> true;
+                default -> false;
+            };
+            case null -> false;
+            default -> canUseCommand(level, value.toString());
+        };
     }
 
     @FunctionalInterface
