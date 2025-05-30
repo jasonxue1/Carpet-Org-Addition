@@ -20,6 +20,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.provider.CommandProvider;
@@ -43,6 +44,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Shadow
     public abstract HungerManager getHungerManager();
 
+    @Override
     @Shadow
     public abstract boolean isSpectator();
 
@@ -101,8 +103,15 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 获取打开GUI所需要的命令
     @Unique
     private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
-        ServerCommandSource source = thisPlayer.getCommandSource();
-        if (CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction)) {
+        boolean canUseCommand;
+        if (thisPlayer instanceof ServerPlayerEntity player) {
+            ServerCommandSource source = player.getCommandSource();
+            canUseCommand = CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
+        } else {
+            int level = ((PlayerEntityAccessor) thisPlayer).permissionLevel();
+            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction);
+        }
+        if (canUseCommand) {
             if (itemStack.isEmpty()) {
                 return Optional.empty();
             }
