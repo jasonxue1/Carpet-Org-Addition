@@ -86,7 +86,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             }
         } catch (IOException | JsonParseException | NullPointerException e) {
             // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
-            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID.", e);
+            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
         }
         // 获取玩家的离线UUID
         UUID uuid = Uuids.getOfflinePlayerUuid(username);

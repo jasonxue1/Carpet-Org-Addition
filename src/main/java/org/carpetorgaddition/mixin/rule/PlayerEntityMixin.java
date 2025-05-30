@@ -43,10 +43,10 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Unique
     private final PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
 
-    //血量不满时也可以进食
+    // 血量不满时也可以进食
     @Inject(method = "canConsume", at = @At("HEAD"), cancellable = true)
     private void canEat(boolean ignoreHunger, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.healthNotFullCanEat && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3//-0.3：可能生命值不满但是显示的心满了
+        if (CarpetOrgAdditionSettings.healthNotFullCanEat && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
                 && this.getHungerManager().getSaturationLevel() <= 5) {
             cir.setReturnValue(true);
         }

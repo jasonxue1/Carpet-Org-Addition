@@ -113,9 +113,9 @@ public class OrangeCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("openInventory")
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
                                         .then(CommandManager.literal("inventory")
-                                                .executes(this::openPlayerInventory))
+                                                .executes(context -> openPlayerInventory(context, true)))
                                         .then(CommandManager.literal("enderChest")
-                                                .executes(this::openPlayerEnderChest))))));
+                                                .executes(context -> openPlayerInventory(context, false)))))));
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
@@ -322,40 +322,24 @@ public class OrangeCommand extends AbstractServerCommand {
         }
     }
 
-    private int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int openPlayerInventory(CommandContext<ServerCommandSource> context, boolean isInventory) throws CommandSyntaxException {
         UUID uuid = UuidArgumentType.getUuid(context, "uuid");
         ServerCommandSource source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-        if (player == null) {
-            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
-            if (optional.isEmpty()) {
-                throw PlayerCommandExtension.createNoFileFoundException();
-            }
-            GameProfile gameProfile = optional.get();
+        if (player != null) {
+            throw CommandUtils.createException("carpet.commands.orange.textclickevent.openInventory.fail");
+        }
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+        if (optional.isEmpty()) {
+            throw PlayerCommandExtension.createNoFileFoundException();
+        }
+        GameProfile gameProfile = optional.get();
+        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+        if (isInventory) {
             PlayerCommandExtension.openOfflinePlayerInventory(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
         } else {
-            PlayerCommandExtension.openOnlinePlayerInventory(CommandUtils.getSourcePlayer(context), player, server, source);
-        }
-        return 1;
-    }
-
-    private int openPlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-        ServerCommandSource source = context.getSource();
-        MinecraftServer server = source.getServer();
-        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-        if (player == null) {
-            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
-            if (optional.isEmpty()) {
-                throw PlayerCommandExtension.createNoFileFoundException();
-            }
-            GameProfile gameProfile = optional.get();
             PlayerCommandExtension.openOfflinePlayerEnderChest(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
-        } else {
-            PlayerCommandExtension.openOnlinePlayerEnderChest(CommandUtils.getSourcePlayer(context), player, server, source);
         }
         return 1;
     }

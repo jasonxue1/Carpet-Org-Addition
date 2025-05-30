@@ -32,7 +32,7 @@ public class Waypoint {
     private MetaComment comment = new MetaComment();
     private final String creator;
     private final MinecraftServer server;
-    public final String name;
+    private final String name;
 
     public Waypoint(BlockPos blockPos, String name, World world, String creator, MinecraftServer server) {
         this.name = name;
