@@ -27,6 +27,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
+import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.GenericFetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
@@ -111,6 +112,7 @@ public class OrangeCommand extends AbstractServerCommand {
                                         .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
                                                 .executes(this::pageTurning))))
                         .then(CommandManager.literal("openInventory")
+                                .requires(OpenPlayerInventory::isEnable)
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
                                         .then(CommandManager.literal("inventory")
                                                 .executes(context -> openPlayerInventory(context, true)))
