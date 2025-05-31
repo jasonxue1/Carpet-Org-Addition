@@ -13,6 +13,7 @@ import net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ConnectedClientData;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
@@ -21,6 +22,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
+import org.jetbrains.annotations.Contract;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,7 +39,12 @@ public class GameUtils {
      * @return 玩家名的字符串形式
      */
     public static String getPlayerName(PlayerEntity player) {
-        return player.getName().getString();
+        return player.getGameProfile().getName();
+    }
+
+    @Contract("_ -> !null")
+    public static MinecraftServer getServer(ServerPlayerEntity player) {
+        return player.getServer();
     }
 
     /**

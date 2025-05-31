@@ -339,9 +339,9 @@ public class OrangeCommand extends AbstractServerCommand {
         GameProfile gameProfile = optional.get();
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         if (isInventory) {
-            PlayerCommandExtension.openOfflinePlayerInventory(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+            PlayerCommandExtension.openOfflinePlayerInventory(sourcePlayer, gameProfile);
         } else {
-            PlayerCommandExtension.openOfflinePlayerEnderChest(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+            PlayerCommandExtension.openOfflinePlayerEnderChest(sourcePlayer, gameProfile);
         }
         return 1;
     }
