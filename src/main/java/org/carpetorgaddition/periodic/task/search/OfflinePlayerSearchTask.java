@@ -102,6 +102,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 for (File file : files) {
                     if (file.getName().endsWith(".dat")) {
                         this.createVirtualThread(file);
+                        // TODO 能被解析的才认为是一个玩家
                         this.total++;
                     }
                 }
@@ -126,25 +127,32 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.threadCount.getAndIncrement();
         Thread.ofVirtual().start(() -> {
             try {
+                UUID uuid;
+                try {
+                    uuid = UUID.fromString(unsafe.getName().split("\\.")[0]);
+                } catch (IllegalArgumentException e) {
+                    this.ignoreCount.getAndIncrement();
+                    return;
+                }
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
                 // 使用>=而不是==，因为存档可能降级
                 if (version >= GameUtils.getNbtDataVersion()) {
-                    searchItem(unsafe, maybeOldNbt, version, false);
+                    searchItem(uuid, maybeOldNbt, version, false);
                 } else {
                     // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响
                     File deletableFile = this.tempFileDirectory.file(unsafe.getName());
                     // 复制文件，避免影响源文件
                     IOUtils.copyFile(unsafe, deletableFile);
-                    searchItem(deletableFile, maybeOldNbt, version, true);
+                    searchItem(uuid, maybeOldNbt, version, true);
                     // 删除临时文件
                     if (deletableFile.delete()) {
                         return;
                     }
-                    CarpetOrgAddition.LOGGER.warn("未成功删除临时文件{}", deletableFile.getName());
+                    CarpetOrgAddition.LOGGER.warn("Failed to delete temporary file: {}", deletableFile.getName());
                 }
             } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.warn("无法从文件读取玩家数据：", e);
+                CarpetOrgAddition.LOGGER.warn("Unable to read player data from file: ", e);
             } finally {
                 this.threadCount.getAndDecrement();
             }
@@ -152,16 +160,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     // 查找物品
-    private void searchItem(File file, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
-        String uuidString = file.getName().split("\\.")[0];
-        UUID uuid;
-        try {
-            uuid = UUID.fromString(uuidString);
-        } catch (IllegalArgumentException e) {
-            this.ignoreCount.getAndIncrement();
-            CarpetOrgAddition.LOGGER.warn("无法从文件名解析UUID，正在忽略文件：{}", file.getName());
-            return;
-        }
+    private void searchItem(UUID uuid, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
         // 获取玩家配置文件
         UuidNameMappingTable table = UuidNameMappingTable.getInstance();
         Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);

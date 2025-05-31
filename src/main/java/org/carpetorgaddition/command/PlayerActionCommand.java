@@ -54,11 +54,13 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(this.access))
                                         .executes(context -> setEmptyTheContainer(context, false))))
                         .then(CommandManager.literal("fill")
-                                .executes(context -> setFillTheContainer(context, true, true))
+                                .executes(context -> setFillTheContainer(context, true, true, false))
                                 .then(CommandManager.argument("filter", ItemPredicateArgumentType.itemPredicate(this.access))
-                                        .executes(context -> setFillTheContainer(context, false, true))
+                                        .executes(context -> setFillTheContainer(context, false, true, false))
                                         .then(CommandManager.argument(FillTheContainerAction.DROP_OTHER, BoolArgumentType.bool())
-                                                .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER))))))
+                                                .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER), false))
+                                                .then(CommandManager.argument(FillTheContainerAction.MORE_CONTAINER, BoolArgumentType.bool())
+                                                        .executes(context -> setFillTheContainer(context, false, BoolArgumentType.getBool(context, FillTheContainerAction.DROP_OTHER), BoolArgumentType.getBool(context, FillTheContainerAction.MORE_CONTAINER)))))))
                         .then(CommandManager.literal("stop")
                                 .executes(this::setStop))
                         .then(CommandManager.literal("craft")
@@ -158,11 +160,11 @@ public class PlayerActionCommand extends AbstractServerCommand {
     }
 
     // 设置填充容器
-    private int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther) throws CommandSyntaxException {
+    private int setFillTheContainer(CommandContext<ServerCommandSource> context, boolean allItem, boolean dropOther, boolean moreContainer) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
-        actionManager.setAction(new FillTheContainerAction(fakePlayer, predicate, dropOther));
+        actionManager.setAction(new FillTheContainerAction(fakePlayer, predicate, dropOther, moreContainer));
         return 1;
     }
 
