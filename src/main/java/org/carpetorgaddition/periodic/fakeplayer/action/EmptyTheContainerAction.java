@@ -25,6 +25,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
 
     @Override
     public void tick() {
+        // TODO 添加开关只操作潜影盒
         ScreenHandler screenHandler = fakePlayer.currentScreenHandler;
         if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
             return;

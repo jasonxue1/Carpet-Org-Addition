@@ -87,7 +87,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     @NotNull
     private final FakePlayerActionSerializer autoAction;
-    private final HashSet<String> groups = new HashSet<>();
+    /**
+     * 玩家所在的组，集合中可能包含null元素
+     */
+    private final HashSet<@Nullable String> groups = new HashSet<>();
     /**
      * 当前对象是否已经修改，即是否需要重新保存
      */
@@ -110,6 +113,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
         this(fakePlayer);
+        // this.groups可能传入一个null
         this.groups.addAll(serializer.getGroups());
         this.autologin = serializer.autologin;
         this.comment.setComment(serializer.comment.getComment());
@@ -166,8 +170,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         }
         // 玩家组
         if (json.has("group")) {
-            List<String> list = json.getAsJsonArray("group").asList().stream().map(JsonElement::getAsString).toList();
-            this.groups.addAll(list);
+            JsonArray array = json.getAsJsonArray("group");
+            for (JsonElement group : array) {
+                if (group.isJsonNull()) {
+                    continue;
+                }
+                this.groups.add(group.getAsString());
+            }
         }
         this.file = file;
     }
@@ -265,6 +274,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 添加玩家组
         JsonArray groups = new JsonArray();
         for (String group : this.groups) {
+            if (group == null) {
+                continue;
+            }
             groups.add(group);
         }
         json.add("group", groups);
