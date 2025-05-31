@@ -23,7 +23,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 
@@ -253,7 +253,7 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否完成挖掘
      */
     private boolean breakBlock(BlockPos pos) {
-        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(fakePlayer);
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(fakePlayer);
         boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !fakePlayer.isCreative());
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
@@ -267,7 +267,7 @@ public class PlantAction extends AbstractPlayerAction {
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
         FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> itemStack.getItem() instanceof ToolItem);
-        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
         boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;

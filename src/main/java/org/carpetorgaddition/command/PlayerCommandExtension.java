@@ -18,7 +18,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GameUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.inventory.OfflinePlayerEnderChestInventory;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
@@ -83,7 +83,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOfflinePlayerInventory(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = GameUtils.getServer(sourcePlayer);
+        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.canOpenOfflinePlayer()) {
             if (gameProfile == null) {
                 throw createNoFileFoundException();
@@ -105,7 +105,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOnlinePlayerInventory(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = GameUtils.getServer(sourcePlayer);
+        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
                 (syncId, inventory, player) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
@@ -149,7 +149,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOfflinePlayerEnderChest(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = GameUtils.getServer(sourcePlayer);
+        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.canOpenOfflinePlayer()) {
             OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
             SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
@@ -164,7 +164,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOnlinePlayerEnderChest(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = GameUtils.getServer(sourcePlayer);
+        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         // 创建GUI对象
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(

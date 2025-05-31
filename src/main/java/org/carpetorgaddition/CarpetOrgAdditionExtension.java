@@ -19,7 +19,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.wheel.Translation;
 import org.carpetorgaddition.util.wheel.UuidNameMappingTable;
@@ -90,7 +90,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
-        GenericFetcherUtils.getRuleSelfManager(server).load();
+        FetcherUtils.getRuleSelfManager(server).load();
         // 初始化自定义命令名称
         CustomCommandConfig.getInstance().refreshIfExpired();
     }

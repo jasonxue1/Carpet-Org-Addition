@@ -90,7 +90,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.files = context.files();
         this.showUnknown = context.showUnknown();
         this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
-        PageManager manager = GenericFetcherUtils.getPageManager(server);
+        PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
     }
 
@@ -137,7 +137,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
                 // 使用>=而不是==，因为存档可能降级
-                if (version >= GameUtils.getNbtDataVersion()) {
+                if (version >= GenericUtils.getNbtDataVersion()) {
                     searchItem(uuid, maybeOldNbt, version, false);
                 } else {
                     // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响

@@ -31,7 +31,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
-import org.carpetorgaddition.util.GameUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 
 import java.util.Objects;
@@ -223,7 +223,7 @@ public class ReLoginTask extends PlayerScheduleTask {
             gameprofile = new GameProfile(Uuids.getOfflinePlayerUuid(username), username);
         }
         EntityPlayerMPFake fakePlayer = EntityPlayerMPFake.respawnFake(server, worldIn, gameprofile, SyncedClientOptions.createDefault());
-        fakePlayer.fixStartingPosition = GameUtils::pass;
+        fakePlayer.fixStartingPosition = GenericUtils::pass;
         try {
             CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
             server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), fakePlayer, new ConnectedClientData(gameprofile, 0, fakePlayer.getClientOptions(), false));

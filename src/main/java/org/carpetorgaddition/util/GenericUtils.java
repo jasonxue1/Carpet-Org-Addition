@@ -24,12 +24,10 @@ import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
 import org.jetbrains.annotations.Contract;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-public class GameUtils {
-    private GameUtils() {
+public class GenericUtils {
+    private GenericUtils() {
     }
 
     /**
@@ -45,19 +43,6 @@ public class GameUtils {
     @Contract("_ -> !null")
     public static MinecraftServer getServer(ServerPlayerEntity player) {
         return player.getServer();
-    }
-
-    /**
-     * 获取当前系统时间的字符串形式
-     *
-     * @return 当前系统时间的字符串形式
-     * @deprecated 不能使用资源包翻译
-     */
-    @Deprecated
-    public static String getDateString() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss");
-        return formatter.format(localDateTime);
     }
 
     @SuppressWarnings("DataFlowIssue")

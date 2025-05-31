@@ -13,7 +13,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerCraftRecipeInterface;
 import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
 
 public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implements UnavailableSlotSyncInterface {
@@ -55,7 +55,7 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
             items[i] = inputInventory.getStack(i).getItem();
         }
         // 设置假玩家合成动作
-        setCraftAction(items, GenericFetcherUtils.getFakePlayerActionManager(fakePlayer));
+        setCraftAction(items, FetcherUtils.getFakePlayerActionManager(fakePlayer));
         // 关闭GUI后，使用父类的方法让物品回到玩家背包
         super.onClosed(player);
     }

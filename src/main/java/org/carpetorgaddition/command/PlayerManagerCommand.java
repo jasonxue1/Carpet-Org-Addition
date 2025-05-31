@@ -34,7 +34,7 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.page.PageManager;
@@ -190,7 +190,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         String group = StringArgumentType.getString(context, "group");
         MinecraftServer server = context.getSource().getServer();
-        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
         HashSet<FakePlayerSerializer> set = map.get(group);
         // 不存在的组
@@ -198,7 +198,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", group);
         }
         List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
-        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list", group);
@@ -208,7 +208,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private int listUngrouped(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
         HashSet<FakePlayerSerializer> set = map.get(null);
         if (set == null) {
@@ -216,7 +216,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", translate);
         }
         List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
-        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
@@ -226,9 +226,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private int listAll(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         List<Supplier<Text>> list = manager.list().stream().filter(predicate).map(FakePlayerSerializer::toTextSupplier).toList();
-        PagedCollection collection = GenericFetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
+        PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.all");
@@ -262,7 +262,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      */
     private int reload(CommandContext<ServerCommandSource> context) {
         MinecraftServer server = context.getSource().getServer();
-        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         manager.reload();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.reload");
         return 1;
@@ -297,7 +297,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 自动补全玩家名
     private SuggestionProvider<ServerCommandSource> defaultSuggests() {
         return (context, builder) -> {
-            Stream<String> stream = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer())
+            Stream<String> stream = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer())
                     .list()
                     .stream()
                     .map(FakePlayerSerializer::getFakePlayerName)
@@ -308,7 +308,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private SuggestionProvider<ServerCommandSource> groupSuggests() {
         return (context, builder) -> {
-            PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
+            PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
             Stream<String> stream = manager.listGroup(serializer -> true)
                     .keySet()
                     .stream()
@@ -513,7 +513,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .sorted(Comparator.naturalOrder())
                     .map(FakePlayerSerializer::toTextSupplier)
                     .toList();
-            PageManager pageManager = GenericFetcherUtils.getPageManager(server);
+            PageManager pageManager = FetcherUtils.getPageManager(server);
             PagedCollection collection = pageManager.newPagedCollection(context.getSource());
             collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
@@ -622,7 +622,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         String name = fakePlayer.getName().getString();
         FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
-        PlayerSerializationManager manager = GenericFetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
         FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer, oldSerializer);
         manager.add(newSerializer);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.resave", fakePlayer.getDisplayName());
@@ -819,7 +819,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     private PlayerSerializationManager getSerializationManager(MinecraftServer server) {
-        return GenericFetcherUtils.getFakePlayerSerializationManager(server);
+        return FetcherUtils.getFakePlayerSerializationManager(server);
     }
 
     private PlayerSerializationManager getSerializationManager(CommandContext<ServerCommandSource> context) {

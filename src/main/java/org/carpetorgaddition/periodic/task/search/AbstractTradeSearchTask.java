@@ -11,7 +11,7 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.page.PageManager;
 import org.carpetorgaddition.util.page.PagedCollection;
@@ -52,7 +52,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.sourcePos = sourcePos;
         this.context = context;
         this.findState = FindState.SEARCH;
-        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        PageManager pageManager = FetcherUtils.getPageManager(context.getSource().getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 

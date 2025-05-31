@@ -197,7 +197,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
         // 生成假玩家
-        EntityPlayerMPFake fakePlayer = GameUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, this.yaw, this.pitch,
+        EntityPlayerMPFake fakePlayer = GenericUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, this.yaw, this.pitch,
                 WorldUtils.getWorld(this.dimension), this.gameMode, this.flying);
         fakePlayer.setSneaking(this.sneaking);
         // 设置玩家动作
@@ -348,7 +348,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     public static void autoLogin(MinecraftServer server) {
         ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         try {
-            List<FakePlayerSerializer> list = GenericFetcherUtils.getFakePlayerSerializationManager(server).list();
+            List<FakePlayerSerializer> list = FetcherUtils.getFakePlayerSerializationManager(server).list();
             int count = server.getCurrentPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {

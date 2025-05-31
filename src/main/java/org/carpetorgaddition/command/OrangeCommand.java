@@ -29,7 +29,7 @@ import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
@@ -258,7 +258,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
             CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
             if (rule == null) {
@@ -287,7 +287,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
             CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
             if (rule == null) {
@@ -313,7 +313,7 @@ public class OrangeCommand extends AbstractServerCommand {
         int id = IntegerArgumentType.getInteger(context, "id");
         int page = IntegerArgumentType.getInteger(context, "page");
         MinecraftServer server = context.getSource().getServer();
-        PageManager manager = GenericFetcherUtils.getPageManager(server);
+        PageManager manager = FetcherUtils.getPageManager(server);
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {
             PagedCollection collection = optional.get();

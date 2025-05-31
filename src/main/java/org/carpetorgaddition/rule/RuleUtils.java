@@ -6,7 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,7 +70,7 @@ public class RuleUtils {
                 if (player == null) {
                     yield false;
                 }
-                RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+                RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
                 yield ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory);
             }
         };
