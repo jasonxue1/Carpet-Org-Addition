@@ -56,10 +56,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private final AtomicInteger skipCount = new AtomicInteger();
     /**
-     * 已忽略的玩家数量
-     */
-    private final AtomicInteger ignoreCount = new AtomicInteger();
-    /**
      * 在已找到的物品中，是否包含在嵌套的容器中找到的物品
      */
     private final AtomicBoolean shulkerBox = new AtomicBoolean(false);
@@ -101,8 +97,14 @@ public class OfflinePlayerSearchTask extends ServerTask {
             case START -> {
                 for (File file : files) {
                     if (file.getName().endsWith(".dat")) {
-                        this.createVirtualThread(file);
-                        // TODO 能被解析的才认为是一个玩家
+                        UUID uuid;
+                        try {
+                            uuid = UUID.fromString(file.getName().split("\\.")[0]);
+                        } catch (IllegalArgumentException e) {
+                            // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
+                            continue;
+                        }
+                        this.createVirtualThread(file, uuid);
                         this.total++;
                     }
                 }
@@ -123,17 +125,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     // 创建虚拟线程
-    private void createVirtualThread(File unsafe) {
+    private void createVirtualThread(File unsafe, UUID uuid) {
         this.threadCount.getAndIncrement();
         Thread.ofVirtual().start(() -> {
             try {
-                UUID uuid;
-                try {
-                    uuid = UUID.fromString(unsafe.getName().split("\\.")[0]);
-                } catch (IllegalArgumentException e) {
-                    this.ignoreCount.getAndIncrement();
-                    return;
-                }
                 NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
                 // 使用>=而不是==，因为存档可能降级
@@ -270,7 +265,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private Text getNumberOfPeople(int resultCount) {
         // 玩家总数的悬停提示
         ArrayList<Text> peopleHover = new ArrayList<>();
-        peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.total", this.total - this.ignoreCount.get()));
+        peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.total", this.total));
         peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.found", resultCount));
         if (!this.showUnknown) {
             peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.skipped", this.skipCount.get()));
