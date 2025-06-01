@@ -138,7 +138,7 @@ public class CarpetOrgAddition implements ModInitializer {
                 }
             }
             IOUtils.removeFile(backup);
-            String earliest = list.getLast().format(formatter);
+            String earliest = list.getFirst().format(formatter);
             CarpetOrgAddition.LOGGER.info("The game has been launched a total of {} times since {}", total, earliest);
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.warn("An unexpected error occurred while recording the number of game launches", e);
