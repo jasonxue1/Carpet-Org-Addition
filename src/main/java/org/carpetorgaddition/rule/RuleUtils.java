@@ -63,13 +63,13 @@ public class RuleUtils {
      * @return 规则方块掉落物直接进入物品栏是否可用
      */
     public static boolean canCollectBlock(@Nullable ServerPlayerEntity player) {
+        if (player == null) {
+            return false;
+        }
         return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
             case TRUE -> true;
             case FALSE -> false;
             case CUSTOM -> {
-                if (player == null) {
-                    yield false;
-                }
                 RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
                 yield ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory);
             }
