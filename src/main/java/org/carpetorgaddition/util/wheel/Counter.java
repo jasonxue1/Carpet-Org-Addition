@@ -1,9 +1,11 @@
 package org.carpetorgaddition.util.wheel;
 
-import net.minecraft.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -96,16 +98,12 @@ public class Counter<E> implements Iterable<E> {
         return this.getCount(element) > 0;
     }
 
-    public Stream<E> stream() {
-        return this.counter.keySet().stream();
+    public Stream<Map.Entry<E, Integer>> stream() {
+        return this.counter.entrySet().stream();
     }
 
-    @SuppressWarnings("unused")
-    public List<Pair<E, Integer>> sort() {
-        return this.stream()
-                .sorted(Comparator.comparingInt(element -> -Counter.this.getCount(element)))
-                .map(e -> new Pair<>(e, this.getCount(e)))
-                .toList();
+    public Set<E> keySet() {
+        return this.counter.keySet();
     }
 
     @NotNull
