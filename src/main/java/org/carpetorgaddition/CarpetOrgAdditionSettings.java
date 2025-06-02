@@ -470,4 +470,5 @@ public class CarpetOrgAdditionSettings {
     @Hidden
     @Rule(categories = {ORG, HIDDEN, RuleCategory.FEATURE})
     public static boolean experienceOrbMerge = false;
+    // TODO 强制添加注释规则
 }

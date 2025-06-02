@@ -13,6 +13,7 @@ import net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ConnectedClientData;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
@@ -21,13 +22,12 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
+import org.jetbrains.annotations.Contract;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-public class GameUtils {
-    private GameUtils() {
+public class GenericUtils {
+    private GenericUtils() {
     }
 
     /**
@@ -37,20 +37,12 @@ public class GameUtils {
      * @return 玩家名的字符串形式
      */
     public static String getPlayerName(PlayerEntity player) {
-        return player.getName().getString();
+        return player.getGameProfile().getName();
     }
 
-    /**
-     * 获取当前系统时间的字符串形式
-     *
-     * @return 当前系统时间的字符串形式
-     * @deprecated 不能使用资源包翻译
-     */
-    @Deprecated
-    public static String getDateString() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss");
-        return formatter.format(localDateTime);
+    @Contract("_ -> !null")
+    public static MinecraftServer getServer(ServerPlayerEntity player) {
+        return player.getServer();
     }
 
     @SuppressWarnings("DataFlowIssue")

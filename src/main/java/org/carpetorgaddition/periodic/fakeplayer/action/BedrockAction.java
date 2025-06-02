@@ -27,7 +27,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingC
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -211,7 +211,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         World world = this.fakePlayer.getWorld();
         BlockPos up = bedrockPos.up(1);
         BlockState blockState = world.getBlockState(up);
-        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
         boolean isPiston = false;
         //noinspection StatementWithEmptyBody
         if (isReplaceableBlock(blockState)) {
@@ -288,7 +288,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 direction = value;
                 continue;
             }
-            BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
             if (blockState.isOf(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
                 if (blockState.get(WallMountedBlock.FACE) != BlockFace.WALL) {
@@ -376,7 +376,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         World world = this.fakePlayer.getWorld();
         BlockState blockState = world.getBlockState(up);
         if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
-            BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
             // 先切换工具，再计算剩余挖掘时间
             switchTool(blockState, world, up, this.fakePlayer);
             // 计算剩余挖掘时间
@@ -461,7 +461,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 挖掘掉破完基岩后留下的活塞
      */
     private boolean cleanPiston(BlockPos blockPos) {
-        BlockExcavator blockExcavator = GenericFetcherUtils.getBlockExcavator(this.fakePlayer);
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
         BlockState blockState = this.fakePlayer.getWorld().getBlockState(blockPos);
         if (blockState.isAir()) {
             return true;

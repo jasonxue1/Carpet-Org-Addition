@@ -123,7 +123,7 @@ public class TranslateTest {
         keys.forEach(key -> counter.set(key, 0));
         checkUsage(rootPath, keys, counter);
         // 所有未被使用的翻译键
-        List<String> list = counter.stream().filter(s -> counter.getCount(s) == 0).toList();
+        List<String> list = counter.stream().map(Map.Entry::getKey).filter(s -> counter.getCount(s) == 0).toList();
         StringJoiner errorReport = new StringJoiner("\n", "包含未使用的翻译键：\n", "");
         for (String key : list) {
             errorReport.add(key);

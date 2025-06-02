@@ -1,5 +1,6 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
+import com.google.gson.JsonParseException;
 import net.minecraft.server.MinecraftServer;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.IOUtils;
@@ -43,7 +44,7 @@ public class PlayerSerializationManager {
             for (File file : list) {
                 try {
                     this.fakePlayerSerializers.add(new FakePlayerSerializer(file));
-                } catch (IOException e) {
+                } catch (IOException | JsonParseException | NullPointerException e) {
                     // 译：未能成功加载玩家数据
                     CarpetOrgAddition.LOGGER.warn("Failed to load player data successfully", e);
                 }

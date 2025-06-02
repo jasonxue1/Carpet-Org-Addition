@@ -16,16 +16,19 @@ import java.util.stream.IntStream;
 public class FillTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
     public static final String DROP_OTHER = "dropOther";
+    public static final String MORE_CONTAINER = "moreContainer";
     /**
      * 要向容器填充的物品
      */
     private final ItemStackPredicate predicate;
     private final boolean dropOther;
+    private final boolean moreContainer;
 
-    public FillTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate, boolean dropOther) {
+    public FillTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate, boolean dropOther, boolean moreContainer) {
         super(fakePlayer);
         this.predicate = predicate;
         this.dropOther = dropOther;
+        this.moreContainer = moreContainer;
     }
 
     @Override
@@ -61,22 +64,31 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     private Integer[] getRange(ScreenHandler screenHandler) {
-        IntStream intStream = switch (screenHandler) {
-            case ShulkerBoxScreenHandler ignored -> IntStream.rangeClosed(27, 62);
-            // 箱子，末影箱，木桶等容器
-            case GenericContainerScreenHandler handler
-                    when handler.getType() == ScreenHandlerType.GENERIC_9X3 -> IntStream.rangeClosed(27, 62);
-            // 大箱子，GCA假人背包
-            case GenericContainerScreenHandler handler
-                    when handler.getType() == ScreenHandlerType.GENERIC_9X6 -> IntStream.rangeClosed(54, 89);
-            // 漏斗
-            case HopperScreenHandler ignored -> IntStream.rangeClosed(5, 40);
-            // 发射器，投掷器
-            case Generic3x3ContainerScreenHandler ignored -> IntStream.rangeClosed(9, 44);
-            // 合成器
-            case CrafterScreenHandler ignored -> IntStream.rangeClosed(9, 44);
-            case null, default -> IntStream.of();
-        };
+        IntStream intStream;
+        if (this.moreContainer) {
+            intStream = switch (screenHandler) {
+                case ShulkerBoxScreenHandler ignored -> IntStream.rangeClosed(27, 62);
+                // 箱子，末影箱，木桶等容器
+                case GenericContainerScreenHandler handler
+                        when handler.getType() == ScreenHandlerType.GENERIC_9X3 -> IntStream.rangeClosed(27, 62);
+                // 大箱子，GCA假人背包
+                case GenericContainerScreenHandler handler
+                        when handler.getType() == ScreenHandlerType.GENERIC_9X6 -> IntStream.rangeClosed(54, 89);
+                // 漏斗
+                case HopperScreenHandler ignored -> IntStream.rangeClosed(5, 40);
+                // 发射器，投掷器
+                case Generic3x3ContainerScreenHandler ignored -> IntStream.rangeClosed(9, 44);
+                // 合成器
+                case CrafterScreenHandler ignored -> IntStream.rangeClosed(9, 44);
+                case null, default -> IntStream.of();
+            };
+        } else {
+            if (screenHandler instanceof ShulkerBoxScreenHandler) {
+                intStream = IntStream.rangeClosed(27, 62);
+            } else {
+                intStream = IntStream.of();
+            }
+        }
         return intStream.boxed().toArray(Integer[]::new);
     }
 
@@ -99,6 +111,8 @@ public class FillTheContainerAction extends AbstractPlayerAction {
         json.addProperty(ITEM, this.predicate.toString());
         // 是否丢弃其他物品
         json.addProperty(DROP_OTHER, this.dropOther);
+        // 是否支持潜影盒以外的其它容器
+        json.addProperty(MORE_CONTAINER, this.moreContainer);
         return json;
     }
 

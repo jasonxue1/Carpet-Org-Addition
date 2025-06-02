@@ -12,7 +12,7 @@ import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.util.page.PageManager;
 import org.jetbrains.annotations.Contract;
 
-public class GenericFetcherUtils {
+public class FetcherUtils {
     /**
      * 获取一名假玩家的动作管理器，永远不会返回null
      *

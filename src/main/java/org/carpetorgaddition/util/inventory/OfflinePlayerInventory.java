@@ -12,7 +12,6 @@ import net.minecraft.network.ClientConnection;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -70,17 +69,21 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      *
      * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
      */
-    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
+    public static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) {
         try {
             // 从本地获取玩家的在线UUID
             JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
-            Optional<GameProfile> entry = readUsercacheJson(username, array, server);
+            Optional<GameProfile> entry = readUsercacheJson(username, caseSensitive, array, server);
             if (entry.isPresent()) {
                 return entry;
             }
         } catch (IOException | JsonParseException | NullPointerException e) {
             // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
-            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID.", e);
+            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
+        }
+        Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(username, caseSensitive);
+        if (optional.isPresent()) {
+            return optional;
         }
         // 获取玩家的离线UUID
         UUID uuid = Uuids.getOfflinePlayerUuid(username);
@@ -97,16 +100,17 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      * @param array    usercache.json保存的json数组
      * @return 玩家档案，可能为空
      */
-    private static Optional<GameProfile> readUsercacheJson(String username, JsonArray array, MinecraftServer server) {
+    private static Optional<GameProfile> readUsercacheJson(String username, boolean caseSensitive, JsonArray array, MinecraftServer server) {
         Set<Map.Entry<String, String>> set = array.asList().stream()
                 .map(JsonElement::getAsJsonObject)
                 .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
                 .collect(Collectors.toSet());
         for (Map.Entry<String, String> entry : set) {
-            if (Objects.equals(username, entry.getKey())) {
+            String key = entry.getKey();
+            if (caseSensitive ? Objects.equals(username, key) : username.equalsIgnoreCase(key)) {
                 UUID uuid = UUID.fromString(entry.getValue());
                 if (playerDataExists(uuid, server)) {
-                    return Optional.of(new GameProfile(uuid, entry.getKey()));
+                    return Optional.of(new GameProfile(uuid, key));
                 }
                 return Optional.empty();
             }
@@ -117,9 +121,9 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * 检查玩家是否有权限打开离线玩家物品栏
      */
-    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerCommandSource source) throws CommandSyntaxException {
+    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayerEntity player) throws CommandSyntaxException {
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.permissionRequired()) {
-            if (source.hasPermissionLevel(2)) {
+            if (player.hasPermissionLevel(2)) {
                 return;
             }
             PlayerProfile profile = new PlayerProfile(gameProfile);
