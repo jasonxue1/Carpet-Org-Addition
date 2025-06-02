@@ -27,8 +27,9 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
+import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
@@ -111,11 +112,12 @@ public class OrangeCommand extends AbstractServerCommand {
                                         .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
                                                 .executes(this::pageTurning))))
                         .then(CommandManager.literal("openInventory")
+                                .requires(OpenPlayerInventory::isEnable)
                                 .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
                                         .then(CommandManager.literal("inventory")
-                                                .executes(this::openPlayerInventory))
+                                                .executes(context -> openPlayerInventory(context, true)))
                                         .then(CommandManager.literal("enderChest")
-                                                .executes(this::openPlayerEnderChest))))));
+                                                .executes(context -> openPlayerInventory(context, false)))))));
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
@@ -256,7 +258,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
             CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
             if (rule == null) {
@@ -285,7 +287,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = GenericFetcherUtils.getRuleSelfManager(player);
+            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
             CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
             if (rule == null) {
@@ -311,7 +313,7 @@ public class OrangeCommand extends AbstractServerCommand {
         int id = IntegerArgumentType.getInteger(context, "id");
         int page = IntegerArgumentType.getInteger(context, "page");
         MinecraftServer server = context.getSource().getServer();
-        PageManager manager = GenericFetcherUtils.getPageManager(server);
+        PageManager manager = FetcherUtils.getPageManager(server);
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {
             PagedCollection collection = optional.get();
@@ -322,40 +324,24 @@ public class OrangeCommand extends AbstractServerCommand {
         }
     }
 
-    private int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int openPlayerInventory(CommandContext<ServerCommandSource> context, boolean isInventory) throws CommandSyntaxException {
         UUID uuid = UuidArgumentType.getUuid(context, "uuid");
         ServerCommandSource source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-        if (player == null) {
-            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
-            if (optional.isEmpty()) {
-                throw PlayerCommandExtension.createNoFileFoundException();
-            }
-            GameProfile gameProfile = optional.get();
-            PlayerCommandExtension.openOfflinePlayerInventory(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
-        } else {
-            PlayerCommandExtension.openOnlinePlayerInventory(CommandUtils.getSourcePlayer(context), player, server, source);
+        if (player != null) {
+            throw CommandUtils.createException("carpet.commands.orange.textclickevent.openInventory.fail");
         }
-        return 1;
-    }
-
-    private int openPlayerEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-        ServerCommandSource source = context.getSource();
-        MinecraftServer server = source.getServer();
-        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
-        if (player == null) {
-            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
-            if (optional.isEmpty()) {
-                throw PlayerCommandExtension.createNoFileFoundException();
-            }
-            GameProfile gameProfile = optional.get();
-            PlayerCommandExtension.openOfflinePlayerEnderChest(gameProfile.getName(), server, sourcePlayer, source, gameProfile);
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+        if (optional.isEmpty()) {
+            throw PlayerCommandExtension.createNoFileFoundException();
+        }
+        GameProfile gameProfile = optional.get();
+        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+        if (isInventory) {
+            PlayerCommandExtension.openOfflinePlayerInventory(sourcePlayer, gameProfile);
         } else {
-            PlayerCommandExtension.openOnlinePlayerEnderChest(CommandUtils.getSourcePlayer(context), player, server, source);
+            PlayerCommandExtension.openOfflinePlayerEnderChest(sourcePlayer, gameProfile);
         }
         return 1;
     }

@@ -50,7 +50,7 @@ public class BlockSearchTask extends ServerTask {
         this.blockPredicate = blockPredicate;
         this.findState = FindState.SEARCH;
         this.tickCount = 0;
-        PageManager pageManager = GenericFetcherUtils.getPageManager(context.getSource().getServer());
+        PageManager pageManager = FetcherUtils.getPageManager(context.getSource().getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
     }
 
