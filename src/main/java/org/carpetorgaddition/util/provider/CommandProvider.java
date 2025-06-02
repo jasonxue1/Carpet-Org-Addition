@@ -169,7 +169,19 @@ public class CommandProvider {
      * 打开玩家物品栏
      */
     public static String openPlayerInventory(PlayerEntity player) {
-        return "player %s inventory".formatted(player.getName().getString());
+        return openPlayerInventory(player.getGameProfile().getName());
+    }
+
+    public static String openPlayerInventory(String name) {
+        return "/player %s inventory".formatted(name);
+    }
+
+    public static String openPlayerEnderChest(PlayerEntity player) {
+        return openPlayerEnderChest(player.getGameProfile().getName());
+    }
+
+    public static String openPlayerEnderChest(String name) {
+        return "/player %s enderChest".formatted(name);
     }
 
     public static String openPlayerInventory(UUID uuid) {

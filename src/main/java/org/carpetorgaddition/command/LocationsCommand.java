@@ -112,7 +112,7 @@ public class LocationsCommand extends AbstractServerCommand {
             // 成功添加路径点
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.locations.add.success", name, WorldUtils.toPosString(blockPos));
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("{}在尝试将路径点写入本地文件时出现意外问题:", GameUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.error("{}在尝试将路径点写入本地文件时出现意外问题:", GenericUtils.getPlayerName(player), e);
         }
         return 1;
     }

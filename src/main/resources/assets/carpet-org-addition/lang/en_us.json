@@ -395,6 +395,7 @@
   "carpet.commands.orange.textclickevent.queryPlayerName.start": "Player name is being queried via the Mojang API",
   "carpet.commands.orange.textclickevent.queryPlayerName.success": "The player name for UUID [%s] is [%s]",
   "carpet.commands.orange.textclickevent.queryPlayerName.fail": "No player name could be found for UUID [%s]",
+  "carpet.commands.orange.textclickevent.openInventory.fail": "This function can only be used to open the offline player inventory",
   "carpet.commands.orange.ruleself.failed": "Invalid or unsupported rule for standalone toggling",
   "carpet.commands.orange.ruleself.enable": "Rule \"%s\" now applies to %s",
   "carpet.commands.orange.ruleself.disable": "Rule \"%s\" no longer applies to %s",

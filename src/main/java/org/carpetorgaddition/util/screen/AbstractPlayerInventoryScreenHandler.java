@@ -59,7 +59,7 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
         for (int i = 0; i < 6; ++i) {
             for (int j = 0; j < 9; ++j) {
                 // 如果槽位id大于玩家物品栏的大小，添加不可用槽位
-                if (index >= PlayerInventoryScreenHandler.SIZE) {
+                if (index >= SIZE) {
                     // 添加不可用槽位
                     this.addSlot(new DisabledSlot(this.inventory, index, 8 + j * 18, 18 + i * 18));
                 } else {
@@ -159,7 +159,7 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
 
     @Override
     public Map<Integer, Identifier> getBackgroundSprite() {
-        return PlayerInventoryScreenHandler.BACKGROUND_SPRITE_MAP;
+        return BACKGROUND_SPRITE_MAP;
     }
 
     @Override
