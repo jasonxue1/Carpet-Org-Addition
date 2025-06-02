@@ -32,7 +32,7 @@ public class Waypoint {
     private MetaComment comment = new MetaComment();
     private final String creator;
     private final MinecraftServer server;
-    public final String name;
+    private final String name;
 
     public Waypoint(BlockPos blockPos, String name, World world, String creator, MinecraftServer server) {
         this.name = name;
@@ -135,7 +135,6 @@ public class Waypoint {
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象
     private Text formatName() {
-        // TODO 很多位置都不显示注释，应统一使用此方法获取名称
         TextBuilder builder = new TextBuilder("[" + this.name.split("\\.")[0] + "]");
         if (this.comment.isEmpty()) {
             return builder.build();

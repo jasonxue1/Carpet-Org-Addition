@@ -3,7 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ public class FakePlayerActionSerializer {
     }
 
     public FakePlayerActionSerializer(EntityPlayerMPFake fakePlayer) {
-        FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         this.action = actionManager.getAction();
     }
 
@@ -51,7 +51,7 @@ public class FakePlayerActionSerializer {
         } else if (!this.action.getFakePlayer().equals(fakePlayer)) {
             throw new IllegalArgumentException();
         }
-        FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         actionManager.setAction(this.action);
     }
 

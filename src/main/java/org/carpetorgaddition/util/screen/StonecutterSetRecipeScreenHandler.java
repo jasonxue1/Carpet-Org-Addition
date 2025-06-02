@@ -9,7 +9,7 @@ import net.minecraft.screen.StonecutterScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.StonecuttingAction;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 
 public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler implements UnavailableSlotSyncInterface {
     private final EntityPlayerMPFake fakePlayer;
@@ -42,7 +42,7 @@ public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler 
         // 获取按钮索引
         int button = this.getSelectedRecipe();
         if (button != -1) {
-            FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(this.fakePlayer);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(this.fakePlayer);
             // 设置玩家动作
             actionManager.setAction(new StonecuttingAction(this.fakePlayer, itemStack.getItem(), button));
         }

@@ -136,7 +136,7 @@ public class MessageUtils {
      * @param obj    消息中替代占位符的内容
      */
     public static void sendErrorMessage(ServerCommandSource source, Throwable e, String key, Object... obj) {
-        String error = GameUtils.getExceptionString(e);
+        String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, obj);
         builder.setStringHover(error);
         builder.setColor(Formatting.RED);

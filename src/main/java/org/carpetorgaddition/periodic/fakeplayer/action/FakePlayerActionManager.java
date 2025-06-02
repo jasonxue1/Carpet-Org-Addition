@@ -2,7 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.util.GenericFetcherUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ public class FakePlayerActionManager {
 
     // 从另一个玩家浅拷贝此动作管理器
     public void setActionFromOldPlayer(EntityPlayerMPFake oldPlayer) {
-        FakePlayerActionManager actionManager = GenericFetcherUtils.getFakePlayerActionManager(oldPlayer);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(oldPlayer);
         this.setAction(actionManager.getAction());
         this.action.setFakePlayer(this.fakePlayer);
     }

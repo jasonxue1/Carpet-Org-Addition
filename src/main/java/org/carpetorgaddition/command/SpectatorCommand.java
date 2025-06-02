@@ -70,7 +70,7 @@ public class SpectatorCommand extends AbstractServerCommand {
             gameMode = GameMode.SURVIVAL;
             if (!isFakePlayer) {
                 // 假玩家切换游戏模式不需要回到原位置
-                loadPlayerPos(player.getServer(), player);
+                loadPlayerPos(GenericUtils.getServer(player), player);
             }
         } else {
             gameMode = GameMode.SPECTATOR;
@@ -79,7 +79,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 // Mojang真的修复MC-146582了吗？（https://bugs.mojang.com/browse/MC-146582）
                 player.requestTeleportOffset(0.0, 0.2, 0.0);
             } else {
-                savePlayerPos(player.getServer(), player);
+                savePlayerPos(GenericUtils.getServer(player), player);
             }
         }
         player.changeGameMode(gameMode);
@@ -161,7 +161,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 writer.write(jsonString);
             }
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.warn("无法正常将{}的位置信息写入文件", GameUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.warn("无法正常将{}的位置信息写入文件", GenericUtils.getPlayerName(player), e);
         }
     }
 
@@ -184,7 +184,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 WorldUtils.teleport(player, world, x, y, z, yaw, pitch);
             }
         } catch (IOException | NullPointerException e) {
-            CarpetOrgAddition.LOGGER.warn("无法正常读取{}的位置信息", GameUtils.getPlayerName(player));
+            CarpetOrgAddition.LOGGER.warn("无法正常读取{}的位置信息", GenericUtils.getPlayerName(player));
         }
     }
 

@@ -50,7 +50,8 @@ public enum ActionSerializeType {
         boolean dropOther = !json.has(FillTheContainerAction.DROP_OTHER) || json.get(FillTheContainerAction.DROP_OTHER).getAsBoolean();
         String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
         ItemStackPredicate predicate = ItemStackPredicate.parse(item);
-        return new FillTheContainerAction(null, predicate, dropOther);
+        boolean moreContainer = json.has(FillTheContainerAction.MORE_CONTAINER) && json.get(FillTheContainerAction.MORE_CONTAINER).getAsBoolean();
+        return new FillTheContainerAction(null, predicate, dropOther, moreContainer);
     }),
     /**
      * 在工作台合成物品
