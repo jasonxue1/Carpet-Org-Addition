@@ -127,8 +127,16 @@ public class IOUtils {
      * @param file 要备份的文件
      */
     public static void backup(File file) {
+        backup(file, true);
+    }
+
+    public static File backup(File file, boolean force) {
         File backup = new File(file.getParent(), file.getName() + ".bak");
+        if (!force && backup.exists()) {
+            throw new IllegalStateException("The backup file already exists");
+        }
         copyFile(file, backup);
+        return backup;
     }
 
     /**
@@ -258,6 +266,16 @@ public class IOUtils {
             return removeExtension(fileName);
         }
         return fileName;
+    }
+
+    /**
+     * 删除一个文件
+     *
+     * @apiNote 此方法是为了避免编译器发出未使用方法返回值警告
+     */
+    public static void removeFile(File file) {
+        //noinspection ResultOfMethodCallIgnored
+        file.delete();
     }
 
     /**
