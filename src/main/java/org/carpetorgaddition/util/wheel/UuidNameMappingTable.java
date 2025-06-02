@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.IOUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -76,6 +77,29 @@ public class UuidNameMappingTable {
     public Optional<GameProfile> getGameProfile(UUID uuid) {
         Optional<String> optional = get(uuid);
         return optional.map(name -> new GameProfile(uuid, name));
+    }
+
+    /**
+     * 根据玩家名称获取玩家UUID
+     *
+     * @param name          玩家的名称
+     * @param caseSensitive 是否区分大小写
+     */
+    public Optional<GameProfile> getGameProfile(@NotNull String name, boolean caseSensitive) {
+        try {
+            this.lock.readLock().lock();
+            Set<Map.Entry<UUID, String>> entries = this.hashMap.entrySet();
+            for (Map.Entry<UUID, String> entry : entries) {
+                String value = entry.getValue();
+                boolean equal = caseSensitive ? name.equals(value) : name.equalsIgnoreCase(value);
+                if (equal) {
+                    return Optional.of(new GameProfile(entry.getKey(), value));
+                }
+            }
+            return Optional.empty();
+        } finally {
+            this.lock.readLock().unlock();
+        }
     }
 
     public Optional<GameProfile> fetchGameProfileWithBackup(UserCache userCache, UUID uuid) {

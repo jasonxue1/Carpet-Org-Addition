@@ -4,7 +4,7 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import org.carpetorgaddition.network.PacketUtils;
-import org.carpetorgaddition.util.GameUtils;
+import org.carpetorgaddition.util.GenericUtils;
 
 /**
  * 导航点清除数据包
@@ -12,7 +12,7 @@ import org.carpetorgaddition.util.GameUtils;
 public record WaypointClearS2CPacket() implements CustomPayload {
     public static final CustomPayload.Id<WaypointClearS2CPacket> ID = PacketUtils.createId("waypoint_clear");
     public static final PacketCodec<RegistryByteBuf, WaypointClearS2CPacket> CODEC
-            = PacketCodec.of((buf, value) -> GameUtils.pass(), buf -> new WaypointClearS2CPacket());
+            = PacketCodec.of((buf, value) -> GenericUtils.pass(), buf -> new WaypointClearS2CPacket());
 
     @Override
     public Id<? extends CustomPayload> getId() {

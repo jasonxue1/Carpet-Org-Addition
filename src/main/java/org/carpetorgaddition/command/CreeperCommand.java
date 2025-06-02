@@ -15,6 +15,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.CreeperExplosionTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericUtils;
 
 public class CreeperCommand extends AbstractServerCommand {
     public CreeperCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -39,8 +40,8 @@ public class CreeperCommand extends AbstractServerCommand {
         if (sourcePlayer != null) {
             CarpetOrgAddition.LOGGER.info(
                     "{}在{}周围制造了一场苦力怕爆炸",
-                    sourcePlayer.getName().getString(),
-                    targetPlayer.getName().getString()
+                    GenericUtils.getPlayerName(sourcePlayer),
+                    GenericUtils.getPlayerName(targetPlayer)
             );
         }
         return 1;

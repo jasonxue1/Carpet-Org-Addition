@@ -484,6 +484,7 @@
   "carpet.commands.orange.textclickevent.queryPlayerName.start": "正在通过Mojang API查询玩家名称",
   "carpet.commands.orange.textclickevent.queryPlayerName.success": "UUID[%s]对应的玩家名是[%s]",
   "carpet.commands.orange.textclickevent.queryPlayerName.fail": "查询不到UUID[%s]对应的玩家名",
+  "carpet.commands.orange.textclickevent.openInventory.fail": "此功能只能用于打开离线玩家物品栏",
   "carpet.commands.orange.ruleself.failed": "无效或不支持单独开关的规则",
   "carpet.commands.orange.ruleself.enable": "规则“%s”现在对%s启用",
   "carpet.commands.orange.ruleself.disable": "规则“%s”现在对%s禁用",

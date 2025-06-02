@@ -7,10 +7,20 @@ import net.fabricmc.loader.api.metadata.ModMetadata;
 import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.wheel.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 public class CarpetOrgAddition implements ModInitializer {
@@ -71,12 +81,67 @@ public class CarpetOrgAddition implements ModInitializer {
         // 注册网络数据包
         NetworkS2CPacketRegister.register();
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
-            CarpetOrgAddition.LOGGER.info("已启用隐藏功能");
+            CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
+        }
+        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+            this.runs();
         }
         // 如果当前为调试模式的开发环境，注册测试规则
         if (isDebugDevelopment()) {
             DebugRuleRegistrar.getInstance().registrar();
-            CarpetOrgAddition.LOGGER.info("构建时间戳：{}", BUILD_TIMESTAMP);
+            CarpetOrgAddition.LOGGER.info("Build timestamp: {}", BUILD_TIMESTAMP);
+        }
+    }
+
+    /**
+     * 记录游戏的启动次数
+     */
+    private void runs() {
+        File file = new File("../startlog.txt");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        try {
+            // 自有记录以来的启动次数
+            int total = 0;
+            Counter<LocalDate> counter = new Counter<>();
+            if (file.isFile()) {
+                // 读取历史启动次数
+                List<String> list = Files.readAllLines(file.toPath());
+                for (String str : list) {
+                    if (str.isEmpty()) {
+                        continue;
+                    }
+                    String[] split = str.split("=");
+                    if (split.length != 2) {
+                        continue;
+                    }
+                    LocalDate localDate = LocalDate.parse(split[0], formatter);
+                    int count = Integer.parseInt(split[1]);
+                    counter.add(localDate, count);
+                    total += count;
+                }
+            }
+            LocalDate now = LocalDate.now();
+            total++;
+            counter.add(now);
+            // 获取今天的启动次数
+            int count = counter.getCount(now);
+            CarpetOrgAddition.LOGGER.info("The game has been launched {} times today", count);
+            // 保存启动次数
+            List<LocalDate> list = counter.keySet().stream().sorted().toList();
+            // 重新写入前备份文件，写入完毕后删除备份
+            File backup = IOUtils.backup(file, false);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            try (writer) {
+                for (LocalDate date : list) {
+                    writer.write(date.format(formatter) + "=" + counter.getCount(date));
+                    writer.newLine();
+                }
+            }
+            IOUtils.removeFile(backup);
+            String earliest = list.getFirst().format(formatter);
+            CarpetOrgAddition.LOGGER.info("The game has been launched a total of {} times since {}", total, earliest);
+        } catch (IOException e) {
+            CarpetOrgAddition.LOGGER.warn("An unexpected error occurred while recording the number of game launches", e);
         }
     }
 

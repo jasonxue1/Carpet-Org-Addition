@@ -90,7 +90,7 @@ public class CommandUtils {
     }
 
     public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
-        String message = GameUtils.getExceptionString(e);
+        String message = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, args);
         builder.setHover(message);
         return new SimpleCommandExceptionType(builder.build()).create();
