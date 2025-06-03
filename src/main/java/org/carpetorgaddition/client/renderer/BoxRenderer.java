@@ -1,6 +1,7 @@
 package org.carpetorgaddition.client.renderer;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -12,7 +13,7 @@ import org.joml.Matrix4f;
 /**
  * 立方体模型渲染器
  */
-public class BoxRenderer {
+public class BoxRenderer implements WorldRenderer {
     private final Tessellator tessellator = Tessellator.getInstance();
     /**
      * 用于确定模型的大小和位置
@@ -40,6 +41,15 @@ public class BoxRenderer {
 
     public BoxRenderer(@NotNull Box box) {
         this.box = box;
+    }
+
+    @Override
+    public void render(WorldRenderContext context) {
+        MatrixStack matrixStack = context.matrixStack();
+        if (matrixStack == null) {
+            return;
+        }
+        this.render(matrixStack);
     }
 
     /**

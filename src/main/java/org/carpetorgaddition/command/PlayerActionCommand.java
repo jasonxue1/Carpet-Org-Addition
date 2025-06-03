@@ -23,6 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerGotoPath;
 import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -106,7 +107,11 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(this::setBreakBedrock))))));
+                                                .executes(this::setBreakBedrock))))
+                        .then(CommandManager.literal("goto")
+                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .then(CommandManager.argument("target", BlockPosArgumentType.blockPos())
+                                        .executes(this::setGoto)))));
     }
 
     // 注册物品谓词节点
@@ -286,6 +291,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return 0;
     }
 
+    // 设置破基岩
     private int setBreakBedrock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
@@ -293,6 +299,18 @@ public class PlayerActionCommand extends AbstractServerCommand {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
             actionManager.setAction(new BedrockAction(fakePlayer, from, to));
+            return 1;
+        }
+        return 0;
+    }
+
+    // 设置寻路
+    private int setGoto(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            BlockPos target = BlockPosArgumentType.getBlockPos(context, "target");
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            actionManager.setAction(new GotoAction(fakePlayer, new FakePlayerGotoPath(fakePlayer, target)));
             return 1;
         }
         return 0;
@@ -316,7 +334,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return matchers;
     }
 
-    //获取假玩家操作类型
+    // 获取假玩家操作类型
     private int getAction(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);

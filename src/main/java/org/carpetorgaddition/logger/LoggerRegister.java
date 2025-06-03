@@ -3,6 +3,8 @@ package org.carpetorgaddition.logger;
 import carpet.logging.HUDLogger;
 import carpet.logging.Logger;
 import carpet.logging.LoggerRegistry;
+import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.rule.Hidden;
 
 import java.lang.reflect.Field;
 
@@ -28,6 +30,10 @@ public class LoggerRegister {
     @LoggerConfig(name = LoggerNames.OBSIDIAN, type = LoggerType.FUNCTION)
     public static boolean obsidian = false;
 
+    @Hidden
+    @LoggerConfig(name = LoggerNames.FAKE_PLAYER_PATH, type = LoggerType.NETWORK)
+    public static boolean fakePlayerPath = false;
+
     /**
      * 注册记录器
      */
@@ -35,6 +41,9 @@ public class LoggerRegister {
         for (Field field : LoggerRegister.class.getFields()) {
             LoggerConfig annotation = field.getAnnotation(LoggerConfig.class);
             if (annotation == null) {
+                continue;
+            }
+            if (!CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION && field.isAnnotationPresent(Hidden.class)) {
                 continue;
             }
             // 记录器名称

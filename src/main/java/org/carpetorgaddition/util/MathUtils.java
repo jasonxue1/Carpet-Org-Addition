@@ -177,6 +177,13 @@ public class MathUtils {
         return start + (target - start) * factor;
     }
 
+    public static int approach(int start, int target) {
+        if (start == target) {
+            return start;
+        }
+        return start > target ? start - 1 : start + 1;
+    }
+
     /**
      * 等差数列求和
      *

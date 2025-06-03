@@ -116,7 +116,8 @@ public enum ActionSerializeType {
         BlockPos minPos = new BlockPos(from.get(0).getAsInt(), from.get(1).getAsInt(), from.get(2).getAsInt());
         BlockPos maxPos = new BlockPos(to.get(0).getAsInt(), to.get(1).getAsInt(), to.get(2).getAsInt());
         return new BedrockAction(null, minPos, maxPos);
-    });
+    }),
+    GOTO(json -> new StopAction(null));
 
     private final String serializedName;
     private final Function<JsonObject, AbstractPlayerAction> deserializer;
