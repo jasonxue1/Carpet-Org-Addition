@@ -3,6 +3,7 @@ package org.carpetorgaddition.util;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -177,11 +178,31 @@ public class MathUtils {
         return start + (target - start) * factor;
     }
 
+    /**
+     * 让一个数逐渐趋近于另一个数
+     */
+    @SuppressWarnings("unused")
     public static int approach(int start, int target) {
         if (start == target) {
             return start;
         }
         return start > target ? start - 1 : start + 1;
+    }
+
+    /**
+     * @return 返回两个坐标水平方向的距离
+     */
+    public static double horizontalDistance(Vec3d a, Vec3d b) {
+        double x = a.x - b.x;
+        double y = a.z - b.z;
+        return Math.sqrt(x * x + y * y);
+    }
+
+    /**
+     * @return 返回两个坐标垂直方向的距离
+     */
+    public static double verticalDistance(Vec3d a, Vec3d b) {
+        return Math.abs(a.getY() - b.getY());
     }
 
     /**

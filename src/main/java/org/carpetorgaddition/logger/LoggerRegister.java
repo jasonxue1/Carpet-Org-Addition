@@ -30,6 +30,7 @@ public class LoggerRegister {
     @LoggerConfig(name = LoggerNames.OBSIDIAN, type = LoggerType.FUNCTION)
     public static boolean obsidian = false;
 
+    // TODO 检查是否在正常环境下加载
     @Hidden
     @LoggerConfig(name = LoggerNames.FAKE_PLAYER_PATH, type = LoggerType.NETWORK)
     public static boolean fakePlayerPath = false;
