@@ -62,6 +62,9 @@ public abstract class AbstractPlayerAction {
         return false;
     }
 
+    public void onStop() {
+    }
+
     public EntityPlayerMPFake getFakePlayer() {
         return fakePlayer;
     }

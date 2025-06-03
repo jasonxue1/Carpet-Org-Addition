@@ -13,6 +13,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.*;
 import net.minecraft.command.argument.ItemPredicateArgumentType.ItemStackPredicateArgument;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
@@ -23,7 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerGotoPath;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -110,8 +111,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                                 .executes(this::setBreakBedrock))))
                         .then(CommandManager.literal("goto")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                                .then(CommandManager.argument("target", BlockPosArgumentType.blockPos())
-                                        .executes(this::setGoto)))));
+                                .then(CommandManager.literal("block")
+                                        .then(CommandManager.argument("target", BlockPosArgumentType.blockPos())
+                                                .executes(this::setGotoBlockPos)))
+                                .then(CommandManager.literal("entity")
+                                        .then(CommandManager.argument("target", EntityArgumentType.entity())
+                                                .executes(this::setGotoEntity))))));
     }
 
     // 注册物品谓词节点
@@ -304,13 +309,27 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return 0;
     }
 
-    // 设置寻路
-    private int setGoto(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    // 设置寻路到方块
+    private int setGotoBlockPos(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos target = BlockPosArgumentType.getBlockPos(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            actionManager.setAction(new GotoAction(fakePlayer, new FakePlayerGotoPath(fakePlayer, target)));
+            FakePlayerPathfinder pathfinder = new FakePlayerPathfinder(fakePlayer, target);
+            actionManager.setAction(new GotoAction(pathfinder));
+            return 1;
+        }
+        return 0;
+    }
+
+    // 设置寻路到实体
+    private int setGotoEntity(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            Entity target = EntityArgumentType.getEntity(context, "target");
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerPathfinder pathfinder = new FakePlayerPathfinder(fakePlayer, target);
+            actionManager.setAction(new GotoAction(pathfinder));
             return 1;
         }
         return 0;

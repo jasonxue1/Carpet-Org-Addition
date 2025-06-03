@@ -6,7 +6,7 @@ import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.network.PacketUtils;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerGotoPath;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +46,8 @@ public record FakePlayerPathS2CPacket(int id, List<Vec3d> list) implements Custo
         }
     };
 
-    public FakePlayerPathS2CPacket(FakePlayerGotoPath path) {
-        this(path.getFakePlayer().getId(), path.getRenderNodes());
+    public FakePlayerPathS2CPacket(FakePlayerPathfinder pathfinder) {
+        this(pathfinder.getFakePlayer().getId(), pathfinder.getRenderNodes());
     }
 
     @Override
