@@ -30,6 +30,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -50,6 +51,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Nullable
     private BlockPos distantBedrock;
     private boolean hasAction;
+    private final Counter<BlockPos> invalidBedrock = new Counter<>();
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
         super(fakePlayer);
@@ -61,6 +63,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public void tick() {
         this.hasAction = false;
         this.pathfinder.tick();
+        this.invalidBedrock.trim();
+        for (BlockPos blockPos : this.invalidBedrock) {
+            this.invalidBedrock.decrement(blockPos);
+        }
         if (this.tickCurrent()) {
             return;
         }
@@ -70,7 +76,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return true;
             }
             if (world.getBlockState(context.getBedrockPos()).isOf(Blocks.BEDROCK)) {
-                return !this.fakePlayer.canInteractWithBlockAt(context.getBedrockPos(), 0.0);
+                return !canInteractBedrock(context.getBedrockPos());
             }
             return context.getState() != BreakingState.CLEAN_PISTON;
         });
@@ -80,7 +86,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         SelectionArea area = new SelectionArea(box);
         for (BlockPos blockPos : area) {
             if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)
-                    && this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0)
+                    && canInteractBedrock(blockPos)
                     && this.inSelectionArea(blockPos)) {
                 this.add(new BedrockBreakingContext(blockPos));
             }
@@ -93,18 +99,47 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return;
             }
         }
+        this.setGotoTarget(world);
+    }
+
+    private void setGotoTarget(World world) {
         if (this.hasAction) {
+            if (this.pathfinder.isFinished()) {
+                this.distantBedrock = null;
+            }
             return;
         }
+        Optional<BlockPos> optional = this.getDistantBedrock();
+        if (optional.isPresent() && this.canInteractBedrock(optional.get())) {
+            this.selectRandomBedrock(world);
+            this.invalidBedrock.add(optional.get(), 200);
+            return;
+        }
+        for (BedrockBreakingContext context : this) {
+            BlockPos blockPos = context.getBedrockPos();
+            if (this.invalidBedrock.getCount(blockPos) > 0) {
+                continue;
+            }
+            this.distantBedrock = blockPos;
+            return;
+        }
+        this.selectRandomBedrock(world);
+    }
+
+    private void selectRandomBedrock(World world) {
         if (this.pathfinder.isInaccessible()) {
             for (int i = 0; i < 100; i++) {
                 BlockPos blockPos = this.selectionArea.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
                     this.distantBedrock = blockPos;
-                    break;
+                    return;
                 }
             }
         }
+    }
+
+    private boolean canInteractBedrock(BlockPos blockPos) {
+        return this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0);
     }
 
     private boolean tickCurrent() {
@@ -239,7 +274,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (isReplaceableBlock(blockState)) {
             // 当前方块是可以被直接替换的，例如雪
             // 什么也不需要不做
-        } else if (blockState.isOf(Blocks.PISTON)) {
+        } else if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.FACING) == Direction.UP) {
             // 当方块已经是活塞了，不需要再次放置
             isPiston = true;
         } else if (canMine(blockState, world, up)) {
@@ -643,7 +678,6 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         return this.contexts.iterator();
     }
 
-    @Nullable
     public Optional<BlockPos> getDistantBedrock() {
         if (this.distantBedrock == null) {
             return Optional.empty();

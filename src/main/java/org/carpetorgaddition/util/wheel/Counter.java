@@ -87,23 +87,19 @@ public class Counter<E> implements Iterable<E> {
         return this.counter.isEmpty();
     }
 
-    /**
-     * 判断一个元素在集合内是否存在
-     *
-     * @param element 要判断是否存在的元素
-     * @return 指定元素是否在集合内的数量大于0
-     */
-    @SuppressWarnings("unused")
-    public boolean hasElement(E element) {
-        return this.getCount(element) > 0;
-    }
-
     public Stream<Map.Entry<E, Integer>> stream() {
         return this.counter.entrySet().stream();
     }
 
     public Set<E> keySet() {
         return this.counter.keySet();
+    }
+
+    /**
+     * 删除不必要的元素
+     */
+    public void trim() {
+        this.counter.entrySet().removeIf(entry -> entry.getValue() == 0);
     }
 
     @NotNull
