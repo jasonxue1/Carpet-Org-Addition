@@ -22,6 +22,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingContext;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
@@ -32,25 +33,34 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final SelectionArea selectionArea;
+    private final FakePlayerPathfinder pathfinder;
     private BedrockBreakingContext currentContext;
+    @Nullable
+    private BlockPos distantBedrock;
+    private boolean hasAction;
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
         super(fakePlayer);
         this.selectionArea = new SelectionArea(from, to);
+        this.pathfinder = new FakePlayerPathfinder(this.fakePlayer, this::getDistantBedrock);
     }
 
     @Override
     public void tick() {
+        this.hasAction = false;
+        this.pathfinder.tick();
         if (this.tickCurrent()) {
             return;
         }
@@ -81,6 +91,18 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
             if (tick(context)) {
                 return;
+            }
+        }
+        if (this.hasAction) {
+            return;
+        }
+        if (this.pathfinder.isInaccessible()) {
+            for (int i = 0; i < 100; i++) {
+                BlockPos blockPos = this.selectionArea.randomBlockPos();
+                if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
+                    this.distantBedrock = blockPos;
+                    break;
+                }
             }
         }
     }
@@ -253,13 +275,19 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             return true;
         }
         boolean isPiston = blockState.isOf(Blocks.PISTON);
-        // 允许破坏方向不正确的活塞
-        if (isPiston && blockState.get(PistonBlock.FACING).getAxis() != Direction.Axis.Y) {
-            return true;
-        }
-        // 允许破坏浮空的活塞
-        if (isPiston && !world.getBlockState(blockPos.down()).isOf(Blocks.BEDROCK)) {
-            return true;
+        if (isPiston) {
+            // 允许破坏方向不正确的活塞
+            if (blockState.get(PistonBlock.FACING).getAxis() != Direction.Axis.Y) {
+                return true;
+            }
+            // 允许破坏浮空的活塞
+            if (!world.getBlockState(blockPos.down()).isOf(Blocks.BEDROCK)) {
+                return true;
+            }
+            // 允许破坏放置在基岩上但朝下的活塞
+            if (blockState.get(PistonBlock.FACING) == Direction.DOWN) {
+                return true;
+            }
         }
         // 允许破坏没有附着在方块侧面的拉杆
         if (blockState.isOf(Blocks.LEVER)) {
@@ -487,6 +515,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * @return 是否破坏成功
      */
     private boolean breakBlock(BlockExcavator blockExcavator, BlockPos blockPos, boolean switchTool) {
+        this.hasAction = true;
         EntityPlayerMPFake player = blockExcavator.getPlayer();
         World world = player.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
@@ -534,7 +563,11 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         FakePlayerUtils.replenishment(this.fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
         // 放置活塞
         BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(bedrockPos, 1.0), direction, bedrockPos.up(), false);
-        return interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        ActionResult result = interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        if (result.isAccepted()) {
+            this.hasAction = true;
+        }
+        return result;
     }
 
     /**
@@ -543,7 +576,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void interactionLever(BlockPos leverPos) {
         ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
         BlockHitResult hitResult = new BlockHitResult(leverPos.toCenterPos(), Direction.UP, leverPos, false);
-        interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getMainHandStack(), Hand.MAIN_HAND, hitResult);
+        ActionResult result = interactionManager.interactBlock(this.fakePlayer, this.fakePlayer.getWorld(), this.fakePlayer.getMainHandStack(), Hand.MAIN_HAND, hitResult);
+        if (result.isAccepted()) {
+            this.hasAction = true;
+        }
     }
 
 
@@ -605,5 +641,22 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public Iterator<BedrockBreakingContext> iterator() {
         return this.contexts.iterator();
+    }
+
+    @Nullable
+    public Optional<BlockPos> getDistantBedrock() {
+        if (this.distantBedrock == null) {
+            return Optional.empty();
+        }
+        World world = this.fakePlayer.getWorld();
+        if (world.getBlockState(this.distantBedrock).isOf(Blocks.BEDROCK)) {
+            return Optional.of(this.distantBedrock);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public void onStop() {
+        this.pathfinder.onStop();
     }
 }

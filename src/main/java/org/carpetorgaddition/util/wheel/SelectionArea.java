@@ -3,6 +3,7 @@ package org.carpetorgaddition.util.wheel;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
+import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -69,6 +70,16 @@ public class SelectionArea implements Iterable<BlockPos> {
         int y = blockPos.getY();
         int z = blockPos.getZ();
         return x >= this.minX && x <= this.maxX && y >= this.minY && y <= this.maxY && z >= this.minZ && z <= this.maxZ;
+    }
+
+    /**
+     * @return 随机获取一个方块坐标
+     */
+    public BlockPos randomBlockPos() {
+        int x = MathUtils.randomInt(this.minX, this.maxX);
+        int y = MathUtils.randomInt(this.minY, this.maxY);
+        int z = MathUtils.randomInt(this.minZ, this.maxZ);
+        return new BlockPos(x, y, z);
     }
 
     /**

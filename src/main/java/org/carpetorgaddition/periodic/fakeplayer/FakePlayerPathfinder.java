@@ -22,10 +22,7 @@ import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.FakePlayerPathS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class FakePlayerPathfinder {
@@ -47,6 +44,11 @@ public class FakePlayerPathfinder {
      * 是否没有路能到达目标位置
      */
     private boolean noRoad = false;
+    private BlockPos previous;
+    /**
+     * 重试寻路的次数
+     */
+    private int retryCount;
     public static final int FOLLOW_RANGE = 48;
 
     public FakePlayerPathfinder(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
@@ -68,15 +70,24 @@ public class FakePlayerPathfinder {
     public void tick() {
         Optional<BlockPos> optional = this.target.get();
         if (optional.isEmpty()) {
+            if (this.isFinished()) {
+                return;
+            }
+            this.stop();
             return;
         }
+        BlockPos blockPos = optional.get();
+        if (!Objects.equals(this.previous, blockPos)) {
+            this.pathfinding();
+        }
+        this.previous = blockPos;
         Vec3d pos = this.fakePlayer.getPos();
         this.directTravelTime--;
         if (this.updateTime > 0) {
             this.updateTime--;
         }
         // 是否还没有接近目标
-        boolean farAway = optional.get().toBottomCenterPos().distanceTo(pos) > 1.5;
+        boolean farAway = blockPos.toBottomCenterPos().distanceTo(pos) > 1.5;
         if (this.updateTime == 0 && farAway) {
             // 更新路径
             this.noRoad = false;
@@ -92,6 +103,7 @@ public class FakePlayerPathfinder {
                 // 没有到达目标位置，立即更新路径
                 this.pathfinding();
             }
+            return;
         }
         Vec3d current = this.getCurrentNode();
         boolean onGround = this.fakePlayer.isOnGround();
@@ -100,7 +112,7 @@ public class FakePlayerPathfinder {
                 this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, current);
             }
         } else {
-            // 玩家在从一格高的方块上下来时会尝试回到上一个节点
+            // 玩家在从一格高的方块上下来，有时会尝试回到上一个节点
             this.directTravelTime = 2;
         }
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
@@ -143,6 +155,7 @@ public class FakePlayerPathfinder {
     }
 
     private void pathfinding() {
+        this.retryCount++;
         this.updateTime = 100;
         this.nodes.clear();
         this.currentIndex = 0;
@@ -185,6 +198,9 @@ public class FakePlayerPathfinder {
             Vec3d current = this.nodes.get(i);
             Vec3d pos = this.fakePlayer.getPos();
             if (current.distanceTo(pos) <= 0.5) {
+                if (i > 0) {
+                    this.retryCount = 0;
+                }
                 this.currentIndex = i + 1;
                 if (this.isFinished()) {
                     this.onStop();
@@ -206,6 +222,11 @@ public class FakePlayerPathfinder {
         return this.nodes.stream().map(vec3d -> vec3d.add(0.0, 0.1, 0.0)).toList();
     }
 
+    public void stop() {
+        this.currentIndex = this.nodes.size();
+        this.onStop();
+    }
+
     public void onStart() {
         if (LoggerRegister.fakePlayerPath) {
             NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
@@ -220,6 +241,19 @@ public class FakePlayerPathfinder {
         }
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
         actionPack.setForward(0F);
+    }
+
+    /**
+     * @return 目标位置是否是不可到达的
+     */
+    public boolean isInaccessible() {
+        if (this.isFinished()) {
+            return true;
+        }
+        if (this.target.get().isEmpty()) {
+            return true;
+        }
+        return this.retryCount > 5;
     }
 
     /**
