@@ -78,7 +78,9 @@ public class FakePlayerPathfinder {
         }
         BlockPos blockPos = optional.get();
         if (!Objects.equals(this.previous, blockPos)) {
+            // 更新目标位置
             this.pathfinding();
+            this.setInvalid();
         }
         this.previous = blockPos;
         Vec3d pos = this.fakePlayer.getPos();
@@ -113,7 +115,7 @@ public class FakePlayerPathfinder {
             }
         } else {
             // 玩家在从一格高的方块上下来，有时会尝试回到上一个节点
-            this.directTravelTime = 2;
+            this.directTravelTime = 1;
         }
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
         // 玩家到达了当前节点
@@ -199,7 +201,7 @@ public class FakePlayerPathfinder {
             Vec3d pos = this.fakePlayer.getPos();
             if (current.distanceTo(pos) <= 0.5) {
                 if (i > 0) {
-                    this.retryCount = 0;
+                    this.setInvalid();
                 }
                 this.currentIndex = i + 1;
                 if (this.isFinished()) {
@@ -244,16 +246,29 @@ public class FakePlayerPathfinder {
     }
 
     /**
-     * @return 目标位置是否是不可到达的
+     * @return 目标位置是否是无效的
      */
-    public boolean isInaccessible() {
+    public boolean isInvalid() {
         if (this.isFinished()) {
             return true;
         }
-        if (this.target.get().isEmpty()) {
+        Optional<BlockPos> optional = this.target.get();
+        if (optional.isEmpty()) {
             return true;
         }
         return this.retryCount > 5;
+    }
+
+    private void setInvalid() {
+        this.retryCount = 0;
+    }
+
+    /**
+     * @return 目标位置是否是不可到达的
+     */
+    public boolean isInaccessible() {
+        Optional<BlockPos> optional = this.target.get();
+        return !optional.map(blockPos -> blockPos.equals(BlockPos.ofFloored(this.nodes.getLast()))).orElse(true);
     }
 
     /**

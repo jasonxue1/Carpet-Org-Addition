@@ -209,4 +209,12 @@ public class InventoryUtils {
         }
         throw new IllegalStateException(message.get());
     }
+
+    public static boolean isFoodItem(ItemStack itemStack) {
+        return itemStack.contains(DataComponentTypes.FOOD);
+    }
+
+    public static boolean isToolItem(ItemStack itemStack) {
+        return itemStack.contains(DataComponentTypes.TOOL);
+    }
 }

@@ -7,6 +7,9 @@ import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
 import net.minecraft.block.piston.PistonBehavior;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.player.HungerManager;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
@@ -26,9 +29,11 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingContext;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.PlayerWorkPhase;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.SelectionArea;
@@ -36,10 +41,7 @@ import org.carpetorgaddition.util.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -48,22 +50,53 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private final SelectionArea selectionArea;
     private final FakePlayerPathfinder pathfinder;
     private BedrockBreakingContext currentContext;
+    private PlayerWorkPhase phase = PlayerWorkPhase.EAT;
+    /**
+     * 玩家当前的移动目标
+     */
     @Nullable
-    private BlockPos distantBedrock;
+    private BlockPos movingTarget;
+    /**
+     * 正在移动到近处的基岩
+     */
+    private boolean isMovingToNearbyBedrock = false;
+    /**
+     * 当前游戏刻玩家是否执行了破基岩的动作，例如放置活塞，点击拉杆等
+     */
     private boolean hasAction;
+    /**
+     * 因处于特殊位置而无法破除的基岩
+     */
     private final Counter<BlockPos> invalidBedrock = new Counter<>();
+    /**
+     * 周围的材料物品
+     */
+    private final List<ItemEntity> itemEntities = new LinkedList<>();
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
         super(fakePlayer);
         this.selectionArea = new SelectionArea(from, to);
-        this.pathfinder = new FakePlayerPathfinder(this.fakePlayer, this::getDistantBedrock);
+        this.pathfinder = new FakePlayerPathfinder(this.fakePlayer, this::getMovingTarget);
     }
 
     @Override
     public void tick() {
-        this.hasAction = false;
         this.pathfinder.tick();
+        this.itemEntities.removeIf(Entity::isRemoved);
+        HungerManager hungerManager = this.fakePlayer.getHungerManager();
+        if (hungerManager.getFoodLevel() <= 10) {
+            this.phase = PlayerWorkPhase.EAT;
+        }
+        switch (this.phase) {
+            case WORK -> work();
+            case EAT -> eat();
+            case COLLECT -> collectingMaterials();
+        }
+    }
+
+    private void work() {
         this.invalidBedrock.trim();
+        this.hasAction = false;
         for (BlockPos blockPos : this.invalidBedrock) {
             this.invalidBedrock.decrement(blockPos);
         }
@@ -102,17 +135,23 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         this.setGotoTarget(world);
     }
 
+    /**
+     * 设置目标基岩位置
+     */
     private void setGotoTarget(World world) {
         if (this.hasAction) {
             if (this.pathfinder.isFinished()) {
-                this.distantBedrock = null;
+                this.movingTarget = null;
             }
             return;
         }
-        Optional<BlockPos> optional = this.getDistantBedrock();
+        this.isMovingToNearbyBedrock = false;
+        Optional<BlockPos> optional = this.getMovingTarget();
         if (optional.isPresent() && this.canInteractBedrock(optional.get())) {
+            // 基岩在交互距离内，但因位置特殊而无法破除的基岩
+            // 重新选择目标位置，并将当前目标位置标记为无效位置
             this.selectRandomBedrock(world);
-            this.invalidBedrock.add(optional.get(), 200);
+            this.invalidBedrock.set(optional.get(), 200);
             return;
         }
         for (BedrockBreakingContext context : this) {
@@ -120,24 +159,30 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             if (this.invalidBedrock.getCount(blockPos) > 0) {
                 continue;
             }
-            this.distantBedrock = blockPos;
+            this.movingTarget = blockPos;
             return;
         }
         this.selectRandomBedrock(world);
     }
 
+    /**
+     * 随机选择基岩位置
+     */
     private void selectRandomBedrock(World world) {
-        if (this.pathfinder.isInaccessible()) {
+        if (this.pathfinder.isInvalid()) {
             for (int i = 0; i < 100; i++) {
                 BlockPos blockPos = this.selectionArea.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
-                    this.distantBedrock = blockPos;
+                    this.movingTarget = blockPos;
                     return;
                 }
             }
         }
     }
 
+    /**
+     * @return 指定方块坐标是否在玩家交互距离内
+     */
     private boolean canInteractBedrock(BlockPos blockPos) {
         return this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0);
     }
@@ -147,6 +192,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             return false;
         }
         if (this.contexts.contains(this.currentContext)) {
+            if (!this.isMovingToNearbyBedrock) {
+                this.isMovingToNearbyBedrock = true;
+                this.movingTarget = this.currentContext.getBedrockPos();
+            }
             return this.tick(this.currentContext);
         }
         this.currentContext = null;
@@ -190,6 +239,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     }
                 } else {
                     // 玩家没有足够的材料
+                    this.phase = PlayerWorkPhase.COLLECT;
                     return StepResult.TICK_COMPLETION;
                 }
             }
@@ -617,6 +667,69 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         }
     }
 
+    /**
+     * 吃食物
+     */
+    private void eat() {
+        if (this.fakePlayer.canConsume(false)) {
+            if (this.fakePlayer.getActiveItem().isEmpty()) {
+                if (FakePlayerUtils.replenishment(this.fakePlayer, InventoryUtils::isFoodItem)) {
+                    ServerPlayerInteractionManager interactionManager = this.fakePlayer.interactionManager;
+                    World world = this.fakePlayer.getWorld();
+                    ItemStack food = this.fakePlayer.getMainHandStack();
+                    interactionManager.interactItem(this.fakePlayer, world, food, Hand.MAIN_HAND);
+                }
+            }
+        } else {
+            this.phase = PlayerWorkPhase.WORK;
+        }
+    }
+
+    /**
+     * 收集材料
+     */
+    private void collectingMaterials() {
+        boolean finished = this.pathfinder.isFinished();
+        if (finished) {
+            // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
+            FakePlayerUtils.dropInventoryItem(fakePlayer, this::isGarbage);
+        }
+        if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
+            this.itemEntities.removeFirst();
+            if (this.itemEntities.isEmpty()) {
+                this.phase = PlayerWorkPhase.WORK;
+                return;
+            }
+        }
+        Box box = this.selectionArea.toBox().expand(10.0);
+        if (this.itemEntities.isEmpty()) {
+            List<ItemEntity> list = this.fakePlayer.getWorld().getNonSpectatingEntities(ItemEntity.class, box)
+                    .stream()
+                    .filter(itemEntity -> isMaterial(itemEntity.getStack()))
+                    .toList();
+            this.itemEntities.addAll(list);
+        }
+        if (this.itemEntities.isEmpty()) {
+            this.phase = PlayerWorkPhase.WORK;
+            return;
+        }
+        // TODO 优先捡起最近的物品
+        this.movingTarget = this.itemEntities.getFirst().getBlockPos();
+    }
+
+    private boolean isGarbage(ItemStack itemStack) {
+        if (isMaterial(itemStack)) {
+            return false;
+        }
+        if (InventoryUtils.isFoodItem(itemStack)) {
+            return false;
+        }
+        return !InventoryUtils.isToolItem(itemStack);
+    }
+
+    private boolean isMaterial(ItemStack itemStack) {
+        return itemStack.isOf(Items.PISTON) || itemStack.isOf(Items.LEVER);
+    }
 
     public void add(BedrockBreakingContext context) {
         this.contexts.add(context);
@@ -678,15 +791,22 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         return this.contexts.iterator();
     }
 
-    public Optional<BlockPos> getDistantBedrock() {
-        if (this.distantBedrock == null) {
+    /**
+     * 获取移动目标
+     */
+    public Optional<BlockPos> getMovingTarget() {
+        if (this.movingTarget == null) {
             return Optional.empty();
         }
         World world = this.fakePlayer.getWorld();
-        if (world.getBlockState(this.distantBedrock).isOf(Blocks.BEDROCK)) {
-            return Optional.of(this.distantBedrock);
+        if (this.phase == PlayerWorkPhase.WORK) {
+            BlockState blockState = world.getBlockState(this.movingTarget);
+            if (blockState.isOf(Blocks.BEDROCK) || this.isMovingToNearbyBedrock) {
+                return Optional.of(this.movingTarget);
+            }
+            return Optional.empty();
         }
-        return Optional.empty();
+        return Optional.of(this.movingTarget);
     }
 
     @Override

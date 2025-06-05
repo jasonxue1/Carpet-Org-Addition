@@ -23,6 +23,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
+import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.inventory.AutoGrowInventory;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -70,6 +71,28 @@ public class FakePlayerUtils {
      */
     public static void dropItem(EntityPlayerMPFake player, ItemStack itemStack) {
         player.dropItem(itemStack.copyAndEmpty(), false, false);
+    }
+
+    /**
+     * 根据条件丢弃物品栏中所有物品
+     */
+    public static void dropInventoryItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
+        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        for (Slot slot : screenHandler.slots) {
+            ItemStack itemStack = slot.getStack();
+            if (itemStack.isEmpty()) {
+                continue;
+            }
+            int id = slot.id;
+            if (isStorageSlot(id)) {
+                if (isEquipmentSlot(id)) {
+                    continue;
+                }
+                if (predicate.test(itemStack)) {
+                    throwItem(screenHandler, id, fakePlayer);
+                }
+            }
+        }
     }
 
     /**
@@ -395,5 +418,21 @@ public class FakePlayerUtils {
      */
     public static void stopCraftAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake) {
         stopAction(source, playerMPFake, "carpet.commands.playerAction.craft");
+    }
+
+    /**
+     * 指定索引的槽位是否可以用来存储物品
+     *
+     * @return 如果是合成槽位，返回{@code false}，否则返回{@code true}
+     */
+    public static boolean isStorageSlot(int index) {
+        return MathUtils.isInRange(5, 44, index);
+    }
+
+    /**
+     * @return 指定索引的槽位是否为盔甲槽位
+     */
+    public static boolean isEquipmentSlot(int index) {
+        return MathUtils.isInRange(5, 8, index);
     }
 }
