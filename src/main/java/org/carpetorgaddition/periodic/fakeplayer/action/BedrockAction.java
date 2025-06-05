@@ -55,7 +55,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 玩家当前的移动目标
      */
     @Nullable
-    private BlockPos movingTarget;
+    private BlockPos bedrockTarget;
+    @Nullable
+    private ItemEntity recentItemEntity;
     /**
      * 正在移动到近处的基岩
      */
@@ -71,7 +73,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     /**
      * 周围的材料物品
      */
-    private final List<ItemEntity> itemEntities = new LinkedList<>();
+    private final ArrayList<ItemEntity> itemEntities = new ArrayList<>();
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
         super(fakePlayer);
@@ -83,6 +85,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public void tick() {
         this.pathfinder.tick();
         this.itemEntities.removeIf(Entity::isRemoved);
+        if (this.recentItemEntity != null && this.recentItemEntity.isRemoved()) {
+            this.recentItemEntity = null;
+        }
         HungerManager hungerManager = this.fakePlayer.getHungerManager();
         if (hungerManager.getFoodLevel() <= 10) {
             this.phase = PlayerWorkPhase.EAT;
@@ -141,7 +146,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void setGotoTarget(World world) {
         if (this.hasAction) {
             if (this.pathfinder.isFinished()) {
-                this.movingTarget = null;
+                this.bedrockTarget = null;
             }
             return;
         }
@@ -159,7 +164,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             if (this.invalidBedrock.getCount(blockPos) > 0) {
                 continue;
             }
-            this.movingTarget = blockPos;
+            this.bedrockTarget = blockPos;
             return;
         }
         this.selectRandomBedrock(world);
@@ -173,7 +178,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             for (int i = 0; i < 100; i++) {
                 BlockPos blockPos = this.selectionArea.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
-                    this.movingTarget = blockPos;
+                    this.bedrockTarget = blockPos;
                     return;
                 }
             }
@@ -194,7 +199,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (this.contexts.contains(this.currentContext)) {
             if (!this.isMovingToNearbyBedrock) {
                 this.isMovingToNearbyBedrock = true;
-                this.movingTarget = this.currentContext.getBedrockPos();
+                this.bedrockTarget = this.currentContext.getBedrockPos();
             }
             return this.tick(this.currentContext);
         }
@@ -695,7 +700,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             FakePlayerUtils.dropInventoryItem(fakePlayer, this::isGarbage);
         }
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
-            this.itemEntities.removeFirst();
+            this.itemEntities.remove(this.recentItemEntity);
+            this.recentItemEntity = null;
             if (this.itemEntities.isEmpty()) {
                 this.phase = PlayerWorkPhase.WORK;
                 return;
@@ -713,8 +719,16 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             this.phase = PlayerWorkPhase.WORK;
             return;
         }
-        // TODO 优先捡起最近的物品
-        this.movingTarget = this.itemEntities.getFirst().getBlockPos();
+        if (this.recentItemEntity != null) {
+            return;
+        }
+        ItemEntity recentEntity = this.itemEntities.getFirst();
+        for (ItemEntity itemEntity : this.itemEntities) {
+            if (recentEntity.distanceTo(fakePlayer) > itemEntity.distanceTo(fakePlayer)) {
+                recentEntity = itemEntity;
+            }
+        }
+        this.recentItemEntity = recentEntity;
     }
 
     private boolean isGarbage(ItemStack itemStack) {
@@ -795,18 +809,28 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 获取移动目标
      */
     public Optional<BlockPos> getMovingTarget() {
-        if (this.movingTarget == null) {
-            return Optional.empty();
-        }
-        World world = this.fakePlayer.getWorld();
-        if (this.phase == PlayerWorkPhase.WORK) {
-            BlockState blockState = world.getBlockState(this.movingTarget);
-            if (blockState.isOf(Blocks.BEDROCK) || this.isMovingToNearbyBedrock) {
-                return Optional.of(this.movingTarget);
+        switch (this.phase) {
+            case WORK -> {
+                World world = this.fakePlayer.getWorld();
+                if (this.bedrockTarget == null) {
+                    return Optional.empty();
+                }
+                BlockState blockState = world.getBlockState(this.bedrockTarget);
+                if (blockState.isOf(Blocks.BEDROCK) || this.isMovingToNearbyBedrock) {
+                    return Optional.of(this.bedrockTarget);
+                }
+                return Optional.empty();
             }
-            return Optional.empty();
+            case COLLECT -> {
+                if (this.recentItemEntity == null || this.recentItemEntity.isRemoved()) {
+                    return Optional.empty();
+                }
+                return Optional.of(this.recentItemEntity.getBlockPos());
+            }
+            default -> {
+                return Optional.empty();
+            }
         }
-        return Optional.of(this.movingTarget);
     }
 
     @Override
