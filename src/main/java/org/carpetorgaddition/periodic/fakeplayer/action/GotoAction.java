@@ -22,6 +22,7 @@ public class GotoAction extends AbstractPlayerAction {
 
     @Override
     public ArrayList<MutableText> info() {
+        // TODO 玩家动作信息
         return new ArrayList<>();
     }
 

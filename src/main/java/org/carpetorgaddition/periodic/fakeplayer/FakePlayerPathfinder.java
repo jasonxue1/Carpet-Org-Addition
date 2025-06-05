@@ -114,6 +114,7 @@ public class FakePlayerPathfinder {
                 this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, current);
             }
         } else {
+            // TODO 设置玩家潜行
             // 玩家在从一格高的方块上下来，有时会尝试回到上一个节点
             this.directTravelTime = 1;
         }

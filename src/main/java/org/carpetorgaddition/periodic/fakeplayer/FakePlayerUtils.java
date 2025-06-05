@@ -6,6 +6,7 @@ import carpet.patches.EntityPlayerMPFake;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -330,7 +331,7 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 将合适的物品移动到指定手
+     * 将合适的物品移动到指定手，玩家不会从盔甲槽拿取物品
      *
      * @return 是否移动成功
      */
@@ -347,6 +348,16 @@ public class FakePlayerUtils {
             }
             if (predicate.test(screenHandler.getSlot(i).getStack())) {
                 swapSlotItem(screenHandler, i, headSlot, fakePlayer);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean hasItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
+        PlayerInventory inventory = fakePlayer.getInventory();
+        for (int i = 0; i < inventory.size(); i++) {
+            if (predicate.test(inventory.getStack(i))) {
                 return true;
             }
         }

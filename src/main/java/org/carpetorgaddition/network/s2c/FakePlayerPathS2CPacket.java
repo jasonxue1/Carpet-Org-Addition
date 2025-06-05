@@ -11,6 +11,8 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import java.util.ArrayList;
 import java.util.List;
 
+
+// TODO 隐藏功能不在未启用的情况下注册
 public record FakePlayerPathS2CPacket(int id, List<Vec3d> list) implements CustomPayload {
     public static final CustomPayload.Id<FakePlayerPathS2CPacket> ID = PacketUtils.createId("fake_player_path");
 

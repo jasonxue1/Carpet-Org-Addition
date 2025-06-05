@@ -50,12 +50,22 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private final SelectionArea selectionArea;
     private final FakePlayerPathfinder pathfinder;
     private BedrockBreakingContext currentContext;
-    private PlayerWorkPhase phase = PlayerWorkPhase.EAT;
+    /**
+     * 玩家当前任务的阶段
+     */
+    private PlayerWorkPhase phase = PlayerWorkPhase.WORK;
+    /**
+     * 玩家上一个任务阶段
+     */
+    private PlayerWorkPhase prevPhase = phase;
     /**
      * 玩家当前的移动目标
      */
     @Nullable
     private BlockPos bedrockTarget;
+    /**
+     * 距离最近的物品实体
+     */
     @Nullable
     private ItemEntity recentItemEntity;
     /**
@@ -88,8 +98,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (this.recentItemEntity != null && this.recentItemEntity.isRemoved()) {
             this.recentItemEntity = null;
         }
-        HungerManager hungerManager = this.fakePlayer.getHungerManager();
-        if (hungerManager.getFoodLevel() <= 10) {
+        if (shouldEat()) {
+            if (this.phase != PlayerWorkPhase.EAT) {
+                this.prevPhase = this.phase;
+            }
             this.phase = PlayerWorkPhase.EAT;
         }
         switch (this.phase) {
@@ -673,9 +685,33 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     }
 
     /**
+     * @return 是否需要进食
+     */
+    private boolean shouldEat() {
+        if (FakePlayerUtils.hasItem(this.fakePlayer, InventoryUtils::isFoodItem)) {
+            if (this.fakePlayer.getAbilities().invulnerable) {
+                return false;
+            }
+            HungerManager hungerManager = this.fakePlayer.getHungerManager();
+            if (hungerManager.getFoodLevel() <= 10) {
+                return true;
+            }
+            if (hungerManager.isNotFull()) {
+                return this.fakePlayer.getMaxHealth() - this.fakePlayer.getHealth() > 2;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 吃食物
      */
     private void eat() {
+        PlayerWorkPhase prev = this.prevPhase == PlayerWorkPhase.EAT ? PlayerWorkPhase.WORK : this.prevPhase;
+        if (this.fakePlayer.getAbilities().invulnerable) {
+            this.phase = prev;
+            return;
+        }
         if (this.fakePlayer.canConsume(false)) {
             if (this.fakePlayer.getActiveItem().isEmpty()) {
                 if (FakePlayerUtils.replenishment(this.fakePlayer, InventoryUtils::isFoodItem)) {
@@ -683,10 +719,12 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     World world = this.fakePlayer.getWorld();
                     ItemStack food = this.fakePlayer.getMainHandStack();
                     interactionManager.interactItem(this.fakePlayer, world, food, Hand.MAIN_HAND);
+                } else {
+                    this.phase = prev;
                 }
             }
         } else {
-            this.phase = PlayerWorkPhase.WORK;
+            this.phase = prev;
         }
     }
 
