@@ -55,11 +55,11 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
      */
+    @SuppressWarnings("deprecation")
     private void initFakePlayer(MinecraftServer server) {
         Optional<NbtCompound> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer);
         RegistryKey<World> registryKey = optional.flatMap(nbt -> {
             Dynamic<NbtElement> dynamic = new Dynamic<>(NbtOps.INSTANCE, nbt.get("Dimension"));
-            //noinspection deprecation
             DataResult<RegistryKey<World>> dimension = DimensionType.worldFromDimensionNbt(dynamic);
             return dimension.resultOrPartial(CarpetOrgAddition.LOGGER::error);
         }).orElse(World.OVERWORLD);

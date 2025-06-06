@@ -98,7 +98,6 @@ jar {
 loom {
     runs {
         client {
-            vmArgs("-DCarpetOrgAddition.EnableHiddenFunction=true")
             programArgs(["--username", "Player789"])
         }
     }

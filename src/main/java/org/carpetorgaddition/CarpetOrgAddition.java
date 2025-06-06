@@ -4,6 +4,7 @@ import carpet.CarpetServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
+import org.carpetorgaddition.config.CarpetOrgAdditionConfigs;
 import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
@@ -63,7 +64,7 @@ public class CarpetOrgAddition implements ModInitializer {
     /**
      * 是否启用隐藏功能
      */
-    public static final boolean ENABLE_HIDDEN_FUNCTION = Boolean.getBoolean("CarpetOrgAddition.EnableHiddenFunction");
+    public static final boolean ENABLE_HIDDEN_FUNCTION = CarpetOrgAdditionConfigs.isEnableHiddenFunction();
     /**
      * 是否允许自定义规则管理器
      */
