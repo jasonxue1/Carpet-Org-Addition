@@ -3,6 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.block.BlockState;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
@@ -13,6 +14,7 @@ import net.minecraft.entity.ai.pathing.PathNodeNavigator;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkCache;
@@ -41,6 +43,10 @@ public class FakePlayerPathfinder {
      */
     private int updateTime;
     /**
+     * 剩余潜行时间
+     */
+    private int sneakTime;
+    /**
      * 是否没有路能到达目标位置
      */
     private boolean noRoad = false;
@@ -68,6 +74,11 @@ public class FakePlayerPathfinder {
     }
 
     public void tick() {
+        EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
+        if (this.sneakTime > 0) {
+            this.sneakTime--;
+        }
+        actionPack.setSneaking(this.sneakTime > 0);
         Optional<BlockPos> optional = this.target.get();
         if (optional.isEmpty()) {
             if (this.isFinished()) {
@@ -113,15 +124,27 @@ public class FakePlayerPathfinder {
             if (this.directTravelTime <= 0) {
                 this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, current);
             }
-        } else {
-            // TODO 设置玩家潜行
+        } else if (this.fakePlayer.getVelocity().getY() < 0) {
+            // 玩家跳跃时，也会执行到这里
             // 玩家在从一格高的方块上下来，有时会尝试回到上一个节点
             this.directTravelTime = 1;
+            // 如果下一个位置需要跳下去，设置潜行
+            Direction direction = this.fakePlayer.getMovementDirection();
+            BlockPos down = this.fakePlayer.getBlockPos().down();
+            BlockState blockState = this.world.getBlockState(down);
+            if (blockState.isAir() || blockState.isSideSolidFullSquare(world, down, Direction.UP)) {
+                BlockPos offset = down.offset(direction);
+                if (!this.world.getBlockState(offset).isSideSolidFullSquare(world, offset, Direction.UP)) {
+                    this.sneakTime = 3;
+                }
+            }
         }
-        EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
         // 玩家到达了当前节点
         if (this.arrivedAtAnyNode()) {
             return;
+        }
+        if (this.backToBeforeNode()) {
+            this.retryCount++;
         }
         actionPack.setForward(1F);
         if (onGround) {
@@ -215,6 +238,21 @@ public class FakePlayerPathfinder {
     }
 
     /**
+     * @return 是否回到了任意一个节点
+     */
+    public boolean backToBeforeNode() {
+        if (this.currentIndex <= 1) {
+            return false;
+        }
+        for (int i = 0; i < this.currentIndex; i++) {
+            if (this.nodes.get(i).distanceTo(this.fakePlayer.getPos()) < 0.5) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @return 是否完成寻路
      */
     public boolean isFinished() {
@@ -244,6 +282,7 @@ public class FakePlayerPathfinder {
         }
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
         actionPack.setForward(0F);
+        actionPack.setSneaking(false);
     }
 
     /**
