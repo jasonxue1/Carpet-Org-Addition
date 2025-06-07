@@ -49,7 +49,8 @@ import java.util.function.Predicate;
 public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final SelectionArea selectionArea;
-    private FakePlayerPathfinder pathfinder;
+    @NotNull
+    private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
      * 玩家是否有AI，是否可以自动寻路，自动进食
      */
@@ -870,7 +871,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     protected void onClearPlayer() {
-        this.pathfinder = null;
+        this.pathfinder = FakePlayerPathfinder.EMPTY;
     }
 
     /**

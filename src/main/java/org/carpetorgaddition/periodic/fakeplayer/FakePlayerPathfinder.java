@@ -55,7 +55,15 @@ public class FakePlayerPathfinder {
      * 重试寻路的次数
      */
     private int retryCount;
-    public static final int FOLLOW_RANGE = 48;
+    private static final int FOLLOW_RANGE = 48;
+    public static final FakePlayerPathfinder EMPTY = new DummyPathfinder();
+
+    private FakePlayerPathfinder() {
+        this.fakePlayer = null;
+        this.target = null;
+        this.world = null;
+        this.entity = null;
+    }
 
     public FakePlayerPathfinder(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
         this(fakePlayer, () -> Optional.of(blockPos));
@@ -317,6 +325,50 @@ public class FakePlayerPathfinder {
     private static class DummyEntity extends MobEntity {
         protected DummyEntity(World world) {
             super(EntityType.VILLAGER, world);
+        }
+    }
+
+    private static final class DummyPathfinder extends FakePlayerPathfinder {
+        @Override
+        public void tick() {
+        }
+
+        @Override
+        public boolean isFinished() {
+            return true;
+        }
+
+        @Override
+        public boolean isInaccessible() {
+            return true;
+        }
+
+        @Override
+        public Vec3d getCurrentNode() {
+            return Vec3d.ZERO;
+        }
+
+        @Override
+        public boolean arrivedAtAnyNode() {
+            return false;
+        }
+
+        @Override
+        public boolean backToBeforeNode() {
+            return true;
+        }
+
+        @Override
+        public boolean isInvalid() {
+            return true;
+        }
+
+        @Override
+        public void onStart() {
+        }
+
+        @Override
+        public void onStop() {
         }
     }
 }
