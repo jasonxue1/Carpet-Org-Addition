@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -44,5 +45,16 @@ public final class StopAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.STOP;
+    }
+
+    @Override
+    @Contract("->null")
+    public EntityPlayerMPFake getFakePlayer() {
+        return null;
+    }
+
+    @Override
+    @Contract
+    public void setFakePlayer(EntityPlayerMPFake fakePlayer) {
     }
 }

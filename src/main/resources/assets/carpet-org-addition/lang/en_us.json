@@ -253,6 +253,8 @@
   "carpet.commands.playerAction.info.fishing": "%s is fishing",
   "carpet.commands.playerAction.info.farm": "%s is farm",
   "carpet.commands.playerAction.info.bedrock": "%s is breaking the bedrock",
+  "carpet.commands.playerAction.info.bedrock.range": "Range: from %s to %s",
+  "carpet.commands.playerAction.info.bedrock.ai.enable": "AI enabled",
   "carpet.commands.playerAction.stone_cutting": "Failed to craft: Stop crafting",
   "carpet.commands.playerAction.trade": "Failed to trade: Stop trading",
   "carpet.commands.playerAction.craft": "Failed to craft: Stop crafting",

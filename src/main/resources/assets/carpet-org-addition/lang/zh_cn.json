@@ -340,6 +340,8 @@
   "carpet.commands.playerAction.info.fishing": "%s正在钓鱼",
   "carpet.commands.playerAction.info.farm": "%s正在种植",
   "carpet.commands.playerAction.info.bedrock": "%s正在破基岩",
+  "carpet.commands.playerAction.info.bedrock.range": "范围：从%s到%s",
+  "carpet.commands.playerAction.info.bedrock.ai.enable": "AI已启用",
   "carpet.commands.playerAction.stone_cutting": "无法合成物品，停止合成",
   "carpet.commands.playerAction.trade": "无法交易物品：停止交易",
   "carpet.commands.playerAction.craft": "无法合成物品，停止合成",

@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.block.*;
@@ -16,6 +15,7 @@ import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.text.MutableText;
 import net.minecraft.util.ActionResult;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -35,6 +35,7 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.Counter;
 import org.carpetorgaddition.util.wheel.SelectionArea;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -49,6 +50,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final SelectionArea selectionArea;
     private final FakePlayerPathfinder pathfinder;
+    /**
+     * 玩家是否有AI，是否可以自动寻路，自动进食
+     */
+    private final boolean ai;
     private BedrockBreakingContext currentContext;
     /**
      * 玩家当前任务的阶段
@@ -85,29 +90,34 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private final ArrayList<ItemEntity> itemEntities = new ArrayList<>();
 
-    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to) {
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
         super(fakePlayer);
+        this.ai = ai;
         this.selectionArea = new SelectionArea(from, to);
         this.pathfinder = new FakePlayerPathfinder(this.fakePlayer, this::getMovingTarget);
     }
 
     @Override
     public void tick() {
-        this.pathfinder.tick();
-        this.itemEntities.removeIf(Entity::isRemoved);
-        if (this.recentItemEntity != null && this.recentItemEntity.isRemoved()) {
-            this.recentItemEntity = null;
-        }
-        if (shouldEat()) {
-            if (this.phase != PlayerWorkPhase.EAT) {
-                this.prevPhase = this.phase;
+        if (this.ai) {
+            this.pathfinder.tick();
+            this.itemEntities.removeIf(Entity::isRemoved);
+            if (this.recentItemEntity != null && this.recentItemEntity.isRemoved()) {
+                this.recentItemEntity = null;
             }
-            this.phase = PlayerWorkPhase.EAT;
-        }
-        switch (this.phase) {
-            case WORK -> work();
-            case EAT -> eat();
-            case COLLECT -> collectingMaterials();
+            if (shouldEat()) {
+                if (this.phase != PlayerWorkPhase.EAT) {
+                    this.prevPhase = this.phase;
+                }
+                this.phase = PlayerWorkPhase.EAT;
+            }
+            switch (this.phase) {
+                case WORK -> work();
+                case EAT -> eat();
+                case COLLECT -> collectingMaterials();
+            }
+        } else {
+            this.work();
         }
     }
 
@@ -117,7 +127,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         for (BlockPos blockPos : this.invalidBedrock) {
             this.invalidBedrock.decrement(blockPos);
         }
-        if (this.tickCurrent()) {
+        if (this.tickCurrentWork()) {
             return;
         }
         World world = this.fakePlayer.getWorld();
@@ -145,11 +155,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             if (context == this.currentContext) {
                 continue;
             }
-            if (tick(context)) {
+            if (tickWork(context)) {
                 return;
             }
         }
-        this.setGotoTarget(world);
+        if (this.ai) {
+            this.setGotoTarget(world);
+        }
     }
 
     /**
@@ -204,7 +216,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         return this.fakePlayer.canInteractWithBlockAt(blockPos, 0.0);
     }
 
-    private boolean tickCurrent() {
+    private boolean tickCurrentWork() {
         if (this.currentContext == null) {
             return false;
         }
@@ -213,13 +225,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 this.isMovingToNearbyBedrock = true;
                 this.bedrockTarget = this.currentContext.getBedrockPos();
             }
-            return this.tick(this.currentContext);
+            return this.tickWork(this.currentContext);
         }
         this.currentContext = null;
         return false;
     }
 
-    private boolean tick(BedrockBreakingContext context) {
+    private boolean tickWork(BedrockBreakingContext context) {
         int loopCount = 0;
         loop:
         while (true) {
@@ -801,7 +813,15 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     public ArrayList<MutableText> info() {
-        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", fakePlayer.getDisplayName()));
+        ArrayList<MutableText> list = new ArrayList<>();
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", fakePlayer.getDisplayName()));
+        MutableText from = TextProvider.blockPos(this.selectionArea.getMinBlockPos(), Formatting.GREEN);
+        MutableText to = TextProvider.blockPos(this.selectionArea.getMaxBlockPos(), Formatting.GREEN);
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.range", from, to));
+        if (this.ai) {
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.ai.enable"));
+        }
+        return list;
     }
 
     @Override
@@ -819,6 +839,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         to.add(maxBlockPos.getY());
         to.add(maxBlockPos.getZ());
         json.add("to", to);
+        json.addProperty("ai", this.ai);
         return json;
     }
 

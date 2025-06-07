@@ -29,6 +29,8 @@ import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.permission.PermissionLevel;
+import org.carpetorgaddition.util.permission.PermissionManager;
 import org.carpetorgaddition.util.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.util.screen.StonecutterSetRecipeScreenHandler;
 import org.carpetorgaddition.util.wheel.ItemStackPredicate;
@@ -108,7 +110,10 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(this::setBreakBedrock))))
+                                                .executes(context -> setBreakBedrock(context, false))
+                                                .then(CommandManager.argument("ai", BoolArgumentType.bool())
+                                                        .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
+                                                        .executes(context -> setBreakBedrock(context, BoolArgumentType.getBool(context, "ai")))))))
                         .then(CommandManager.literal("goto")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.literal("block")
@@ -297,13 +302,13 @@ public class PlayerActionCommand extends AbstractServerCommand {
     }
 
     // 设置破基岩
-    private int setBreakBedrock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setBreakBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
             BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            actionManager.setAction(new BedrockAction(fakePlayer, from, to));
+            actionManager.setAction(new BedrockAction(fakePlayer, from, to, ai));
             return 1;
         }
         return 0;
