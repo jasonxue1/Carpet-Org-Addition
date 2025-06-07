@@ -39,7 +39,7 @@ public class GotoAction extends AbstractPlayerAction {
 
     @Override
     public ActionSerializeType getActionSerializeType() {
-        return ActionSerializeType.GOTO;
+        return ActionSerializeType.STOP;
     }
 
     @Override
