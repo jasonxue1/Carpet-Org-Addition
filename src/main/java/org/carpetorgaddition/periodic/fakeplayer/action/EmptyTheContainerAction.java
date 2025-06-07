@@ -24,8 +24,8 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
-        ScreenHandler screenHandler = fakePlayer.currentScreenHandler;
+    protected void tick() {
+        ScreenHandler screenHandler = getFakePlayer().currentScreenHandler;
         if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
             return;
         }
@@ -41,11 +41,11 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
             }
             if (this.predicate.test(itemStack)) {
                 // 丢弃一组物品
-                FakePlayerUtils.throwItem(screenHandler, index, fakePlayer);
+                FakePlayerUtils.throwItem(screenHandler, index, getFakePlayer());
             }
         }
         // 物品全部丢出后自动关闭容器
-        fakePlayer.closeHandledScreen();
+        getFakePlayer().closeHandledScreen();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         Text text = this.predicate.toText();
-        Text playerName = this.fakePlayer.getDisplayName();
+        Text playerName = this.getFakePlayer().getDisplayName();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
         return list;
     }

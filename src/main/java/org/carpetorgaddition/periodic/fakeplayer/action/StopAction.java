@@ -4,17 +4,16 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
 public final class StopAction extends AbstractPlayerAction {
-    public StopAction(@Nullable EntityPlayerMPFake fakePlayer) {
+    public StopAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         // 什么也不做
     }
 
@@ -22,7 +21,7 @@ public final class StopAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         // 直接将假玩家没有任何动作的信息加入集合然后返回
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.stop", this.fakePlayer.getDisplayName()));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.stop", this.getFakePlayer().getDisplayName()));
         return list;
     }
 

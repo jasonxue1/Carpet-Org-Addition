@@ -34,12 +34,12 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         // 如果假玩家对铁砧持续按住右键，就会一直打开新的铁砧界面，同时旧的铁砧界面会自动关闭，关闭旧的铁砧界面时，铁砧内的物品会回到玩家物品栏
-        if (fakePlayer.currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
+        if (getFakePlayer().currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
             // 如果假玩家没有足够的经验，直接介绍方法，创造玩家给物品重命名不需要消耗经验
-            if (fakePlayer.experienceLevel < 1 && !fakePlayer.isCreative()) {
-                FakePlayerUtils.stopAction(fakePlayer.getCommandSource(), fakePlayer,
+            if (getFakePlayer().experienceLevel < 1 && !getFakePlayer().isCreative()) {
+                FakePlayerUtils.stopAction(getFakePlayer().getCommandSource(), getFakePlayer(),
                         "carpet.commands.playerAction.rename.not_experience");
                 return;
             }
@@ -53,7 +53,7 @@ public class RenameAction extends AbstractPlayerAction {
                 if (itemStack.getName().getString().equals(newName) || !itemStack.isOf(item)) {
                     // 如果已经重命名，或者当前槽位不是指定物品，丢出该槽位的物品
                     // 因为该槽位的物品被丢弃，所以该槽位已经没有物品，没有必要继续判断，直接结束方法
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 0, fakePlayer);
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 0, getFakePlayer());
                     return;
                 } else {
                     // 判断当前物品堆栈对象是否为指定物品
@@ -70,7 +70,7 @@ public class RenameAction extends AbstractPlayerAction {
                 if (anvilScreenHandler.getSlot(index).hasStack()
                         && anvilScreenHandler.getSlot(index).getStack().isOf(item)) {
                     // 找到指定物品后，模拟按住Shift键将物品移动到铁砧输入槽，然后跳出for循环
-                    FakePlayerUtils.quickMove(anvilScreenHandler, index, fakePlayer);
+                    FakePlayerUtils.quickMove(anvilScreenHandler, index, getFakePlayer());
                     break;
                 }
                 // 如果遍历完物品栏还是没有找到指定物品，认为玩家物品栏中已经没有指定物品，结束方法
@@ -83,9 +83,9 @@ public class RenameAction extends AbstractPlayerAction {
             // 判断该槽位是否有物品
             if (twoSlot.hasStack()) {
                 // 如果有，移动到物品栏，如果不能移动，直接丢出
-                FakePlayerUtils.quickMove(anvilScreenHandler, 1, fakePlayer);
+                FakePlayerUtils.quickMove(anvilScreenHandler, 1, getFakePlayer());
                 if (twoSlot.hasStack()) {
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 1, fakePlayer);
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 1, getFakePlayer());
                 }
             }
             // 判断第一个输入槽是否正确，第二个格子是否没有物品
@@ -95,10 +95,10 @@ public class RenameAction extends AbstractPlayerAction {
                 // 判断是否可以取出输出槽的物品
                 if (anvilScreenHandler.getSlot(2).hasStack() && canTakeOutput(anvilScreenHandler)) {
                     // 丢出输出槽的物品
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 2, fakePlayer);
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 2, getFakePlayer());
                 } else {
                     // 如果不能取出，可能玩家已经没有经验，停止重命名
-                    FakePlayerUtils.stopAction(fakePlayer.getCommandSource(), fakePlayer,
+                    FakePlayerUtils.stopAction(getFakePlayer().getCommandSource(), getFakePlayer(),
                             "carpet.commands.playerAction.rename");
                 }
             }
@@ -107,7 +107,7 @@ public class RenameAction extends AbstractPlayerAction {
 
     // 判断是否可以输出物品
     private boolean canTakeOutput(AnvilScreenHandler screenHandler) {
-        if (this.fakePlayer.getAbilities().creativeMode || this.fakePlayer.experienceLevel >= screenHandler.getLevelCost()) {
+        if (this.getFakePlayer().getAbilities().creativeMode || this.getFakePlayer().experienceLevel >= screenHandler.getLevelCost()) {
             return screenHandler.getLevelCost() > 0;
         }
         return false;
@@ -117,14 +117,14 @@ public class RenameAction extends AbstractPlayerAction {
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         // 获取假玩家的显示名称
-        Text playerName = fakePlayer.getDisplayName();
+        Text playerName = getFakePlayer().getDisplayName();
         // 将假玩家要重命名的物品和物品新名称的信息添加到集合
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.item",
                 playerName, this.item.getDefaultStack().toHoverableText(), newName));
         // 将假玩家剩余经验的信息添加到集合
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.xp",
-                fakePlayer.experienceLevel));
-        if (fakePlayer.currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
+                getFakePlayer().experienceLevel));
+        if (getFakePlayer().currentScreenHandler instanceof AnvilScreenHandler anvilScreenHandler) {
             // 将铁砧GUI上的物品信息添加到集合
             list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(0).getStack()), " ",

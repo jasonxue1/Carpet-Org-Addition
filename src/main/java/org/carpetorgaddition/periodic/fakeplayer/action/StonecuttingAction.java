@@ -42,7 +42,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         /*
          * 切石机的输出槽不能使用Ctrl+Q一次性丢出整组物品，只能一个个丢出。在合成
          * 物品时，会有大量物品产生，因为是一个个丢出的，所以物品不会立即合并。例如，
@@ -56,12 +56,12 @@ public class StonecuttingAction extends AbstractPlayerAction {
         this.stonecutting(inventory);
         // 丢弃合成输出
         for (ItemStack itemStack : inventory) {
-            this.fakePlayer.dropItem(itemStack, false, true);
+            this.getFakePlayer().dropItem(itemStack, false, true);
         }
     }
 
     private void stonecutting(AutoGrowInventory inventory) {
-        if (fakePlayer.currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
+        if (getFakePlayer().currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
             // 定义变量记录成功完成合成的次数
             int craftCount = 0;
             // 用于循环次数过多时抛出异常结束循环
@@ -83,7 +83,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                         needToTraverseInventory = false;
                     } else {
                         // 如果不是指定物品，丢出该物品
-                        FakePlayerUtils.throwItem(stonecutterScreenHandler, 0, this.fakePlayer);
+                        FakePlayerUtils.throwItem(stonecutterScreenHandler, 0, this.getFakePlayer());
                     }
                 }
                 // 如果需要遍历物品栏
@@ -94,13 +94,13 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 }
                 // 模拟单击切石机按钮
-                stonecutterScreenHandler.onButtonClick(this.fakePlayer, this.button);
+                stonecutterScreenHandler.onButtonClick(this.getFakePlayer(), this.button);
                 // 获取切石机输出槽对象
                 Slot outputSlot = stonecutterScreenHandler.getSlot(1);
                 // 如果输出槽有物品
                 if (outputSlot.hasStack()) {
                     // 收集产物
-                    FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.fakePlayer);
+                    FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.getFakePlayer());
                     craftCount++;
                     // 限制每个游戏刻合成次数
                     int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxCraftCount;
@@ -109,7 +109,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 否则，认为前面的操作有误，停止合成，结束方法
-                    FakePlayerUtils.stopAction(this.fakePlayer.getCommandSource(), this.fakePlayer, "carpet.commands.playerAction.stone_cutting");
+                    FakePlayerUtils.stopAction(this.getFakePlayer().getCommandSource(), this.getFakePlayer(), "carpet.commands.playerAction.stone_cutting");
                     return;
                 }
             }
@@ -126,7 +126,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
             // 如果找到，移动到切石机输入槽，然后结束循环
             ItemStack itemStack = screenHandler.getSlot(index).getStack();
             if (itemStack.isOf(item)) {
-                if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.fakePlayer)) {
+                if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.getFakePlayer())) {
                     return false;
                 }
             } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox && InventoryUtils.isShulkerBoxItem(itemStack)) {
@@ -138,11 +138,11 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 }
                 // 将物品移动到切石机输入槽
                 // 丢弃光标上的物品（如果有）
-                FakePlayerUtils.dropCursorStack(screenHandler, this.fakePlayer);
+                FakePlayerUtils.dropCursorStack(screenHandler, this.getFakePlayer());
                 // 将光标上的物品设置为从潜影盒中取出来的物品
                 screenHandler.setCursorStack(stack);
                 // 将光标上的物品放在切石机输入槽位上
-                FakePlayerUtils.pickupCursorStack(screenHandler, 0, this.fakePlayer);
+                FakePlayerUtils.pickupCursorStack(screenHandler, 0, this.getFakePlayer());
                 return false;
             }
         }
@@ -155,7 +155,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
         // 获取假玩家所在的世界对象
-        World world = this.fakePlayer.getWorld();
+        World world = this.getFakePlayer().getWorld();
         ItemStack outputItemStack;
         try {
             // 获取与材料和按钮索引对应的配方对象
@@ -177,9 +177,9 @@ public class StonecuttingAction extends AbstractPlayerAction {
         }
         ArrayList<MutableText> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.item",
-                this.fakePlayer.getDisplayName(), Items.STONECUTTER.getName(),
+                this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName(),
                 this.item.getDefaultStack().toHoverableText(), itemName));
-        if (fakePlayer.currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
+        if (getFakePlayer().currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
             // 将按钮索引的信息添加到集合，按钮在之前减去了1，这里再加回来
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.button",
                     (this.button + 1)));
@@ -190,7 +190,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",
-                    this.fakePlayer.getDisplayName(), Items.STONECUTTER.getName()));
+                    this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName()));
         }
         return list;
     }

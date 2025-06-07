@@ -363,7 +363,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         AbstractPlayerAction action = actionManager.getAction();
-        if (action.getFakePlayer() == null) {
+        if (action.equalFakePlayer(null)) {
             action.setFakePlayer(fakePlayer);
         }
         MessageUtils.sendListMessage(context.getSource(), action.info());

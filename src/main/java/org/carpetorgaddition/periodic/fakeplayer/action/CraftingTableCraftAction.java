@@ -34,13 +34,13 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
-        if (this.fakePlayer.currentScreenHandler instanceof CraftingScreenHandler craftingScreenHandler) {
+    protected void tick() {
+        if (this.getFakePlayer().currentScreenHandler instanceof CraftingScreenHandler craftingScreenHandler) {
             AutoGrowInventory inventory = new AutoGrowInventory();
             this.craftingTableCraft(inventory, craftingScreenHandler);
             // 丢弃合成输出
             for (ItemStack itemStack : inventory) {
-                this.fakePlayer.dropItem(itemStack, false, true);
+                this.getFakePlayer().dropItem(itemStack, false, true);
             }
         }
     }
@@ -70,7 +70,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                         // 合成表格上已经有正确的合成材料，找到正确的合成材料次数自增
                         successCount++;
                     } else {
-                        FakePlayerUtils.throwItem(craftingScreenHandler, index, this.fakePlayer);
+                        FakePlayerUtils.throwItem(craftingScreenHandler, index, this.getFakePlayer());
                     }
                 } else {
                     // 如果指定合成材料是空气，则不需要遍历物品栏，直接跳过该物品，并增加找到正确合成材料的次数
@@ -85,7 +85,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                         if (predicate.test(itemStack)) {
                             // 光标拾取和移动物品
                             if (FakePlayerUtils.withKeepPickupAndMoveItemStack(craftingScreenHandler,
-                                    inventoryIndex, index, this.fakePlayer)) {
+                                    inventoryIndex, index, this.getFakePlayer())) {
                                 // 找到正确合成材料的次数自增
                                 successCount++;
                                 break;
@@ -95,11 +95,11 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                             ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, predicate);
                             if (!contentItemStack.isEmpty()) {
                                 // 丢弃光标上的物品（如果有）
-                                FakePlayerUtils.dropCursorStack(craftingScreenHandler, fakePlayer);
+                                FakePlayerUtils.dropCursorStack(craftingScreenHandler, getFakePlayer());
                                 // 将光标上的物品设置为从潜影盒中取出来的物品
                                 craftingScreenHandler.setCursorStack(contentItemStack);
                                 // 将光标上的物品放在合成方格的槽位上
-                                FakePlayerUtils.pickupCursorStack(craftingScreenHandler, index, fakePlayer);
+                                FakePlayerUtils.pickupCursorStack(craftingScreenHandler, index, getFakePlayer());
                                 successCount++;
                                 break;
                             }
@@ -116,7 +116,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             if (successCount == 9) {
                 // 工作台输出槽里有物品，说明配方正确并且前面的合成没有问题，可以取出合成的物品
                 if (craftingScreenHandler.getSlot(0).hasStack()) {
-                    FakePlayerUtils.collectItem(craftingScreenHandler, 0, inventory, this.fakePlayer);
+                    FakePlayerUtils.collectItem(craftingScreenHandler, 0, inventory, this.getFakePlayer());
                     // 合成成功，合成计数器自增
                     craftCount++;
                     // 避免在一个游戏刻内合成太多物品造成巨量卡顿
@@ -125,13 +125,13 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 如果没有输出物品，说明之前的合成步骤有误，停止合成
-                    FakePlayerUtils.stopCraftAction(this.fakePlayer.getCommandSource(), this.fakePlayer);
+                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().getCommandSource(), this.getFakePlayer());
                     return;
                 }
             } else {
                 if (successCount > 9) {
                     // 找到正确合成材料的次数不应该大于合成槽位数量，如果超过了说明前面的操作出了问题，抛出异常结束方法
-                    throw new IllegalStateException(this.fakePlayer.getName().getString() + "找到正确合成材料的次数为"
+                    throw new IllegalStateException(this.getFakePlayer().getName().getString() + "找到正确合成材料的次数为"
                             + successCount + "，正常不应该超过9");
                 }
                 // 遍历完物品栏后，如果找到正确合成材料小于9，认为玩家身上没有足够的合成材料了，直接结束方法
@@ -146,15 +146,15 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
         ArrayList<MutableText> list = new ArrayList<>();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
-        ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 3, this.fakePlayer);
+        ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
         Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", this.fakePlayer.getDisplayName(), itemText));
+        list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", this.getFakePlayer().getDisplayName(), itemText));
         this.addCraftRecipe(list, craftOutput);
         // 判断假玩家是否打开了一个工作台
-        if (this.fakePlayer.currentScreenHandler instanceof CraftingScreenHandler currentScreenHandler) {
+        if (this.getFakePlayer().currentScreenHandler instanceof CraftingScreenHandler currentScreenHandler) {
             // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.state", this.fakePlayer.getDisplayName()));
+            list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.state", this.getFakePlayer().getDisplayName()));
             // 如果打开了，将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
             addCraftGridState(currentScreenHandler, list);
         } else {
@@ -162,7 +162,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             list.add(
                     TextBuilder.translate(
                             "carpet.commands.playerAction.info.craft.no_crafting_table",
-                            this.fakePlayer.getDisplayName(), Items.CRAFTING_TABLE.getName()
+                            this.getFakePlayer().getDisplayName(), Items.CRAFTING_TABLE.getName()
                     ));
         }
         return list;

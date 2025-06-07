@@ -16,7 +16,7 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         this.pathfinder.tick();
     }
 

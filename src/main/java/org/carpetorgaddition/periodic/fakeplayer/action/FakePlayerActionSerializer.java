@@ -46,9 +46,9 @@ public class FakePlayerActionSerializer {
         if (this == NO_ACTION || this.action.isStop()) {
             return;
         }
-        if (this.action.getFakePlayer() == null) {
+        if (this.action.equalFakePlayer(null)) {
             this.action.setFakePlayer(fakePlayer);
-        } else if (!this.action.getFakePlayer().equals(fakePlayer)) {
+        } else if (!this.action.equalFakePlayer(fakePlayer)) {
             throw new IllegalArgumentException();
         }
         FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
@@ -56,7 +56,7 @@ public class FakePlayerActionSerializer {
     }
 
     public void clearPlayer() {
-        this.action.setFakePlayer(null);
+        this.action.clearFakePlayer();
     }
 
     public boolean hasAction() {

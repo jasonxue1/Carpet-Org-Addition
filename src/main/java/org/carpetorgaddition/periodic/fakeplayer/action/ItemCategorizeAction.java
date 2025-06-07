@@ -42,9 +42,9 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         //获取玩家物品栏对象
-        PlayerInventory inventory = this.fakePlayer.getInventory();
+        PlayerInventory inventory = this.getFakePlayer().getInventory();
         //遍历玩家物品栏，找到要丢出的物品
         for (int index = 0; index < inventory.size(); index++) {
             //定义变量记录当前槽位的物品堆栈对象
@@ -54,7 +54,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
             }
             //如果是要分拣的物品，就转向一边，否则转身向另一边
             if (this.predicate.test(itemStack)) {
-                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, thisVec);
+                this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, thisVec);
             } else {
                 //丢弃潜影盒内的物品
                 //判断当前物品是不是潜影盒
@@ -62,11 +62,11 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
                     itemStack = pickItemFromShulkerBox(inventory, index);
                 } else {
                     //设置当前朝向为丢出非指定物品朝向
-                    this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, otherVec);
+                    this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, otherVec);
                 }
             }
             //丢弃该物品堆栈
-            FakePlayerUtils.dropItem(this.fakePlayer, itemStack);
+            FakePlayerUtils.dropItem(this.getFakePlayer(), itemStack);
         }
     }
 
@@ -85,7 +85,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
             if (InventoryUtils.isEmptyShulkerBox(itemStack)) {
                 // 如果为空，将朝向设置为丢出非指定物品的方向，然后结束循环
                 // 设置当前朝向为丢出非指定物品朝向
-                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.otherVec);
+                this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.otherVec);
                 break;
             } else {
                 // 获取潜影盒内第一个非空气物品，获取后，该物品会在潜影盒内删除
@@ -94,14 +94,14 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
                 if (itemStack.isEmpty()) {
                     itemStack = inventory.getStack(index);
                     // 设置当前朝向为丢出非指定物品朝向，然后丢弃这个潜影盒
-                    this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.otherVec);
+                    this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.otherVec);
                     break;
                 }
                 // 根据当前物品设置朝向
-                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.predicate.test(itemStack) ? this.thisVec : this.otherVec);
+                this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, this.predicate.test(itemStack) ? this.thisVec : this.otherVec);
             }
             // 丢弃潜影盒内物品堆栈
-            FakePlayerUtils.dropItem(this.fakePlayer, itemStack);
+            FakePlayerUtils.dropItem(this.getFakePlayer(), itemStack);
         }
         return itemStack;
     }
@@ -112,7 +112,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
         // 获取要分拣的物品名称
         Text itemName = this.predicate.toText();
         // 获取假玩家的显示名称
-        Text fakeName = this.fakePlayer.getDisplayName();
+        Text fakeName = this.getFakePlayer().getDisplayName();
         // 将假玩家正在分拣物品的消息添加到集合中
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
         // 获取分拣物品要丢出的方向
