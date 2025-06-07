@@ -196,7 +196,6 @@ public class FakePlayerPathfinder {
         LandPathNodeMaker maker = new LandPathNodeMaker();
         Vec3d pos = this.fakePlayer.getPos();
         this.entity.setPosition(pos);
-        this.nodes.add(pos);
         PathNodeNavigator navigator = new PathNodeNavigator(maker, FOLLOW_RANGE * 16);
         Path path = navigator.findPathToAny(chunkCache, this.entity, Set.of(optional.get()), FOLLOW_RANGE, 0, 1F);
         if (path == null) {
@@ -206,6 +205,7 @@ public class FakePlayerPathfinder {
             PathNode node = path.getNode(i);
             this.nodes.add(node.getBlockPos().toBottomCenterPos());
         }
+        this.nodes.set(0, pos);
         this.onStart();
         if (this.length() < 1.0) {
             this.noRoad = true;
