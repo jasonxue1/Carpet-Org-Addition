@@ -49,7 +49,7 @@ public record FakePlayerPathS2CPacket(int id, List<Vec3d> list) implements Custo
     };
 
     public FakePlayerPathS2CPacket(FakePlayerPathfinder pathfinder) {
-        this(pathfinder.getFakePlayer().getId(), pathfinder.getRenderNodes());
+        this(pathfinder.getSyncEntityId(), pathfinder.getRenderNodes());
     }
 
     @Override

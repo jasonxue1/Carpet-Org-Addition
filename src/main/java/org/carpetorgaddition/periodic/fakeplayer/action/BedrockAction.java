@@ -866,7 +866,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
 
     @Override
     protected void onAssignPlayer() {
-        this.pathfinder = new FakePlayerPathfinder(this.getFakePlayer(), this::getMovingTarget);
+        this.pathfinder = FakePlayerPathfinder.of(this.getFakePlayer(), this::getMovingTarget);
     }
 
     @Override

@@ -24,7 +24,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -320,8 +319,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
             BlockPos target = BlockPosArgumentType.getBlockPos(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            FakePlayerPathfinder pathfinder = new FakePlayerPathfinder(fakePlayer, target);
-            actionManager.setAction(new GotoAction(pathfinder));
+            actionManager.setAction(new GotoAction(fakePlayer, target));
             return 1;
         }
         return 0;
@@ -333,8 +331,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
             Entity target = EntityArgumentType.getEntity(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            FakePlayerPathfinder pathfinder = new FakePlayerPathfinder(fakePlayer, target);
-            actionManager.setAction(new GotoAction(pathfinder));
+            actionManager.setAction(new GotoAction(fakePlayer, target));
             return 1;
         }
         return 0;
