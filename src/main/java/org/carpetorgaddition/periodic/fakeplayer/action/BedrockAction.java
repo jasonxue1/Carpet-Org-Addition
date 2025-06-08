@@ -55,14 +55,17 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 玩家是否有AI，是否可以自动寻路，自动进食
      */
     private final boolean ai;
+    @Nullable
     private BedrockBreakingContext currentContext;
     /**
      * 玩家当前任务的阶段
      */
+    @NotNull
     private PlayerWorkPhase phase = PlayerWorkPhase.WORK;
     /**
      * 玩家上一个任务阶段
      */
+    @NotNull
     private PlayerWorkPhase prevPhase = phase;
     /**
      * 玩家当前的移动目标

@@ -5,7 +5,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.List;
 
 /**
- * 寻路的空实现，这是一个单例
+ * {@link FakePlayerPathfinder}的空实现，这是一个单例
  */
 public final class DummyPathfinder implements FakePlayerPathfinder {
     public static final DummyPathfinder EMPTY = new DummyPathfinder();

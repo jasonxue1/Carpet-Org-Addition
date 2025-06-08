@@ -206,6 +206,7 @@ public class GotoAction extends AbstractPlayerAction {
             if (fakePlayer.getWorld() == this.getWorld()) {
                 return Optional.of(this.target);
             }
+            // 玩家与目标实体不在同一维度
             return Optional.empty();
         }
 

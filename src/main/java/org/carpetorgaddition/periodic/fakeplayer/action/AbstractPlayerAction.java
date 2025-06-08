@@ -14,15 +14,20 @@ import java.util.Objects;
 public abstract class AbstractPlayerAction {
     @Nullable
     private EntityPlayerMPFake fakePlayer;
+    private boolean isPlayerChanged = false;
 
     public AbstractPlayerAction(@Nullable EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
         if (this.fakePlayer != null) {
-            this.onAssignPlayer();
+            this.isPlayerChanged = true;
         }
     }
 
     public final void execute() {
+        if (this.isPlayerChanged) {
+            this.onAssignPlayer();
+            this.isPlayerChanged = false;
+        }
         Objects.requireNonNull(this.fakePlayer);
         if (this.isValid()) {
             this.tick();
