@@ -11,7 +11,10 @@ import java.util.function.Supplier;
 public interface FakePlayerPathfinder {
     FakePlayerPathfinder EMPTY = DummyPathfinder.EMPTY;
 
-    static FakePlayerPathfinder of(EntityPlayerMPFake fakePlayer, Supplier<Optional<BlockPos>> supplier) {
+    /**
+     * @param fakePlayer 当前假玩家的提供者，用于确保玩家在切换维度后还能正常运行
+     */
+    static FakePlayerPathfinder of(Supplier<EntityPlayerMPFake> fakePlayer, Supplier<Optional<BlockPos>> supplier) {
         return new GeneralPathfinder(fakePlayer, supplier);
     }
 
@@ -24,6 +27,11 @@ public interface FakePlayerPathfinder {
      * @return 路径节点的数据
      */
     double length();
+
+    /**
+     * 更新寻路路径
+     */
+    void pathfinding();
 
     /**
      * @return 当前节点

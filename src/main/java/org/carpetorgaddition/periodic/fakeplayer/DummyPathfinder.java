@@ -23,6 +23,10 @@ public final class DummyPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
+    public void pathfinding() {
+    }
+
+    @Override
     public Vec3d getCurrentNode() {
         return Vec3d.ZERO;
     }

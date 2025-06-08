@@ -63,6 +63,10 @@ public class TextProvider {
         return value ? TRUE : FALSE;
     }
 
+    public static MutableText blockPos(BlockPos blockPos) {
+        return blockPos(blockPos, Formatting.GREEN);
+    }
+
     /**
      * 获取一个方块坐标的可变文本对象，并带有点击复制、悬停文本，颜色效果
      *

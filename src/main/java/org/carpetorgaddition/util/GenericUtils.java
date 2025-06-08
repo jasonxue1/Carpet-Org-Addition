@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.patches.FakeClientConnection;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.NetworkSide;
@@ -23,8 +24,10 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class GenericUtils {
     private GenericUtils() {
@@ -43,6 +46,36 @@ public class GenericUtils {
     @Contract("_ -> !null")
     public static MinecraftServer getServer(ServerPlayerEntity player) {
         return player.getServer();
+    }
+
+    /**
+     * 根据UUID获取实体
+     */
+    @Nullable
+    public static Entity getEntity(MinecraftServer server, UUID uuid) {
+        for (ServerWorld world : server.getWorlds()) {
+            Entity entity = world.getEntity(uuid);
+            if (entity != null) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据UUID获取玩家
+     */
+    @Nullable
+    public static ServerPlayerEntity getPlayer(MinecraftServer server, UUID uuid) {
+        return server.getPlayerManager().getPlayer(uuid);
+    }
+
+    /**
+     * 根据名称获取玩家
+     */
+    @Nullable
+    public static ServerPlayerEntity getPlayer(MinecraftServer server, String name) {
+        return server.getPlayerManager().getPlayer(name);
     }
 
     @SuppressWarnings("DataFlowIssue")
