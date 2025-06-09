@@ -6,6 +6,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class MathUtils {
@@ -203,6 +204,22 @@ public class MathUtils {
      */
     public static double verticalDistance(Vec3d a, Vec3d b) {
         return Math.abs(a.getY() - b.getY());
+    }
+
+    /**
+     * @return 获取数组中的随机元素
+     */
+    public static <T> T getRandomElement(T[] array) {
+        int len = array.length;
+        return array[RANDOM.nextInt(len)];
+    }
+
+    /**
+     * @return 获取集合中的随机元素
+     */
+    public static <T> T getRandomElement(List<T> list) {
+        int len = list.size();
+        return list.get(RANDOM.nextInt(len));
     }
 
     /**

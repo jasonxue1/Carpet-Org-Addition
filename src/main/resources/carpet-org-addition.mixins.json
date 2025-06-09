@@ -5,7 +5,9 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
+    "accessor.ContainerComponentAccessor",
     "accessor.PlayerManagerAccessor",
+    "accessor.SimpleInventoryAccessor",
     "command.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
@@ -85,6 +87,7 @@
     "rule.entityplayeractionpack.EntityPlayerActionPackAccessor",
     "rule.fakeplayerkeepinventory.PlayerEntityMixin",
     "rule.fakeplayerkeepinventory.ServerPlayerEntityMixin",
+    "rule.quickshulker.ServerPlayerInteractionManagerMixin",
     "rule.respawnblocksexplode.BedBlockMixin",
     "rule.respawnblocksexplode.RespawnAnchorBlockMixin",
     "rule.shulkerboxstackable.CrafterBlockMixin",

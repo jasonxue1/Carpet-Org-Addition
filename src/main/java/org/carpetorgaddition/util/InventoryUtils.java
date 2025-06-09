@@ -4,8 +4,14 @@ import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.screen.ScreenHandlerFactory;
+import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
+import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.wheel.ContainerDeepCopy;
 import org.jetbrains.annotations.CheckReturnValue;
@@ -87,6 +93,29 @@ public class InventoryUtils {
     }
 
     /**
+     * 将物品填充到容器物品中
+     *
+     * @param container 容器物品
+     * @param itemStack 要填充的物品
+     * @return 剩余物品
+     */
+    @CheckReturnValue
+    public static ItemStack addItemToContainer(ItemStack container, ItemStack itemStack) {
+        if (container.isEmpty() || itemStack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        if (isShulkerBoxItem(container) && container.getCount() == 1 && itemStack.getItem().canBeNested()) {
+            ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
+            if (component == null) {
+                return itemStack;
+            }
+            ContainerComponentInventory inventory = new ContainerComponentInventory(container);
+            return inventory.addStack(itemStack);
+        }
+        return itemStack;
+    }
+
+    /**
      * 获取潜影盒中指定物品，并让这个物品执行一个函数，然后将执行函数前的物品返回
      *
      * @param predicate 匹配物品的谓词
@@ -108,6 +137,15 @@ public class InventoryUtils {
             }
         }
         return ItemStack.EMPTY;
+    }
+
+    public static boolean isOf(ItemStack itemStack, Item... items) {
+        for (Item item : items) {
+            if (itemStack.isOf(item)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // 如果潜影盒为空，删除对应的NBT
@@ -167,6 +205,11 @@ public class InventoryUtils {
         }
         ContainerComponent copy = ((ContainerDeepCopy) (Object) component).copy();
         shulkerBox.set(DataComponentTypes.CONTAINER, copy);
+    }
+
+    public static void openScreenHandler(ServerPlayerEntity player, ScreenHandlerFactory baseFactory, Text name) {
+        SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(baseFactory, name);
+        player.openHandledScreen(factory);
     }
 
     /**

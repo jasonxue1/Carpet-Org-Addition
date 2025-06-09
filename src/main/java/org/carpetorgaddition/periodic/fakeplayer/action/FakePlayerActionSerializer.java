@@ -74,6 +74,7 @@ public class FakePlayerActionSerializer {
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
         if (this.action.isHidden()) {
+            // TODO 启用功能时保存玩家数据
             StopAction stopAction = new StopAction(null);
             json.add(stopAction.getActionSerializeType().getSerializedName(), stopAction.toJson());
         } else {

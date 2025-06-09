@@ -117,6 +117,7 @@
   "carpet.rule.playerCommandOpenPlayerInventory.extra.5": "non_whitelist: Allow opening offline player and fake player inventory. For whitelist player, OP permission is required to open the inventory",
   "carpet.rule.playerCommandTeleportFakePlayer.desc": "Add the teleport subcommand to /player to move fake players to your current location",
   "carpet.rule.experienceOrbMerge.desc": "Experience orb merging does not require equal value and ignores entity number",
+  "carpet.rule.quickShulker.desc": "Allow direct opening of the shulker box in the inventory",
   "carpet.rule.message.disableRespawnBlocksExplode": "Respawn blocks explosion is disabled",
   "carpet.rule.message.CCEUpdateSuppression": "You cannot open the shulkerbox for update surpression",
   "carpet.rule.validate.invalid_value": "Wrong value %s for: %s",
