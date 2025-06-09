@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
-@Mixin(ScreenHandler.class)
+@Mixin(value = ScreenHandler.class, priority = 1001)
 public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     @Shadow
     @Final

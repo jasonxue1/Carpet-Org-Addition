@@ -5,9 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
-    "accessor.ContainerComponentAccessor",
     "accessor.PlayerManagerAccessor",
-    "accessor.SimpleInventoryAccessor",
     "command.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
@@ -87,6 +85,8 @@
     "rule.entityplayeractionpack.EntityPlayerActionPackAccessor",
     "rule.fakeplayerkeepinventory.PlayerEntityMixin",
     "rule.fakeplayerkeepinventory.ServerPlayerEntityMixin",
+    "rule.quickshulker.ItemMixin",
+    "rule.quickshulker.ScreenHandlerMixin",
     "rule.quickshulker.ServerPlayerInteractionManagerMixin",
     "rule.respawnblocksexplode.BedBlockMixin",
     "rule.respawnblocksexplode.RespawnAnchorBlockMixin",
@@ -108,7 +108,8 @@
     "debug.ScreenAccessor",
     "network.ScreenHandlerMixin",
     "network.SlotMixin",
-    "rule.client.carpet.SettingsManagerMixin"
+    "rule.client.carpet.SettingsManagerMixin",
+    "rule.quickshulker.CreativeScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -7,10 +7,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.ScreenHandlerFactory;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.wheel.ContainerDeepCopy;
@@ -205,11 +201,6 @@ public class InventoryUtils {
         }
         ContainerComponent copy = ((ContainerDeepCopy) (Object) component).copy();
         shulkerBox.set(DataComponentTypes.CONTAINER, copy);
-    }
-
-    public static void openScreenHandler(ServerPlayerEntity player, ScreenHandlerFactory baseFactory, Text name) {
-        SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(baseFactory, name);
-        player.openHandledScreen(factory);
     }
 
     /**

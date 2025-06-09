@@ -8,6 +8,7 @@ import net.minecraft.screen.ShulkerBoxScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
 
@@ -36,9 +37,14 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
         if (MathUtils.isInRange(this.from(), this.to(), slotIndex)) {
-            ItemStack stack = this.getCursorStack();
-            ItemStack remaining = this.inventory.addStack(stack);
-            this.setCursorStack(remaining);
+            if (button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
+                ItemStack cursorStack = this.getCursorStack();
+                // 光标物品是否可以放入潜影盒
+                if (cursorStack.getItem().canBeNested()) {
+                    ItemStack remaining = this.inventory.addStack(cursorStack);
+                    this.setCursorStack(remaining);
+                }
+            }
             return;
         }
         super.onSlotClick(slotIndex, button, actionType, player);
@@ -65,5 +71,9 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
     @Override
     public int to() {
         return this.shulkerSlotIndex;
+    }
+
+    public ItemStack getShulkerBox() {
+        return this.shulkerBox;
     }
 }
