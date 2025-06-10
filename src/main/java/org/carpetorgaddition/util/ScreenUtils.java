@@ -29,8 +29,7 @@ public class ScreenUtils {
         if (currentScreenHandler instanceof QuickShulkerScreenHandler screenHandler && screenHandler.getShulkerBox() == shulker) {
             return;
         }
-        // 玩家可能在箱子中打开快捷潜影盒，如果这时玩家离开箱子过远导致箱子所在区块被卸载，则可能导致物品复制
-        // 因此就需要在离开箱子时关闭潜影盒
+        // 玩家可能在箱子中打开快捷潜影盒，如果这时玩家离开箱子过远导致箱子所在区块被卸载，则可能导致物品复制，因此就需要在离开箱子时关闭潜影盒
         Predicate<PlayerEntity> predicate = currentScreenHandler == null ? __ -> true : currentScreenHandler::canUse;
         if (predicate.negate().test(player)) {
             return;

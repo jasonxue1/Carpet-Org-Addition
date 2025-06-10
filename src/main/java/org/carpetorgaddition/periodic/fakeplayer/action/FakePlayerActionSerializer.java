@@ -3,6 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.provider.TextProvider;
 import org.carpetorgaddition.util.wheel.TextBuilder;
@@ -73,8 +74,7 @@ public class FakePlayerActionSerializer {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        if (this.action.isHidden()) {
-            // TODO 启用功能时保存玩家数据
+        if (this.action.isHidden() && !CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             StopAction stopAction = new StopAction(null);
             json.add(stopAction.getActionSerializeType().getSerializedName(), stopAction.toJson());
         } else {
