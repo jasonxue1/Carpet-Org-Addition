@@ -23,7 +23,7 @@ public class InventoryUtilsTest {
     }
 
     @RepeatedTest(10)
-    public void testAddItemToContainer() {
+    public void testAddItemToShulkerBox() {
         ItemStack itemStack = new ItemStack(Items.SHULKER_BOX);
         ContainerComponent component = itemStack.get(DataComponentTypes.CONTAINER);
         Assertions.assertNotNull(component);

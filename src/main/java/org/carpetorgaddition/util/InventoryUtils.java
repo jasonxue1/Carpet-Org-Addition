@@ -12,6 +12,8 @@ import org.carpetorgaddition.util.inventory.ImmutableInventory;
 import org.carpetorgaddition.util.wheel.ContainerDeepCopy;
 import org.jetbrains.annotations.CheckReturnValue;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -96,19 +98,38 @@ public class InventoryUtils {
      * @return 剩余物品
      */
     @CheckReturnValue
-    public static ItemStack addItemToContainer(ItemStack container, ItemStack itemStack) {
+    public static ItemStack addItemToShulkerBox(ItemStack container, ItemStack itemStack) {
         if (container.isEmpty() || itemStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
         if (isShulkerBoxItem(container) && container.getCount() == 1 && itemStack.getItem().canBeNested()) {
-            ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
-            if (component == null) {
-                return itemStack;
-            }
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
             return inventory.addStack(itemStack);
         }
         return itemStack;
+    }
+
+    /**
+     * @return 潜影盒中可以插入多少个物品
+     */
+    public static int shulkerCanInsertItemCount(ItemStack container, ItemStack itemStack) {
+        ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
+        if (component == null || component == ContainerComponent.DEFAULT) {
+            return itemStack.getMaxCount() * ContainerComponentInventory.CONTAINER_SIZE;
+        }
+        List<ItemStack> list = component.streamNonEmpty().toList();
+        int count = 0;
+        for (ItemStack stack : list) {
+            if (stack.getCount() == stack.getMaxCount()) {
+                continue;
+            }
+            if (ItemStack.areItemsAndComponentsEqual(stack, itemStack)) {
+                count += (stack.getMaxCount() - stack.getCount());
+            }
+        }
+        int emptySlotCount = ContainerComponentInventory.CONTAINER_SIZE - list.size();
+        count += emptySlotCount * itemStack.getMaxCount();
+        return count;
     }
 
     /**
@@ -131,6 +152,21 @@ public class InventoryUtils {
                 consumer.accept(stack);
                 return copyStack;
             }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    /**
+     * @return 获取潜影盒中的第一个物品
+     */
+    public static ItemStack getFirstItemStack(ItemStack container) {
+        if (isShulkerBoxItem(container) && container.getCount() == 1) {
+            ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
+            if (component == null || component == ContainerComponent.DEFAULT) {
+                return ItemStack.EMPTY;
+            }
+            Iterator<ItemStack> iterator = component.streamNonEmpty().iterator();
+            return iterator.hasNext() ? iterator.next() : ItemStack.EMPTY;
         }
         return ItemStack.EMPTY;
     }
@@ -165,7 +201,7 @@ public class InventoryUtils {
             return true;
         }
         ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        if (component == null) {
+        if (component == null || component == ContainerComponent.DEFAULT) {
             return true;
         }
         return !component.iterateNonEmpty().iterator().hasNext();
