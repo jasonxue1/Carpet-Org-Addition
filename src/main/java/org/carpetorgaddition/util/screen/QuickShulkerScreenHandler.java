@@ -1,5 +1,6 @@
 package org.carpetorgaddition.util.screen;
 
+import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -7,21 +8,38 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ShulkerBoxScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
 
+import java.util.function.Predicate;
+
 public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implements UnavailableSlotSyncInterface {
     private final int shulkerSlotIndex;
     private final ContainerComponentInventory inventory;
+    private final ServerPlayerEntity player;
+    /**
+     * 是否可以继续使用快捷潜影盒
+     */
+    private final Predicate<PlayerEntity> predicate;
     private final ItemStack shulkerBox;
 
-    public QuickShulkerScreenHandler(int syncId, PlayerInventory playerInventory, ContainerComponentInventory inventory, ItemStack shulkerBox) {
+    public QuickShulkerScreenHandler(
+            int syncId,
+            PlayerInventory playerInventory,
+            ContainerComponentInventory inventory,
+            ServerPlayerEntity player,
+            Predicate<PlayerEntity> predicate,
+            ItemStack shulkerBox
+    ) {
         super(syncId, playerInventory, inventory);
         this.inventory = inventory;
+        this.player = player;
+        this.predicate = predicate;
         this.shulkerBox = shulkerBox;
-        if (CarpetOrgAdditionSettings.quickShulker) {
+        if (canUseQuickShulker()) {
             for (Slot slot : this.slots) {
                 if (slot.getStack() == shulkerBox) {
                     this.shulkerSlotIndex = slot.id;
@@ -55,7 +73,11 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
         if (this.shulkerBox.isEmpty()) {
             return false;
         }
-        return CarpetOrgAdditionSettings.quickShulker && this.shulkerBox.getCount() == 1 && super.canUse(player);
+        return canUseQuickShulker() && this.shulkerBox.getCount() == 1 && this.predicate.test(player) && super.canUse(player);
+    }
+
+    private boolean canUseQuickShulker() {
+        return CarpetOrgAdditionSettings.quickShulker || this.player instanceof EntityPlayerMPFake;
     }
 
     @Override
