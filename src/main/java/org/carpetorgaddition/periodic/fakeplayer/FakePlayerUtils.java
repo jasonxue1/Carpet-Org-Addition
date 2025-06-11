@@ -26,8 +26,8 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.inventory.AutoGrowInventory;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.function.Predicate;
 

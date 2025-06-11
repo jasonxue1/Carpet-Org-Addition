@@ -28,12 +28,12 @@ import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.permission.PermissionLevel;
-import org.carpetorgaddition.util.permission.PermissionManager;
-import org.carpetorgaddition.util.screen.CraftingSetRecipeScreenHandler;
-import org.carpetorgaddition.util.screen.StonecutterSetRecipeScreenHandler;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.permission.PermissionLevel;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
+import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Arrays;
 

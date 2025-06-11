@@ -9,7 +9,7 @@ import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.wheel.Counter;
+import org.carpetorgaddition.wheel.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

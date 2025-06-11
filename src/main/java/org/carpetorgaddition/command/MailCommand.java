@@ -26,9 +26,9 @@ import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.screen.ShipExpressScreenHandler;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.screen.ShipExpressScreenHandler;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

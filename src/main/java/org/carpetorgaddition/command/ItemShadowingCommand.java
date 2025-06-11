@@ -13,8 +13,8 @@ import net.minecraft.util.Hand;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.inventory.ImmutableInventory;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 public class ItemShadowingCommand extends AbstractServerCommand {
     public ItemShadowingCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {

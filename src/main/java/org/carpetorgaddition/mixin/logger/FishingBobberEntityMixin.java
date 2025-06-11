@@ -8,7 +8,7 @@ import org.carpetorgaddition.logger.FunctionLogger;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

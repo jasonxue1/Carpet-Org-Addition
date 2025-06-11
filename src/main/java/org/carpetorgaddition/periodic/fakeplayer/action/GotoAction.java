@@ -13,8 +13,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.util.GenericUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

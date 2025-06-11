@@ -35,10 +35,10 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.Counter;
-import org.carpetorgaddition.util.wheel.SelectionArea;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.Counter;
+import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

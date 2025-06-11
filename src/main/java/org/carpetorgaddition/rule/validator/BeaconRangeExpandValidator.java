@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.provider.RuleValidatorProvider;
+import org.carpetorgaddition.wheel.provider.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 // 信标范围验证

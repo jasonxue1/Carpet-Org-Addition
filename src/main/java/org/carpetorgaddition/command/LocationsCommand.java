@@ -19,10 +19,10 @@ import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.carpetorgaddition.util.wheel.Waypoint;
-import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.Waypoint;
+import org.carpetorgaddition.wheel.WorldFormat;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

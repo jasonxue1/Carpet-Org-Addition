@@ -9,7 +9,7 @@ import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
-import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.wheel.page.PageManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerComponentCoordinator {

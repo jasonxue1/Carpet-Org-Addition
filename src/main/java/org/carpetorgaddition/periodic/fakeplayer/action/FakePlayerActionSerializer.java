@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

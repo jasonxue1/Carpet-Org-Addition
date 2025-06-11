@@ -7,8 +7,8 @@ import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.stream.IntStream;

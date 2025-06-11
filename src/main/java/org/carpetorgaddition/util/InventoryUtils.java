@@ -7,9 +7,9 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
-import org.carpetorgaddition.util.inventory.ImmutableInventory;
-import org.carpetorgaddition.util.wheel.ContainerDeepCopy;
+import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
+import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.jetbrains.annotations.CheckReturnValue;
 
 import java.util.Iterator;

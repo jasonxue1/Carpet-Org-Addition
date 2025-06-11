@@ -1,6 +1,6 @@
 package org.carpetorgaddition.command;
 
-import org.carpetorgaddition.util.wheel.ExperienceTransfer;
+import org.carpetorgaddition.wheel.ExperienceTransfer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
 

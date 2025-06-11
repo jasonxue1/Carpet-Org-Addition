@@ -18,8 +18,8 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.inventory.AutoGrowInventory;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 

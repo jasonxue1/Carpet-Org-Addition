@@ -12,7 +12,7 @@ import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
 

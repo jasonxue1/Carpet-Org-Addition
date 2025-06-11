@@ -9,8 +9,8 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 

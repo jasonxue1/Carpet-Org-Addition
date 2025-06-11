@@ -13,9 +13,9 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.page.PageManager;
-import org.carpetorgaddition.util.page.PagedCollection;
-import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.SelectionArea;
 
 import java.util.*;
 import java.util.function.Supplier;

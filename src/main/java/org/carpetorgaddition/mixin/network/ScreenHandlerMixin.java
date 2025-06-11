@@ -5,7 +5,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
+import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

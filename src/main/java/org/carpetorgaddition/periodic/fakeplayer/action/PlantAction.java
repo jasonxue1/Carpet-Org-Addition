@@ -24,8 +24,8 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.wheel.SelectionArea;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;

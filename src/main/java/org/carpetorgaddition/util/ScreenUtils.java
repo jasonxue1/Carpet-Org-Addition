@@ -7,8 +7,8 @@ import net.minecraft.screen.ScreenHandlerFactory;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.util.inventory.ContainerComponentInventory;
-import org.carpetorgaddition.util.screen.QuickShulkerScreenHandler;
+import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
 
 import java.util.function.Predicate;
 

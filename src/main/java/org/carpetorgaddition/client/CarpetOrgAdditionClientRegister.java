@@ -17,8 +17,8 @@ import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.carpetorgaddition.debug.client.command.SelectionAreaCommand;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
-import org.carpetorgaddition.util.screen.BackgroundSpriteSyncSlot;
-import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
+import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
+import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 
 import java.util.Optional;
 

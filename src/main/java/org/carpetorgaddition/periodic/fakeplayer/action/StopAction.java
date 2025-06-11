@@ -3,7 +3,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 

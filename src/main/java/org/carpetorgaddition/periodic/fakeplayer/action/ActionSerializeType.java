@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 import java.util.Locale;
 import java.util.Optional;

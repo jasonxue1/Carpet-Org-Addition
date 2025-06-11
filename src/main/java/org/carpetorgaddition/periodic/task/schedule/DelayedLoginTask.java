@@ -9,8 +9,8 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayedLoginTask extends PlayerScheduleTask {
