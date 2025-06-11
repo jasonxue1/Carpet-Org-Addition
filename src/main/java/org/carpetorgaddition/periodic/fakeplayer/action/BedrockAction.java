@@ -35,10 +35,10 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -523,7 +523,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
             BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
             // 先切换工具，再计算剩余挖掘时间
-            switchTool(blockState, world, up, this.fakePlayer);
+            switchTool(blockState, world, up, this.getFakePlayer());
             // 计算剩余挖掘时间
             int currentTime = blockExcavator.computingRemainingMiningTime(up);
             if (currentTime == 1) {

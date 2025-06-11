@@ -6,13 +6,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
-public class ContainerComponentInventory extends SimpleInventory implements Iterable<ItemStack> {
+public class ContainerComponentInventory extends SimpleInventory {
     private final ItemStack itemStack;
     public static final int CONTAINER_SIZE = 27;
 
@@ -66,25 +64,5 @@ public class ContainerComponentInventory extends SimpleInventory implements Iter
             joiner.add(itemStack.getItem().toString() + "*" + itemStack.getCount());
         }
         return joiner.toString();
-    }
-
-    @Override
-    public @NotNull Iterator<ItemStack> iterator() {
-        return new Iterator<>() {
-            private int cursor = 0;
-            private final int size = size();
-
-            @Override
-            public boolean hasNext() {
-                return this.cursor < this.size;
-            }
-
-            @Override
-            public ItemStack next() {
-                ItemStack itemStack = getStack(cursor);
-                this.cursor++;
-                return itemStack;
-            }
-        };
     }
 }
