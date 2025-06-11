@@ -4,17 +4,31 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public abstract class AbstractPlayerAction {
-    protected EntityPlayerMPFake fakePlayer;
+    @Nullable
+    private EntityPlayerMPFake fakePlayer;
+    private boolean isPlayerChanged = false;
 
-    public AbstractPlayerAction(EntityPlayerMPFake fakePlayer) {
+    public AbstractPlayerAction(@Nullable EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
+        if (this.fakePlayer != null) {
+            this.isPlayerChanged = true;
+        }
     }
 
     public final void execute() {
+        if (this.isPlayerChanged) {
+            this.onAssignPlayer();
+            this.isPlayerChanged = false;
+        }
+        Objects.requireNonNull(this.fakePlayer);
         if (this.isValid()) {
             this.tick();
         } else {
@@ -25,7 +39,7 @@ public abstract class AbstractPlayerAction {
     /**
      * 每个游戏刻都执行
      */
-    public abstract void tick();
+    protected abstract void tick();
 
     /**
      * 当前动作的详细信息
@@ -62,11 +76,41 @@ public abstract class AbstractPlayerAction {
         return false;
     }
 
-    public EntityPlayerMPFake getFakePlayer() {
-        return fakePlayer;
+    public void onStop() {
     }
 
+    @NotNull
+    protected EntityPlayerMPFake getFakePlayer() {
+        return Objects.requireNonNull(this.fakePlayer);
+    }
+
+    public boolean equalFakePlayer(@Nullable EntityPlayerMPFake fakePlayer) {
+        return Objects.equals(this.fakePlayer, fakePlayer);
+    }
+
+    @Contract("null -> fail")
     public void setFakePlayer(EntityPlayerMPFake fakePlayer) {
+        if (fakePlayer == null) {
+            throw new IllegalArgumentException();
+        }
         this.fakePlayer = fakePlayer;
+        this.onAssignPlayer();
+    }
+
+    public void clearFakePlayer() {
+        this.fakePlayer = null;
+        this.onClearPlayer();
+    }
+
+    /**
+     * 当玩家被赋值时调用
+     */
+    protected void onAssignPlayer() {
+    }
+
+    /**
+     * 当玩家被赋值为{@code null}时调用
+     */
+    protected void onClearPlayer() {
     }
 }

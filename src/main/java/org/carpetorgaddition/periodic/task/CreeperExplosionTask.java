@@ -11,7 +11,7 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.SelectionArea;
 
 import java.util.ArrayList;
 

@@ -4,12 +4,16 @@ import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.BlockItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import org.carpetorgaddition.util.inventory.ImmutableInventory;
-import org.carpetorgaddition.util.wheel.ContainerDeepCopy;
+import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
+import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.jetbrains.annotations.CheckReturnValue;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -87,6 +91,48 @@ public class InventoryUtils {
     }
 
     /**
+     * 将物品填充到容器物品中
+     *
+     * @param container 容器物品
+     * @param itemStack 要填充的物品
+     * @return 剩余物品
+     */
+    @CheckReturnValue
+    public static ItemStack addItemToShulkerBox(ItemStack container, ItemStack itemStack) {
+        if (container.isEmpty() || itemStack.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        if (isShulkerBoxItem(container) && container.getCount() == 1 && itemStack.getItem().canBeNested()) {
+            ContainerComponentInventory inventory = new ContainerComponentInventory(container);
+            return inventory.addStack(itemStack);
+        }
+        return itemStack;
+    }
+
+    /**
+     * @return 潜影盒中可以插入多少个物品
+     */
+    public static int shulkerCanInsertItemCount(ItemStack container, ItemStack itemStack) {
+        ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
+        if (component == null || component == ContainerComponent.DEFAULT) {
+            return itemStack.getMaxCount() * ContainerComponentInventory.CONTAINER_SIZE;
+        }
+        List<ItemStack> list = component.streamNonEmpty().toList();
+        int count = 0;
+        for (ItemStack stack : list) {
+            if (stack.getCount() == stack.getMaxCount()) {
+                continue;
+            }
+            if (ItemStack.areItemsAndComponentsEqual(stack, itemStack)) {
+                count += (stack.getMaxCount() - stack.getCount());
+            }
+        }
+        int emptySlotCount = ContainerComponentInventory.CONTAINER_SIZE - list.size();
+        count += emptySlotCount * itemStack.getMaxCount();
+        return count;
+    }
+
+    /**
      * 获取潜影盒中指定物品，并让这个物品执行一个函数，然后将执行函数前的物品返回
      *
      * @param predicate 匹配物品的谓词
@@ -110,6 +156,30 @@ public class InventoryUtils {
         return ItemStack.EMPTY;
     }
 
+    /**
+     * @return 获取潜影盒中的第一个物品
+     */
+    public static ItemStack getFirstItemStack(ItemStack container) {
+        if (isShulkerBoxItem(container) && container.getCount() == 1) {
+            ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
+            if (component == null || component == ContainerComponent.DEFAULT) {
+                return ItemStack.EMPTY;
+            }
+            Iterator<ItemStack> iterator = component.streamNonEmpty().iterator();
+            return iterator.hasNext() ? iterator.next() : ItemStack.EMPTY;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public static boolean isOf(ItemStack itemStack, Item... items) {
+        for (Item item : items) {
+            if (itemStack.isOf(item)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // 如果潜影盒为空，删除对应的NBT
     private static void ifItIsEmptyRemoveIt(ItemStack shulkerBox) {
         if (isEmptyShulkerBox(shulkerBox)) {
@@ -131,7 +201,7 @@ public class InventoryUtils {
             return true;
         }
         ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        if (component == null) {
+        if (component == null || component == ContainerComponent.DEFAULT) {
             return true;
         }
         return !component.iterateNonEmpty().iterator().hasNext();
@@ -208,5 +278,13 @@ public class InventoryUtils {
             return;
         }
         throw new IllegalStateException(message.get());
+    }
+
+    public static boolean isFoodItem(ItemStack itemStack) {
+        return itemStack.contains(DataComponentTypes.FOOD);
+    }
+
+    public static boolean isToolItem(ItemStack itemStack) {
+        return itemStack.contains(DataComponentTypes.TOOL);
     }
 }

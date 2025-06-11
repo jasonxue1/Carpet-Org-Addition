@@ -20,7 +20,7 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Optional;
 

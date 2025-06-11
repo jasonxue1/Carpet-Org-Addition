@@ -2,7 +2,7 @@ package org.carpetorgaddition.mixin.util;
 
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
-import org.carpetorgaddition.util.wheel.CommandRegistryAccessor;
+import org.carpetorgaddition.wheel.CommandRegistryAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

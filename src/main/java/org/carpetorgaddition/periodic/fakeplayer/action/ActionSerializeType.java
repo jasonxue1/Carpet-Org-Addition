@@ -1,13 +1,15 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.item.Item;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 import java.util.Locale;
+import java.util.Optional;
 import java.util.function.Function;
 
 public enum ActionSerializeType {
@@ -115,8 +117,10 @@ public enum ActionSerializeType {
         JsonArray to = json.getAsJsonArray("to");
         BlockPos minPos = new BlockPos(from.get(0).getAsInt(), from.get(1).getAsInt(), from.get(2).getAsInt());
         BlockPos maxPos = new BlockPos(to.get(0).getAsInt(), to.get(1).getAsInt(), to.get(2).getAsInt());
-        return new BedrockAction(null, minPos, maxPos);
-    });
+        boolean ai = Optional.ofNullable(json.get("ai")).map(JsonElement::getAsBoolean).orElse(false);
+        return new BedrockAction(null, minPos, maxPos, ai);
+    }),
+    GOTO(json -> new StopAction(null));
 
     private final String serializedName;
     private final Function<JsonObject, AbstractPlayerAction> deserializer;

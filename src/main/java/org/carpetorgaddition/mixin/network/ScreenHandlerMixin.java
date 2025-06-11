@@ -5,7 +5,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.SlotActionType;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
+import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
-@Mixin(ScreenHandler.class)
+@Mixin(value = ScreenHandler.class, priority = 1001)
 public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     @Shadow
     @Final
