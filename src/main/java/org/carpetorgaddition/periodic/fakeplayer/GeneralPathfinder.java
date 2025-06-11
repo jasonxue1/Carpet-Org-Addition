@@ -148,7 +148,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         double horizontal = MathUtils.horizontalDistance(current, pos);
         double vertical = MathUtils.verticalDistance(current, pos);
         // 玩家可以直接走向方块，不需要跳跃
-        if (vertical <= getFakePlayer().getAttributeValue(EntityAttributes.GENERIC_STEP_HEIGHT)) {
+        if (vertical <= getFakePlayer().getAttributeValue(EntityAttributes.STEP_HEIGHT)) {
             return;
         }
         // 当前位置比玩家位置低，不需要跳跃

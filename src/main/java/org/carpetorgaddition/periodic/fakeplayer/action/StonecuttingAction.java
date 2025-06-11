@@ -161,7 +161,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         ItemStack outputItemStack;
         try {
             // 获取与配方对应的物品
-            outputItemStack = this.getRecipeResult(this.fakePlayer, world, input);
+            outputItemStack = this.getRecipeResult(this.getFakePlayer(), world, input);
         } catch (IndexOutOfBoundsException e) {
             // 如果索引越界了，将输出物品设置为空
             outputItemStack = ItemStack.EMPTY;
