@@ -4,7 +4,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 /**
  * 流浪商人生成记录器

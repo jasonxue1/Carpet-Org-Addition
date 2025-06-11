@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.patches.FakeClientConnection;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.NetworkSide;
@@ -23,8 +24,10 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.rule.EntityAccessor;
 import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class GenericUtils {
     private GenericUtils() {
@@ -45,6 +48,36 @@ public class GenericUtils {
         return player.getServer();
     }
 
+    /**
+     * 根据UUID获取实体
+     */
+    @Nullable
+    public static Entity getEntity(MinecraftServer server, UUID uuid) {
+        for (ServerWorld world : server.getWorlds()) {
+            Entity entity = world.getEntity(uuid);
+            if (entity != null) {
+                return entity;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 根据UUID获取玩家
+     */
+    @Nullable
+    public static ServerPlayerEntity getPlayer(MinecraftServer server, UUID uuid) {
+        return server.getPlayerManager().getPlayer(uuid);
+    }
+
+    /**
+     * 根据名称获取玩家
+     */
+    @Nullable
+    public static ServerPlayerEntity getPlayer(MinecraftServer server, String name) {
+        return server.getPlayerManager().getPlayer(name);
+    }
+
     @SuppressWarnings("DataFlowIssue")
     public static EntityPlayerMPFake createFakePlayer(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying) {
         ServerWorld worldIn = server.getWorld(dimensionId);
@@ -62,7 +95,6 @@ public class GenericUtils {
     }
 
     private static EntityPlayerMPFake trySpawn(MinecraftServer server, Vec3d pos, float yaw, float pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, GameProfile gameprofile, ServerWorld worldIn) {
-        // 生成假玩家的逻辑似乎不在主线程
         EntityPlayerMPFake fakePlayer = EntityPlayerMPFake.respawnFake(server, worldIn, gameprofile, SyncedClientOptions.createDefault());
         fakePlayer.fixStartingPosition = () -> fakePlayer.refreshPositionAndAngles(pos.x, pos.y, pos.z, yaw, pitch);
         server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), fakePlayer, new ConnectedClientData(gameprofile, 0, fakePlayer.getClientOptions(), false));

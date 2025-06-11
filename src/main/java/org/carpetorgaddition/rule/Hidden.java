@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 带有此注解的规则默认是隐藏的，只有在启动时加上jvm参数{@code -DCarpetOrgAddition.EnableHiddenFunction=true}才会显示
+ * 带有此注解的规则默认是隐藏的，只有通过配置文件启用时才会显示
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

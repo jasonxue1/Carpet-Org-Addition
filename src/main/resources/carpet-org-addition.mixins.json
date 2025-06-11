@@ -87,6 +87,9 @@
     "rule.entityplayeractionpack.EntityPlayerActionPackAccessor",
     "rule.fakeplayerkeepinventory.PlayerEntityMixin",
     "rule.fakeplayerkeepinventory.ServerPlayerEntityMixin",
+    "rule.quickshulker.ItemMixin",
+    "rule.quickshulker.ScreenHandlerMixin",
+    "rule.quickshulker.ServerPlayerInteractionManagerMixin",
     "rule.respawnblocksexplode.BedBlockMixin",
     "rule.respawnblocksexplode.RespawnAnchorBlockMixin",
     "rule.shulkerboxstackable.CrafterBlockMixin",
@@ -106,7 +109,8 @@
     "debug.ScreenAccessor",
     "network.ScreenHandlerMixin",
     "network.SlotMixin",
-    "rule.client.carpet.SettingsManagerMixin"
+    "rule.client.carpet.SettingsManagerMixin",
+    "rule.quickshulker.CreativeScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

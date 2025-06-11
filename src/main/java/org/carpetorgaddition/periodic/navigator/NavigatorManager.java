@@ -10,7 +10,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.network.s2c.WaypointClearS2CPacket;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.wheel.Waypoint;
+import org.carpetorgaddition.wheel.Waypoint;
 import org.jetbrains.annotations.Nullable;
 
 public class NavigatorManager {
