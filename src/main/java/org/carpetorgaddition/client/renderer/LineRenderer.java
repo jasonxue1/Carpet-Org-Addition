@@ -1,6 +1,7 @@
 package org.carpetorgaddition.client.renderer;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -9,7 +10,7 @@ import org.carpetorgaddition.client.util.ClientRenderUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
-public class LineRenderer {
+public class LineRenderer implements WorldRenderer {
     private final Tessellator tessellator = Tessellator.getInstance();
     /**
      * 线的颜色
@@ -24,6 +25,15 @@ public class LineRenderer {
     public LineRenderer(@NotNull Vec3d from, @NotNull Vec3d to) {
         this.from = from;
         this.to = to;
+    }
+
+    @Override
+    public void render(WorldRenderContext context) {
+        MatrixStack matrixStack = context.matrixStack();
+        if (matrixStack == null) {
+            return;
+        }
+        this.render(matrixStack);
     }
 
     public void render(MatrixStack matrixStack) {

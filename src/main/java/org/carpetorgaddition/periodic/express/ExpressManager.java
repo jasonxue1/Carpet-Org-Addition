@@ -14,11 +14,11 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.Counter;
-import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.Counter;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.WorldFormat;
 
 import java.io.File;
 import java.io.IOException;

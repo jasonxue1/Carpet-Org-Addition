@@ -19,7 +19,7 @@ import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientRenderUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 

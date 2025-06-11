@@ -22,12 +22,12 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.inventory.SimulatePlayerInventory;
-import org.carpetorgaddition.util.page.PageManager;
-import org.carpetorgaddition.util.page.PagedCollection;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.*;
+import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;

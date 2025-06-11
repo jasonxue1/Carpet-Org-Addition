@@ -2,7 +2,7 @@ package org.carpetorgaddition.translate;
 
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.translate.TranslateParser.Entry;
-import org.carpetorgaddition.util.wheel.Counter;
+import org.carpetorgaddition.wheel.Counter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

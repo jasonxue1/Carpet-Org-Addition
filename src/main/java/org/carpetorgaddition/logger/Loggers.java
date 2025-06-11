@@ -38,4 +38,8 @@ public class Loggers {
     public static FunctionLogger getObsidianLogger() {
         return (FunctionLogger) LoggerRegistry.getLogger(LoggerNames.OBSIDIAN);
     }
+
+    public static NetworkPacketLogger getFakePlayerPathLogger() {
+        return (NetworkPacketLogger) LoggerRegistry.getLogger(LoggerNames.FAKE_PLAYER_PATH);
+    }
 }

@@ -19,7 +19,7 @@ public class IOUtils {
     /**
      * 模组配置文件路径
      */
-    private static final Path CONFIGURE_DIRECTORY = FabricLoader.getInstance().getConfigDir().resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
+    public static final Path CONFIGURE_DIRECTORY = FabricLoader.getInstance().getConfigDir().resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
     /**
      * 不能包含在文件名中的字符
      */

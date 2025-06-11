@@ -9,7 +9,7 @@ import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
-import org.carpetorgaddition.util.page.PageManager;
+import org.carpetorgaddition.wheel.page.PageManager;
 import org.jetbrains.annotations.Contract;
 
 public class FetcherUtils {

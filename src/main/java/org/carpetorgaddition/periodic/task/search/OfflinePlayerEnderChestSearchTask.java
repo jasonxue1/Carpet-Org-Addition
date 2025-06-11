@@ -15,8 +15,9 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 @SuppressWarnings("JavadocReference")
 public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {

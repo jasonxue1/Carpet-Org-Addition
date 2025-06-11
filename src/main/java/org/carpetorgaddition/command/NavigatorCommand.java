@@ -24,11 +24,11 @@ import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.util.permission.PermissionLevel;
-import org.carpetorgaddition.util.permission.PermissionManager;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.carpetorgaddition.util.wheel.Waypoint;
+import org.carpetorgaddition.wheel.permission.PermissionLevel;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.Waypoint;
 
 import java.io.IOException;
 import java.util.Objects;
