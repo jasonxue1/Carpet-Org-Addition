@@ -3,7 +3,7 @@ package org.carpetorgaddition.dataupdate.player;
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.fakeplayer.action.FillTheContainerAction;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 public class FillTheContainerActionDataUpdater implements DataUpdater {
     private static final String ALL_ITEM = "allItem";

@@ -3,9 +3,10 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,9 +47,9 @@ public class FakePlayerActionSerializer {
         if (this == NO_ACTION || this.action.isStop()) {
             return;
         }
-        if (this.action.getFakePlayer() == null) {
+        if (this.action.equalFakePlayer(null)) {
             this.action.setFakePlayer(fakePlayer);
-        } else if (!this.action.getFakePlayer().equals(fakePlayer)) {
+        } else if (!this.action.equalFakePlayer(fakePlayer)) {
             throw new IllegalArgumentException();
         }
         FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
@@ -56,7 +57,7 @@ public class FakePlayerActionSerializer {
     }
 
     public void clearPlayer() {
-        this.action.setFakePlayer(null);
+        this.action.clearFakePlayer();
     }
 
     public boolean hasAction() {
@@ -73,7 +74,7 @@ public class FakePlayerActionSerializer {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        if (this.action.isHidden()) {
+        if (this.action.isHidden() && !CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             StopAction stopAction = new StopAction(null);
             json.add(stopAction.getActionSerializeType().getSerializedName(), stopAction.toJson());
         } else {

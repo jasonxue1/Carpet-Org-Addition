@@ -7,8 +7,8 @@ import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.MutableText;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.stream.IntStream;
@@ -32,8 +32,8 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
-        ScreenHandler screenHandler = fakePlayer.currentScreenHandler;
+    protected void tick() {
+        ScreenHandler screenHandler = getFakePlayer().currentScreenHandler;
         if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
             return;
         }
@@ -48,17 +48,17 @@ public class FillTheContainerAction extends AbstractPlayerAction {
                 if (screenHandler instanceof ShulkerBoxScreenHandler && !itemStack.getItem().canBeNested()) {
                     // 丢弃不能放入潜影盒的物品
                     if (this.dropOther) {
-                        FakePlayerUtils.throwItem(screenHandler, index, this.fakePlayer);
+                        FakePlayerUtils.throwItem(screenHandler, index, this.getFakePlayer());
                     }
                     continue;
                 }
                 // 模拟按住Shift键移动物品
-                if (FakePlayerUtils.quickMove(screenHandler, index, this.fakePlayer).isEmpty()) {
-                    this.fakePlayer.onHandledScreenClosed();
+                if (FakePlayerUtils.quickMove(screenHandler, index, this.getFakePlayer()).isEmpty()) {
+                    this.getFakePlayer().onHandledScreenClosed();
                     return;
                 }
             } else if (this.dropOther) {
-                FakePlayerUtils.throwItem(screenHandler, index, this.fakePlayer);
+                FakePlayerUtils.throwItem(screenHandler, index, this.getFakePlayer());
             }
         }
     }
@@ -97,7 +97,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
         ArrayList<MutableText> list = new ArrayList<>();
         MutableText translate = TextBuilder.translate(
                 "carpet.commands.playerAction.info.fill.predicate",
-                this.fakePlayer.getDisplayName(),
+                this.getFakePlayer().getDisplayName(),
                 this.predicate.toText()
         );
         list.add(translate);

@@ -53,6 +53,7 @@ public class FakePlayerActionManager {
     }
 
     public void setAction(@NotNull AbstractPlayerAction action) {
+        this.action.onStop();
         this.action = action;
     }
 

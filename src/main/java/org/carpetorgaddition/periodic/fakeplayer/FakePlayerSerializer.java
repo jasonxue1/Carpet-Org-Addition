@@ -20,11 +20,11 @@ import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializ
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.MetaComment;
-import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.MetaComment;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

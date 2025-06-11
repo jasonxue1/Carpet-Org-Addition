@@ -3,7 +3,7 @@ package org.carpetorgaddition.client.renderer.waypoint;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
-import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
 
 import java.util.function.Consumer;
 

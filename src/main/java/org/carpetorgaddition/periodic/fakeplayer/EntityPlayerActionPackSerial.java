@@ -9,8 +9,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.mixin.rule.entityplayeractionpack.ActionAccessor;
 import org.carpetorgaddition.mixin.rule.entityplayeractionpack.EntityPlayerActionPackAccessor;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.EnumMap;

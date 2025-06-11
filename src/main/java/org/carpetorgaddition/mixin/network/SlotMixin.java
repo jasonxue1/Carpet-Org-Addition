@@ -2,7 +2,7 @@ package org.carpetorgaddition.mixin.network;
 
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.util.Identifier;
-import org.carpetorgaddition.util.screen.BackgroundSpriteSyncSlot;
+import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

@@ -22,7 +22,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
