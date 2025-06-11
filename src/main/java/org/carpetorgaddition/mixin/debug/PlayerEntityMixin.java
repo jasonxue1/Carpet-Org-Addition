@@ -10,7 +10,7 @@ import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.debug.OnlyDeveloped;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

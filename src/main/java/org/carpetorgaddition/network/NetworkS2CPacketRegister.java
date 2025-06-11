@@ -22,5 +22,7 @@ public class NetworkS2CPacketRegister {
         PayloadTypeRegistry.playS2C().register(VillagerPoiSyncS2CPacket.ID, VillagerPoiSyncS2CPacket.CODEC);
         // 记录器更新数据包
         PayloadTypeRegistry.playS2C().register(LoggerUpdateS2CPacket.ID, LoggerUpdateS2CPacket.CODEC);
+        // 假玩家路径数据包
+        PayloadTypeRegistry.playS2C().register(FakePlayerPathS2CPacket.ID, FakePlayerPathS2CPacket.CODEC);
     }
 }

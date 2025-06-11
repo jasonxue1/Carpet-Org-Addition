@@ -13,6 +13,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.*;
 import net.minecraft.command.argument.ItemPredicateArgumentType.ItemStackPredicateArgument;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.screen.ScreenHandlerContext;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
@@ -27,10 +28,12 @@ import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.screen.CraftingSetRecipeScreenHandler;
-import org.carpetorgaddition.util.screen.StonecutterSetRecipeScreenHandler;
-import org.carpetorgaddition.util.wheel.ItemStackPredicate;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.permission.PermissionLevel;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
+import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Arrays;
 
@@ -106,7 +109,18 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(this::setBreakBedrock))))));
+                                                .executes(context -> setBreakBedrock(context, false))
+                                                .then(CommandManager.argument("ai", BoolArgumentType.bool())
+                                                        .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
+                                                        .executes(context -> setBreakBedrock(context, BoolArgumentType.getBool(context, "ai")))))))
+                        .then(CommandManager.literal("goto")
+                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .then(CommandManager.literal("block")
+                                        .then(CommandManager.argument("target", BlockPosArgumentType.blockPos())
+                                                .executes(this::setGotoBlockPos)))
+                                .then(CommandManager.literal("entity")
+                                        .then(CommandManager.argument("target", EntityArgumentType.entity())
+                                                .executes(this::setGotoEntity))))));
     }
 
     // 注册物品谓词节点
@@ -286,13 +300,38 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return 0;
     }
 
-    private int setBreakBedrock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    // 设置破基岩
+    private int setBreakBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
             BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            actionManager.setAction(new BedrockAction(fakePlayer, from, to));
+            actionManager.setAction(new BedrockAction(fakePlayer, from, to, ai));
+            return 1;
+        }
+        return 0;
+    }
+
+    // 设置寻路到方块
+    private int setGotoBlockPos(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            BlockPos target = BlockPosArgumentType.getBlockPos(context, "target");
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            actionManager.setAction(new GotoAction(fakePlayer, target));
+            return 1;
+        }
+        return 0;
+    }
+
+    // 设置寻路到实体
+    private int setGotoEntity(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            Entity target = EntityArgumentType.getEntity(context, "target");
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            actionManager.setAction(new GotoAction(fakePlayer, target));
             return 1;
         }
         return 0;
@@ -316,12 +355,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return matchers;
     }
 
-    //获取假玩家操作类型
+    // 获取假玩家操作类型
     private int getAction(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         AbstractPlayerAction action = actionManager.getAction();
-        if (action.getFakePlayer() == null) {
+        if (action.equalFakePlayer(null)) {
             action.setFakePlayer(fakePlayer);
         }
         MessageUtils.sendListMessage(context.getSource(), action.info());

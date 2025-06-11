@@ -25,8 +25,8 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.wheel.SelectionArea;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
@@ -42,26 +42,26 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public void tick() {
+    protected void tick() {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             // 继续挖掘之前未挖掘完成的方块
             if (this.cropPos != null && !breakBlock(this.cropPos)) {
                 return;
             }
             // 根据副手的物品是什么来决定种植什么农作物
-            ItemStack cropsItem = this.fakePlayer.getOffHandStack();
+            ItemStack cropsItem = this.getFakePlayer().getOffHandStack();
             // 获取当前种植的是什么类型的农作物
             FarmType farmType = FarmType.getFarmType(cropsItem);
             if (farmType == FarmType.NONE) {
                 return;
             }
             // 获取玩家交互距离内的所有方块
-            double range = this.fakePlayer.getBlockInteractionRange();
+            double range = this.getFakePlayer().getBlockInteractionRange();
             // 限制交互距离，减少卡顿
-            Box box = new Box(this.fakePlayer.getBlockPos()).expand(Math.min(range, 10.0));
+            Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
             SelectionArea area = new SelectionArea(box);
             for (BlockPos blockPos : area) {
-                if (this.fakePlayer.canInteractWithBlockAt(blockPos, 0)) {
+                if (this.getFakePlayer().canInteractWithBlockAt(blockPos, 0)) {
                     if (tryPlanting(blockPos, farmType, cropsItem)) {
                         continue;
                     }
@@ -90,15 +90,15 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否需要继续循环
      */
     private boolean plantingCrops(ItemStack itemStack, BlockPos blockPos) {
-        World world = this.fakePlayer.getWorld();
+        World world = this.getFakePlayer().getWorld();
         if (!world.getBlockState(blockPos).isOf(Blocks.FARMLAND)) {
             return true;
         }
-        PlayerScreenHandler screenHandler = this.fakePlayer.playerScreenHandler;
+        PlayerScreenHandler screenHandler = this.getFakePlayer().playerScreenHandler;
         // 种子是否足够
         boolean thereAreManySeeds = true;
         // 玩家手上的种子太少，需要补货
-        if (itemStack.getCount() <= 1 && !this.fakePlayer.isCreative()) {
+        if (itemStack.getCount() <= 1 && !this.getFakePlayer().isCreative()) {
             Predicate<ItemStack> predicate = stack -> ItemStack.areItemsAndComponentsEqual(itemStack, stack);
             // 尝试补货
             thereAreManySeeds = replenishment(screenHandler.slots.size() - 1, predicate);
@@ -140,7 +140,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     // 种植竹子
     private boolean plantingBamboo(BlockPos plantablePos) {
-        World world = this.fakePlayer.getWorld();
+        World world = this.getFakePlayer().getWorld();
         // 是否可以种植竹子
         if (!world.getBlockState(plantablePos).isIn(BlockTags.BAMBOO_PLANTABLE_ON)
                 // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉
@@ -219,31 +219,31 @@ public class PlantAction extends AbstractPlayerAction {
     // 种植
     private void planting(World world, ItemStack itemStack, BlockPos blockPos, BlockPos lookPos) {
         // 让假玩家看向该位置（这不是必须的）
-        this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, lookPos.toCenterPos());
+        this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, lookPos.toCenterPos());
         BlockHitResult hitResult = new BlockHitResult(blockPos.toCenterPos(), Direction.UP, lookPos, false);
-        this.fakePlayer.interactionManager.interactBlock(this.fakePlayer, world, itemStack, Hand.OFF_HAND, hitResult);
+        this.getFakePlayer().interactionManager.interactBlock(this.getFakePlayer(), world, itemStack, Hand.OFF_HAND, hitResult);
         // 摆动手
-        this.fakePlayer.swingHand(Hand.OFF_HAND, true);
+        this.getFakePlayer().swingHand(Hand.OFF_HAND, true);
     }
 
     // 撒骨粉催熟
     private void fertilize(World world, BlockPos upPos) {
         Predicate<ItemStack> predicate = stack -> stack.isOf(Items.BONE_MEAL);
         // 要求玩家身上有骨粉
-        if (FakePlayerUtils.replenishment(this.fakePlayer, predicate)) {
-            ItemStack itemStack = this.fakePlayer.getMainHandStack();
+        if (FakePlayerUtils.replenishment(this.getFakePlayer(), predicate)) {
+            ItemStack itemStack = this.getFakePlayer().getMainHandStack();
             if (itemStack.getCount() > 1
-                    || this.fakePlayer.isCreative()
-                    || replenishment(this.fakePlayer.getInventory().selectedSlot + 36, predicate)) {
+                    || this.getFakePlayer().isCreative()
+                    || replenishment(this.getFakePlayer().getInventory().selectedSlot + 36, predicate)) {
                 // 如果手上有多余一个的骨粉，就使用骨粉
                 Vec3d centerPos = upPos.toCenterPos();
                 // 让假玩家看向该位置（这不是必须的）
-                this.fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, centerPos);
+                this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, centerPos);
                 // 使用骨粉
                 BlockHitResult hitResult = new BlockHitResult(centerPos, Direction.DOWN, upPos, true);
-                this.fakePlayer.interactionManager.interactBlock(this.fakePlayer, world, itemStack, Hand.MAIN_HAND, hitResult);
+                this.getFakePlayer().interactionManager.interactBlock(this.getFakePlayer(), world, itemStack, Hand.MAIN_HAND, hitResult);
                 // 摆动手
-                this.fakePlayer.swingHand(Hand.MAIN_HAND, true);
+                this.getFakePlayer().swingHand(Hand.MAIN_HAND, true);
             }
         }
     }
@@ -254,8 +254,8 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否完成挖掘
      */
     private boolean breakBlock(BlockPos pos) {
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(fakePlayer);
-        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !fakePlayer.isCreative());
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(getFakePlayer());
+        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !getFakePlayer().isCreative());
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
@@ -267,8 +267,8 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
-        FakePlayerUtils.replenishment(this.fakePlayer, itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.fakePlayer);
+        FakePlayerUtils.replenishment(this.getFakePlayer(), itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
+        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
@@ -276,7 +276,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     // 自动补货，返回值表示是否补货成功
     private boolean replenishment(int slotIndex, Predicate<ItemStack> predicate) {
-        PlayerScreenHandler screenHandler = this.fakePlayer.playerScreenHandler;
+        PlayerScreenHandler screenHandler = this.getFakePlayer().playerScreenHandler;
         DefaultedList<Slot> slots = screenHandler.slots;
         // 遍历玩家物品栏，找到需要的物品
         for (int index = 5; index < slots.size() - 1; index++) {
@@ -288,9 +288,9 @@ public class PlantAction extends AbstractPlayerAction {
             if (predicate.test(itemStack)) {
                 // 如果物品的堆叠数已经是最大值，就移动一半，否则移动所有
                 if (itemStack.getCount() == itemStack.getMaxCount()) {
-                    FakePlayerUtils.pickupAndMoveHalfItemStack(screenHandler, index, slotIndex, this.fakePlayer);
+                    FakePlayerUtils.pickupAndMoveHalfItemStack(screenHandler, index, slotIndex, this.getFakePlayer());
                 } else {
-                    FakePlayerUtils.pickupAndMoveItemStack(screenHandler, index, slotIndex, this.fakePlayer);
+                    FakePlayerUtils.pickupAndMoveItemStack(screenHandler, index, slotIndex, this.getFakePlayer());
                 }
                 return true;
             }
@@ -300,7 +300,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     public ArrayList<MutableText> info() {
-        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.fakePlayer.getDisplayName()));
+        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.getFakePlayer().getDisplayName()));
     }
 
     @Override

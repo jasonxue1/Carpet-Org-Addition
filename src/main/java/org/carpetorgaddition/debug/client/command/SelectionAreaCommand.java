@@ -13,7 +13,7 @@ import net.minecraft.util.math.Box;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
-import org.carpetorgaddition.util.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.SelectionArea;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

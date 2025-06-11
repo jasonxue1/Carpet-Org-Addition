@@ -10,14 +10,15 @@ import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
+import org.carpetorgaddition.client.renderer.path.PathRenderer;
 import org.carpetorgaddition.client.renderer.villagerpoi.VillagerPoiRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.carpetorgaddition.debug.client.command.SelectionAreaCommand;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
-import org.carpetorgaddition.util.screen.BackgroundSpriteSyncSlot;
-import org.carpetorgaddition.util.screen.UnavailableSlotImplInterface;
+import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
+import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 
 import java.util.Optional;
 
@@ -114,6 +115,8 @@ public class CarpetOrgAdditionClientRegister {
         });
         // 记录器更新数据包
         ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, context) -> ClientLogger.onPacketReceive(packet));
+        // 假玩家路径
+        ClientPlayNetworking.registerGlobalReceiver(FakePlayerPathS2CPacket.ID, (packet, context) -> WorldRendererManager.addOrUpdate(new PathRenderer(packet.id(), packet.list())));
     }
 
     /**
@@ -131,6 +134,7 @@ public class CarpetOrgAdditionClientRegister {
                     WorldRendererManager.getRenderer(BeaconBoxRenderer.class).forEach(renderer -> renderer.render(context));
                     // 村民信息渲染器
                     WorldRendererManager.getRenderer(VillagerPoiRenderer.class).forEach(renderer -> renderer.render(context));
+                    WorldRendererManager.getRenderer(PathRenderer.class).forEach(renderer -> renderer.render(context));
                 }
         );
     }
