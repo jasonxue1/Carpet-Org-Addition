@@ -15,16 +15,13 @@ import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
-import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
-import org.carpetorgaddition.periodic.task.ServerTaskManager;
-import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.MetaComment;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -346,13 +343,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         try {
             List<FakePlayerSerializer> list = FetcherUtils.getFakePlayerSerializationManager(server).list();
             int count = server.getCurrentPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    manager.addTask(new DelayedLoginTask(server, serializer, 1));
+                    server.send(server.createTask(() -> CommandUtils.handlingException(() -> serializer.spawn(server), server.getCommandSource())));
                     count++;
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                     if (count >= server.getMaxPlayerCount() - 1) {
@@ -361,7 +357,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                     }
                 }
             }
-        } catch (RuntimeException | CommandSyntaxException e) {
+        } catch (RuntimeException e) {
             CarpetOrgAddition.LOGGER.error("玩家自动登录出现意外错误", e);
         }
     }
