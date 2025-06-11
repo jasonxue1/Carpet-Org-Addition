@@ -4,7 +4,7 @@ import com.google.gson.JsonParseException;
 import net.minecraft.server.MinecraftServer;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.WorldFormat;
 
 import java.io.File;
 import java.io.IOException;

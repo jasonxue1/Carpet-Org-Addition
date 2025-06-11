@@ -22,7 +22,7 @@ import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.List;

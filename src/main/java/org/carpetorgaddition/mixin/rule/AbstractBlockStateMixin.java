@@ -6,7 +6,7 @@ import net.minecraft.block.AbstractBlock.AbstractBlockState;
 import net.minecraft.block.Block;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
-import org.carpetorgaddition.util.wheel.BlockHardnessModifiers;
+import org.carpetorgaddition.wheel.BlockHardnessModifiers;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;

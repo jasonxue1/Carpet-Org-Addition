@@ -16,7 +16,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.BeaconBoxUpdateS2CPacket;
-import org.carpetorgaddition.util.wheel.BeaconRangeBox;
+import org.carpetorgaddition.wheel.BeaconRangeBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;

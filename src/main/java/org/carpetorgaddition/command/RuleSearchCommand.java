@@ -16,7 +16,7 @@ import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.rule.carpet.SettingsManagerAccessor;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Collection;
 

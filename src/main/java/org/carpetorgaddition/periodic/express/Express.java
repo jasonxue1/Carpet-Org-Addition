@@ -17,11 +17,11 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.util.provider.CommandProvider;
-import org.carpetorgaddition.util.provider.TextProvider;
-import org.carpetorgaddition.util.wheel.Counter;
-import org.carpetorgaddition.util.wheel.TextBuilder;
-import org.carpetorgaddition.util.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.Counter;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.WorldFormat;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

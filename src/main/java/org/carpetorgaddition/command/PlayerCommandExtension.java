@@ -20,12 +20,12 @@ import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.inventory.OfflinePlayerEnderChestInventory;
-import org.carpetorgaddition.util.inventory.OfflinePlayerInventory;
-import org.carpetorgaddition.util.screen.OfflinePlayerInventoryScreenHandler;
-import org.carpetorgaddition.util.screen.PlayerEnderChestScreenHandler;
-import org.carpetorgaddition.util.screen.PlayerInventoryScreenHandler;
-import org.carpetorgaddition.util.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.OfflinePlayerEnderChestInventory;
+import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
+import org.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
+import org.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
+import org.carpetorgaddition.wheel.screen.PlayerInventoryScreenHandler;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
