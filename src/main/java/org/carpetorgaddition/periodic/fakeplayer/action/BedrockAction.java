@@ -35,10 +35,10 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -789,6 +789,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             return false;
         }
         if (InventoryUtils.isFoodItem(itemStack)) {
+            return false;
+        }
+        if (InventoryUtils.isShulkerBoxItem(itemStack)) {
             return false;
         }
         return !InventoryUtils.isToolItem(itemStack);
