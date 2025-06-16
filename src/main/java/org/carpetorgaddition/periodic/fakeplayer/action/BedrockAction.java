@@ -9,9 +9,11 @@ import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.HungerManager;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.text.MutableText;
 import net.minecraft.util.ActionResult;
@@ -23,6 +25,8 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
@@ -38,6 +42,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -323,18 +328,31 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * @return 玩家是否有足够的材料
      */
     private boolean hasMaterial() {
-        int pistonCount = 0;
-        int levelCount = 0;
+        MutableInt pistonCount = new MutableInt(0);
+        MutableInt levelCount = new MutableInt(0);
         // 遍历物品栏和副手，不遍历盔甲槽
         ArrayList<ItemStack> list = new ArrayList<>(this.getFakePlayer().getInventory().main);
         list.addAll(this.getFakePlayer().getInventory().offHand);
+        if (hasMaterial(list, pistonCount, levelCount)) {
+            return true;
+        }
+        if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox) {
+            return list.stream()
+                    .filter(InventoryUtils::isShulkerBoxItem)
+                    .map(ContainerComponentInventory::new)
+                    .anyMatch(inventory -> hasMaterial(inventory, pistonCount, levelCount));
+        }
+        return false;
+    }
+
+    private static boolean hasMaterial(Iterable<ItemStack> list, MutableInt pistonCount, MutableInt levelCount) {
         for (ItemStack itemStack : list) {
             if (itemStack.isOf(Items.PISTON)) {
-                pistonCount += itemStack.getCount();
+                pistonCount.add(itemStack.getCount());
             } else if (itemStack.isOf(Items.LEVER)) {
-                levelCount += itemStack.getCount();
+                levelCount.add(itemStack.getCount());
             }
-            if (pistonCount >= 2 && levelCount >= 1) {
+            if (pistonCount.getValue() >= 2 && levelCount.getValue() >= 1) {
                 return true;
             }
         }
@@ -423,8 +441,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private StepResult placeAndActivateTheLever(BedrockBreakingContext context) {
         BlockPos bedrockPos = context.getBedrockPos();
-        World world = this.getFakePlayer().getWorld();
-        ServerPlayerInteractionManager interactionManager = this.getFakePlayer().interactionManager;
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        World world = fakePlayer.getWorld();
+        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
         Direction direction = null;
         for (Direction value : MathUtils.HORIZONTAL) {
             BlockPos offset = bedrockPos.offset(value);
@@ -433,7 +452,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 direction = value;
                 continue;
             }
-            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
+            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(fakePlayer);
             if (blockState.isOf(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
                 if (blockState.get(WallMountedBlock.FACE) != BlockFace.WALL) {
@@ -481,11 +500,11 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             // 当前位置下方是移动的活塞
             return StepResult.COMPLETION;
         }
-        FakePlayerUtils.replenishment(this.getFakePlayer(), Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
-        FakePlayerUtils.look(this.getFakePlayer(), direction.getOpposite());
+        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
+        FakePlayerUtils.look(fakePlayer, direction.getOpposite());
         BlockHitResult hitResult = new BlockHitResult(bedrockPos.toCenterPos(), direction, bedrockPos, false);
         // 放置拉杆
-        interactionManager.interactBlock(this.getFakePlayer(), world, this.getFakePlayer().getOffHandStack(), Hand.OFF_HAND, hitResult);
+        interactionManager.interactBlock(fakePlayer, world, fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
         // 再次单击激活拉杆
         interactionLever(offset);
         context.setLeverPos(offset);
@@ -749,8 +768,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void collectingMaterials() {
         boolean finished = this.pathfinder.isFinished();
         if (finished) {
-            // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
-            FakePlayerUtils.dropInventoryItem(getFakePlayer(), this::isGarbage);
+            dropGarbageAndCollectMaterial();
         }
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
             this.itemEntities.remove(this.recentItemEntity);
@@ -782,6 +800,47 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
         }
         this.recentItemEntity = recentEntity;
+    }
+
+    private void dropGarbageAndCollectMaterial() {
+        if (InventoryUtils.hasEmptySlot(this.getFakePlayer().getInventory())) {
+            return;
+        }
+        // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
+        boolean dropped = FakePlayerUtils.dropInventoryItem(getFakePlayer(), this::isGarbage);
+        if (dropped) {
+            return;
+        }
+        collectToShulkerBox();
+    }
+
+    /**
+     * 把多余的材料装入潜影盒
+     */
+    private void collectToShulkerBox() {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        // 整理物品栏
+        FakePlayerUtils.sorting(fakePlayer);
+        PlayerInventory inventory = fakePlayer.getInventory();
+        // 获取物品栏中数量最多的物品
+        ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
+        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
+            ItemStack itemStack = screenHandler.getSlot(i).getStack();
+            // 因为已经整理过，所以遍历到了空物品或潜影盒，后面所有的物品都不是材料
+            if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
+                return;
+            }
+            if (InventoryUtils.canMerge(itemStack, most)) {
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack.copyAndEmpty(), inventory);
+                if (result.isEmpty()) {
+                    continue;
+                }
+                FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
+                this.phase = PlayerWorkPhase.WORK;
+                return;
+            }
+        }
     }
 
     private boolean isGarbage(ItemStack itemStack) {

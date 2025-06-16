@@ -68,11 +68,11 @@ public class FakePlayerUtils {
     /**
      * 玩家生存模式物品栏的起始索引
      */
-    private static final int PLAYER_INVENTORY_START = 9;
+    public static final int PLAYER_INVENTORY_START = 9;
     /**
      * 玩家生存模式物品栏的结束索引
      */
-    private static final int PLAYER_INVENTORY_END = 44;
+    public static final int PLAYER_INVENTORY_END = 44;
 
     private FakePlayerUtils() {
     }
@@ -90,9 +90,12 @@ public class FakePlayerUtils {
 
     /**
      * 根据条件丢弃物品栏中所有物品
+     *
+     * @return 是否丢弃了物品
      */
-    public static void dropInventoryItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
+    public static boolean dropInventoryItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        boolean drop = false;
         for (Slot slot : screenHandler.slots) {
             ItemStack itemStack = slot.getStack();
             if (itemStack.isEmpty()) {
@@ -105,9 +108,11 @@ public class FakePlayerUtils {
                 }
                 if (predicate.test(itemStack)) {
                     throwItem(screenHandler, id, fakePlayer);
+                    drop = true;
                 }
             }
         }
+        return drop;
     }
 
     /**
@@ -479,22 +484,68 @@ public class FakePlayerUtils {
      * @return 是否移动成功
      */
     public static boolean replenishment(EntityPlayerMPFake fakePlayer, Hand hand, Predicate<ItemStack> predicate) {
-        if (predicate.test(fakePlayer.getStackInHand(hand))) {
+        ItemStack stackInHand = fakePlayer.getStackInHand(hand);
+        if (predicate.test(stackInHand)) {
             return true;
         }
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox;
+        ArrayList<Integer> shulkers = new ArrayList<>();
         // 主手槽位
         int headSlot = hand == Hand.MAIN_HAND ? 36 + fakePlayer.getInventory().selectedSlot : 45;
-        for (int i = 9; i < 45; i++) {
+        for (int i = PLAYER_INVENTORY_START; i <= PLAYER_INVENTORY_END; i++) {
             if (i == headSlot) {
                 continue;
             }
             if (predicate.test(screenHandler.getSlot(i).getStack())) {
                 swapSlotItem(screenHandler, i, headSlot, fakePlayer);
                 return true;
+            } else if (pickItemFromShulker) {
+                // 倒序遍历潜影盒，物品整理后，满的潜影盒都在靠前的位置
+                int slotIndex = PLAYER_INVENTORY_END - (i - PLAYER_INVENTORY_START);
+                ItemStack shulker = screenHandler.getSlot(slotIndex).getStack();
+                if (shulker.isEmpty()) {
+                    continue;
+                }
+                if (InventoryUtils.isShulkerBoxItem(shulker)) {
+                    shulkers.add(slotIndex);
+                }
+            }
+        }
+        if (pickItemFromShulker) {
+            sorting(fakePlayer);
+            for (Integer index : shulkers) {
+                ItemStack shulker = screenHandler.getSlot(index).getStack();
+                ItemStack picked = InventoryUtils.pickItemFromShulkerBox(shulker, predicate);
+                if (picked.isEmpty()) {
+                    continue;
+                }
+                putToEmptySlotOrDrop(fakePlayer, stackInHand);
+                fakePlayer.setStackInHand(hand, picked);
+                return true;
             }
         }
         return false;
+    }
+
+    /**
+     * 将物品放入玩家空槽位，如果没有空槽位，则插入到可以接收物品的潜影盒中，如果依然没有空槽位，则丢弃物品。
+     */
+    public static void putToEmptySlotOrDrop(EntityPlayerMPFake fakePlayer, ItemStack itemStack) {
+        if (itemStack.isEmpty()) {
+            return;
+        }
+        itemStack = itemStack.copyAndEmpty();
+        PlayerInventory inventory = fakePlayer.getInventory();
+        inventory.insertStack(itemStack);
+        if (itemStack.isEmpty()) {
+            return;
+        }
+        itemStack = InventoryUtils.putItemToInventoryShulkerBox(itemStack, inventory);
+        if (itemStack.isEmpty()) {
+            return;
+        }
+        fakePlayer.dropItem(itemStack, false, false);
     }
 
     public static boolean hasItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {

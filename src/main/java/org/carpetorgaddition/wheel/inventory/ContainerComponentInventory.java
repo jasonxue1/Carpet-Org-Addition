@@ -6,6 +6,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
+import org.carpetorgaddition.util.InventoryUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -18,6 +19,7 @@ public class ContainerComponentInventory extends SimpleInventory implements Iter
 
     public ContainerComponentInventory(ItemStack itemStack) {
         super(CONTAINER_SIZE);
+        InventoryUtils.deepCopyContainer(itemStack);
         this.itemStack = itemStack;
         ContainerComponent component = this.itemStack.get(DataComponentTypes.CONTAINER);
         if (component != null) {
