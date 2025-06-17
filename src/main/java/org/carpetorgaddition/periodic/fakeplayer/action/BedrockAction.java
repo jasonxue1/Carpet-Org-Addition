@@ -825,6 +825,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         // 获取物品栏中数量最多的物品
         ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        // 是否已经遍历到了数量最多的物品
+        boolean isFoundMost = false;
         for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
             ItemStack itemStack = screenHandler.getSlot(i).getStack();
             // 因为已经整理过，所以遍历到了空物品或潜影盒，后面所有的物品都不是材料
@@ -832,12 +834,16 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return;
             }
             if (InventoryUtils.canMerge(itemStack, most)) {
+                isFoundMost = true;
                 ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack.copyAndEmpty(), inventory);
                 if (result.isEmpty()) {
                     continue;
                 }
                 FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
                 this.phase = PlayerWorkPhase.WORK;
+                return;
+            } else if (isFoundMost) {
+                // 相同的材料是连续放置的，所以后面的物品都不是要装入潜影盒的材料
                 return;
             }
         }

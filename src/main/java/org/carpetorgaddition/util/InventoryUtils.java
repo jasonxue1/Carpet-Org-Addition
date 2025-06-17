@@ -406,7 +406,7 @@ public class InventoryUtils {
                 counter.add(new ItemStackWrapper(itemStack), itemStack.getCount());
             }
         }
-        return counter.getMostOrDefault(ItemStackWrapper.EMPTY).getValue();
+        return counter.getMostOrDefault(ItemStackWrapper.EMPTY).getValue().copy();
     }
 
     /**
