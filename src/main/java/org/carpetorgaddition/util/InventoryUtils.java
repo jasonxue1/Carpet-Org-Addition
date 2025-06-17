@@ -14,13 +14,13 @@ import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class InventoryUtils {
     /**
@@ -351,7 +351,7 @@ public class InventoryUtils {
     public static int compare(ItemStack left, ItemStack right) {
         // 物品完全相同，按照数量排序
         if (canMerge(left, right)) {
-            return Integer.compare(left.getCount(), right.getCount());
+            return -Integer.compare(left.getCount(), right.getCount());
         }
         // 空物品放在最后
         if (left.isEmpty()) {
@@ -361,18 +361,22 @@ public class InventoryUtils {
             return -1;
         }
         if (left.isOf(right.getItem())) {
-            // 比较容器组件
-            int compareContainer = compare(left.get(DataComponentTypes.CONTAINER), right.get(DataComponentTypes.CONTAINER));
-            if (compareContainer == 0) {
-                // 比较组件数量
-                int compareComponent = Integer.compare(left.getComponents().size(), right.getComponents().size());
-                if (compareComponent == 0) {
-                    return Objects.compare(left, right, Comparator.comparingInt(itemStack -> ItemStack.hashCode(itemStack)));
-                }
+            // 两个物品都是潜影盒
+            if (InventoryUtils.isShulkerBoxItem(left)) {
+                return new ContainerComponentInventory(left).compareTo(new ContainerComponentInventory(right));
             }
-            return compareContainer;
+            // 物品类型相同，物品组件少的排在前面
+            int compareComponent = Integer.compare(left.getComponents().size(), right.getComponents().size());
+            if (compareComponent != 0) {
+                return compareComponent;
+            }
+            int compareCount = -Integer.compare(left.getCount(), right.getCount());
+            if (compareCount != 0) {
+                return compareComponent;
+            }
+            return Integer.compare(ItemStack.hashCode(left), ItemStack.hashCode(right));
         } else {
-            // 潜影盒放在普通物品后面
+            // 潜影盒放在普通物品后面，忽略潜影盒颜色
             if (isShulkerBoxItem(left) && !isShulkerBoxItem(right)) {
                 return 1;
             }
@@ -380,42 +384,12 @@ public class InventoryUtils {
                 return -1;
             }
             // 物品不相同，按照物品ID排序
-            String leftId = getRegistryId(left);
-            String rightId = getRegistryId(right);
-            return leftId.compareTo(rightId);
+            return compare(left.getItem(), right.getItem());
         }
     }
 
-    private static int compare(@Nullable ContainerComponent left, @Nullable ContainerComponent right) {
-        if (Objects.equals(left, right)) {
-            return 0;
-        }
-        // 空潜影盒放在最后
-        if (left == null || left == ContainerComponent.DEFAULT) {
-            return -1;
-        }
-        if (right == null || right == ContainerComponent.DEFAULT) {
-            return 1;
-        }
-        // 比较容器中的物品种类，种类少的排在前面
-        int leftTypeCount = left.streamNonEmpty().map(ItemStack::getItem).collect(Collectors.toSet()).size();
-        if (leftTypeCount == 0) {
-            return -1;
-        }
-        int rightTypeCount = right.streamNonEmpty().map(ItemStack::getItem).collect(Collectors.toSet()).size();
-        if (rightTypeCount == 0) {
-            return 1;
-        }
-        int compareType = Integer.compare(leftTypeCount, rightTypeCount);
-        if (compareType == 0) {
-            // 容器中数量不同，数量多的排在前面
-            int compareCount = -Long.compare(left.streamNonEmpty().count(), right.streamNonEmpty().count());
-            if (compareCount == 0) {
-                return Objects.compare(left, right, Comparator.comparingInt(ContainerComponent::hashCode));
-            }
-            return compareCount;
-        }
-        return compareType;
+    public static int compare(Item left, Item right) {
+        return getRegistryId(left).compareTo(getRegistryId(right));
     }
 
     /**
@@ -470,8 +444,23 @@ public class InventoryUtils {
         return false;
     }
 
-    public static String getRegistryId(ItemStack itemStack) {
-        return itemStack.getItem().toString();
+
+    /**
+     * 统计物品栏内指定物品的数量
+     */
+    public static int count(Inventory inventory, Predicate<ItemStack> predicate) {
+        int count = 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack itemStack = inventory.getStack(i);
+            if (predicate.test(itemStack)) {
+                count += itemStack.getCount();
+            }
+        }
+        return count;
+    }
+
+    public static String getRegistryId(Item item) {
+        return item.toString();
     }
 
     public static boolean isFoodItem(ItemStack itemStack) {

@@ -430,17 +430,38 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 交换两个槽位中的物品
+     * 交换两个槽位中的物品<br>
+     * 如果光标上的物品与两个槽位上的物品均不相同，则光标物品不会影响物品交换
      */
     public static void swapSlotItem(ScreenHandler screenHandler, int index1, int index2, EntityPlayerMPFake fakePlayer) {
         if (index1 == index2) {
             return;
         }
-        // 拿取槽位1上的物品，单击槽位2，与槽位2物品交互位置，再次单击槽位1，将物品放回
-        // 不需要检查槽位上是否有物品
-        screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-        screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-        screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+        ItemStack slot1Item = screenHandler.getSlot(index1).getStack();
+        ItemStack slot2Item = screenHandler.getSlot(index2).getStack();
+        // 两个槽位中的物品可以合并
+        if (InventoryUtils.canMerge(slot1Item, slot2Item)) {
+            // 不检查光标物品
+            int difference = slot1Item.getCount() - slot2Item.getCount();
+            if (difference > 0) {
+                screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+                for (int i = 0; i < difference; i++) {
+                    screenHandler.onSlotClick(index2, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, fakePlayer);
+                }
+                screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+            } else if (difference < 0) {
+                screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+                for (int i = 0; i < -difference; i++) {
+                    screenHandler.onSlotClick(index1, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, fakePlayer);
+                }
+                screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+            }
+        } else {
+            // 拿取槽位1上的物品，单击槽位2，与槽位2物品交互位置，再次单击槽位1，将物品放回
+            screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+            screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+            screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+        }
     }
 
     /**
