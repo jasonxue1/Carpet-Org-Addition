@@ -6,6 +6,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -101,6 +102,11 @@ public class TextBuilder {
 
     public TextBuilder setHover(String key, Object... args) {
         return this.setHover(translate(key, args));
+    }
+
+    public TextBuilder setHover(Throwable e) {
+        String error = GenericUtils.getExceptionString(e);
+        return this.setHover(create(error));
     }
 
     public TextBuilder setStringHover(String hover) {

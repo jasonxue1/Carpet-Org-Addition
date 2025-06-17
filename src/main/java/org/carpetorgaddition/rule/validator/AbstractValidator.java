@@ -20,6 +20,7 @@ public abstract class AbstractValidator<T> extends Validator<T> {
     }
 
     @Override
+    @Deprecated
     public T validate(@Nullable ServerCommandSource source, CarpetRule<T> carpetRule, T newValue, String userInput) {
         T result = validate(newValue) ? newValue : null;
         if (result != null) {

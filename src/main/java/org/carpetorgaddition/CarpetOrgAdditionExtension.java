@@ -20,9 +20,9 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.Translation;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -54,6 +54,11 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
             }
         }
         return customSettingManager;
+    }
+
+    public static SettingsManager getSettingManager() {
+        SettingsManager settingManager = getCustomSettingManager();
+        return settingManager == null ? CarpetServer.settingsManager : settingManager;
     }
 
     // 当玩家登录时

@@ -102,7 +102,8 @@
     "util.PlayerManagerMixin",
     "util.ServerPlayerEntityMixin",
     "util.ServerPlayNetworkHandlerMixin",
-    "util.carpet.LoggerRegistryMixin"
+    "util.carpet.LoggerRegistryMixin",
+    "util.carpet.RuleHelperMixin"
   ],
   "client": [
     "debug.ScreenAccessor",

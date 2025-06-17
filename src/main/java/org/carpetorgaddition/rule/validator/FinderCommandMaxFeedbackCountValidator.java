@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule.validator;
 
 import net.minecraft.text.Text;
-import org.carpetorgaddition.wheel.provider.RuleValidatorProvider;
+import org.carpetorgaddition.rule.RuleValidatorProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class FinderCommandMaxFeedbackCountValidator extends AbstractValidator<Integer> {

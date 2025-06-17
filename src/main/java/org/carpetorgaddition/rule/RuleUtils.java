@@ -1,15 +1,19 @@
 package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
+import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -80,11 +84,20 @@ public class RuleUtils {
      * 获取规则的名称
      */
     public static MutableText simpleTranslationName(CarpetRule<?> rule) {
-        String key = String.format("%s.rule.%s.name", rule.settingsManager().identifier(), rule.name());
+        String key = String.format(TranslationKeys.RULE_NAME_PATTERN, rule.settingsManager().identifier(), rule.name());
         TextBuilder builder = TextBuilder.of(key);
         if (Translations.hasTranslation(key)) {
             return builder.setHover(rule.name()).build();
         }
         return TextBuilder.create(rule.name());
+    }
+
+    public static List<Text> ruleExtraInfo(CarpetRule<?> rule) {
+        String key = String.format(TranslationKeys.RULE_EXTRA_PREFIX_PATTERN, rule.settingsManager().identifier(), rule.name());
+        List<String> list = new ArrayList<>();
+        for (int i = 0; Translations.hasTranslation(key + i); i++) {
+            list.add(Translations.tr(key + i));
+        }
+        return list.stream().map(TextBuilder::translate).map(text -> (Text) text).toList();
     }
 }
