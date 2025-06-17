@@ -1,13 +1,14 @@
 package org.carpetorgaddition.periodic.task.schedule;
 
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.ServerTask;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
-import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -29,10 +30,16 @@ public class DelayedLoginTask extends PlayerScheduleTask {
         if (this.delayed == 0L) {
             try {
                 // 生成假玩家
-                Runnable runnable = () -> CommandUtils.handlingException(() -> serial.spawn(this.server), this.server.getCommandSource());
-                this.server.send(this.server.createTask(runnable));
-            } catch (RuntimeException e) {
-                CarpetOrgAddition.LOGGER.error("玩家{}未能在指定时间上线", this.serial.getFakePlayerName(), e);
+                ServerTask task = this.server.createTask(() -> {
+                    try {
+                        serial.spawn(server);
+                    } catch (CommandSyntaxException e) {
+                        CarpetOrgAddition.LOGGER.error("玩家{}已存在", this.serial.getFakePlayerName(), e);
+                    } catch (RuntimeException e) {
+                        CarpetOrgAddition.LOGGER.error("玩家{}未能在指定时间上线", this.serial.getFakePlayerName(), e);
+                    }
+                });
+                this.server.send(task);
             } finally {
                 // 将此任务设为已执行结束
                 this.delayed = -1L;
