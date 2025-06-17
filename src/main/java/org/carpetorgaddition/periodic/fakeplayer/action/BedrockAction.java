@@ -802,22 +802,31 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         this.recentItemEntity = recentEntity;
     }
 
+    /**
+     * 丢弃垃圾物品，然后把身上最多的材料放入潜影盒
+     */
     private void dropGarbageAndCollectMaterial() {
-        if (InventoryUtils.hasEmptySlot(this.getFakePlayer().getInventory())) {
-            return;
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        PlayerInventory inventory = fakePlayer.getInventory();
+        for (int i = 0; i < inventory.main.size(); i++) {
+            if (inventory.main.get(i).isEmpty()) {
+                // 玩家物品栏里还有空槽位
+                return;
+            }
         }
         // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
-        boolean dropped = FakePlayerUtils.dropInventoryItem(getFakePlayer(), this::isGarbage);
+        boolean dropped = FakePlayerUtils.dropInventoryItem(fakePlayer, this::isGarbage);
         if (dropped) {
             return;
         }
-        collectToShulkerBox();
+        this.collectMaterialToShulkerBox();
+        this.collectToolToShulkerBox();
     }
 
     /**
      * 把多余的材料装入潜影盒
      */
-    private void collectToShulkerBox() {
+    private void collectMaterialToShulkerBox() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         // 整理物品栏
         FakePlayerUtils.sorting(fakePlayer);
@@ -835,7 +844,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
             if (InventoryUtils.canMerge(itemStack, most)) {
                 isFoundMost = true;
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack.copyAndEmpty(), inventory);
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, inventory);
                 if (result.isEmpty()) {
                     continue;
                 }
@@ -844,6 +853,31 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return;
             } else if (isFoundMost) {
                 // 相同的材料是连续放置的，所以后面的物品都不是要装入潜影盒的材料
+                return;
+            }
+        }
+    }
+
+    /**
+     * 把损坏的工具放入潜影盒
+     */
+    private void collectToolToShulkerBox() {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        // 整理物品栏
+        FakePlayerUtils.sorting(fakePlayer);
+        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
+            ItemStack itemStack = screenHandler.getSlot(i).getStack();
+            if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
+                return;
+            }
+            // 将已损坏的物品放入潜影盒
+            if (InventoryUtils.isToolItem(itemStack) && isDamaged(itemStack)) {
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer.getInventory());
+                if (result.isEmpty()) {
+                    continue;
+                }
+                FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
                 return;
             }
         }

@@ -116,6 +116,7 @@ public class InventoryUtils {
     // TODO 添加规则开关
     @CheckReturnValue
     public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, PlayerInventory inventory) {
+        itemStack = itemStack.copyAndEmpty();
         // 所有潜影盒所在的索引
         ArrayList<Integer> shulkers = new ArrayList<>();
         for (int i = 0; i < inventory.size(); i++) {
@@ -142,15 +143,6 @@ public class InventoryUtils {
             }
         }
         return itemStack;
-    }
-
-    public static boolean hasEmptySlot(PlayerInventory inventory) {
-        for (int i = 0; i < inventory.main.size(); i++) {
-            if (inventory.main.get(i).isEmpty()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**

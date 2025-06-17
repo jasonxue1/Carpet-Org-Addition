@@ -522,19 +522,17 @@ public class FakePlayerUtils {
                 swapSlotItem(screenHandler, i, headSlot, fakePlayer);
                 return true;
             } else if (pickItemFromShulker) {
-                // 倒序遍历潜影盒，物品整理后，满的潜影盒都在靠前的位置
-                int slotIndex = PLAYER_INVENTORY_END - (i - PLAYER_INVENTORY_START);
-                ItemStack shulker = screenHandler.getSlot(slotIndex).getStack();
+                ItemStack shulker = screenHandler.getSlot(i).getStack();
                 if (shulker.isEmpty()) {
                     continue;
                 }
                 if (InventoryUtils.isShulkerBoxItem(shulker)) {
-                    shulkers.add(slotIndex);
+                    shulkers.add(i);
                 }
             }
         }
+        // 从潜影盒获取物品
         if (pickItemFromShulker) {
-            sorting(fakePlayer);
             for (Integer index : shulkers) {
                 ItemStack shulker = screenHandler.getSlot(index).getStack();
                 ItemStack picked = InventoryUtils.pickItemFromShulkerBox(shulker, predicate);
