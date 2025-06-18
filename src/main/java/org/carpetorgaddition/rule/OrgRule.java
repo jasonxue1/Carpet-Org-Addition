@@ -75,13 +75,13 @@ public class OrgRule<T> implements CarpetRule<T> {
             case Boolean ignored ->
                     Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"), s -> this.type.cast(parseBoolean(s)));
             case Integer ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.string"), s -> this.type.cast(Integer.parseInt(s)));
+                    Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"), s -> this.type.cast(Integer.parseInt(s)));
             case Long ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"), s -> this.type.cast(Long.parseLong(s)));
+                    Map.entry(TextBuilder.translate("carpet.generic.data.type.long"), s -> this.type.cast(Long.parseLong(s)));
             case Double ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.long"), s -> this.type.cast(Double.parseDouble(s)));
+                    Map.entry(TextBuilder.translate("carpet.generic.data.type.double"), s -> this.type.cast(Double.parseDouble(s)));
             case Float ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.double"), s -> this.type.cast(Float.parseFloat(s)));
+                    Map.entry(TextBuilder.translate("carpet.generic.data.type.float"), s -> this.type.cast(Float.parseFloat(s)));
             // 只有枚举名称全部为大写时才能匹配
             case Enum<?> ignored ->
                     Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"), s -> (T) Enum.valueOf((Class<? extends Enum>) this.type, s.toUpperCase(Locale.ROOT)));

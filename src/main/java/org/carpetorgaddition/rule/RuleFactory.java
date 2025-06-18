@@ -21,12 +21,16 @@ public class RuleFactory {
         private final T value;
         private final List<AbstractValidator<T>> validators = new ArrayList<>();
         private final List<RuleObserver<T>> observers = new ArrayList<>();
-        private boolean canBeToggledClientSide;
+        private boolean canBeToggledClientSide = false;
         private boolean strict = true;
         private String displayName = "";
         private String displayDesc = "";
 
         private Builder(Class<T> type, String rule, @NotNull T value) {
+            if (type != value.getClass()) {
+                // 基本数据类型和它们对应的包装类是不同的数据类型
+                throw new IllegalArgumentException();
+            }
             this.type = type;
             this.value = value;
             this.name = rule;

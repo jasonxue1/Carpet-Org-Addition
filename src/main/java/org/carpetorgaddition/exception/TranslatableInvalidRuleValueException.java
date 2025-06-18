@@ -24,6 +24,6 @@ public class TranslatableInvalidRuleValueException extends InvalidRuleValueExcep
         if (this.message == null) {
             return;
         }
-        MessageUtils.sendMessage(source, this.message);
+        MessageUtils.sendErrorMessage(source, this.message);
     }
 }

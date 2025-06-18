@@ -1,14 +1,18 @@
 package org.carpetorgaddition;
 
+import carpet.api.settings.CarpetRule;
 import carpet.api.settings.Rule;
 import carpet.api.settings.RuleCategory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.rule.Hidden;
 import org.carpetorgaddition.rule.Removed;
+import org.carpetorgaddition.rule.RuleFactory;
 import org.carpetorgaddition.rule.RuleSelf;
 import org.carpetorgaddition.rule.validator.*;
 import org.carpetorgaddition.rule.value.*;
+
+import java.util.function.Supplier;
 
 @SuppressWarnings("CanBeFinal")
 public class CarpetOrgAdditionSettings {
@@ -470,4 +474,15 @@ public class CarpetOrgAdditionSettings {
     @Hidden
     @Rule(categories = {ORG, HIDDEN, RuleCategory.SURVIVAL})
     public static boolean quickShulker = false;
+    // 禁用创造容器掉落
+    public static final Supplier<Boolean> disableCreativeContainerDrops = register(
+            RuleFactory.create(Boolean.class, "disableCreativeContainerDrops", false)
+                    .addCategories(RuleCategory.CREATIVE)
+                    .build()
+    );
+
+    private static <T> Supplier<T> register(CarpetRule<T> rule) {
+        CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
+        return rule::value;
+    }
 }

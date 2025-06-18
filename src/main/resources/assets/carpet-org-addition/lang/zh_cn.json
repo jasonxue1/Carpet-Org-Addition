@@ -207,6 +207,8 @@
   "carpet.rule.experienceOrbMerge.desc": "经验球合并无需价值相同，并且忽略实体编号",
   "carpet.rule.quickShulker.name": "快捷潜影盒",
   "carpet.rule.quickShulker.desc": "允许直接在物品栏中打开潜影盒",
+  "carpet.rule.disableCreativeContainerDrops.name": "创造模式破坏容器无掉落",
+  "carpet.rule.disableCreativeContainerDrops.desc": "在创造模式破坏容器方块时不会掉落其中的物品",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.validate.invalid_value": "规则“%s”值无效：%s",
