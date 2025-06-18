@@ -6,6 +6,7 @@ import carpet.utils.Translations;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -98,6 +99,11 @@ public class RuleUtils {
         for (int i = 0; Translations.hasTranslation(key + i); i++) {
             list.add(Translations.tr(key + i));
         }
-        return list.stream().map(TextBuilder::translate).map(text -> (Text) text).toList();
+        return list.stream()
+                .map(TextBuilder::of)
+                .map(builder -> builder.setColor(Formatting.GRAY))
+                .map(TextBuilder::build)
+                .map(text -> (Text) text)
+                .toList();
     }
 }

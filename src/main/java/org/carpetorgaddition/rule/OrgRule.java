@@ -23,7 +23,6 @@ public class OrgRule<T> implements CarpetRule<T> {
     private final String name;
     private final String displayName;
     private final String displayDesc;
-    private final List<Text> extraInfo;
     private final Collection<String> categories;
     private final Collection<String> suggestions;
     @NotNull
@@ -38,7 +37,6 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     public OrgRule(Class<T> type, String name, Collection<String> categories, Collection<String> suggestions, @NotNull T value, boolean canBeToggledClientSide, List<AbstractValidator<T>> validators, List<RuleObserver<T>> observers, boolean strict, String displayName, String displayDesc) {
         this.name = name;
-        this.extraInfo = RuleUtils.ruleExtraInfo(this);
         this.categories = categories;
         this.suggestions = suggestions;
         this.value = value;
@@ -121,7 +119,7 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     @Override
     public List<Text> extraInfo() {
-        return this.extraInfo;
+        return RuleUtils.ruleExtraInfo(this);
     }
 
     @Override

@@ -1,11 +1,13 @@
 package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.AbstractValidator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class RuleFactory {
     public static <T> Builder<T> create(Class<T> type, String rule, T value) {
@@ -21,6 +23,7 @@ public class RuleFactory {
         private final T value;
         private final List<AbstractValidator<T>> validators = new ArrayList<>();
         private final List<RuleObserver<T>> observers = new ArrayList<>();
+        private final List<Supplier<Boolean>> conditions = new ArrayList<>();
         private boolean canBeToggledClientSide = false;
         private boolean strict = true;
         private String displayName = "";
@@ -79,6 +82,16 @@ public class RuleFactory {
             return this;
         }
 
+        public Builder<T> setHidden() {
+            this.conditions.add(() -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION);
+            return this;
+        }
+
+        public Builder<T> setRemoved() {
+            this.conditions.addFirst(() -> false);
+            return this;
+        }
+
         @SafeVarargs
         public final Builder<T> addValidators(AbstractValidator<T>... validators) {
             this.validators.addAll(List.of(validators));
@@ -91,8 +104,8 @@ public class RuleFactory {
             return this;
         }
 
-        public CarpetRule<T> build() {
-            return new OrgRule<>(
+        public RuleBuildResultContext<T> build() {
+            Supplier<CarpetRule<T>> supplier = () -> new OrgRule<>(
                     this.type,
                     this.name,
                     this.categories,
@@ -105,6 +118,39 @@ public class RuleFactory {
                     this.displayName,
                     this.displayDesc
             );
+            return new RuleBuildResultContext<>(supplier, this.value, this.conditions);
+        }
+    }
+
+    public static class RuleBuildResultContext<T> {
+        private final Supplier<CarpetRule<T>> ruleSupplier;
+        private volatile CarpetRule<T> rule;
+        private final T value;
+        private final List<Supplier<Boolean>> conditions;
+
+        public RuleBuildResultContext(Supplier<CarpetRule<T>> ruleSupplier, T value, List<Supplier<Boolean>> conditions) {
+            this.ruleSupplier = ruleSupplier;
+            this.value = value;
+            this.conditions = conditions;
+        }
+
+        public CarpetRule<T> rule() {
+            if (this.rule == null) {
+                synchronized (RuleFactory.class) {
+                    if (this.rule == null) {
+                        this.rule = this.ruleSupplier.get();
+                    }
+                }
+            }
+            return this.rule;
+        }
+
+        public T value() {
+            return this.value;
+        }
+
+        public boolean shouldRegister() {
+            return this.conditions.stream().allMatch(Supplier::get);
         }
     }
 }

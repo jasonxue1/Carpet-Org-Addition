@@ -29,6 +29,7 @@ import java.util.Map;
 
 public class CarpetOrgAdditionExtension implements CarpetExtension {
     private static SettingsManager customSettingManager;
+    private static boolean settingsLoaded = false;
 
     // 在游戏开始时
     @Override
@@ -37,6 +38,8 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         SettingsManager settingManager = getCustomSettingManager();
         if (settingManager == null) {
             CarpetServer.settingsManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
+            CarpetOrgAdditionSettings.register();
+            settingsLoaded = true;
         } else {
             settingManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
         }
@@ -59,6 +62,10 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     public static SettingsManager getSettingManager() {
         SettingsManager settingManager = getCustomSettingManager();
         return settingManager == null ? CarpetServer.settingsManager : settingManager;
+    }
+
+    public static boolean isCarpetRuleLoaded() {
+        return settingsLoaded;
     }
 
     // 当玩家登录时

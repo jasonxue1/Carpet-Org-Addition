@@ -11,12 +11,10 @@ import net.minecraft.registry.Registries;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 
 import java.util.List;
 
-@Disabled
 public class InventoryUtilsTest {
     @BeforeAll
     public static void init() {

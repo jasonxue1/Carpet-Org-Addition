@@ -1,6 +1,5 @@
 package org.carpetorgaddition;
 
-import carpet.api.settings.CarpetRule;
 import carpet.api.settings.Rule;
 import carpet.api.settings.RuleCategory;
 import net.minecraft.entity.player.PlayerEntity;
@@ -12,6 +11,7 @@ import org.carpetorgaddition.rule.RuleSelf;
 import org.carpetorgaddition.rule.validator.*;
 import org.carpetorgaddition.rule.value.*;
 
+import java.util.HashSet;
 import java.util.function.Supplier;
 
 @SuppressWarnings("CanBeFinal")
@@ -36,6 +36,7 @@ public class CarpetOrgAdditionSettings {
      * 当前正在使用铁砧附魔的玩家
      */
     public static final ThreadLocal<PlayerEntity> enchanter = new ThreadLocal<>();
+    private static final HashSet<RuleFactory.RuleBuildResultContext<?>> allRules = new HashSet<>();
 
     private CarpetOrgAdditionSettings() {
     }
@@ -405,9 +406,11 @@ public class CarpetOrgAdditionSettings {
     public static boolean syncNavigateWaypoint = true;
 
     // 潜影盒堆叠
-    @Rule(categories = {ORG, RuleCategory.EXPERIMENTAL})
-    public static boolean shulkerBoxStackable = false;
-
+    public static final Supplier<Boolean> shulkerBoxStackable = register(
+            RuleFactory.create(Boolean.class, "shulkerBoxStackable", false)
+                    .addCategories(RuleCategory.EXPERIMENTAL)
+                    .build()
+    );
     // 最大服务器交互距离同步客户端
     @Rule(categories = {ORG, RuleCategory.CLIENT})
     public static boolean maxBlockPlaceDistanceSyncClient = true;
@@ -481,8 +484,17 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
-    private static <T> Supplier<T> register(CarpetRule<T> rule) {
-        CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
-        return rule::value;
+    private static <T> Supplier<T> register(RuleFactory.RuleBuildResultContext<T> context) {
+        if (context.shouldRegister()) {
+            allRules.add(context);
+            return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
+        }
+        return context::value;
+    }
+
+    public static void register() {
+        for (RuleFactory.RuleBuildResultContext<?> context : allRules) {
+            CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(context.rule());
+        }
     }
 }
