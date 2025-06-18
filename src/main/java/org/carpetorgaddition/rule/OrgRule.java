@@ -54,7 +54,7 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     private void init() {
         if (this.strict) {
-            this.validators.addFirst(new StrictValidator<>(this.name, this.suggestions));
+            this.validators.addFirst(new StrictValidator<>(this));
         }
         // 更改规则时将命令同步到客户端
         if (this.categories.contains(RuleCategory.COMMAND)) {

@@ -1,12 +1,14 @@
 package org.carpetorgaddition.rule;
 
+import carpet.api.settings.CarpetRule;
+import carpet.api.settings.RuleHelper;
+import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class RuleValidatorProvider {
@@ -56,25 +58,25 @@ public class RuleValidatorProvider {
     }
 
     /**
-     * 无效值: {@code value}
+     * 有效选项: [%s1, %s2, ...]
      */
-    public static Text validOptions(String rule, Collection<String> suggestions) {
+    public static <T> Text validOptions(CarpetRule<T> rule) {
         ArrayList<TextBuilder> list = new ArrayList<>();
-        for (String suggestion : suggestions) {
+        for (String suggestion : rule.suggestions()) {
             TextBuilder option = new TextBuilder(suggestion)
-                    .setColor(Formatting.AQUA)
                     .setHover("carpet.settings.command.switch_to", suggestion)
-                    .setCommand(CommandProvider.setCarpetRule(rule, suggestion));
+                    .setSuggestCommand(CommandProvider.setCarpetRule(rule.name(), suggestion));
+            // 规则默认值设置为粗体
+            if (Objects.equals(suggestion, RuleHelper.toRuleString(rule.defaultValue()))) {
+                option.setBold();
+            }
+            // 规则当前值设置为斜体
+            if (Objects.equals(suggestion, RuleHelper.toRuleString(rule.value()))) {
+                option.setItalic();
+            }
             list.add(option);
         }
-        TextBuilder builder = new TextBuilder();
-        int len = list.size();
-        for (int i = 0; i < len; i++) {
-            builder.append(list.get(i));
-            if (i < len - 1) {
-                builder.append(", ");
-            }
-        }
-        return TextBuilder.translate("carpet.rule.validate.valid_options", builder.build());
+        MutableText message = TextBuilder.joinList(list.stream().map(TextBuilder::build).toList(), TextBuilder.create(", "));
+        return TextBuilder.translate("carpet.rule.validate.valid_options", message);
     }
 }

@@ -37,6 +37,8 @@ public class CarpetOrgAdditionSettings {
      */
     public static final ThreadLocal<PlayerEntity> enchanter = new ThreadLocal<>();
     private static final HashSet<RuleFactory.RuleBuildResultContext<?>> allRules = new HashSet<>();
+    public static final String OPS = "ops";
+    private static final String[] COMMAND_OPTION = {"true", "false", OPS, "0", "1", "2", "3", "4"};
 
     private CarpetOrgAdditionSettings() {
     }
@@ -45,11 +47,12 @@ public class CarpetOrgAdditionSettings {
     public static final String HIDDEN = "Hidden";
 
     // 制作物品分身
-    @Rule(
-            categories = {ORG, RuleCategory.COMMAND},
-            options = {"true", "false", "ops", "0", "1", "2", "3", "4"}
-    )
-    public static String commandItemShadowing = "ops";
+    public static final Supplier<String> commandItemShadowing = register(
+            RuleFactory.create(String.class, "commandItemShadowing", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTION)
+                    .build()
+    );
 
     // 设置基岩硬度
     @Removed

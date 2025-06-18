@@ -131,6 +131,14 @@ public class TextBuilder {
     }
 
     /**
+     * 设置单击文本后聊天框输入命令
+     */
+    public TextBuilder setSuggestCommand(String command) {
+        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)));
+        return this;
+    }
+
+    /**
      * 设置为斜体
      */
     public TextBuilder setItalic() {
@@ -151,6 +159,14 @@ public class TextBuilder {
      */
     public TextBuilder setStrikethrough() {
         this.text.styled(style -> style.withStrikethrough(true));
+        return this;
+    }
+
+    /**
+     * 设置有下划线
+     */
+    public TextBuilder setUnderline() {
+        this.text.styled(style -> style.withUnderline(true));
         return this;
     }
 
