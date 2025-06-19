@@ -59,6 +59,7 @@ public class RuleContext<T> {
         return this.value;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isHidden() {
         return this.isHidden;
     }

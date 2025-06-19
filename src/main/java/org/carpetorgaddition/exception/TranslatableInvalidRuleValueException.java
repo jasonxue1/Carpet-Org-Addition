@@ -22,9 +22,8 @@ public class TranslatableInvalidRuleValueException extends InvalidRuleValueExcep
 
     @Override
     public void notifySource(String ruleName, ServerCommandSource source) {
-        if (this.message == null) {
-            return;
+        if (this.message != null) {
+            MessageUtils.sendErrorMessage(source, this.message);
         }
-        MessageUtils.sendErrorMessage(source, this.message);
     }
 }

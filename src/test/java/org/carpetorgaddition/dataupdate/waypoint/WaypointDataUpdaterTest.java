@@ -2,6 +2,7 @@ package org.carpetorgaddition.dataupdate.waypoint;
 
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
