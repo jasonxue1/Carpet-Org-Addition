@@ -2,6 +2,7 @@ package org.carpetorgaddition.debug;
 
 import carpet.api.settings.CarpetRule;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
+import org.carpetorgaddition.rule.RuleContext;
 import org.carpetorgaddition.rule.RuleFactory;
 
 import java.util.function.Supplier;
@@ -55,7 +56,7 @@ public class DebugSettings {
                     .build()
     );
 
-    private static <T> Supplier<T> register(RuleFactory.RuleContext<T> context) {
+    private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();
         DebugRuleRegistrar.getInstance().extensionSettingsManager().addCarpetRule(rule);
         return rule::value;

@@ -1,19 +1,19 @@
 package org.carpetorgaddition;
 
+import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
-import org.carpetorgaddition.rule.RuleFactory;
-import org.carpetorgaddition.rule.RuleUtils;
-import org.carpetorgaddition.rule.ValidatorFeedbacks;
+import org.carpetorgaddition.rule.*;
 import org.carpetorgaddition.rule.value.*;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 public class CarpetOrgAdditionSettings {
@@ -37,7 +37,7 @@ public class CarpetOrgAdditionSettings {
      * 当前正在使用铁砧附魔的玩家
      */
     public static final ThreadLocal<PlayerEntity> enchanter = new ThreadLocal<>();
-    public static final HashSet<RuleFactory.RuleContext<?>> allRules = new HashSet<>();
+    private static final Set<RuleContext<?>> allRules = new LinkedHashSet<>();
     public static final String OPS = "ops";
     public static final String TRUE = Boolean.TRUE.toString();
     public static final String FALSE = Boolean.FALSE.toString();
@@ -925,17 +925,24 @@ public class CarpetOrgAdditionSettings {
 
     // TODO 强制添加注释规则
 
-    private static <T> Supplier<T> register(RuleFactory.RuleContext<T> context) {
-        if (context.shouldRegister()) {
-            allRules.add(context);
-            return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
-        }
-        return context::value;
+    private static <T> Supplier<T> register(RuleContext<T> context) {
+        allRules.add(context);
+        return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
     }
 
     public static void register() {
-        for (RuleFactory.RuleContext<?> context : allRules) {
-            CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(context.rule());
+        for (RuleContext<?> context : allRules) {
+            if (context.shouldRegister()) {
+                CarpetRule<?> rule = context.rule();
+                CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
+                if (context.isRuleSelf()) {
+                    RuleSelfManager.RULES.put(context.getName(), rule);
+                }
+            }
         }
+    }
+
+    public static Set<RuleContext<?>> listRules() {
+        return allRules;
     }
 }

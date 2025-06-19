@@ -28,7 +28,9 @@ public class RuleFactory {
         private final List<Supplier<Boolean>> conditions = new ArrayList<>();
         private boolean canBeToggledClientSide = false;
         private boolean strict = true;
-        private boolean ruleSelf = false;
+        private boolean isHidden;
+        private boolean isRemove;
+        private boolean isRuleSelf = false;
         private String displayName = "";
         private String displayDesc = "";
 
@@ -87,7 +89,7 @@ public class RuleFactory {
         }
 
         public Builder<T> setPlayerCustom() {
-            this.ruleSelf = true;
+            this.isRuleSelf = true;
             return this;
         }
 
@@ -105,11 +107,13 @@ public class RuleFactory {
         public Builder<T> setHidden() {
             this.conditions.add(() -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION);
             this.addCategories(CarpetOrgAdditionSettings.HIDDEN);
+            this.isHidden = true;
             return this;
         }
 
         public Builder<T> setRemoved() {
             this.conditions.addFirst(() -> false);
+            this.isRemove = true;
             return this;
         }
 
@@ -143,40 +147,18 @@ public class RuleFactory {
                     this.displayName,
                     this.displayDesc
             );
-            return new RuleContext<>(supplier, this.value, this.conditions);
-        }
-    }
-
-    public static class RuleContext<T> {
-        private final Supplier<CarpetRule<T>> ruleSupplier;
-        private volatile CarpetRule<T> rule;
-        private final T value;
-        private final List<Supplier<Boolean>> conditions;
-
-        public RuleContext(Supplier<CarpetRule<T>> ruleSupplier, T value, List<Supplier<Boolean>> conditions) {
-            this.ruleSupplier = ruleSupplier;
-            this.value = value;
-            this.conditions = conditions;
-        }
-
-        public CarpetRule<T> rule() {
-            // 初始化可能在客户端和服务端同时进行
-            if (this.rule == null) {
-                synchronized (RuleFactory.class) {
-                    if (this.rule == null) {
-                        this.rule = this.ruleSupplier.get();
-                    }
-                }
-            }
-            return this.rule;
-        }
-
-        public T value() {
-            return this.value;
-        }
-
-        public boolean shouldRegister() {
-            return this.conditions.stream().allMatch(Supplier::get);
+            return new RuleContext<>(
+                    this.type,
+                    this.value,
+                    this.name,
+                    supplier,
+                    this.conditions,
+                    this.categories,
+                    this.suggestions,
+                    this.isRemove,
+                    this.isHidden,
+                    this.isRuleSelf
+            );
         }
     }
 }

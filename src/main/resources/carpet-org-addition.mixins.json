@@ -75,7 +75,6 @@
     "rule.carpet.EntityPlayerMPFakeMixin",
     "rule.carpet.LoggerAccessor",
     "rule.carpet.SettingsManagerAccessor",
-    "rule.carpet.SettingsManagerMixin",
     "rule.cceupdatesuppression.BlockPlacementDispenserBehaviorMixin",
     "rule.cceupdatesuppression.ShulkerBoxBlockMixin",
     "rule.disablemobpeacefuldespawn.MobEntityMixin",
