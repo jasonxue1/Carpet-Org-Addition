@@ -65,7 +65,7 @@ public class OrgRule<T> implements CarpetRule<T> {
     }
 
     private void init() {
-        if (this.strict) {
+        if (this.strict()) {
             this.validators.addFirst(new StrictValidator<>(this));
         }
         // 更改规则时将命令同步到客户端
@@ -169,6 +169,11 @@ public class OrgRule<T> implements CarpetRule<T> {
     @Override
     public T defaultValue() {
         return this.defaultValue;
+    }
+
+    @Override
+    public boolean strict() {
+        return this.strict && !this.suggestions().isEmpty();
     }
 
     @Override

@@ -75,6 +75,7 @@ public abstract class AbstractValidator<T> extends Validator<T> {
      * @param source   规则值的修改者，如果在规则同步期间调用，可能为{@code null}
      * @param newValue 规则的新值
      */
+    @Deprecated(forRemoval = true)
     public void onChange(@Nullable ServerCommandSource source, T newValue) {
     }
 }
