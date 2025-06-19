@@ -85,7 +85,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
      * 清除击退效果
      */
     private static void clearKnockback(ServerPlayerEntity player) {
-        if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback && player instanceof EntityPlayerMPFake) {
+        if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback.get() && player instanceof EntityPlayerMPFake) {
             // 清除速度
             player.setVelocity(Vec3d.ZERO);
             // 清除着火时间

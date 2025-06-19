@@ -14,7 +14,7 @@ public class CreeperEntityMixin {
     //和平的苦力怕
     @Inject(method = "setTarget", at = @At("HEAD"), cancellable = true)
     private void setTarget(LivingEntity target, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.peacefulCreeper && target instanceof PlayerEntity) {
+        if (CarpetOrgAdditionSettings.peacefulCreeper.get() && target instanceof PlayerEntity) {
             ci.cancel();
         }
     }
@@ -22,7 +22,7 @@ public class CreeperEntityMixin {
     // 闪电苦力怕同时炸死多个生物时每个都掉落头颅
     @Inject(method = "onHeadDropped", at = @At("HEAD"), cancellable = true)
     private void onHeadDropped(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.superChargedCreeper) {
+        if (CarpetOrgAdditionSettings.superChargedCreeper.get()) {
             ci.cancel();
         }
     }

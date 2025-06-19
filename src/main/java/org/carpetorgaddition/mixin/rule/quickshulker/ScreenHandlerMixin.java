@@ -34,7 +34,7 @@ public abstract class ScreenHandlerMixin {
 
     @Inject(method = "onSlotClick", at = @At("HEAD"), cancellable = true)
     private void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.quickShulker && MathUtils.isInRange(0, this.slots.size(), slotIndex) && actionType == SlotActionType.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
+        if (CarpetOrgAdditionSettings.quickShulker.get() && MathUtils.isInRange(0, this.slots.size(), slotIndex) && actionType == SlotActionType.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
             ItemStack stack = this.getSlot(slotIndex).getStack();
             if (this.canOpenShulker() && InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1 && this.getCursorStack().isEmpty()) {
                 // 创造模式物品栏是一个客户端屏幕，因此点击潜影盒不会打开物品栏

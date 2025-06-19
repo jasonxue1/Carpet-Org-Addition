@@ -17,7 +17,7 @@ public class ServerPlayerEntityMixin {
 
     @WrapOperation(method = "copyFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/GameRules;getBoolean(Lnet/minecraft/world/GameRules$Key;)Z"))
     private boolean keepItem(GameRules instance, GameRules.Key<GameRules.BooleanRule> rule, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory && thisPlayer instanceof EntityPlayerMPFake) {
+        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory.get() && thisPlayer instanceof EntityPlayerMPFake) {
             return true;
         }
         return original.call(instance, rule);

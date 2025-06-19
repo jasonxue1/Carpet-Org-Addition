@@ -8,7 +8,6 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -19,26 +18,35 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 public class RuleUtils {
+    /**
+     * 最大方块交互距离的最大值
+     */
+    public static final double MAX_DISTANCE = 256.0;
+    public static final int MAX_BEACON_RANGE = 1024;
+    /**
+     * 最小合成次数
+     */
+    public static final int MIN_CRAFT_COUNT = 1;
 
     /**
      * 潜影盒是否可以触发更新抑制器
      */
     public static boolean canUpdateSuppression(@Nullable String blockName) {
-        if ("false".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression)) {
+        if ("false".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression.get())) {
             return false;
         }
         if (blockName == null) {
             return false;
         }
-        if ("true".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression)) {
+        if ("true".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression.get())) {
             return "更新抑制器".equals(blockName) || "updateSuppression".equalsIgnoreCase(blockName);
         }
         // 比较字符串并忽略大小写
-        return Objects.equals(CarpetOrgAdditionSettings.CCEUpdateSuppression.toLowerCase(), blockName.toLowerCase());
+        return Objects.equals(CarpetOrgAdditionSettings.CCEUpdateSuppression.get().toLowerCase(), blockName.toLowerCase());
     }
 
     public static boolean isDefaultDistance() {
-        return CarpetOrgAdditionSettings.maxBlockPlaceDistance == -1;
+        return CarpetOrgAdditionSettings.maxBlockPlaceDistance.get() == -1;
     }
 
     /**
@@ -47,11 +55,11 @@ public class RuleUtils {
      * @return 当前设置的最大交互距离，最大不超过256.0
      */
     public static double getPlayerMaxInteractionDistance() {
-        double distance = CarpetOrgAdditionSettings.maxBlockPlaceDistance;
+        double distance = CarpetOrgAdditionSettings.maxBlockPlaceDistance.get();
         if (distance < 0) {
             return 6.0;
         }
-        return Math.min(distance, MaxBlockPlaceDistanceValidator.MAX_VALUE);
+        return Math.min(distance, MAX_DISTANCE);
     }
 
     public static <T> T shulkerBoxStackableWrap(Supplier<T> supplier) {
@@ -71,7 +79,7 @@ public class RuleUtils {
         if (player == null) {
             return false;
         }
-        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
+        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get()) {
             case TRUE -> true;
             case FALSE -> false;
             case CUSTOM -> {

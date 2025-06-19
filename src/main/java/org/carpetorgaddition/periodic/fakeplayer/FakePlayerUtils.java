@@ -303,7 +303,7 @@ public class FakePlayerUtils {
         ItemStack itemStack = screenHandler.getSlot(fromIndex).getStack();
         // 如果假玩家合成保留物品启用，并且该物品的数量为1，并且该物品的最大堆叠数大于1
         // 认为这个物品需要保留，不移动物品
-        if (CarpetOrgAdditionSettings.fakePlayerCraftKeepItem && itemStack.getCount() == 1 && itemStack.getMaxCount() > 1) {
+        if (CarpetOrgAdditionSettings.fakePlayerCraftKeepItem.get() && itemStack.getCount() == 1 && itemStack.getMaxCount() > 1) {
             return false;
         }
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
@@ -312,7 +312,7 @@ public class FakePlayerUtils {
         }
         screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
         // 如果规则假玩家合成保留物品启用，并且该物品的最大堆叠数大于1，就在该槽位上再放回一个物品
-        if (CarpetOrgAdditionSettings.fakePlayerCraftKeepItem && screenHandler.getCursorStack().getMaxCount() > 1) {
+        if (CarpetOrgAdditionSettings.fakePlayerCraftKeepItem.get() && screenHandler.getCursorStack().getMaxCount() > 1) {
             screenHandler.onSlotClick(fromIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
         }
         screenHandler.onSlotClick(toIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
@@ -510,7 +510,7 @@ public class FakePlayerUtils {
             return true;
         }
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox;
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get();
         ArrayList<Integer> shulkers = new ArrayList<>();
         // 主手槽位
         int headSlot = hand == Hand.MAIN_HAND ? 36 + fakePlayer.getInventory().selectedSlot : 45;
@@ -628,10 +628,10 @@ public class FakePlayerUtils {
      * @return 是否应该停止
      */
     public static boolean shouldStop(int craftCount) {
-        if (CarpetOrgAdditionSettings.fakePlayerMaxCraftCount < 0) {
+        if (CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get() < 0) {
             return false;
         }
-        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount;
+        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get();
     }
 
     /**

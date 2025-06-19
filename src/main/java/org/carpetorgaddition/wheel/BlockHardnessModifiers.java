@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+// TODO 改为List.of()
 public class BlockHardnessModifiers {
     /**
      * 深板岩和与深板岩硬度相同的变种
@@ -49,13 +50,13 @@ public class BlockHardnessModifiers {
     public static Optional<Float> getHardness(Block block, BlockView world, BlockPos pos) {
         // 设置基岩硬度
         if (block == Blocks.BEDROCK) {
-            float hardness = CarpetOrgAdditionSettings.setBedrockHardness;
-            if (CarpetOrgAdditionSettings.setBedrockHardness != -1F) {
+            float hardness = CarpetOrgAdditionSettings.setBedrockHardness.get();
+            if (CarpetOrgAdditionSettings.setBedrockHardness.get() != -1F) {
                 return Optional.of(hardness);
             }
         }
         // 易碎深板岩
-        if (CarpetOrgAdditionSettings.softDeepslate) {
+        if (CarpetOrgAdditionSettings.softDeepslate.get()) {
             // 深板岩
             if (DEEPSLATE.contains(block)) {
                 return Optional.of(Blocks.STONE.getHardness());
@@ -66,11 +67,11 @@ public class BlockHardnessModifiers {
             }
         }
         // 易碎黑曜石
-        if (CarpetOrgAdditionSettings.softObsidian && (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN)) {
+        if (CarpetOrgAdditionSettings.softObsidian.get() && (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN)) {
             return Optional.of(Blocks.END_STONE.getHardness());
         }
         // 易碎矿石
-        if (CarpetOrgAdditionSettings.softOres) {
+        if (CarpetOrgAdditionSettings.softOres.get()) {
             // 普通矿石
             if (ORE.contains(block)) {
                 return Optional.of(Blocks.STONE.getHardness());

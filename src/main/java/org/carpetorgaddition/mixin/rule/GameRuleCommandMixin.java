@@ -13,7 +13,7 @@ public class GameRuleCommandMixin {
     //开放/gamerule命令权限
     @Inject(method = "method_13393", at = @At("HEAD"), cancellable = true)
     private static void privilege(ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openGameRulePermissions) {
+        if (CarpetOrgAdditionSettings.openGameRulePermissions.get()) {
             cir.setReturnValue(true);
         }
     }

@@ -3,10 +3,8 @@ package org.carpetorgaddition.rule.validator;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.rule.RuleValidatorProvider;
+import org.carpetorgaddition.rule.ValidatorFeedbacks;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
 
 public class StrictValidator<T> extends AbstractValidator<T> {
     private final CarpetRule<T> rule;
@@ -22,6 +20,6 @@ public class StrictValidator<T> extends AbstractValidator<T> {
 
     @Override
     public @NotNull Text errorMessage() {
-        return RuleValidatorProvider.validOptions(this.rule);
+        return ValidatorFeedbacks.validOptions(this.rule);
     }
 }

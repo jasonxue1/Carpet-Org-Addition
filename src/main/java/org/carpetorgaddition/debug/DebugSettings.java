@@ -55,7 +55,7 @@ public class DebugSettings {
                     .build()
     );
 
-    private static <T> Supplier<T> register(RuleFactory.RuleBuildResultContext<T> context) {
+    private static <T> Supplier<T> register(RuleFactory.RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();
         DebugRuleRegistrar.getInstance().extensionSettingsManager().addCarpetRule(rule);
         return rule::value;

@@ -35,7 +35,19 @@ public class OrgRule<T> implements CarpetRule<T> {
     private final List<RuleObserver<T>> observers = new ArrayList<>();
     private final boolean strict;
 
-    public OrgRule(Class<T> type, String name, Collection<String> categories, Collection<String> suggestions, @NotNull T value, boolean canBeToggledClientSide, List<AbstractValidator<T>> validators, List<RuleObserver<T>> observers, boolean strict, String displayName, String displayDesc) {
+    public OrgRule(
+            Class<T> type,
+            String name,
+            Collection<String> categories,
+            Collection<String> suggestions,
+            @NotNull T value,
+            boolean canBeToggledClientSide,
+            List<AbstractValidator<T>> validators,
+            List<RuleObserver<T>> observers,
+            boolean strict,
+            String displayName,
+            String displayDesc
+    ) {
         this.name = name;
         this.categories = categories;
         this.suggestions = suggestions;
@@ -69,22 +81,23 @@ public class OrgRule<T> implements CarpetRule<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private RuleValueParser<T> createParser() {
         Map.Entry<Text, Function<String, T>> entry = switch (this.defaultValue) {
-            case String ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"), this.type::cast);
-            case Boolean ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"), s -> this.type.cast(parseBoolean(s)));
-            case Integer ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"), s -> this.type.cast(Integer.parseInt(s)));
-            case Long ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.long"), s -> this.type.cast(Long.parseLong(s)));
-            case Double ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.double"), s -> this.type.cast(Double.parseDouble(s)));
-            case Float ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.float"), s -> this.type.cast(Float.parseFloat(s)));
+            case String ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"),
+                    this.type::cast);
+            case Boolean ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"),
+                    s -> this.type.cast(parseBoolean(s)));
+            case Integer ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"),
+                    s -> this.type.cast(Integer.parseInt(s)));
+            case Long ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.long"),
+                    s -> this.type.cast(Long.parseLong(s)));
+            case Double ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.double"),
+                    s -> this.type.cast(Double.parseDouble(s)));
+            case Float ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.float"),
+                    s -> this.type.cast(Float.parseFloat(s)));
             // 只有枚举名称全部为大写时才能匹配
-            case Enum<?> ignored ->
-                    Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"), s -> (T) Enum.valueOf((Class<? extends Enum>) this.type, s.toUpperCase(Locale.ROOT)));
-            default ->
-                    throw new UnsupportedOperationException("Unsupported type for %s %s".formatted(this.getClass().getSimpleName(), type));
+            case Enum<?> ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"),
+                    s -> (T) Enum.valueOf((Class<? extends Enum>) this.type, s.toUpperCase(Locale.ROOT)));
+            default -> throw new UnsupportedOperationException("Unsupported type for %s %s"
+                    .formatted(this.getClass().getSimpleName(), type));
         };
         return str -> {
             Text dataType = entry.getKey();

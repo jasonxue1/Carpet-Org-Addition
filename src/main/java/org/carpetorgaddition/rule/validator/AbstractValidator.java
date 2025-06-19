@@ -9,6 +9,9 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 public abstract class AbstractValidator<T> extends Validator<T> {
     /**
      * @deprecated 不支持翻译
@@ -27,6 +30,20 @@ public abstract class AbstractValidator<T> extends Validator<T> {
             onChange(source, result);
         }
         return result;
+    }
+
+    public static <T> AbstractValidator<T> of(Predicate<T> predicate, Supplier<Text> supplier) {
+        return new AbstractValidator<>() {
+            @Override
+            public boolean validate(T newValue) {
+                return predicate.test(newValue);
+            }
+
+            @Override
+            public @NotNull Text errorMessage() {
+                return supplier.get();
+            }
+        };
     }
 
     /**

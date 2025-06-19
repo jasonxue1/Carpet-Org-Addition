@@ -57,7 +57,7 @@ public abstract class TridentEntityMixin extends PersistentProjectileEntity {
             return;
         }
         boolean hasChanneling = EnchantmentUtils.hasEnchantment(world, Enchantments.CHANNELING, this.getWeaponStack());
-        if (CarpetOrgAdditionSettings.channelingIgnoreWeather && World.isValid(blockPos) && hasChanneling) {
+        if (CarpetOrgAdditionSettings.channelingIgnoreWeather.get() && World.isValid(blockPos) && hasChanneling) {
             LightningEntity lightning = EntityType.LIGHTNING_BOLT.spawn(world, blockPos, SpawnReason.TRIGGERED);
             if (lightning == null) {
                 return;

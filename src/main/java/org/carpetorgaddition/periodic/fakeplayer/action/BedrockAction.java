@@ -336,7 +336,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         if (hasMaterial(list, pistonCount, levelCount)) {
             return true;
         }
-        if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox) {
+        if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get()) {
             return list.stream()
                     .filter(InventoryUtils::isShulkerBoxItem)
                     .map(ContainerComponentInventory::new)
