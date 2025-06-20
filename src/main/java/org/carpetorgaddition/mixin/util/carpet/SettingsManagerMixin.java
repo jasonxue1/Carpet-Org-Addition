@@ -62,8 +62,7 @@ public abstract class SettingsManagerMixin {
                 rule.set(source, stringValue);
             } catch (InvalidRuleValueException e) {
                 e.notifySource(rule.name(), source);
-                // TODO 更新日志
-                // 先修改规则值，再写入文件
+                // 先修改规则值，再写入文件：https://github.com/gnembon/fabric-carpet/issues/2004
                 cir.setReturnValue(0);
                 return;
             }
