@@ -16,7 +16,7 @@ public class SettingsManagerMixin {
     //开放/carpet命令权限，仅单人游戏
     @Inject(method = "lambda$registerCommand$11", at = @At("HEAD"), cancellable = true)
     private void carpet(ServerCommandSource player, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openCarpetPermissions) {
+        if (CarpetOrgAdditionSettings.openCarpetPermissions.get()) {
             IntegratedServer clientServer = MinecraftClient.getInstance().getServer();
             if (clientServer != null) {
                 cir.setReturnValue(true);

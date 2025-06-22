@@ -18,7 +18,7 @@ public class BatEntityMixin {
     @Inject(method = "canSpawn", at = @At("HEAD"), cancellable = true)
     private static void canSpawn(EntityType<BatEntity> type, WorldAccess world, SpawnReason spawnReason, BlockPos pos,
                                  Random random, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.disableBatCanSpawn) {
+        if (CarpetOrgAdditionSettings.disableBatCanSpawn.get()) {
             cir.setReturnValue(false);
         }
     }

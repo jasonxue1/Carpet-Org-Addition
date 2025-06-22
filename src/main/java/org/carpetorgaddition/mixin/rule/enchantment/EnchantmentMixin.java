@@ -26,7 +26,7 @@ public class EnchantmentMixin {
     // 击退棒
     @Inject(method = "isAcceptableItem", at = @At("HEAD"), cancellable = true)
     public void isAcceptableItem(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.knockbackStick && stack.isOf(Items.STICK)) {
+        if (CarpetOrgAdditionSettings.knockbackStick.get() && stack.isOf(Items.STICK)) {
             PlayerEntity player = CarpetOrgAdditionSettings.enchanter.get();
             if (player == null) {
                 return;
@@ -40,7 +40,7 @@ public class EnchantmentMixin {
     // 保护类魔咒兼容
     @Inject(method = "canBeCombined", at = @At("HEAD"), cancellable = true)
     private static void protectionEnchantmentCompatible(RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.protectionEnchantmentCompatible && !first.equals(second)) {
+        if (CarpetOrgAdditionSettings.protectionEnchantmentCompatible.get() && !first.equals(second)) {
             Optional<RegistryKey<Enchantment>> firstKey = first.getKey();
             Optional<RegistryKey<Enchantment>> secondKey = second.getKey();
             if (firstKey.isEmpty() || secondKey.isEmpty()) {
@@ -55,7 +55,7 @@ public class EnchantmentMixin {
     // 伤害类魔咒兼容
     @Inject(method = "canBeCombined", at = @At("HEAD"), cancellable = true)
     private static void damageEnchantmentCompatible(RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.damageEnchantmentCompatible && !first.equals(second)) {
+        if (CarpetOrgAdditionSettings.damageEnchantmentCompatible.get() && !first.equals(second)) {
             Optional<RegistryKey<Enchantment>> firstKey = first.getKey();
             Optional<RegistryKey<Enchantment>> secondKey = second.getKey();
             if (firstKey.isEmpty() || secondKey.isEmpty()) {

@@ -77,7 +77,7 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
     }
 
     private boolean canUseQuickShulker() {
-        return CarpetOrgAdditionSettings.quickShulker || this.player instanceof EntityPlayerMPFake;
+        return CarpetOrgAdditionSettings.quickShulker.get() || this.player instanceof EntityPlayerMPFake;
     }
 
     @Override

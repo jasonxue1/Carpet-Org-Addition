@@ -111,8 +111,16 @@ public class SelectionArea implements Iterable<BlockPos> {
              * 最大迭代次数
              */
             private final int maxIterations = SelectionArea.this.size();
+            private final int startX = minX;
+            private final int startY = minY;
+            private final int startZ = minZ;
+            private final int finalX = maxX;
+            private final int finalY = maxY;
+            private final int finalZ = maxZ;
             // 迭代器当前遍历到的位置
-            private BlockPos currentPos = new BlockPos(minX, minY, minZ);
+            private int currentX = startX;
+            private int currentY = startY;
+            private int currentZ = startZ;
 
             @Override
             public boolean hasNext() {
@@ -127,21 +135,21 @@ public class SelectionArea implements Iterable<BlockPos> {
                     throw new NoSuchElementException();
                 }
                 this.iterations++;
-                // 当前遍历到的位置坐标的副本
-                BlockPos blockPos = this.currentPos;
-                this.currentPos = new BlockPos(this.currentPos.getX() + 1, this.currentPos.getY(), this.currentPos.getZ());
-                // X轴遍历到了最后，X重置，Y增加1，Z轴不变
-                if (this.currentPos.getX() > SelectionArea.this.maxX) {
-                    this.currentPos = new BlockPos(SelectionArea.this.minX, this.currentPos.getY() + 1, this.currentPos.getZ());
-                    if (this.currentPos.getY() > SelectionArea.this.maxY) {
-                        this.currentPos = new BlockPos(SelectionArea.this.minX, SelectionArea.this.minY, this.currentPos.getZ() + 1);
-                        if (this.currentPos.getZ() > SelectionArea.this.maxZ) {
-                            // Z轴也遍历到了最后，直接将修改之前的坐标返回
-                            return blockPos;
+                this.currentX++;
+                // X轴遍历到了最后，X重置，Y递增，Z轴不变
+                if (this.currentX > this.finalX) {
+                    this.currentX = this.startX;
+                    this.currentY++;
+                    if (this.currentY > this.finalY) {
+                        this.currentY = this.startY;
+                        this.currentZ++;
+                        if (this.currentZ > this.finalZ) {
+                            // Z轴也遍历到了最后，直接将最大坐标返回
+                            return getMaxBlockPos();
                         }
                     }
                 }
-                return blockPos;
+                return new BlockPos(this.currentX, this.currentY, this.currentZ);
             }
         };
     }

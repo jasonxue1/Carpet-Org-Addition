@@ -11,7 +11,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.dataupdate.DataUpdater;
-import org.carpetorgaddition.dataupdate.waypoint.WaypointDataUpdater;
+import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;

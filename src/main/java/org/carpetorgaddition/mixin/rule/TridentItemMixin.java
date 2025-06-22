@@ -8,12 +8,12 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-//激流忽略天气
+// 激流忽略天气
 @Mixin(TridentItem.class)
 public class TridentItemMixin {
     @WrapOperation(method = "onStoppedUsing", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;isTouchingWaterOrRain()Z"))
     private boolean isTouchingWaterOrRain(PlayerEntity instance, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.riptideIgnoreWeather) {
+        if (CarpetOrgAdditionSettings.riptideIgnoreWeather.get()) {
             return true;
         }
         return original.call(instance);
@@ -21,7 +21,7 @@ public class TridentItemMixin {
 
     @WrapOperation(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerEntity;isTouchingWaterOrRain()Z"))
     private boolean useIsTouchingWaterOrRain(PlayerEntity instance, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.riptideIgnoreWeather) {
+        if (CarpetOrgAdditionSettings.riptideIgnoreWeather.get()) {
             return true;
         }
         return original.call(instance);

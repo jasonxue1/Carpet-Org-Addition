@@ -30,7 +30,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
     // 打开村民物品栏
     @Inject(method = "interactMob", at = @At(value = "HEAD"), cancellable = true)
     private void clearVillagerInventory(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (CarpetOrgAdditionSettings.openVillagerInventory && player.isSneaking()) {
+        if (CarpetOrgAdditionSettings.openVillagerInventory.get() && player.isSneaking()) {
             SimpleNamedScreenHandlerFactory screen =
                     new SimpleNamedScreenHandlerFactory((i, inventory, playerEntity)
                             -> new VillagerScreenHandler(i, inventory, thisVillager), thisVillager.getName());
@@ -42,7 +42,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
     // 村民回血
     @Inject(method = "mobTick", at = @At("HEAD"))
     private void heal(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.villagerHeal) {
+        if (CarpetOrgAdditionSettings.villagerHeal.get()) {
             long worldTime = thisVillager.getWorld().getTime();
             // 每四秒回一次血
             if (worldTime % 80 == 0) {

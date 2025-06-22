@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MobSpawnerBlockEntityMixin {
     @Inject(method = "copyItemDataRequiresOperator", at = @At("HEAD"), cancellable = true)
     private void copyItemDataRequiresOperator(CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.canMineSpawner) {
+        if (CarpetOrgAdditionSettings.canMineSpawner.get()) {
             cir.setReturnValue(false);
         }
     }

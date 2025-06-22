@@ -22,7 +22,7 @@ public class RedstoneWireBlockMixin {
     // 红石线不会连接到打开的活板门上的红石线
     @WrapOperation(method = "getRenderConnectionType(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Direction;Z)Lnet/minecraft/block/enums/WireConnection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getBlock()Lnet/minecraft/block/Block;"))
     private Block getBlock(BlockState instance, Operation<Block> original) {
-        if (CarpetOrgAdditionSettings.simpleUpdateSkipper) {
+        if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get()) {
             return null;
         }
         return original.call(instance);
@@ -31,7 +31,7 @@ public class RedstoneWireBlockMixin {
     // 防止红石线掉落
     @Inject(method = "getStateForNeighborUpdate", at = @At("HEAD"), cancellable = true)
     private void preventDrop(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random, CallbackInfoReturnable<BlockState> cir) {
-        if (CarpetOrgAdditionSettings.simpleUpdateSkipper && direction == Direction.DOWN) {
+        if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get() && direction == Direction.DOWN) {
             cir.setReturnValue(state);
         }
     }

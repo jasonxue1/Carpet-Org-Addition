@@ -74,7 +74,7 @@ public class WanderingTraderManagerMixin {
                     continue;
                 }
                 // 广播流浪商人生成成功
-                boolean canNavigate = CommandHelper.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
+                boolean canNavigate = CommandHelper.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate.get());
                 if (canNavigate) {
                     // 带点击导航的消息
                     MutableText button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")

@@ -6,4 +6,8 @@ package org.carpetorgaddition.exception;
 public class InfiniteLoopException extends RuntimeException {
     public InfiniteLoopException() {
     }
+
+    public InfiniteLoopException(String message) {
+        super(message);
+    }
 }
