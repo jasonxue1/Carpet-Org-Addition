@@ -1,7 +1,6 @@
 package org.carpetorgaddition.mixin.rule;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.utils.CommandHelper;
 import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -96,7 +95,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Unique
     private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
         ServerCommandSource source = thisPlayer.getCommandSource();
-        if (CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction)) {
+        if (CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction)) {
             if (itemStack.isEmpty()) {
                 return Optional.empty();
             }

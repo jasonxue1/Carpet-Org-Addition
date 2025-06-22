@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -19,10 +18,10 @@ import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.Waypoint;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -38,7 +37,7 @@ public class LocationsCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandLocations.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandLocations))
                 .then(CommandManager.literal("add")
                         .then(CommandManager.argument("name", StringArgumentType.string())
                                 .executes(context -> addWayPoint(context, null))

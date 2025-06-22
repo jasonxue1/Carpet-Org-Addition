@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -25,7 +24,7 @@ public class CreeperCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandCreeper.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandCreeper))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .executes(this::creeperExplosion)));
     }

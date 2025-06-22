@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.navigator;
 
-import carpet.utils.CommandHelper;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
@@ -11,6 +10,7 @@ import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
@@ -122,7 +122,7 @@ public abstract class AbstractNavigator {
         // 更新上一个坐标
         if (this.updatePrevious(pack)) {
             // 要求玩家有执行/navigate命令的权限
-            boolean hasPermission = CommandHelper.canUseCommand(this.player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate.get());
+            boolean hasPermission = CommandUtils.canUseCommand(this.player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
             if (CarpetOrgAdditionSettings.syncNavigateWaypoint.get() && hasPermission) {
                 ServerPlayNetworking.send(this.player, pack);
             }

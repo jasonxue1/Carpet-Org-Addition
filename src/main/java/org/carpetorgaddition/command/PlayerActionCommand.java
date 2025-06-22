@@ -1,7 +1,6 @@
 package org.carpetorgaddition.command;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -28,12 +27,12 @@ import org.carpetorgaddition.periodic.fakeplayer.action.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
-import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Arrays;
 
@@ -45,7 +44,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandPlayerAction))
                 .then(CommandManager.argument("player", EntityArgumentType.player())
                         .then(CommandManager.literal("sorting")
                                 .then(CommandManager.argument("item", ItemPredicateArgumentType.itemPredicate(this.access))
