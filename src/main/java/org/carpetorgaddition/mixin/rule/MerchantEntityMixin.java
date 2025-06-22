@@ -17,7 +17,7 @@ public abstract class MerchantEntityMixin {
 
     @Inject(method = "canInteract", at = @At("HEAD"), cancellable = true)
     private void canInteract(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.villagerVoidTrading) {
+        if (CarpetOrgAdditionSettings.villagerVoidTrading.get()) {
             cir.setReturnValue(this.getCustomer() == player);
         }
     }

@@ -897,8 +897,11 @@ public class CarpetOrgAdditionSettings {
     /**
      * 村民虚空交易
      */
-    @Rule(categories = {ORG, RuleCategory.FEATURE})
-    public static boolean villagerVoidTrading = false;
+    public static final Supplier<Boolean> villagerVoidTrading = register(
+            RuleFactory.create(Boolean.class, "villagerVoidTrading", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
 
     /**
      * 经验球合并
