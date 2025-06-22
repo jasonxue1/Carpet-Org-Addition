@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class BlockItemMixin {
     @WrapOperation(method = "writeNbtToBlockEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/BlockEntityType;canPotentiallyExecuteCommands()Z"))
     private static boolean writeNbtToBlockEntity(BlockEntityType<?> instance, Operation<Boolean> original, @Local BlockEntity blockEntity) {
-        if (CarpetOrgAdditionSettings.canMineSpawner && blockEntity instanceof Spawner) {
+        if (CarpetOrgAdditionSettings.canMineSpawner.get() && blockEntity instanceof Spawner) {
             return false;
         }
         return original.call(instance);

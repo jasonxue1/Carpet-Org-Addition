@@ -111,7 +111,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         }
-        switch (CarpetOrgAdditionSettings.betterTotemOfUndying) {
+        switch (CarpetOrgAdditionSettings.betterTotemOfUndying.get()) {
             case FALSE: {
                 // 主手或副手有不死图腾
                 if (thisPlayer.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {

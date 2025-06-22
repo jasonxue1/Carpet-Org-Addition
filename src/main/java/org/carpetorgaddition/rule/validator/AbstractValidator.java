@@ -9,6 +9,9 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+
 public abstract class AbstractValidator<T> extends Validator<T> {
     /**
      * @deprecated 不支持翻译
@@ -20,12 +23,27 @@ public abstract class AbstractValidator<T> extends Validator<T> {
     }
 
     @Override
+    @Deprecated
     public T validate(@Nullable ServerCommandSource source, CarpetRule<T> carpetRule, T newValue, String userInput) {
         T result = validate(newValue) ? newValue : null;
         if (result != null) {
             onChange(source, result);
         }
         return result;
+    }
+
+    public static <T> AbstractValidator<T> of(Predicate<T> predicate, Supplier<Text> supplier) {
+        return new AbstractValidator<>() {
+            @Override
+            public boolean validate(T newValue) {
+                return predicate.test(newValue);
+            }
+
+            @Override
+            public @NotNull Text errorMessage() {
+                return supplier.get();
+            }
+        };
     }
 
     /**
@@ -57,6 +75,7 @@ public abstract class AbstractValidator<T> extends Validator<T> {
      * @param source   规则值的修改者，如果在规则同步期间调用，可能为{@code null}
      * @param newValue 规则的新值
      */
+    @Deprecated(forRemoval = true)
     public void onChange(@Nullable ServerCommandSource source, T newValue) {
     }
 }

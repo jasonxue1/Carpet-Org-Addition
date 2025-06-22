@@ -59,7 +59,7 @@ public class HudDebugRendererRegister {
     static {
         // 显示方块挖掘速度
         renders.add((context, tickCounter) -> {
-            if (DebugSettings.showBlockBreakingSpeed) {
+            if (DebugSettings.showBlockBreakingSpeed.get()) {
                 MinecraftClient client = MinecraftClient.getInstance();
                 HitResult hitResult = client.crosshairTarget;
                 if (hitResult == null) {
@@ -89,7 +89,7 @@ public class HudDebugRendererRegister {
         });
         // 渲染比较器强度
         renders.add((context, tickCounter) -> {
-            if (DebugSettings.showComparatorLevel) {
+            if (DebugSettings.showComparatorLevel.get()) {
                 MinecraftClient client = MinecraftClient.getInstance();
                 HitResult hitResult = client.crosshairTarget;
                 if (hitResult == null) {
@@ -174,7 +174,7 @@ public class HudDebugRendererRegister {
         });
         // 渲染当前HUD信息
         renders.add((context, tickCounter) -> {
-            if (DebugSettings.HUDInformationDisplay) {
+            if (DebugSettings.HUDInformationDisplay.get()) {
                 MinecraftClient client = MinecraftClient.getInstance();
                 Screen screen = client.currentScreen;
                 if (screen == null) {
@@ -216,7 +216,7 @@ public class HudDebugRendererRegister {
     public static void register() {
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renders.forEach(renderer -> renderer.render(drawContext, tickCounter)));
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (DebugSettings.HUDInformationDisplay && screen instanceof HandledScreen<?> handledScreen) {
+            if (DebugSettings.HUDInformationDisplay.get() && screen instanceof HandledScreen<?> handledScreen) {
                 DefaultedList<Slot> slots = handledScreen.getScreenHandler().slots;
                 slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, mouseX, mouseY, delta) -> {
                     HandledScreenAccessor accessor = (HandledScreenAccessor) handledScreen;
@@ -237,7 +237,7 @@ public class HudDebugRendererRegister {
 
     // 是否应该显示灵魂沙物品计数
     private static boolean showSoulSandItemCount(MinecraftClient client) {
-        if (DebugSettings.showSoulSandItemCount) {
+        if (DebugSettings.showSoulSandItemCount.get()) {
             if (client.getServer() == null) {
                 return false;
             }

@@ -15,6 +15,6 @@ public class GameRuleCommandMixin {
     //开放/gamerule命令权限
     @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;"))
     private static PermissionLevelPredicate<ServerCommandSource> privilege(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
-        return RuleUtils.requireOrOpenPermissionLevel(() -> CarpetOrgAdditionSettings.openGameRulePermissions, original.call(requiredLevel));
+        return RuleUtils.requireOrOpenPermissionLevel(() -> CarpetOrgAdditionSettings.openGameRulePermissions.get(), original.call(requiredLevel));
     }
 }

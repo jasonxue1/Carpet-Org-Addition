@@ -19,8 +19,8 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -105,8 +105,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.getFakePlayer());
                     craftCount++;
                     // 限制每个游戏刻合成次数
-                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxCraftCount;
-                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount) {
+                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get();
+                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get()) {
                         return;
                     }
                 } else {
@@ -131,7 +131,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.getFakePlayer())) {
                     return false;
                 }
-            } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox && InventoryUtils.isShulkerBoxItem(itemStack)) {
+            } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get() && InventoryUtils.isShulkerBoxItem(itemStack)) {
                 // 从潜影盒中查找指定物品
                 ItemStack stack = InventoryUtils.pickItemFromShulkerBox(itemStack, content -> content.isOf(this.item));
                 // 未找到指定物品

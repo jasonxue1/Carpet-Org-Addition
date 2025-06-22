@@ -22,7 +22,7 @@ public abstract class SmithingScreenHandlerMixin {
     private void decrement(int slot, CallbackInfo ci) {
         ItemStack itemStack = this.getInputStacks().get(slot);
         if (slot == 0) {
-            switch (CarpetOrgAdditionSettings.reusableSmithingTemplate) {
+            switch (CarpetOrgAdditionSettings.reusableSmithingTemplate.get()) {
                 case FALSE -> {
                 }
                 case UPGRADE -> {

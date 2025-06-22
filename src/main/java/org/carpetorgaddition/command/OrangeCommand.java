@@ -32,6 +32,8 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -39,8 +41,6 @@ import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -274,7 +274,7 @@ public class OrangeCommand extends AbstractServerCommand {
             } else {
                 builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
-            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get().isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }
@@ -299,7 +299,7 @@ public class OrangeCommand extends AbstractServerCommand {
             Text displayName = RuleUtils.simpleTranslationName(rule);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
             TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
-            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isServerDecision()) {
+            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get().isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }

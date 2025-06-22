@@ -20,7 +20,7 @@ public class KillMeCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandKillMe))
+                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandKillMe.get()))
                 .executes(this::killMe));
     }
 

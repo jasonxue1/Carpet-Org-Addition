@@ -52,7 +52,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 血量不满时也可以进食
     @Inject(method = "canConsume", at = @At("HEAD"), cancellable = true)
     private void canEat(boolean ignoreHunger, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.healthNotFullCanEat && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
+        if (CarpetOrgAdditionSettings.healthNotFullCanEat.get() && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
                 && this.getHungerManager().getSaturationLevel() <= 5) {
             cir.setReturnValue(true);
         }
@@ -64,7 +64,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
         if (this.isSpectator()) {
             return;
         }
-        switch (CarpetOrgAdditionSettings.quickSettingFakePlayerCraft) {
+        switch (CarpetOrgAdditionSettings.quickSettingFakePlayerCraft.get()) {
             case FALSE:
                 break;
             case SNEAKING:
@@ -128,7 +128,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 最大方块交互距离
     @Inject(method = "getBlockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getBlockInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (thisPlayer.getWorld().isClient && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient) {
+        if (thisPlayer.getWorld().isClient && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
             return;
         }
         if (RuleUtils.isDefaultDistance()) {
@@ -140,7 +140,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 实体交互距离
     @Inject(method = "getEntityInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getEntityInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (CarpetOrgAdditionSettings.maxBlockPlaceDistanceReferToEntity) {
+        if (CarpetOrgAdditionSettings.maxBlockPlaceDistanceReferToEntity.get()) {
             cir.setReturnValue(RuleUtils.getPlayerMaxInteractionDistance());
         }
     }
@@ -148,7 +148,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 玩家死亡产生的掉落物不会自然消失
     @WrapOperation(method = "dropInventory", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/player/PlayerInventory;dropAll()V"))
     private void drop(PlayerInventory inventory, Operation<Void> original) {
-        if (CarpetOrgAdditionSettings.playerDropsNotDespawning) {
+        if (CarpetOrgAdditionSettings.playerDropsNotDespawning.get()) {
             for (ItemStack itemStack : inventory) {
                 if (!itemStack.isEmpty()) {
                     ItemEntity itemEntity = inventory.player.dropItem(itemStack, true, false);
@@ -167,7 +167,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
     @Inject(method = "getBlockBreakingSpeed", at = @At(value = "HEAD"))
     private void getBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
-        if (CarpetOrgAdditionSettings.applyToolEffectsImmediately) {
+        if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.get()) {
             this.onPlayerBreakBlock();
         }
     }

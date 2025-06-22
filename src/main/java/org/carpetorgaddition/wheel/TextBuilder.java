@@ -6,6 +6,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,6 +104,11 @@ public class TextBuilder {
         return this.setHover(translate(key, args));
     }
 
+    public TextBuilder setHover(Throwable e) {
+        String error = GenericUtils.getExceptionString(e);
+        return this.setHover(create(error));
+    }
+
     public TextBuilder setStringHover(String hover) {
         return this.setHover(create(hover));
     }
@@ -121,6 +127,14 @@ public class TextBuilder {
      */
     public TextBuilder setCommand(String command) {
         this.text.styled(style -> style.withClickEvent(new ClickEvent.RunCommand(command)));
+        return this;
+    }
+
+    /**
+     * 设置单击文本后聊天框输入命令
+     */
+    public TextBuilder setSuggestCommand(String command) {
+        this.text.styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(command)));
         return this;
     }
 
@@ -145,6 +159,14 @@ public class TextBuilder {
      */
     public TextBuilder setStrikethrough() {
         this.text.styled(style -> style.withStrikethrough(true));
+        return this;
+    }
+
+    /**
+     * 设置有下划线
+     */
+    public TextBuilder setUnderline() {
+        this.text.styled(style -> style.withUnderline(true));
         return this;
     }
 

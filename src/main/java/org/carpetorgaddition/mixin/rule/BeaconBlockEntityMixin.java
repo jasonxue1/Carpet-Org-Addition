@@ -36,11 +36,12 @@ public abstract class BeaconBlockEntityMixin {
     private static List<PlayerEntity> box(World world, Class<PlayerEntity> aClass, Box box, Operation<List<PlayerEntity>> original, @Local(argsOnly = true) BlockPos pos) {
         BeaconRangeBox beaconRangeBox = new BeaconRangeBox(box);
         // 调整信标范围
-        if (CarpetOrgAdditionSettings.beaconRangeExpand != 0 && CarpetOrgAdditionSettings.beaconRangeExpand <= 1024) {
-            beaconRangeBox = beaconRangeBox.modify(CarpetOrgAdditionSettings.beaconRangeExpand);
+        int range = CarpetOrgAdditionSettings.beaconRangeExpand.get();
+        if (range != 0 && range <= 1024) {
+            beaconRangeBox = beaconRangeBox.modify(range);
         }
         // 调整信标高度
-        if (CarpetOrgAdditionSettings.beaconWorldHeight) {
+        if (CarpetOrgAdditionSettings.beaconWorldHeight.get()) {
             beaconRangeBox = beaconRangeBox.worldHeight(world);
         }
         // 发送信标范围更新数据包

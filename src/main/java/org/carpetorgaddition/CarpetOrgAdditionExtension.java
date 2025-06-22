@@ -20,15 +20,16 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.Translation;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 public class CarpetOrgAdditionExtension implements CarpetExtension {
     private static SettingsManager customSettingManager;
+    private static boolean settingsLoaded = false;
 
     // 在游戏开始时
     @Override
@@ -37,6 +38,8 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         SettingsManager settingManager = getCustomSettingManager();
         if (settingManager == null) {
             CarpetServer.settingsManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
+            CarpetOrgAdditionSettings.register();
+            settingsLoaded = true;
         } else {
             settingManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
         }
@@ -56,6 +59,15 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         return customSettingManager;
     }
 
+    public static SettingsManager getSettingManager() {
+        SettingsManager settingManager = getCustomSettingManager();
+        return settingManager == null ? CarpetServer.settingsManager : settingManager;
+    }
+
+    public static boolean isCarpetRuleLoaded() {
+        return settingsLoaded;
+    }
+
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayerEntity player) {
@@ -73,7 +85,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
      * 清除击退效果
      */
     private static void clearKnockback(ServerPlayerEntity player) {
-        if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback && player instanceof EntityPlayerMPFake) {
+        if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback.get() && player instanceof EntityPlayerMPFake) {
             // 清除速度
             player.setVelocity(Vec3d.ZERO);
             // 清除着火时间

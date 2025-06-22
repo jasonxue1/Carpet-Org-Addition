@@ -18,7 +18,7 @@ public class ComparatorBlockMixin {
     @Inject(method = "getStateForNeighborUpdate", at = @At("HEAD"), cancellable = true)
     private void preventDrop(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random, CallbackInfoReturnable<BlockState> cir) {
         // 防止比较器掉落
-        if (CarpetOrgAdditionSettings.simpleUpdateSkipper && direction == Direction.DOWN) {
+        if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get() && direction == Direction.DOWN) {
             cir.setReturnValue(state);
         }
     }

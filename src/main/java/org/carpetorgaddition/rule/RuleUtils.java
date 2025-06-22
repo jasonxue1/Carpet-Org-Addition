@@ -1,41 +1,54 @@
 package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
+import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
 import net.minecraft.command.PermissionLevelPredicate;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.validator.MaxBlockPlaceDistanceValidator;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
 public class RuleUtils {
+    /**
+     * 最大方块交互距离的最大值
+     */
+    public static final double MAX_DISTANCE = 256.0;
+    public static final int MAX_BEACON_RANGE = 1024;
+    /**
+     * 最小合成次数
+     */
+    public static final int MIN_CRAFT_COUNT = 1;
 
     /**
      * 潜影盒是否可以触发更新抑制器
      */
     public static boolean canUpdateSuppression(@Nullable String blockName) {
-        if ("false".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression)) {
+        if ("false".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression.get())) {
             return false;
         }
         if (blockName == null) {
             return false;
         }
-        if ("true".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression)) {
+        if ("true".equalsIgnoreCase(CarpetOrgAdditionSettings.CCEUpdateSuppression.get())) {
             return "更新抑制器".equals(blockName) || "updateSuppression".equalsIgnoreCase(blockName);
         }
         // 比较字符串并忽略大小写
-        return Objects.equals(CarpetOrgAdditionSettings.CCEUpdateSuppression.toLowerCase(), blockName.toLowerCase());
+        return Objects.equals(CarpetOrgAdditionSettings.CCEUpdateSuppression.get().toLowerCase(), blockName.toLowerCase());
     }
 
     public static boolean isDefaultDistance() {
-        return CarpetOrgAdditionSettings.maxBlockPlaceDistance == -1;
+        return CarpetOrgAdditionSettings.maxBlockPlaceDistance.get() == -1;
     }
 
     /**
@@ -44,11 +57,11 @@ public class RuleUtils {
      * @return 当前设置的最大交互距离，最大不超过256.0
      */
     public static double getPlayerMaxInteractionDistance() {
-        double distance = CarpetOrgAdditionSettings.maxBlockPlaceDistance;
+        double distance = CarpetOrgAdditionSettings.maxBlockPlaceDistance.get();
         if (distance < 0) {
             return 6.0;
         }
-        return Math.min(distance, MaxBlockPlaceDistanceValidator.MAX_VALUE);
+        return Math.min(distance, MAX_DISTANCE);
     }
 
     public static <T> T shulkerBoxStackableWrap(Supplier<T> supplier) {
@@ -89,7 +102,7 @@ public class RuleUtils {
         if (player == null) {
             return false;
         }
-        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory) {
+        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get()) {
             case TRUE -> true;
             case FALSE -> false;
             case CUSTOM -> {
@@ -103,11 +116,25 @@ public class RuleUtils {
      * 获取规则的名称
      */
     public static MutableText simpleTranslationName(CarpetRule<?> rule) {
-        String key = String.format("%s.rule.%s.name", rule.settingsManager().identifier(), rule.name());
+        String key = String.format(TranslationKeys.RULE_NAME_PATTERN, rule.settingsManager().identifier(), rule.name());
         TextBuilder builder = TextBuilder.of(key);
         if (Translations.hasTranslation(key)) {
             return builder.setHover(rule.name()).build();
         }
         return TextBuilder.create(rule.name());
+    }
+
+    public static List<Text> ruleExtraInfo(CarpetRule<?> rule) {
+        String key = String.format(TranslationKeys.RULE_EXTRA_PREFIX_PATTERN, rule.settingsManager().identifier(), rule.name());
+        List<String> list = new ArrayList<>();
+        for (int i = 0; Translations.hasTranslation(key + i); i++) {
+            list.add(Translations.tr(key + i));
+        }
+        return list.stream()
+                .map(TextBuilder::of)
+                .map(builder -> builder.setColor(Formatting.GRAY))
+                .map(TextBuilder::build)
+                .map(text -> (Text) text)
+                .toList();
     }
 }
