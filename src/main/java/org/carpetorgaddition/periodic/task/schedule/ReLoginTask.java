@@ -69,7 +69,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     @Override
     public void tick() {
         // 启用内存泄漏修复
-        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix) {
+        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
             ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.playerName);
             if (player == null) {
                 if (this.canSpawn == 0) {

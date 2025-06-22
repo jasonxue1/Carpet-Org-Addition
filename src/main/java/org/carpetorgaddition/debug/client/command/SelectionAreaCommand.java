@@ -67,10 +67,6 @@ public class SelectionAreaCommand {
             super.render(matrixStack);
         }
 
-        public boolean isStop() {
-            return this.deque.isEmpty();
-        }
-
         private long getGameTime() {
             return Objects.requireNonNull(MinecraftClient.getInstance().world).getTime();
         }

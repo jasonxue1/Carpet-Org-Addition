@@ -80,7 +80,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerManager))
+                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerManager.get()))
                 .then(CommandManager.literal("save")
                         .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                 .executes(context -> savePlayerData(context, false))
@@ -703,7 +703,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 启用内存泄漏修复
     private boolean fixMemoryLeak(CommandContext<ServerCommandSource> context) {
-        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix) {
+        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
             return true;
         }
         // 单击后输入的命令

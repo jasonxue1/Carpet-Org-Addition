@@ -119,7 +119,7 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
         if (CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get()) {
             return original.call(from, to, stack, side);
         }
-        if (CarpetOrgAdditionSettings.shulkerBoxStackable && InventoryUtils.isShulkerBoxItem(stack)) {
+        if (CarpetOrgAdditionSettings.shulkerBoxStackable.get() && InventoryUtils.isShulkerBoxItem(stack)) {
             ItemStack split = stack.split(stack.getMaxCount());
             int count = split.getCount();
             ItemStack result = original.call(from, to, split.copy(), side);
@@ -137,7 +137,7 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
      */
     @Unique
     private static void compatible(Runnable runnable) {
-        if (CarpetOrgAdditionSettings.shulkerBoxStackable && CarpetOrgAddition.LITHIUM) {
+        if (CarpetOrgAdditionSettings.shulkerBoxStackable.get() && CarpetOrgAddition.LITHIUM) {
             boolean changed = CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get();
             try {
                 CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.set(false);

@@ -49,6 +49,6 @@ public enum OpenPlayerInventory {
     }
 
     public static boolean isEnable(ServerCommandSource ignored) {
-        return CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory != FALSE;
+        return CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get() != FALSE;
     }
 }

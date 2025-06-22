@@ -18,14 +18,11 @@ public class ServerPlayerInteractionManagerMixin {
 
     @WrapMethod(method = "tryBreakBlock")
     private boolean tryBreakBlock(BlockPos pos, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.isEnable()) {
-            try {
-                CarpetOrgAdditionSettings.blockBreaking.set(this.player);
-                return original.call(pos);
-            } finally {
-                CarpetOrgAdditionSettings.blockBreaking.remove();
-            }
+        try {
+            CarpetOrgAdditionSettings.blockBreaking.set(this.player);
+            return original.call(pos);
+        } finally {
+            CarpetOrgAdditionSettings.blockBreaking.remove();
         }
-        return original.call(pos);
     }
 }
