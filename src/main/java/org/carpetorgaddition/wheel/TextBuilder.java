@@ -134,7 +134,7 @@ public class TextBuilder {
      * 设置单击文本后聊天框输入命令
      */
     public TextBuilder setSuggestCommand(String command) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)));
+        this.text.styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(command)));
         return this;
     }
 

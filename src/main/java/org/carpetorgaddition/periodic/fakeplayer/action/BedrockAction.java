@@ -26,6 +26,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.apache.commons.lang3.mutable.MutableInt;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
@@ -41,6 +42,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -806,8 +808,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void dropGarbageAndCollectMaterial() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         PlayerInventory inventory = fakePlayer.getInventory();
-        for (int i = 0; i < inventory.main.size(); i++) {
-            if (inventory.main.get(i).isEmpty()) {
+        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
+            if (inventory.getMainStacks().get(i).isEmpty()) {
                 // 玩家物品栏里还有空槽位
                 return;
             }
