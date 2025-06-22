@@ -33,7 +33,7 @@ public abstract class ObserverBlockMixin extends FacingBlock {
     // 可激活侦测器，打火石右键激活
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (CarpetOrgAdditionSettings.canActivatesObserver) {
+        if (CarpetOrgAdditionSettings.canActivatesObserver.get()) {
             ItemStack itemStack = player.getStackInHand(hand);
             if (itemStack.isOf(Items.FLINT_AND_STEEL) && !player.isSneaking()) {
                 this.scheduleTick(world, world, pos);

@@ -3,15 +3,19 @@ package org.carpetorgaddition.util;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import org.carpetorgaddition.wheel.ContainerDeepCopy;
+import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
-import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.jetbrains.annotations.CheckReturnValue;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
@@ -46,7 +50,7 @@ public class InventoryUtils {
             if (predicate.test(itemStack)) {
                 ItemStack copy = itemStack.copy();
                 itemStack.setCount(0);
-                ifItIsEmptyRemoveIt(itemStack);
+                removeContainerIfEmpty(itemStack);
                 return copy;
             }
         }
@@ -105,6 +109,38 @@ public class InventoryUtils {
         if (isShulkerBoxItem(container) && container.getCount() == 1 && itemStack.getItem().canBeNested()) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
             return inventory.addStack(itemStack);
+        }
+        return itemStack;
+    }
+
+    // TODO 添加规则开关
+    @CheckReturnValue
+    public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, PlayerInventory inventory) {
+        itemStack = itemStack.copyAndEmpty();
+        // 所有潜影盒所在的索引
+        ArrayList<Integer> shulkers = new ArrayList<>();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack shulker = inventory.getStack(i);
+            if (isShulkerBoxItem(shulker)) {
+                shulkers.add(i);
+                // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
+                if (canAcceptAsSingleItemType(shulker, itemStack, false) || isJunkBox(shulker)) {
+                    itemStack = addItemToShulkerBox(shulker, itemStack);
+                    if (itemStack.isEmpty()) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            }
+        }
+        // 尝试向空潜影盒装入物品
+        for (Integer index : shulkers) {
+            ItemStack shulker = inventory.getStack(index);
+            if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
+                itemStack = addItemToShulkerBox(shulker, itemStack);
+                if (itemStack.isEmpty()) {
+                    return ItemStack.EMPTY;
+                }
+            }
         }
         return itemStack;
     }
@@ -181,7 +217,7 @@ public class InventoryUtils {
     }
 
     // 如果潜影盒为空，删除对应的NBT
-    private static void ifItIsEmptyRemoveIt(ItemStack shulkerBox) {
+    private static void removeContainerIfEmpty(ItemStack shulkerBox) {
         if (isEmptyShulkerBox(shulkerBox)) {
             // 如果潜影盒最后一个物品被取出，就删除潜影盒的物品栏数据堆叠组件以保证潜影盒堆叠的正常运行
             shulkerBox.set(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
@@ -232,7 +268,7 @@ public class InventoryUtils {
      */
     public static void deepCopyContainer(ItemStack shulkerBox) {
         ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        if (component == null) {
+        if (component == null || component == ContainerComponent.DEFAULT) {
             return;
         }
         ContainerComponent copy = ((ContainerDeepCopy) (Object) component).copy();
@@ -280,11 +316,171 @@ public class InventoryUtils {
         throw new IllegalStateException(message.get());
     }
 
+    /**
+     * @return 物品是否已经堆叠满
+     */
+    public static boolean isItemStackFull(ItemStack itemStack) {
+        return itemStack.isStackable() && itemStack.getMaxCount() <= itemStack.getCount();
+    }
+
+    /**
+     * 指定物品是否可以合并到目标物品
+     */
+    public static boolean canMergeTo(ItemStack stack, ItemStack target) {
+        if (isItemStackFull(target)) {
+            return false;
+        }
+        return canMerge(stack, target);
+    }
+
+    public static boolean canMerge(ItemStack stack, ItemStack otherStack) {
+        return ItemStack.areItemsAndComponentsEqual(stack, otherStack);
+    }
+
+    /**
+     * @return 如果物品相等，返回{@code 0}，如果{@code left}在{@code right}之前，返回{@code -1}，否则返回{@code 1}
+     */
+    public static int compare(ItemStack left, ItemStack right) {
+        // 物品完全相同，按照数量排序
+        if (canMerge(left, right)) {
+            return -Integer.compare(left.getCount(), right.getCount());
+        }
+        // 空物品放在最后
+        if (left.isEmpty()) {
+            return 1;
+        }
+        if (right.isEmpty()) {
+            return -1;
+        }
+        if (left.isOf(right.getItem())) {
+            // 两个物品都是潜影盒
+            if (InventoryUtils.isShulkerBoxItem(left)) {
+                return new ContainerComponentInventory(left).compareTo(new ContainerComponentInventory(right));
+            }
+            // 物品类型相同，物品组件少的排在前面
+            int compareComponent = Integer.compare(left.getComponents().size(), right.getComponents().size());
+            if (compareComponent != 0) {
+                return compareComponent;
+            }
+            int compareCount = -Integer.compare(left.getCount(), right.getCount());
+            if (compareCount != 0) {
+                return compareComponent;
+            }
+            return Integer.compare(ItemStack.hashCode(left), ItemStack.hashCode(right));
+        } else {
+            // 潜影盒放在普通物品后面，忽略潜影盒颜色
+            if (isShulkerBoxItem(left) && !isShulkerBoxItem(right)) {
+                return 1;
+            }
+            if (!isShulkerBoxItem(left) && isShulkerBoxItem(right)) {
+                return -1;
+            }
+            // 物品不相同，按照物品ID排序
+            return compare(left.getItem(), right.getItem());
+        }
+    }
+
+    public static int compare(Item left, Item right) {
+        return getRegistryId(left).compareTo(getRegistryId(right));
+    }
+
+    /**
+     * 根据条件获取物品栏中数量最多的物品
+     */
+    public static ItemStack findMostAbundantStack(Inventory inventory, Predicate<ItemStack> predicate) {
+        Counter<Counter.Wrapper<ItemStack>> counter = new Counter<>();
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack itemStack = inventory.getStack(i);
+            if (itemStack.isEmpty()) {
+                continue;
+            }
+            if (predicate.test(itemStack)) {
+                counter.add(new ItemStackWrapper(itemStack), itemStack.getCount());
+            }
+        }
+        return counter.getMostOrDefault(ItemStackWrapper.EMPTY).getValue().copy();
+    }
+
+    /**
+     * @param acceptEmptyShulker 是否可以向空潜影盒插入物品
+     * @return 潜影盒中是否有且只有一种物品，并且要插入的物品与潜影盒中的物品相同
+     */
+    public static boolean canAcceptAsSingleItemType(ItemStack shulker, ItemStack target, boolean acceptEmptyShulker) {
+        ContainerComponent component = shulker.get(DataComponentTypes.CONTAINER);
+        if (component == null || component == ContainerComponent.DEFAULT) {
+            return acceptEmptyShulker;
+        }
+        return component.streamNonEmpty().allMatch(itemStack -> canMerge(itemStack, target));
+    }
+
+    /**
+     * @return 潜影盒是否包含多种物品
+     */
+    public static boolean isJunkBox(ItemStack shulker) {
+        ContainerComponent component = shulker.get(DataComponentTypes.CONTAINER);
+        if (component == null || component == ContainerComponent.DEFAULT) {
+            return false;
+        }
+        List<ItemStack> list = component.streamNonEmpty().toList();
+        // 潜影盒为空或只有一个物品
+        if (list.size() < 2) {
+            return false;
+        }
+        ItemStack first = list.getFirst();
+        for (int i = 1; i < list.size(); i++) {
+            if (InventoryUtils.canMerge(first, list.get(i))) {
+                continue;
+            }
+            return true;
+        }
+        return false;
+    }
+
+
+    /**
+     * 统计物品栏内指定物品的数量
+     */
+    public static int count(Inventory inventory, Predicate<ItemStack> predicate) {
+        int count = 0;
+        for (int i = 0; i < inventory.size(); i++) {
+            ItemStack itemStack = inventory.getStack(i);
+            if (predicate.test(itemStack)) {
+                count += itemStack.getCount();
+            }
+        }
+        return count;
+    }
+
+    public static String getRegistryId(Item item) {
+        return item.toString();
+    }
+
     public static boolean isFoodItem(ItemStack itemStack) {
         return itemStack.contains(DataComponentTypes.FOOD);
     }
 
     public static boolean isToolItem(ItemStack itemStack) {
         return itemStack.contains(DataComponentTypes.TOOL);
+    }
+
+    private static class ItemStackWrapper extends Counter.Wrapper<ItemStack> {
+        private static final ItemStackWrapper EMPTY = new ItemStackWrapper(ItemStack.EMPTY);
+
+        public ItemStackWrapper(ItemStack value) {
+            super(value);
+        }
+
+        @Override
+        public boolean valueEquals(ItemStack value1, Object value2) {
+            if (value1.getClass() == value2.getClass()) {
+                return InventoryUtils.canMerge(value1, (ItemStack) value2);
+            }
+            return false;
+        }
+
+        @Override
+        public int valueHashCode(ItemStack value) {
+            return ItemStack.hashCode(value);
+        }
     }
 }

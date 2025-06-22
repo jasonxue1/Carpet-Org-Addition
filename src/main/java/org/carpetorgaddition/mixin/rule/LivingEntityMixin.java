@@ -55,7 +55,7 @@ public abstract class LivingEntityMixin extends Entity {
     //禁用伤害免疫
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
-        if (CarpetOrgAdditionSettings.disableDamageImmunity) {
+        if (CarpetOrgAdditionSettings.disableDamageImmunity.get()) {
             return 0;
         }
         return original.call(instance);
@@ -65,7 +65,7 @@ public abstract class LivingEntityMixin extends Entity {
     @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseDeathProtector(Lnet/minecraft/entity/damage/DamageSource;)Z"))
     private boolean setInvincibleTime(LivingEntity instance, DamageSource source, Operation<Boolean> original) {
         boolean call = original.call(instance, source);
-        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime && call) {
+        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.get() && call) {
             instance.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
         }
         return call;
@@ -75,7 +75,7 @@ public abstract class LivingEntityMixin extends Entity {
     @Inject(method = "tryUseDeathProtector", at = @At("HEAD"), cancellable = true)
     private void tryUseTotem(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         // 在一开始就对规则是否开启进行判断，这样当其他Mod也修改了此段代码时，就可以通过关闭改规则来保障其他Mod的正常运行
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying == BetterTotemOfUndying.FALSE) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.FALSE) {
             return;
         }
         LivingEntity thisLivingEntity = (LivingEntity) (Object) this;
@@ -135,7 +135,7 @@ public abstract class LivingEntityMixin extends Entity {
             return new Pair<>(itemStack, component);
         }
         // 如果这里规则值为true，或者说规则值不是shulker_box，那就没有必要继续向下执行
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying == BetterTotemOfUndying.TRUE) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.TRUE) {
             return null;
         }
         // 如果执行到这里，那么规则值一定是shulker_box，因为如果是true会在上面的if语句中直接返回，如果为false，这个方法都不会被执行

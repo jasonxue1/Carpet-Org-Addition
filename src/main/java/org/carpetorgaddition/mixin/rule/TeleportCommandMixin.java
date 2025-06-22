@@ -13,14 +13,14 @@ public class TeleportCommandMixin {
     // 开放/tp命令权限
     @Inject(method = "method_13763", at = @At("HEAD"), cancellable = true)
     private static void tpPermissions(ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openTpPermissions) {
+        if (CarpetOrgAdditionSettings.openTpPermissions.get()) {
             cir.setReturnValue(true);
         }
     }
 
     @Inject(method = "method_13764", at = @At("HEAD"), cancellable = true)
     private static void teleportPermissions(ServerCommandSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openTpPermissions) {
+        if (CarpetOrgAdditionSettings.openTpPermissions.get()) {
             cir.setReturnValue(true);
         }
     }

@@ -15,7 +15,7 @@ public class EnderPearlEntityMixin {
     // 无伤末影珍珠
     @WrapOperation(method = "onCollision", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerPlayerEntity;damage(Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/entity/damage/DamageSource;F)Z"))
     private boolean damage(ServerPlayerEntity player, ServerWorld world, DamageSource source, float amount, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.notDamageEnderPearl) {
+        if (CarpetOrgAdditionSettings.notDamageEnderPearl.get()) {
             return false;
         }
         return original.call(player, world, source, amount);

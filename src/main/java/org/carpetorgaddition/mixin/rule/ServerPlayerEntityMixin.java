@@ -31,7 +31,7 @@ public abstract class ServerPlayerEntityMixin {
     // 玩家被闪电苦力怕炸死掉落头颅
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void dropHead(DamageSource damageSource, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.playerDropHead
+        if (CarpetOrgAdditionSettings.playerDropHead.get()
                 && damageSource.getAttacker() instanceof CreeperEntity creeperEntity
                 && creeperEntity.shouldDropHead()) {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
@@ -44,12 +44,12 @@ public abstract class ServerPlayerEntityMixin {
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
         // 强制补货
-        if (CarpetOrgAdditionSettings.forceRestock) {
+        if (CarpetOrgAdditionSettings.forceRestock.get()) {
             PlayerInventory inventory = thisPlayer.getInventory();
             restock(inventory);
         }
         // 自动同步玩家状态
-        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus && thisPlayer.getWorld().getTime() % 30 == 0) {
+        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && thisPlayer.getWorld().getTime() % 30 == 0) {
             thisPlayer.server.getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);

@@ -1,38 +1,30 @@
 package org.util.docs.rule;
 
-import carpet.api.settings.Rule;
 import carpet.api.settings.RuleCategory;
+import carpet.api.settings.RuleHelper;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleContext;
 
-import java.lang.reflect.Field;
 import java.util.StringJoiner;
 
 public class RuleInformation {
-    private final Field field;
-    private final String name;
+    private final String translatedName;
     private final String docs;
     private final String[] extra;
-    private final String[] categories;
-    private final String[] options;
+    private final RuleContext<?> context;
 
-    RuleInformation(Field field, String name, String docs, String[] extra) {
-        this.field = field;
-        this.name = name;
+    RuleInformation(RuleContext<?> context, String translatedName, String docs, String[] extra) {
+        this.context = context;
+        this.translatedName = translatedName;
         this.docs = docs;
         this.extra = extra;
-        Rule annotation = field.getAnnotation(Rule.class);
-        if (annotation == null) {
-            throw new IllegalArgumentException();
-        }
-        this.categories = annotation.categories();
-        this.options = annotation.options();
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         // 规则名称
-        sb.append("### ").append(this.name).append("(").append(this.field.getName()).append(")\n");
+        sb.append("### ").append(this.translatedName).append("(").append(this.context.getName()).append(")\n");
         sb.append("\n");
         // 规则描述
         sb.append(this.docs).append(this.hasExtra() ? "<br>\n" : "\n");
@@ -50,14 +42,16 @@ public class RuleInformation {
         // 参数默认值
         sb.append("- 默认值：`").append(this.getDefaultValue()).append("`\n");
         // 参考选项
-        if (this.options.length > 0) {
+        if (this.context.getSuggestions().isEmpty()) {
+            if (isBoolean()) {
+                sb.append("- 参考选项：`true`，`false`\n");
+            }
+        } else {
             StringJoiner sj = new StringJoiner("，", "- 参考选项：", "\n");
-            for (String option : this.options) {
+            for (String option : this.context.getSuggestions()) {
                 sj.add("`" + option + "`");
             }
             sb.append(sj);
-        } else if (isBoolean()) {
-            sb.append("- 参考选项：`true`，`false`\n");
         }
         // 分类
         sb.append(this.getCategory());
@@ -66,7 +60,7 @@ public class RuleInformation {
 
     // 规则值是否是布尔类型
     private boolean isBoolean() {
-        return boolean.class.isAssignableFrom(this.field.getType()) || Boolean.class.isAssignableFrom(this.field.getType());
+        return Boolean.class.isAssignableFrom(this.context.getType());
     }
 
     // 规则是否有扩展描述
@@ -76,7 +70,7 @@ public class RuleInformation {
 
     // 获取参数类型名称
     private String getArgumentType() {
-        Class<?> type = this.field.getType();
+        Class<?> type = this.context.getType();
         if (String.class.isAssignableFrom(type)) {
             return "字符串";
         }
@@ -100,22 +94,18 @@ public class RuleInformation {
         if (Enum.class.isAssignableFrom(type)) {
             return "枚举";
         }
-        throw new RuntimeException(this.field.getType().getName());
+        throw new RuntimeException(this.context.getType().getName());
     }
 
     // 获取规则默认值
     private String getDefaultValue() {
-        try {
-            return this.field.get(null).toString().toLowerCase();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        return RuleHelper.toRuleString(this.context.value());
     }
 
     // 获取规则分类
     private String getCategory() {
         StringJoiner stringJoiner = new StringJoiner("，", "- 分类：", "\n");
-        for (String category : this.categories) {
+        for (String category : this.context.getCategories()) {
             stringJoiner.add("`" + switch (category) {
                 case CarpetOrgAdditionSettings.ORG -> "Org";
                 case CarpetOrgAdditionSettings.HIDDEN -> "隐藏";

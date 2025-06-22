@@ -29,7 +29,7 @@ public class PlayerEntityMixin {
             return;
         }
         ProductionEnvironmentError.assertDevelopmentEnvironment();
-        if (DebugSettings.openFakePlayerInventory && entity instanceof EntityPlayerMPFake fakePlayer) {
+        if (DebugSettings.openFakePlayerInventory.get() && entity instanceof EntityPlayerMPFake fakePlayer) {
             if (thisPlayer instanceof ServerPlayerEntity player) {
                 CommandUtils.execute(player, CommandProvider.openPlayerInventory(fakePlayer));
             }

@@ -17,7 +17,7 @@ public abstract class ItemMixin {
     // 将镐作为基岩的有效采集工具
     @Inject(method = "getMiningSpeed", at = @At("HEAD"), cancellable = true)
     private void miningSpeed(ItemStack stack, BlockState state, CallbackInfoReturnable<Float> cir) {
-        if (CarpetOrgAdditionSettings.pickaxeMinedBedrock && state.getBlock() == Blocks.BEDROCK) {
+        if (CarpetOrgAdditionSettings.pickaxeMinedBedrock.get() && state.getBlock() == Blocks.BEDROCK) {
             ToolComponent tool = stack.get(DataComponentTypes.TOOL);
             if (tool == null) {
                 return;

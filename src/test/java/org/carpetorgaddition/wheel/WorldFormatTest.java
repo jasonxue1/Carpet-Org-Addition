@@ -1,4 +1,4 @@
-package org.carpetorgaddition.util.wheel;
+package org.carpetorgaddition.wheel;
 
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.util.IOUtils;

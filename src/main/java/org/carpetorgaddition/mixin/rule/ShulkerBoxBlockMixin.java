@@ -17,7 +17,7 @@ public class ShulkerBoxBlockMixin {
     // 强制开启潜影盒
     @Inject(method = "canOpen", at = @At(value = "HEAD"), cancellable = true)
     private static void canOpen(BlockState state, World world, BlockPos pos, ShulkerBoxBlockEntity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openShulkerBoxForcibly) {
+        if (CarpetOrgAdditionSettings.openShulkerBoxForcibly.get()) {
             cir.setReturnValue(true);
         }
     }
