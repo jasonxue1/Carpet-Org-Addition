@@ -34,7 +34,7 @@ public class ItemStackMixin {
     // 规则是否已启用，并且当前物品是空潜影盒
     @Unique
     private boolean shulkerBoxStackableEnabled() {
-        return CarpetOrgAdditionSettings.shulkerBoxStackable
+        return CarpetOrgAdditionSettings.shulkerBoxStackable.get()
                 && InventoryUtils.isShulkerBoxItem(thisStack)
                 && InventoryUtils.isEmptyShulkerBox(thisStack);
     }

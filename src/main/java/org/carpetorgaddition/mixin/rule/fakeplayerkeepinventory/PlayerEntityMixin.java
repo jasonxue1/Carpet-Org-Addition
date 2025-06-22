@@ -18,7 +18,7 @@ public class PlayerEntityMixin {
     // 假玩家死亡不掉落，保留物品栏
     @Inject(method = "dropInventory", at = @At("HEAD"), cancellable = true)
     private void dropInventory(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory && thisPlayer instanceof EntityPlayerMPFake) {
+        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory.get() && thisPlayer instanceof EntityPlayerMPFake) {
             ci.cancel();
         }
     }
@@ -26,7 +26,7 @@ public class PlayerEntityMixin {
     // 假玩家死亡不掉落经验
     @Inject(method = "getXpToDrop", at = @At("HEAD"), cancellable = true)
     private void getXpToDrop(CallbackInfoReturnable<Integer> cir) {
-        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory && thisPlayer instanceof EntityPlayerMPFake) {
+        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory.get() && thisPlayer instanceof EntityPlayerMPFake) {
             cir.setReturnValue(0);
         }
     }

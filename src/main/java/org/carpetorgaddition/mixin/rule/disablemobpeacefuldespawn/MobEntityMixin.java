@@ -12,7 +12,7 @@ public class MobEntityMixin {
     // 禁止特定生物在和平模式下被清除
     @WrapOperation(method = "checkDespawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/mob/MobEntity;isDisallowedInPeaceful()Z"))
     private boolean isDisallowedInPeaceful(MobEntity mob, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.disableMobPeacefulDespawn && (mob.isPersistent() || mob.cannotDespawn())) {
+        if (CarpetOrgAdditionSettings.disableMobPeacefulDespawn.get() && (mob.isPersistent() || mob.cannotDespawn())) {
             return false;
         }
         return original.call(mob);

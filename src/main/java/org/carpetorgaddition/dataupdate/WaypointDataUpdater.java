@@ -1,7 +1,6 @@
-package org.carpetorgaddition.dataupdate.waypoint;
+package org.carpetorgaddition.dataupdate;
 
 import com.google.gson.JsonObject;
-import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 
 public class WaypointDataUpdater implements DataUpdater {

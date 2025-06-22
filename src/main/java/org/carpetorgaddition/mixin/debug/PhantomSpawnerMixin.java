@@ -18,7 +18,7 @@ public class PhantomSpawnerMixin {
 
     @Inject(method = "spawn", at = @At("HEAD"))
     private void spawn(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfoReturnable<Integer> cir) {
-        if (DebugSettings.phantomImmediatelySpawn) {
+        if (DebugSettings.phantomImmediatelySpawn.get()) {
             this.cooldown = 0;
         }
     }

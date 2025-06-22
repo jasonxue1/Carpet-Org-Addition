@@ -16,7 +16,7 @@ public class RepeaterBlockMixin {
     @Inject(method = "getStateForNeighborUpdate", at = @At("HEAD"), cancellable = true)
     private void preventDrop(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos, CallbackInfoReturnable<BlockState> cir) {
         // 防止中继器掉落
-        if (CarpetOrgAdditionSettings.simpleUpdateSkipper && direction == Direction.DOWN) {
+        if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get() && direction == Direction.DOWN) {
             cir.setReturnValue(state);
         }
     }

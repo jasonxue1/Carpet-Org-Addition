@@ -55,7 +55,8 @@ public class TranslateParser {
         }
 
         public boolean isCategory() {
-            return this.key.startsWith("carpet.category.");
+            String[] split = this.key.split("\\.");
+            return split.length == 3 && "category".equals(split[1]);
         }
 
         @Override

@@ -14,8 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class PiglinBrainMixin {
     @Inject(method = "setAdmiringItem", at = @At("HEAD"), cancellable = true)
     private static void setAdmiringItem(LivingEntity entity, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.customPiglinBarteringTime != -1) {
-            entity.getBrain().remember(MemoryModuleType.ADMIRING_ITEM, true, CarpetOrgAdditionSettings.customPiglinBarteringTime);
+        Long time = CarpetOrgAdditionSettings.customPiglinBarteringTime.get();
+        if (time != -1) {
+            entity.getBrain().remember(MemoryModuleType.ADMIRING_ITEM, true, time);
             ci.cancel();
         }
     }

@@ -43,6 +43,7 @@
     "rule.FishingMixin",
     "rule.GameRuleCommandMixin",
     "rule.ItemMixin",
+    "rule.ItemScattererMixin",
     "rule.KillCommandMixin",
     "rule.LivingEntityMixin",
     "rule.MerchantScreenHandlerAccessor",
@@ -74,7 +75,6 @@
     "rule.carpet.EntityPlayerMPFakeMixin",
     "rule.carpet.LoggerAccessor",
     "rule.carpet.SettingsManagerAccessor",
-    "rule.carpet.SettingsManagerMixin",
     "rule.cceupdatesuppression.BlockPlacementDispenserBehaviorMixin",
     "rule.cceupdatesuppression.ShulkerBoxBlockMixin",
     "rule.disablemobpeacefuldespawn.MobEntityMixin",
@@ -102,7 +102,9 @@
     "util.PlayerManagerMixin",
     "util.ServerPlayerEntityMixin",
     "util.ServerPlayNetworkHandlerMixin",
-    "util.carpet.LoggerRegistryMixin"
+    "util.carpet.LoggerRegistryMixin",
+    "util.carpet.RuleHelperMixin",
+    "util.carpet.SettingsManagerMixin"
   ],
   "client": [
     "debug.ScreenAccessor",

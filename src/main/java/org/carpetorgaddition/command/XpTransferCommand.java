@@ -31,7 +31,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandXpTransfer))
+                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandXpTransfer.get()))
                 .then(CommandManager.argument("from", EntityArgumentType.player())
                         .then(CommandManager.argument("to", EntityArgumentType.player())
                                 .then(CommandManager.literal("all")
