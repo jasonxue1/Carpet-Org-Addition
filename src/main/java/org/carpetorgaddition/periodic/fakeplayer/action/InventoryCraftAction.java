@@ -11,10 +11,10 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
 
@@ -87,8 +87,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                             successCount++;
                             break;
                         }
-                    } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox
-                            && InventoryUtils.isShulkerBoxItem(itemStack)) {
+                    } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get() && InventoryUtils.isShulkerBoxItem(itemStack)) {
                         ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, matcher);
                         if (!contentItemStack.isEmpty()) {
                             // 丢弃光标上的物品（如果有）

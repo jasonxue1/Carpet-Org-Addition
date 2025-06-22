@@ -18,7 +18,7 @@ public abstract class PhantomSpawnerMixin {
     // 限制幻翼生成
     @Inject(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/SpawnHelper;isClearForSpawn(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/fluid/FluidState;Lnet/minecraft/entity/EntityType;)Z"), cancellable = true)
     private void spawn(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfo ci, @Local(ordinal = 1) BlockPos blockPos) {
-        if (CarpetOrgAdditionSettings.limitPhantomSpawn) {
+        if (CarpetOrgAdditionSettings.limitPhantomSpawn.get()) {
             SpawnHelper.Info spawnInfo = world.getChunkManager().getSpawnInfo();
             if (spawnInfo == null) {
                 return;

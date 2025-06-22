@@ -33,7 +33,7 @@ public abstract class TurtleEggBlockMixin extends Block {
     //海龟蛋快速孵化
     @Inject(method = "shouldHatchProgress", at = @At("HEAD"), cancellable = true)
     private void progress(World world, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.turtleEggFastHatch) {
+        if (CarpetOrgAdditionSettings.turtleEggFastHatch.get()) {
             cir.setReturnValue(true);
         }
     }
@@ -41,7 +41,7 @@ public abstract class TurtleEggBlockMixin extends Block {
     // 海龟蛋快速采集
     @Inject(method = "afterBreak", at = @At("HEAD"), cancellable = true)
     private void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, BlockEntity blockEntity, ItemStack tool, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.turtleEggFastMine) {
+        if (CarpetOrgAdditionSettings.turtleEggFastMine.get()) {
             for (int i = 0; i < state.get(EGGS); i++) {
                 super.afterBreak(world, player, pos, state, blockEntity, tool);
             }

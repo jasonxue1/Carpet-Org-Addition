@@ -8,54 +8,125 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class BlockHardnessModifiers {
     /**
      * 深板岩和与深板岩硬度相同的变种
      */
-    private static final List<Block> DEEPSLATE = Stream.of(Blocks.DEEPSLATE, Blocks.CHISELED_DEEPSLATE,
-            Blocks.POLISHED_DEEPSLATE, Blocks.DEEPSLATE_BRICK_SLAB, Blocks.DEEPSLATE_BRICK_STAIRS,
-            Blocks.DEEPSLATE_BRICK_WALL, Blocks.POLISHED_DEEPSLATE_SLAB, Blocks.POLISHED_DEEPSLATE_STAIRS,
-            Blocks.POLISHED_DEEPSLATE_WALL).toList();
+    private static final List<Block> DEEPSLATE = List.of(
+            // 深板岩
+            Blocks.DEEPSLATE,
+            // 雕纹深板岩
+            Blocks.CHISELED_DEEPSLATE,
+            // 磨制深板岩
+            Blocks.POLISHED_DEEPSLATE,
+            // 磨制深板岩台阶
+            Blocks.POLISHED_DEEPSLATE_SLAB,
+            // 磨制深板岩楼梯
+            Blocks.POLISHED_DEEPSLATE_STAIRS,
+            // 磨制深板岩墙
+            Blocks.POLISHED_DEEPSLATE_WALL,
+            // 深板岩砖台阶
+            Blocks.DEEPSLATE_BRICK_SLAB,
+            // 深板岩砖楼梯
+            Blocks.DEEPSLATE_BRICK_STAIRS,
+            // 深板岩砖墙
+            Blocks.DEEPSLATE_BRICK_WALL
+    );
 
     /**
      * 深板岩圆石和与深板岩圆石硬度相同的变种
      */
-    private static final List<Block> COBBLED_DEEPSLATE = Stream.of(Blocks.COBBLED_DEEPSLATE,
-            Blocks.COBBLED_DEEPSLATE_SLAB, Blocks.COBBLED_DEEPSLATE_STAIRS, Blocks.COBBLED_DEEPSLATE_WALL,
-            Blocks.DEEPSLATE_BRICKS, Blocks.DEEPSLATE_TILES, Blocks.DEEPSLATE_TILE_SLAB, Blocks.DEEPSLATE_TILE_STAIRS,
-            Blocks.DEEPSLATE_TILE_WALL, Blocks.CRACKED_DEEPSLATE_BRICKS, Blocks.CRACKED_DEEPSLATE_TILES).toList();
+    private static final List<Block> COBBLED_DEEPSLATE = List.of(
+            // 深板岩圆石
+            Blocks.COBBLED_DEEPSLATE,
+            // 深板岩圆石台阶
+            Blocks.COBBLED_DEEPSLATE_SLAB,
+            // 深板岩圆石楼梯
+            Blocks.COBBLED_DEEPSLATE_STAIRS,
+            // 深板岩圆石墙
+            Blocks.COBBLED_DEEPSLATE_WALL,
+            // 裂纹深板岩砖
+            Blocks.DEEPSLATE_BRICKS,
+            // 裂纹深板岩瓦
+            Blocks.DEEPSLATE_TILES,
+            // 深板岩瓦台阶
+            Blocks.DEEPSLATE_TILE_SLAB,
+            // 深板岩瓦楼梯
+            Blocks.DEEPSLATE_TILE_STAIRS,
+            // 深板岩瓦墙
+            Blocks.DEEPSLATE_TILE_WALL,
+            // 裂纹深板岩砖
+            Blocks.CRACKED_DEEPSLATE_BRICKS,
+            // 裂纹深板岩瓦
+            Blocks.CRACKED_DEEPSLATE_TILES
+    );
 
     /**
      * 普通矿石
      */
-    private static final List<Block> ORE = Stream.of(Blocks.COAL_ORE, Blocks.IRON_ORE, Blocks.COPPER_ORE,
-            Blocks.LAPIS_ORE, Blocks.GOLD_ORE, Blocks.REDSTONE_ORE, Blocks.DIAMOND_ORE, Blocks.EMERALD_ORE).toList();
+    private static final List<Block> ORE = List.of(
+            // 煤矿石
+            Blocks.COAL_ORE,
+            // 铁矿石
+            Blocks.IRON_ORE,
+            // 铜矿石
+            Blocks.COPPER_ORE,
+            // 青金石矿石
+            Blocks.LAPIS_ORE,
+            // 金矿石
+            Blocks.GOLD_ORE,
+            // 红石矿石
+            Blocks.REDSTONE_ORE,
+            // 钻石矿石
+            Blocks.DIAMOND_ORE,
+            // 绿宝石矿石
+            Blocks.EMERALD_ORE
+    );
 
     /**
      * 深层矿石
      */
-    private static final List<Block> DEEPSLATE_ORE = Stream.of(Blocks.DEEPSLATE_COAL_ORE, Blocks.DEEPSLATE_IRON_ORE,
-            Blocks.DEEPSLATE_COPPER_ORE, Blocks.DEEPSLATE_LAPIS_ORE, Blocks.DEEPSLATE_GOLD_ORE,
-            Blocks.DEEPSLATE_REDSTONE_ORE, Blocks.DEEPSLATE_DIAMOND_ORE, Blocks.DEEPSLATE_EMERALD_ORE).toList();
+    private static final List<Block> DEEPSLATE_ORE = List.of(
+            // 深层煤矿石
+            Blocks.DEEPSLATE_COAL_ORE,
+            // 深层铁矿石
+            Blocks.DEEPSLATE_IRON_ORE,
+            // 深层铜矿石
+            Blocks.DEEPSLATE_COPPER_ORE,
+            // 深层青金石矿石
+            Blocks.DEEPSLATE_LAPIS_ORE,
+            // 深层金矿石
+            Blocks.DEEPSLATE_GOLD_ORE,
+            // 深层红石矿石
+            Blocks.DEEPSLATE_REDSTONE_ORE,
+            // 深层钻石矿石
+            Blocks.DEEPSLATE_DIAMOND_ORE,
+            // 深层绿宝石矿石
+            Blocks.DEEPSLATE_EMERALD_ORE
+    );
 
     /**
      * 下界矿石
      */
-    private static final List<Block> NETHER_ORE = Stream.of(Blocks.NETHER_QUARTZ_ORE, Blocks.NETHER_GOLD_ORE).toList();
+    private static final List<Block> NETHER_ORE = List.of(
+            // 下界石英矿石
+            Blocks.NETHER_QUARTZ_ORE,
+            // 下界金矿石
+            Blocks.NETHER_GOLD_ORE
+    );
 
     // 获取方块硬度
     public static Optional<Float> getHardness(Block block, BlockView world, BlockPos pos) {
         // 设置基岩硬度
         if (block == Blocks.BEDROCK) {
-            float hardness = CarpetOrgAdditionSettings.setBedrockHardness;
-            if (CarpetOrgAdditionSettings.setBedrockHardness != -1F) {
+            float hardness = CarpetOrgAdditionSettings.setBedrockHardness.get();
+            if (CarpetOrgAdditionSettings.setBedrockHardness.get() != -1F) {
                 return Optional.of(hardness);
             }
         }
         // 易碎深板岩
-        if (CarpetOrgAdditionSettings.softDeepslate) {
+        if (CarpetOrgAdditionSettings.softDeepslate.get()) {
             // 深板岩
             if (DEEPSLATE.contains(block)) {
                 return Optional.of(Blocks.STONE.getHardness());
@@ -66,11 +137,11 @@ public class BlockHardnessModifiers {
             }
         }
         // 易碎黑曜石
-        if (CarpetOrgAdditionSettings.softObsidian && (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN)) {
+        if (CarpetOrgAdditionSettings.softObsidian.get() && (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN)) {
             return Optional.of(Blocks.END_STONE.getHardness());
         }
         // 易碎矿石
-        if (CarpetOrgAdditionSettings.softOres) {
+        if (CarpetOrgAdditionSettings.softOres.get()) {
             // 普通矿石
             if (ORE.contains(block)) {
                 return Optional.of(Blocks.STONE.getHardness());

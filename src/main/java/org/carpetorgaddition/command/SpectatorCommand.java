@@ -44,7 +44,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandSpectator))
+                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandSpectator.get()))
                 .executes(context -> setGameMode(context, false))
                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                         .executes(context -> setGameMode(context, true)))

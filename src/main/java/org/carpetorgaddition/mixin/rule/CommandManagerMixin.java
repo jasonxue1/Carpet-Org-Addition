@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class CommandManagerMixin {
     @Inject(method = "execute", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;callWithContext(Lnet/minecraft/server/command/ServerCommandSource;Ljava/util/function/Consumer;)V"))
     private void recordCommand(ParseResults<ServerCommandSource> parseResults, String command, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.recordPlayerCommand) {
+        if (CarpetOrgAdditionSettings.recordPlayerCommand.get()) {
             ServerCommandSource source = parseResults.getContext().getSource();
             CarpetOrgAddition.LOGGER.info("<{}> [Command: /{}]", source.getName(), command);
         }

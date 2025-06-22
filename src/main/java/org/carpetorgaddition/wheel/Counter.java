@@ -102,6 +102,10 @@ public class Counter<E> implements Iterable<E> {
         this.counter.entrySet().removeIf(entry -> entry.getValue() == 0);
     }
 
+    public E getMostOrDefault(E value) {
+        return this.stream().max(Map.Entry.comparingByValue()).map(Map.Entry::getKey).orElse(value);
+    }
+
     @NotNull
     @Override
     public Iterator<E> iterator() {
@@ -129,7 +133,6 @@ public class Counter<E> implements Iterable<E> {
      * 计数器是通过对象内的equals和hashCode方法来判断是否为相同的事物的，但是并不是所有对象equals都能满足当前的需要，
      * 因此可以使用本类包装并根据实际情况来重写这个内部类中的方法
      */
-    @SuppressWarnings("unused")
     public abstract static class Wrapper<T> {
         private final T value;
 
