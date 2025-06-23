@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -13,8 +12,8 @@ import net.minecraft.util.Hand;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 
 public class ItemShadowingCommand extends AbstractServerCommand {
     public ItemShadowingCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -24,7 +23,7 @@ public class ItemShadowingCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandItemShadowing.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandItemShadowing))
                 .executes(this::itemShadowing));
     }
 

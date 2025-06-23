@@ -13,7 +13,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.util.InventoryUtils;
@@ -127,16 +126,8 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
                 PlayerInventory inventory = thisPlayer.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {
                     ItemStack itemStack = inventory.getStack(i);
-                    if (InventoryUtils.isShulkerBoxItem(itemStack)) {
-                        MutableBoolean bool = new MutableBoolean(false);
-                        InventoryUtils.shulkerBoxConsumer(
-                                itemStack,
-                                stack -> stack.isOf(Items.TOTEM_OF_UNDYING),
-                                (stack) -> bool.setTrue()
-                        );
-                        if (bool.getValue()) {
-                            return true;
-                        }
+                    if (InventoryUtils.hasItemStack(itemStack, stack -> stack.isOf(Items.TOTEM_OF_UNDYING))) {
+                        return true;
                     }
                 }
             }

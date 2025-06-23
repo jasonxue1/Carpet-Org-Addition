@@ -142,14 +142,12 @@ public abstract class LivingEntityMixin extends Entity {
         for (ItemStack shulkerBox : mainInventory) {
             if (InventoryUtils.isShulkerBoxItem(shulkerBox)) {
                 // 从潜影盒中拿取不死图腾
-                ItemStack itemInTheBox = InventoryUtils.shulkerBoxConsumer(shulkerBox,
-                        stack -> stack.get(DataComponentTypes.DEATH_PROTECTION) != null,
-                        stack -> stack.decrement(1));
+                ItemStack totemOfUndying = InventoryUtils.pickItemFromShulkerBox(shulkerBox, stack -> stack.isOf(Items.TOTEM_OF_UNDYING));
                 // 潜影盒中可能没有不死图腾
-                if (itemInTheBox.isEmpty()) {
+                if (totemOfUndying.isEmpty()) {
                     continue;
                 }
-                return new Pair<>(itemInTheBox, itemInTheBox.get(DataComponentTypes.DEATH_PROTECTION));
+                return totemOfUndying.copy();
             }
         }
         return null;

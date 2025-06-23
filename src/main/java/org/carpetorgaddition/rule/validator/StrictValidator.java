@@ -6,7 +6,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.rule.ValidatorFeedbacks;
 import org.jetbrains.annotations.NotNull;
 
-public class StrictValidator<T> extends AbstractValidator<T> {
+public class StrictValidator<T> implements Validator<T> {
     private final CarpetRule<T> rule;
 
     public StrictValidator(CarpetRule<T> rule) {
