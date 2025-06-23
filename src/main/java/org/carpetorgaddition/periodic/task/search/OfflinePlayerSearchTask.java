@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.CarpetSettings;
-import carpet.utils.CommandHelper;
 import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.datafixer.DataFixTypes;
@@ -303,7 +302,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     @Nullable
     protected Text openInventoryButton(GameProfile gameProfile) {
-        if (CommandHelper.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
+        if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
             String command = CommandProvider.openPlayerInventory(gameProfile.getId());
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCommand(command);
@@ -392,7 +391,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
         // 添加单击上线按钮
         private Text createLoginButton() {
-            if (CommandHelper.canUseCommand(source, CarpetSettings.commandPlayer)) {
+            if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer)) {
                 String command = CommandProvider.spawnFakePlayer(gameProfile().getName());
                 TextBuilder builder = new TextBuilder(" [↑]");
                 builder.setColor(Formatting.GRAY);

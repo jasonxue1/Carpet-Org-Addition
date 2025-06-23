@@ -14,11 +14,11 @@ import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.jetbrains.annotations.CheckReturnValue;
+import org.jetbrains.annotations.Contract;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -38,21 +38,11 @@ public class InventoryUtils {
      */
     @CheckReturnValue
     public static ItemStack pickItemFromShulkerBox(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
-        // 判断潜影盒是否为空，空潜影盒直接返回空物品
-        if (isEmptyShulkerBox(shulkerBox)) {
-            return ItemStack.EMPTY;
-        }
-        // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
-        InventoryUtils.deepCopyContainer(shulkerBox);
-        ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        //noinspection DataFlowIssue
-        for (ItemStack itemStack : component.iterateNonEmpty()) {
-            if (predicate.test(itemStack)) {
-                ItemStack copy = itemStack.copy();
-                itemStack.setCount(0);
-                removeContainerIfEmpty(itemStack);
-                return copy;
-            }
+        if (isOperableSulkerBox(shulkerBox)) {
+            // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
+            InventoryUtils.deepCopyContainer(shulkerBox);
+            ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
+            return inventory.pinkStack(predicate);
         }
         return ItemStack.EMPTY;
     }
@@ -67,31 +57,13 @@ public class InventoryUtils {
         if (count <= 0) {
             return ItemStack.EMPTY;
         }
-        // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
-        InventoryUtils.deepCopyContainer(shulkerBox);
-        ContainerComponent component = shulkerBox.getOrDefault(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
-        ItemStack itemStack = ItemStack.EMPTY;
-        for (ItemStack stack : component.iterateNonEmpty()) {
-            if (itemStack.isEmpty()) {
-                if (predicate.test(stack)) {
-                    itemStack = stack.split(count);
-                    // 如果count为65，而物品最大堆叠数为64，那么取出的物品数量将超过最大值
-                    // 因此在这里限制一下count的值
-                    count = Math.min(itemStack.getMaxCount(), count) - itemStack.getCount();
-                }
-            } else if (ItemStack.areItemsAndComponentsEqual(itemStack, stack)) {
-                ItemStack split = stack.split(count);
-                count -= split.getCount();
-                itemStack.increment(split.getCount());
-            }
-            if (count == 0) {
-                break;
-            }
-            if (count < 0) {
-                throw new IllegalStateException();
-            }
+        if (isOperableSulkerBox(shulkerBox)) {
+            // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
+            InventoryUtils.deepCopyContainer(shulkerBox);
+            ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
+            return inventory.pinkStack(predicate, count);
         }
-        return itemStack;
+        return ItemStack.EMPTY;
     }
 
     /**
@@ -106,7 +78,7 @@ public class InventoryUtils {
         if (container.isEmpty() || itemStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        if (isShulkerBoxItem(container) && container.getCount() == 1 && itemStack.getItem().canBeNested()) {
+        if (isOperableSulkerBox(container) && itemStack.getItem().canBeNested()) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
             return inventory.addStack(itemStack);
         }
@@ -169,32 +141,9 @@ public class InventoryUtils {
     }
 
     /**
-     * 获取潜影盒中指定物品，并让这个物品执行一个函数，然后将执行函数前的物品返回
-     *
-     * @param predicate 匹配物品的谓词
-     * @param consumer  要执行的函数
-     * @return 执行函数前的物品
-     */
-    public static ItemStack shulkerBoxConsumer(ItemStack shulkerBox, Predicate<ItemStack> predicate, Consumer<ItemStack> consumer) {
-        if (isEmptyShulkerBox(shulkerBox)) {
-            // 因为这个判断，可以保证下方的shulkerBox.get(DataComponentTypes.CONTAINER)不会返回null
-            return ItemStack.EMPTY;
-        }
-        ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        // noinspection DataFlowIssue
-        for (ItemStack stack : component.iterateNonEmpty()) {
-            if (predicate.test(stack)) {
-                ItemStack copyStack = stack.copy();
-                consumer.accept(stack);
-                return copyStack;
-            }
-        }
-        return ItemStack.EMPTY;
-    }
-
-    /**
      * @return 获取潜影盒中的第一个物品
      */
+    @Contract(pure = true)
     public static ItemStack getFirstItemStack(ItemStack container) {
         if (isShulkerBoxItem(container) && container.getCount() == 1) {
             ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
@@ -205,23 +154,6 @@ public class InventoryUtils {
             return iterator.hasNext() ? iterator.next() : ItemStack.EMPTY;
         }
         return ItemStack.EMPTY;
-    }
-
-    public static boolean isOf(ItemStack itemStack, Item... items) {
-        for (Item item : items) {
-            if (itemStack.isOf(item)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // 如果潜影盒为空，删除对应的NBT
-    private static void removeContainerIfEmpty(ItemStack shulkerBox) {
-        if (isEmptyShulkerBox(shulkerBox)) {
-            // 如果潜影盒最后一个物品被取出，就删除潜影盒的物品栏数据堆叠组件以保证潜影盒堆叠的正常运行
-            shulkerBox.set(DataComponentTypes.CONTAINER, ContainerComponent.DEFAULT);
-        }
     }
 
     /**
@@ -241,6 +173,21 @@ public class InventoryUtils {
             return true;
         }
         return !component.iterateNonEmpty().iterator().hasNext();
+    }
+
+    /**
+     * @return 潜影盒中是否有指定物品
+     */
+    public static boolean hasItemStack(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
+        if (isShulkerBoxItem(shulkerBox) && shulkerBox.getCount() == 1) {
+            ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
+            for (ItemStack itemStack : inventory) {
+                if (predicate.test(itemStack)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -436,6 +383,12 @@ public class InventoryUtils {
         return false;
     }
 
+    /**
+     * @return 指定潜影盒是否可以存取物品
+     */
+    private static boolean isOperableSulkerBox(ItemStack shulker) {
+        return isShulkerBoxItem(shulker) && shulker.getCount() == 1;
+    }
 
     /**
      * 统计物品栏内指定物品的数量

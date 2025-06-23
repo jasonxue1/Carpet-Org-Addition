@@ -15,6 +15,8 @@ import org.carpetorgaddition.wheel.TextBuilder;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class CommandUtils {
     public static final String PLAYER = "player";
@@ -196,13 +198,29 @@ public class CommandUtils {
             case Boolean bool -> bool;
             case String str -> switch (str.toLowerCase(Locale.ROOT)) {
                 case "ops", "2" -> level >= 2;
-                case "0", "1", "3", "4" -> level >= Integer.parseInt(str);
-                case "true" -> true;
+                case "1", "3", "4" -> level >= Integer.parseInt(str);
+                case "0", "true" -> true;
                 default -> false;
             };
             case null -> false;
             default -> canUseCommand(level, value.toString());
         };
+    }
+
+    /**
+     * @return 玩家是否有执行某一命令的权限
+     * @see CommandHelper#canUseCommand(ServerCommandSource, Object)
+     */
+    public static Predicate<ServerCommandSource> canUseCommand(Supplier<String> supplier) {
+        return source -> canUseCommand(source, supplier.get());
+    }
+
+    public static boolean canUseCommand(ServerCommandSource source, Supplier<String> supplier) {
+        return canUseCommand(source, supplier.get());
+    }
+
+    public static boolean canUseCommand(ServerCommandSource source, String rule) {
+        return CommandHelper.canUseCommand(source, rule);
     }
 
     @FunctionalInterface

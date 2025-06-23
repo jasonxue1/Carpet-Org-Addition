@@ -10,7 +10,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
-import org.carpetorgaddition.rule.validator.AbstractValidator;
+import org.carpetorgaddition.rule.validator.Validator;
 import org.carpetorgaddition.rule.validator.StrictValidator;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ public class OrgRule<T> implements CarpetRule<T> {
     private final boolean canBeToggledClientSide;
     private final Class<T> type;
     private final RuleValueParser<T> parser;
-    private final List<AbstractValidator<T>> validators = new ArrayList<>();
+    private final List<Validator<T>> validators = new ArrayList<>();
     private final List<RuleObserver<T>> observers = new ArrayList<>();
     private final boolean strict;
 
@@ -42,7 +42,7 @@ public class OrgRule<T> implements CarpetRule<T> {
             Collection<String> suggestions,
             @NotNull T value,
             boolean canBeToggledClientSide,
-            List<AbstractValidator<T>> validators,
+            List<Validator<T>> validators,
             List<RuleObserver<T>> observers,
             boolean strict,
             String displayName,
@@ -187,7 +187,7 @@ public class OrgRule<T> implements CarpetRule<T> {
     }
 
     private void set(@Nullable ServerCommandSource source, T value, String userInput) throws TranslatableInvalidRuleValueException {
-        for (AbstractValidator<T> validator : this.validators) {
+        for (Validator<T> validator : this.validators) {
             if (validator.validate(value)) {
                 continue;
             }

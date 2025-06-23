@@ -1,7 +1,6 @@
 package org.carpetorgaddition.mixin.logger;
 
 import carpet.logging.HUDLogger;
-import carpet.utils.CommandHelper;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.entity.passive.WanderingTraderEntity;
@@ -18,11 +17,12 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -74,7 +74,7 @@ public class WanderingTraderManagerMixin {
                     continue;
                 }
                 // 广播流浪商人生成成功
-                boolean canNavigate = CommandHelper.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate.get());
+                boolean canNavigate = CommandUtils.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
                 if (canNavigate) {
                     // 带点击导航的消息
                     MutableText button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")

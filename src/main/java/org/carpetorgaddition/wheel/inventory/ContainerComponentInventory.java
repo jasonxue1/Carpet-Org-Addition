@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -42,6 +43,36 @@ public class ContainerComponentInventory extends SimpleInventory implements Comp
             return false;
         }
         return this.itemStack.getCount() == 1 && super.canPlayerUse(player);
+    }
+
+    /**
+     * @return 从潜影盒中获取指定物品
+     */
+    @CheckReturnValue
+    public ItemStack pinkStack(Predicate<ItemStack> predicate) {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack stack = this.getStack(i);
+            if (predicate.test(stack)) {
+                ItemStack result = stack.copy();
+                this.setStack(i, ItemStack.EMPTY);
+                return result;
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    /**
+     * @return 从潜影盒中获取指定数量的物品
+     */
+    @CheckReturnValue
+    public ItemStack pinkStack(Predicate<ItemStack> predicate, int count) {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack stack = this.getStack(i);
+            if (predicate.test(stack)) {
+                return this.removeStack(i, count);
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     public int count(Predicate<ItemStack> predicate) {
