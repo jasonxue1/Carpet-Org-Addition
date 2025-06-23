@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(NetworkThreadUtils.class)
 public class NetworkThreadUtilsMixin {
-    @SuppressWarnings({"MixinExtrasOperationParameters", "unchecked"})
+    @SuppressWarnings("unchecked")
     @WrapOperation(method = "method_11072", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/Packet;apply(Lnet/minecraft/network/listener/PacketListener;)V"))
     private static <T extends PacketListener> void exceptionReason(final Packet<T> packet, final T listener, Operation<Void> original) {
         try {

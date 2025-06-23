@@ -1,7 +1,6 @@
 package org.carpetorgaddition.mixin.rule;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.utils.CommandHelper;
 import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -106,10 +105,10 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
         boolean canUseCommand;
         if (thisPlayer instanceof ServerPlayerEntity player) {
             ServerCommandSource source = player.getCommandSource();
-            canUseCommand = CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
+            canUseCommand = CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
         } else {
             int level = ((PlayerEntityAccessor) thisPlayer).permissionLevel();
-            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction);
+            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction.get());
         }
         if (canUseCommand) {
             if (itemStack.isEmpty()) {

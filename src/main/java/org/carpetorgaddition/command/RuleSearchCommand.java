@@ -3,7 +3,6 @@ package org.carpetorgaddition.command;
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -15,6 +14,7 @@ import net.minecraft.text.Text;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.rule.carpet.SettingsManagerAccessor;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -28,7 +28,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandRuleSearch.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandRuleSearch))
                 .then(CommandManager.argument("rule", StringArgumentType.greedyString())
                         .executes(this::listRule)));
     }

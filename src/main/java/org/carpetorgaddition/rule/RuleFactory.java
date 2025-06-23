@@ -4,7 +4,7 @@ import carpet.api.settings.CarpetRule;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.validator.AbstractValidator;
+import org.carpetorgaddition.rule.validator.Validator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -23,7 +23,7 @@ public class RuleFactory {
         private final Collection<String> suggestions;
         @NotNull
         private final T value;
-        private final List<AbstractValidator<T>> validators = new ArrayList<>();
+        private final List<Validator<T>> validators = new ArrayList<>();
         private final List<RuleObserver<T>> observers = new ArrayList<>();
         private final List<Supplier<Boolean>> conditions = new ArrayList<>();
         private boolean canBeToggledClientSide = false;
@@ -118,11 +118,11 @@ public class RuleFactory {
         }
 
         public Builder<T> addValidator(Predicate<T> predicate, Supplier<Text> supplier) {
-            return this.addValidators(AbstractValidator.of(predicate, supplier));
+            return this.addValidators(Validator.of(predicate, supplier));
         }
 
         @SafeVarargs
-        public final Builder<T> addValidators(AbstractValidator<T>... validators) {
+        public final Builder<T> addValidators(Validator<T>... validators) {
             this.validators.addAll(List.of(validators));
             return this;
         }

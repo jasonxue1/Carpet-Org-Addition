@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.express;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -16,12 +15,15 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.dataupdate.DataUpdater;
-import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
-import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.IOUtils;
+import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -308,7 +310,7 @@ public class Express implements Comparable<Express> {
 
     public static void checkRecipientPermission(@Nullable ServerPlayerEntity senderPlayer, ServerPlayerEntity recipientPlayer) {
         // 检查接收者是否有接收物品的权限
-        if (CommandHelper.canUseCommand(recipientPlayer.getCommandSource(), CarpetOrgAdditionSettings.commandMail)) {
+        if (CommandUtils.canUseCommand(recipientPlayer.getCommandSource(), CarpetOrgAdditionSettings.commandMail)) {
             return;
         }
         if (senderPlayer == null) {
