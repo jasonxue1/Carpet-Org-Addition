@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -20,7 +19,7 @@ public class KillMeCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandKillMe.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandKillMe))
                 .executes(this::killMe));
     }
 
