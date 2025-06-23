@@ -108,7 +108,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
             canUseCommand = CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
         } else {
             int level = ((PlayerEntityAccessor) thisPlayer).permissionLevel();
-            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction);
+            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction.get());
         }
         if (canUseCommand) {
             if (itemStack.isEmpty()) {

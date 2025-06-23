@@ -14,6 +14,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.stat.Stats;
@@ -147,7 +148,8 @@ public abstract class LivingEntityMixin extends Entity {
                 if (totemOfUndying.isEmpty()) {
                     continue;
                 }
-                return totemOfUndying.copy();
+                ItemStack itemStack = totemOfUndying.copy();
+                return new Pair<>(itemStack, itemStack.get(DataComponentTypes.DEATH_PROTECTION));
             }
         }
         return null;
