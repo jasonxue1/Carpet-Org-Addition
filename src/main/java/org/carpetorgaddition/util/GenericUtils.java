@@ -1,35 +1,32 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.patches.FakeClientConnection;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.NetworkSide;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
-import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.UserCache;
-import net.minecraft.util.Uuids;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-import org.carpetorgaddition.mixin.rule.EntityAccessor;
-import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public class GenericUtils {
+    /**
+     * 当假玩家正在生成时，执行此函数
+     */
+    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+    /**
+     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3d, double, double, RegistryKey, GameMode, boolean)}内部的lambda表达式执行时，调用次函数
+     */
+    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+
     private GenericUtils() {
     }
 
@@ -78,36 +75,18 @@ public class GenericUtils {
         return server.getPlayerManager().getPlayer(name);
     }
 
-    @SuppressWarnings("DataFlowIssue")
-    public static EntityPlayerMPFake createFakePlayer(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying) {
-        ServerWorld worldIn = server.getWorld(dimensionId);
-        UserCache.setUseRemote(false);
-        GameProfile gameprofile;
+    /**
+     * 创建一个假玩家
+     *
+     * @param consumer 玩家生成时执行的函数
+     */
+    public static void createFakePlayer(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimension, GameMode gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
         try {
-            gameprofile = server.getUserCache().findByName(username).orElse(null);
+            FAKE_PLAYER_SPAWNING.set(consumer);
+            EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying);
         } finally {
-            UserCache.setUseRemote(server.isDedicated() && server.isOnlineMode());
+            FAKE_PLAYER_SPAWNING.remove();
         }
-        if (gameprofile == null) {
-            gameprofile = new GameProfile(Uuids.getOfflinePlayerUuid(username), username);
-        }
-        return trySpawn(server, pos, (float) yaw, (float) pitch, dimensionId, gamemode, flying, gameprofile, worldIn);
-    }
-
-    private static EntityPlayerMPFake trySpawn(MinecraftServer server, Vec3d pos, float yaw, float pitch, RegistryKey<World> dimensionId, GameMode gamemode, boolean flying, GameProfile gameprofile, ServerWorld worldIn) {
-        EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(server, worldIn, gameprofile, SyncedClientOptions.createDefault());
-        instance.fixStartingPosition = () -> instance.refreshPositionAndAngles(pos.x, pos.y, pos.z, yaw, pitch);
-        server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), instance, new ConnectedClientData(gameprofile, 0, instance.getClientOptions(), false));
-        instance.teleport(worldIn, pos.x, pos.y, pos.z, yaw, pitch);
-        instance.setHealth(20.0F);
-        ((EntityAccessor) instance).cancelRemoved();
-        Objects.requireNonNull(instance.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT)).setBaseValue(0.6F);
-        instance.interactionManager.changeGameMode(gamemode);
-        server.getPlayerManager().sendToDimension(new EntitySetHeadYawS2CPacket(instance, (byte) ((int) (instance.headYaw * 256.0F / 360.0F))), dimensionId);
-        server.getPlayerManager().sendToDimension(new EntityPositionS2CPacket(instance), dimensionId);
-        instance.getDataTracker().set(PlayerEntityAccessor.getPlayerModelParts(), (byte) 127);
-        instance.getAbilities().flying = flying;
-        return instance;
     }
 
     /**
