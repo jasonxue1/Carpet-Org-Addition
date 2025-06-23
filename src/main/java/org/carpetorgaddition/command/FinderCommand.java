@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -34,12 +33,12 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.wheel.permission.PermissionLevel;
-import org.carpetorgaddition.wheel.permission.PermissionManager;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.permission.PermissionLevel;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.io.File;
 import java.util.Locale;
@@ -74,7 +73,7 @@ public class FinderCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandFinder.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
                         .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
                         .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(this.access))

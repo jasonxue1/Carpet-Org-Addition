@@ -20,17 +20,18 @@ import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializ
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.MetaComment;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
@@ -196,14 +197,25 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         if (server.getPlayerManager().getPlayer(this.fakePlayerName) != null) {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
+        Consumer<EntityPlayerMPFake> consumer = fakePlayer -> {
+            fakePlayer.setSneaking(this.sneaking);
+            // 设置玩家动作
+            this.interactiveAction.startAction(fakePlayer);
+            this.autoAction.clearPlayer();
+            this.autoAction.startAction(fakePlayer);
+        };
         // 生成假玩家
-        EntityPlayerMPFake fakePlayer = GenericUtils.createFakePlayer(this.fakePlayerName, server, this.playerPos, this.yaw, this.pitch,
-                WorldUtils.getWorld(this.dimension), this.gameMode, this.flying);
-        fakePlayer.setSneaking(this.sneaking);
-        // 设置玩家动作
-        this.interactiveAction.startAction(fakePlayer);
-        this.autoAction.clearPlayer();
-        this.autoAction.startAction(fakePlayer);
+        GenericUtils.createFakePlayer(
+                this.fakePlayerName,
+                server,
+                this.playerPos,
+                this.yaw,
+                this.pitch,
+                WorldUtils.getWorld(this.dimension),
+                this.gameMode,
+                this.flying,
+                consumer
+        );
     }
 
     // 显示文本信息

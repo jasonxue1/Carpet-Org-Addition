@@ -40,10 +40,6 @@ public class SimulatePlayerInventory implements Inventory {
         return inventory;
     }
 
-    public void save() {
-
-    }
-
     @Override
     public int size() {
         return this.main.size() + PlayerInventory.EQUIPMENT_SLOTS.size();

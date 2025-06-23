@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.CarpetSettings;
-import carpet.utils.CommandHelper;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
@@ -15,6 +14,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 
@@ -39,7 +39,7 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
 
     @Override
     protected Text openInventoryButton(GameProfile gameProfile) {
-        if (CommandHelper.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
+        if (CommandUtils.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
             MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");

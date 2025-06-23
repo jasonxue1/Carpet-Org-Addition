@@ -1,6 +1,5 @@
 package org.carpetorgaddition.command;
 
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -28,7 +27,7 @@ import org.carpetorgaddition.util.WorldUtils;
 public class ParticleLineCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("particleLine")
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandParticleLine))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandParticleLine))
                 .then(CommandManager.argument("from", Vec3ArgumentType.vec3())
                         .then(CommandManager.argument("to", Vec3ArgumentType.vec3())
                                 .executes(context -> draw(context, false)))

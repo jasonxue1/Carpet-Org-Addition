@@ -1,7 +1,6 @@
 package org.carpetorgaddition.command;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -24,11 +23,11 @@ import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.Waypoint;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.Waypoint;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -48,7 +47,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
-                .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandNavigate.get()))
+                .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandNavigate))
                 .then(CommandManager.literal("entity")
                         .then(CommandManager.argument("entity", EntityArgumentType.entity())
                                 .executes(context -> navigateToEntity(context, false, "entity"))
@@ -60,7 +59,7 @@ public class NavigatorCommand extends AbstractServerCommand {
                                 .then(CommandManager.literal("continue")
                                         .executes(context -> navigateToEntity(context, true, "player")))))
                 .then(CommandManager.literal("waypoint")
-                        .requires(source -> CommandHelper.canUseCommand(source, CarpetOrgAdditionSettings.commandLocations.get()))
+                        .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandLocations))
                         .then(CommandManager.argument("waypoint", StringArgumentType.string())
                                 .suggests(LocationsCommand.suggestion())
                                 .executes(this::navigateToWaypoint)))
