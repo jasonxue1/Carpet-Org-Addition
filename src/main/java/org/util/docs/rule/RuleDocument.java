@@ -19,7 +19,7 @@ public class RuleDocument {
     private final Set<RuleContext<?>> rules;
     private final JsonObject json;
 
-    public static void main(String[] args) throws IOException, ReflectiveOperationException {
+    public static void main(String[] args) throws IOException {
         // 生成文档前备份旧的文件
         String time = DateTimeFormatter.ofPattern("yyMMddHHmmss").format(LocalDateTime.now());
         FileInputStream fileInputStream = new FileInputStream("docs/rules.md");
