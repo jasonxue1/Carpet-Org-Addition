@@ -43,6 +43,7 @@ public class ItemStackStatistics {
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      */
     public void statistics(Inventory inventory) {
+        // TODO 乘以潜影盒堆叠数
         this.statistics(inventory, false);
     }
 
