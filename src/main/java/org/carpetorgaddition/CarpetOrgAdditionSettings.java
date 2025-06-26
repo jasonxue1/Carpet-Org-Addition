@@ -9,6 +9,7 @@ import org.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.carpetorgaddition.rule.*;
 import org.carpetorgaddition.rule.value.*;
+import org.carpetorgaddition.wheel.ThreadContextPropagator;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,7 +21,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 控制玩家登录登出的消息是否显示
      */
-    public static final ThreadLocal<Boolean> hiddenLoginMessages = ThreadLocal.withInitial(() -> false);
+    public static final ThreadContextPropagator<Boolean> hiddenLoginMessages = new ThreadContextPropagator<>(false);
     /**
      * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
      */

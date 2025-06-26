@@ -693,7 +693,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     // 目标玩家不是假玩家
                     CommandUtils.assertFakePlayer(player);
                 }
-                manager.addTask(new ReLoginTask(name, interval, server, player.getServerWorld().getRegistryKey(), context));
+                manager.addTask(new ReLoginTask((EntityPlayerMPFake) player, interval, server, context.getSource()));
             } else {
                 // 修改周期时间
                 optional.get().setInterval(interval);

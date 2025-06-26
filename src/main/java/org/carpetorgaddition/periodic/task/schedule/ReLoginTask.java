@@ -1,79 +1,57 @@
 package org.carpetorgaddition.periodic.task.schedule;
 
 import carpet.patches.EntityPlayerMPFake;
-import carpet.patches.FakeClientConnection;
 import carpet.utils.Messenger;
-import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.DisconnectionInfo;
-import net.minecraft.network.NetworkSide;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
-import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntitySetHeadYawS2CPacket;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTask;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextContent;
 import net.minecraft.text.TranslatableTextContent;
-import net.minecraft.util.UserCache;
-import net.minecraft.util.Uuids;
-import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
-import org.carpetorgaddition.mixin.rule.EntityAccessor;
-import org.carpetorgaddition.mixin.rule.PlayerEntityAccessor;
-import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-
-import java.util.Objects;
+import org.jetbrains.annotations.Contract;
 
 public class ReLoginTask extends PlayerScheduleTask {
     // 假玩家名
-    private final String playerName;
+    private final FakePlayerSerializer serializer;
     // 重新上线的时间间隔
     private int interval;
     // 距离下一次重新上线所需的时间
     private int remainingTick;
     private final MinecraftServer server;
-    private final RegistryKey<World> dimensionId;
-    private final CommandContext<ServerCommandSource> context;
+    private final ServerCommandSource source;
     // 当前任务是否已经结束
     private boolean stop = false;
     // 假玩家重新上线的倒计时
     private int canSpawn = 2;
 
-    public ReLoginTask(
-            String playerName,
-            int interval,
-            MinecraftServer server,
-            RegistryKey<World> dimensionId,
-            CommandContext<ServerCommandSource> context
-    ) {
-        this.playerName = playerName;
+    public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, ServerCommandSource source) {
+        this.serializer = new FakePlayerSerializer(fakePlayer);
         this.interval = interval;
         this.remainingTick = this.interval;
         this.server = server;
-        this.dimensionId = dimensionId;
-        this.context = context;
+        this.source = source;
     }
 
     @Override
     public void tick() {
         // 启用内存泄漏修复
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
-            ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.playerName);
+            ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
             if (player == null) {
                 if (this.canSpawn == 0) {
-                    homePositionSpawn(this.playerName, this.server, this.dimensionId);
+                    loginPlayer();
                     this.canSpawn = 2;
                 } else {
                     this.canSpawn--;
@@ -93,11 +71,11 @@ public class ReLoginTask extends PlayerScheduleTask {
             }
         } else {
             Runnable function = () -> {
-                MessageUtils.sendErrorMessage(context, "carpet.commands.playerManager.schedule.relogin.rule.disable");
+                MessageUtils.sendErrorMessage(source, "carpet.commands.playerManager.schedule.relogin.rule.disable");
                 // 如果假玩家已经下线，重新生成假玩家
-                ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.playerName);
+                ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
                 if (player == null) {
-                    homePositionSpawn(this.playerName, this.server, this.dimensionId);
+                    loginPlayer();
                 }
             };
             throw new TaskExecutionException(function);
@@ -128,17 +106,17 @@ public class ReLoginTask extends PlayerScheduleTask {
         if (content instanceof TranslatableTextContent text) {
             if (text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
                 try {
-                    CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
+                    CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
                     fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
                 } finally {
-                    CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
+                    CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
                 }
                 return;
             }
         }
         this.server.send(new ServerTask(this.server.getTicks(), () -> {
             try {
-                CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
+                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
                 /*
                  * 如果不加这个判断并提前返回，可能导致玩家的骑乘实体消失，可能的原因如下：
                  * 1. 玩家在下线后会保存一次数据，其中包括了当前骑乘的实体，下一次上线时，游戏就会从NBT中读取并生成骑乘实体。
@@ -153,7 +131,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 }
                 fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
             } finally {
-                CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
+                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
             }
         }));
     }
@@ -165,27 +143,28 @@ public class ReLoginTask extends PlayerScheduleTask {
 
     @Override
     public String getLogName() {
-        return this.playerName + "周期性重新上线";
+        return this.getPlayerName() + "周期性重新上线";
     }
 
     @Override
+    @Contract(pure = true)
     public String getPlayerName() {
-        return playerName;
+        return this.serializer.getFakePlayerName();
     }
 
     @Override
     public void onCancel(CommandContext<ServerCommandSource> context) {
         this.markRemove();
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.cancel", this.playerName);
-        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.playerName);
+        MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.cancel", this.getPlayerName());
+        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
         if (player == null) {
-            homePositionSpawn(this.playerName, this.server, this.dimensionId);
+            loginPlayer();
         }
     }
 
     @Override
     public void sendEachMessage(ServerCommandSource source) {
-        MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.relogin", this.playerName, this.interval);
+        MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.relogin", this.getPlayerName(), this.interval);
     }
 
     public void setInterval(int interval) {
@@ -198,49 +177,20 @@ public class ReLoginTask extends PlayerScheduleTask {
     }
 
     /**
-     * 在假玩家上一次退出游戏的位置生成假玩家
-     *
-     * @param username    假玩家名
-     * @param dimensionId 假玩家要生成的维度
+     * 生成假玩家
      */
-    @Deprecated(forRemoval = true)
-    private void homePositionSpawn(String username, MinecraftServer server, RegistryKey<World> dimensionId) {
-        ServerWorld worldIn = server.getWorld(dimensionId);
-        if (worldIn == null) {
-            return;
-        }
-        UserCache.setUseRemote(false);
-        GameProfile gameprofile;
+    private void loginPlayer() {
         try {
-            UserCache userCache = server.getUserCache();
-            if (userCache == null) {
-                return;
-            }
-            gameprofile = userCache.findByName(username).orElse(null);
-        } finally {
-            UserCache.setUseRemote(server.isDedicated() && server.isOnlineMode());
-        }
-        if (gameprofile == null) {
-            gameprofile = new GameProfile(Uuids.getOfflinePlayerUuid(username), username);
-        }
-        EntityPlayerMPFake fakePlayer = EntityPlayerMPFake.respawnFake(server, worldIn, gameprofile, SyncedClientOptions.createDefault());
-        fakePlayer.fixStartingPosition = GenericUtils::pass;
-        try {
-            CarpetOrgAdditionSettings.hiddenLoginMessages.set(true);
-            server.getPlayerManager().onPlayerConnect(new FakeClientConnection(NetworkSide.SERVERBOUND), fakePlayer, new ConnectedClientData(gameprofile, 0, fakePlayer.getClientOptions(), false));
-        } catch (NullPointerException e) {
-            CarpetOrgAddition.LOGGER.warn("{}在尝试在服务器关闭时上线", this.playerName, e);
+            CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
+            this.serializer.spawn(this.server);
+        } catch (CommandSyntaxException e) {
+            CommandUtils.handlingException(e, this.source);
             this.stop();
-            return;
+        } catch (RuntimeException e) {
+            // TODO 玩家在服务器关闭时生成，可能发送空指针，但这里不会被捕获
+            CarpetOrgAddition.LOGGER.warn("Fake players encounter unexpected errors while logging in", e);
         } finally {
-            // 假玩家加入游戏后，这个变量必须重写设置为false，防止影响其它广播消息的方法
-            CarpetOrgAdditionSettings.hiddenLoginMessages.set(false);
+            CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
         }
-        fakePlayer.setHealth(20.0F);
-        ((EntityAccessor) fakePlayer).cancelRemoved();
-        Objects.requireNonNull(fakePlayer.getAttributeInstance(EntityAttributes.GENERIC_STEP_HEIGHT)).setBaseValue(0.6F);
-        server.getPlayerManager().sendToDimension(new EntitySetHeadYawS2CPacket(fakePlayer, (byte) ((int) (fakePlayer.headYaw * 256.0F / 360.0F))), dimensionId);
-        server.getPlayerManager().sendToDimension(new EntityPositionS2CPacket(fakePlayer), dimensionId);
-        fakePlayer.getDataTracker().set(PlayerEntityAccessor.getPlayerModelParts(), (byte) 127);
     }
 }

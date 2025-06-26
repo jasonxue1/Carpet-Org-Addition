@@ -47,7 +47,7 @@ public class EntityPlayerMPFakeMixin {
     private static void broadcastSummoner(EntityPlayerMPFake fakePlayer) {
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             ServerPlayerEntity player = CarpetOrgAdditionSettings.internalPlayerSummoner.get();
-            if (player == null || CarpetOrgAdditionSettings.hiddenLoginMessages.get()) {
+            if (player == null || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal()) {
                 return;
             }
             TextBuilder builder = TextBuilder.of("carpet.rule.message.displayPlayerSummoner", player.getDisplayName());
