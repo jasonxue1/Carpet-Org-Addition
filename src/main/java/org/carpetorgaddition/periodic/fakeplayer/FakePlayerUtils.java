@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class FakePlayerUtils {
-
     /**
      * 槽位外部的索引，相当于点击GUI外面，用来丢弃光标上的物品
      */
@@ -59,7 +58,9 @@ public class FakePlayerUtils {
      * 模拟Ctrl+Q丢弃物品
      */
     public static final int THROW_CTRL_Q = 1;
-    // 最大循环次数
+    /**
+     * 最大循环次数
+     */
     public static final int MAX_LOOP_COUNT = 1200;
     /**
      * 模组{@code gugle-carpet-addition}是否已加载

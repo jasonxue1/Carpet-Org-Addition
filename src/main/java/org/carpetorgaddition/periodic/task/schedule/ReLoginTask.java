@@ -203,6 +203,7 @@ public class ReLoginTask extends PlayerScheduleTask {
      * @param username    假玩家名
      * @param dimensionId 假玩家要生成的维度
      */
+    @Deprecated(forRemoval = true)
     private void homePositionSpawn(String username, MinecraftServer server, RegistryKey<World> dimensionId) {
         ServerWorld worldIn = server.getWorld(dimensionId);
         if (worldIn == null) {

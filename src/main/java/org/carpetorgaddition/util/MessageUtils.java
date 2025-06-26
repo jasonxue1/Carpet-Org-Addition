@@ -52,6 +52,11 @@ public class MessageUtils {
         broadcastMessage(server.getPlayerManager(), message);
     }
 
+    @SuppressWarnings("unused")
+    public static void broadcastMessage(MinecraftServer server, String key, Object... args) {
+        broadcastMessage(server.getPlayerManager(), TextBuilder.translate(key, args));
+    }
+
     /**
      * 广播一条带有特殊样式的文本消息
      *

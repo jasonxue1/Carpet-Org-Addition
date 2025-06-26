@@ -33,6 +33,8 @@ public class CarpetOrgAdditionSettings {
      * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
      */
     public static final ThreadLocal<ServerPlayerEntity> blockBreaking = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayerEntity> playerSummoner = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayerEntity> internalPlayerSummoner = new ThreadLocal<>();
     /**
      * 当前正在使用铁砧附魔的玩家
      */
@@ -41,7 +43,7 @@ public class CarpetOrgAdditionSettings {
     public static final String OPS = "ops";
     public static final String TRUE = Boolean.TRUE.toString();
     public static final String FALSE = Boolean.FALSE.toString();
-    private static final String[] COMMAND_OPTIONS = {"true", "false", OPS, "0", "1", "2", "3", "4"};
+    private static final String[] COMMAND_OPTIONS = {TRUE, FALSE, OPS, "0", "1", "2", "3", "4"};
     public static final String ORG = "Org";
     public static final String HIDDEN = "Hidden";
 
@@ -920,6 +922,15 @@ public class CarpetOrgAdditionSettings {
     public static final Supplier<Boolean> disableCreativeContainerDrops = register(
             RuleFactory.create(Boolean.class, "disableCreativeContainerDrops", false)
                     .addCategories(RuleCategory.CREATIVE)
+                    .build()
+    );
+
+    /**
+     * 显示假玩家召唤者
+     */
+    public static final Supplier<Boolean> displayPlayerSummoner = register(
+            RuleFactory.create(Boolean.class, "displayPlayerSummoner", false)
+                    .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );
 
