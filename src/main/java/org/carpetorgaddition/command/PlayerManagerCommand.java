@@ -633,10 +633,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String name = StringArgumentType.getString(context, "name");
         try {
             // 生成假玩家
-            getFakePlayerSerializer(context, name).spawn(context.getSource().getServer());
+            FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+            CarpetOrgAdditionSettings.playerSummoner.set(context.getSource().getPlayer());
+            serializer.spawn(context.getSource().getServer());
         } catch (RuntimeException e) {
             // 尝试生成假玩家时出现意外问题
             throw CommandUtils.createException(e, "carpet.commands.playerManager.spawn.fail");
+        } finally {
+            CarpetOrgAdditionSettings.playerSummoner.remove();
         }
         return 1;
     }
