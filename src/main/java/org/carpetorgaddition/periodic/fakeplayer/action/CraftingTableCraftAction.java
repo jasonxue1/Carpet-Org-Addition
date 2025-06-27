@@ -90,7 +90,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                                 successCount++;
                                 break;
                             }
-                        } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get() && InventoryUtils.isShulkerBoxItem(itemStack)) {
+                        } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get() && InventoryUtils.isOperableSulkerBox(itemStack)) {
                             ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, predicate);
                             if (!contentItemStack.isEmpty()) {
                                 // 丢弃光标上的物品（如果有）

@@ -145,7 +145,7 @@ public class InventoryUtils {
      */
     @Contract(pure = true)
     public static ItemStack getFirstItemStack(ItemStack container) {
-        if (isShulkerBoxItem(container) && container.getCount() == 1) {
+        if (isOperableSulkerBox(container)) {
             ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
             if (component == null || component == ContainerComponent.DEFAULT) {
                 return ItemStack.EMPTY;
@@ -179,7 +179,7 @@ public class InventoryUtils {
      * @return 潜影盒中是否有指定物品
      */
     public static boolean hasItemStack(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
-        if (isShulkerBoxItem(shulkerBox) && shulkerBox.getCount() == 1) {
+        if (isOperableSulkerBox(shulkerBox)) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             for (ItemStack itemStack : inventory) {
                 if (predicate.test(itemStack)) {
@@ -386,7 +386,7 @@ public class InventoryUtils {
     /**
      * @return 指定潜影盒是否可以存取物品
      */
-    private static boolean isOperableSulkerBox(ItemStack shulker) {
+    public static boolean isOperableSulkerBox(ItemStack shulker) {
         return isShulkerBoxItem(shulker) && shulker.getCount() == 1;
     }
 

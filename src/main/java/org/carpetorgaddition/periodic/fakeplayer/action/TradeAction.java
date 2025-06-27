@@ -202,7 +202,7 @@ public class TradeAction extends AbstractPlayerAction {
             // 获取当前槽位上的物品
             ItemStack itemStack = list.get(index).getStack();
             Predicate<ItemStack> predicate = getStackPredicate(buyItem, tradeSlot.getStack());
-            if (InventoryUtils.isShulkerBoxItem(itemStack)) {
+            if (InventoryUtils.isOperableSulkerBox(itemStack)) {
                 // 从潜影盒提取物品
                 ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, predicate, difference);
                 if (contentItemStack.isEmpty()) {
