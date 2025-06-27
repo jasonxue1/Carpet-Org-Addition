@@ -4,6 +4,11 @@ import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.network.ClientConnection;
+import net.minecraft.server.PlayerManager;
+import net.minecraft.server.network.ConnectedClientData;
+import net.minecraft.server.network.ServerPlayerEntity;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.ThreadContextPropagator;
@@ -54,5 +59,20 @@ public class EntityPlayerMPFakeMixin {
             return;
         }
         consumer.accept(fakePlayer);
+    }
+
+    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;onPlayerConnect(Lnet/minecraft/network/ClientConnection;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/network/ConnectedClientData;)V"))
+    private static void onPlayerConnect(PlayerManager instance, ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, Operation<Void> original, @Local EntityPlayerMPFake fakePlayer) {
+        boolean internal = CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal();
+        try {
+            original.call(instance, connection, player, clientData);
+        } catch (NullPointerException e) {
+            if (internal) {
+                // 玩家在服务器关闭后登录游戏可能导致服务器崩溃
+                CarpetOrgAddition.LOGGER.warn("Fake player attempts to join game after server shutdown", e);
+            } else {
+                throw e;
+            }
+        }
     }
 }

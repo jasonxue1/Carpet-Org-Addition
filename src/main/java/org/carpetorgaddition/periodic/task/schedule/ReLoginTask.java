@@ -187,8 +187,8 @@ public class ReLoginTask extends PlayerScheduleTask {
             CommandUtils.handlingException(e, this.source);
             this.stop();
         } catch (RuntimeException e) {
-            // TODO 玩家在服务器关闭时生成，可能发送空指针，但这里不会被捕获
-            CarpetOrgAddition.LOGGER.warn("Fake players encounter unexpected errors while logging in", e);
+            CarpetOrgAddition.LOGGER.warn("Fake player encounter unexpected errors while logging in", e);
+            this.stop();
         } finally {
             CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
         }
