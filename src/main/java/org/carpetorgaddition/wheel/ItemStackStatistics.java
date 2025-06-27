@@ -43,7 +43,6 @@ public class ItemStackStatistics {
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      */
     public void statistics(Inventory inventory) {
-        // TODO 乘以潜影盒堆叠数
         this.statistics(inventory, false);
     }
 
@@ -59,22 +58,23 @@ public class ItemStackStatistics {
         }
     }
 
-    public void statistics(Iterable<ItemStack> iterable, boolean isNestingInventory) {
-        iterable.forEach(itemStack -> this.tally(itemStack, isNestingInventory));
+    public void statistics(Iterable<ItemStack> iterable, boolean isNestingInventory, int multiple) {
+        iterable.forEach(itemStack -> this.tally(itemStack, isNestingInventory, multiple));
     }
 
     private void statistics(ItemStack itemStack) {
         // 容器物品
+        int count = itemStack.getCount();
         ContainerComponent container = itemStack.get(DataComponentTypes.CONTAINER);
         if (container != null) {
-            this.statistics(container.iterateNonEmpty(), true);
+            this.statistics(container.iterateNonEmpty(), true, count);
             // 不考虑一个物品同时有容器物品组件和收纳袋物品组件的情况
             return;
         }
         // 收纳袋物品
         BundleContentsComponent bundleContents = itemStack.get(DataComponentTypes.BUNDLE_CONTENTS);
         if (bundleContents != null) {
-            this.statistics(bundleContents.iterate(), true);
+            this.statistics(bundleContents.iterate(), true, count);
         }
     }
 
@@ -85,11 +85,21 @@ public class ItemStackStatistics {
      * @param nesting   该物品是否是从嵌套的容器中获取的
      */
     private void tally(ItemStack itemStack, boolean nesting) {
+        this.tally(itemStack, nesting, 1);
+    }
+
+    /**
+     * 累加该物品的数量
+     *
+     * @param itemStack 物品和物品的数量
+     * @param nesting   该物品是否是从嵌套的容器中获取的
+     */
+    private void tally(ItemStack itemStack, boolean nesting, int multiple) {
         if (this.predicate.test(itemStack)) {
             Item item = itemStack.getItem();
             int count = itemStack.getCount();
-            this.counter.add(item, count);
-            this.sum += count;
+            this.counter.add(item, count * multiple);
+            this.sum += (count * multiple);
             if (nesting) {
                 this.nestingItem.add(item);
             }
