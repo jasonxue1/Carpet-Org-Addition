@@ -26,7 +26,7 @@ public class PagedCache extends SoftReference<PagedCollection> {
     public boolean canFreeMemory() {
         ServerPlayerEntity player = this.source.getPlayer();
         if (player == null) {
-            // 被服务器控制台，命令方块等执行，实际上可能不会发生这种情况
+            // 被服务器控制台，命令方块等执行，不过一般不会发生这种情况
             return false;
         }
         return player.isRemoved();

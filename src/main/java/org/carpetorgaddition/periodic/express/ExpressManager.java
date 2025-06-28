@@ -7,22 +7,27 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -69,12 +74,20 @@ public class ExpressManager {
         if (list.isEmpty()) {
             return;
         }
+        ArrayList<Supplier<Text>> messages = new ArrayList<>();
         for (Express express : list) {
-            MutableText clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
-            ItemStack stack = express.getExpress();
-            MessageUtils.sendMessage(player, "carpet.commands.mail.prompt_receive",
-                    stack.getCount(), stack.toHoverableText(), clickRun);
+            messages.add(() -> {
+                MutableText clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
+                ItemStack stack = express.getExpress();
+                return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.toHoverableText(), clickRun);
+            });
         }
+        PageManager pageManager = FetcherUtils.getPageManager(this.server);
+        ServerCommandSource source = player.getCommandSource();
+        PagedCollection collection = pageManager.newPagedCollection(source);
+        collection.addContent(messages);
+        MessageUtils.sendEmptyMessage(source);
+        CommandUtils.handlingException(collection::print, source);
     }
 
     /**
