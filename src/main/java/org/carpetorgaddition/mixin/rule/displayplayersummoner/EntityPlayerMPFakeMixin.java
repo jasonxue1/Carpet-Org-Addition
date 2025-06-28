@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -57,6 +58,7 @@ public class EntityPlayerMPFakeMixin {
             MutableText pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
             MessageUtils.broadcastMessage(GenericUtils.getServer(player), builder.build());
+            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", GenericUtils.getPlayerName(player), GenericUtils.getPlayerName(fakePlayer), pos);
         }
     }
 }
