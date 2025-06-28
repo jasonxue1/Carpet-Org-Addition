@@ -27,10 +27,7 @@ public class MessageUtils {
      */
     @Deprecated(forRemoval = true)
     public static void broadcastMessage(ServerPlayerEntity player, Text message) {
-        MinecraftServer server = player.getServer();
-        if (server == null) {
-            throw new IllegalStateException("尝试在客户端广播聊天消息");
-        }
+        MinecraftServer server = GenericUtils.getServer(player);
         PlayerManager playerManager = server.getPlayerManager();
         broadcastMessage(playerManager, message);
     }
