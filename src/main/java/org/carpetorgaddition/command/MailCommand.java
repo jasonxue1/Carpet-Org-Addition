@@ -47,6 +47,7 @@ public class MailCommand extends AbstractServerCommand {
 
     @Override
     public void register(String name) {
+        // TODO 添加拦截快递命令
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandMail))
                 .then(CommandManager.literal("ship")
