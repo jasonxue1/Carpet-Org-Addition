@@ -772,14 +772,15 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         }
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
             this.itemEntities.remove(this.recentItemEntity);
+            this.pathfinder.stop();
             this.recentItemEntity = null;
             if (this.itemEntities.isEmpty()) {
                 this.phase = PlayerWorkPhase.WORK;
                 return;
             }
         }
-        Box box = this.selectionArea.toBox().expand(10.0);
         if (this.itemEntities.isEmpty()) {
+            Box box = this.selectionArea.toBox().expand(10.0);
             List<ItemEntity> list = this.getFakePlayer().getWorld().getNonSpectatingEntities(ItemEntity.class, box)
                     .stream()
                     .filter(itemEntity -> isMaterial(itemEntity.getStack()))

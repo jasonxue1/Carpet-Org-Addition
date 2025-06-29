@@ -61,7 +61,6 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         this.pathfinding();
     }
 
-    // TODO 需要测试
     @Override
     public void tick() {
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) getFakePlayer()).getActionPack();
