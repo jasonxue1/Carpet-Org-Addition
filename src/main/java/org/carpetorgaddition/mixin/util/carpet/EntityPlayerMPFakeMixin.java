@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-@Mixin(value = EntityPlayerMPFake.class, remap = false)
+@Mixin(value = EntityPlayerMPFake.class)
 public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<Void> fakePlayerSpawnConsumer(CompletableFuture<T> instance, Consumer<? super T> action, Executor executor, Operation<CompletableFuture<Void>> original) {

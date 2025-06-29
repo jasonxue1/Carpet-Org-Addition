@@ -21,9 +21,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
-@Mixin(value = EntityPlayerMPFake.class, remap = false)
+@Mixin(value = EntityPlayerMPFake.class)
 public class EntityPlayerMPFakeMixin {
-    @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
+    @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;", remap = false))
     private static <T> CompletableFuture<Void> thenAcceptAsync(CompletableFuture<T> instance, Consumer<? super T> action, Executor executor, Operation<CompletableFuture<Void>> original) {
         ServerPlayerEntity player = CarpetOrgAdditionSettings.playerSummoner.get();
         Consumer<? super T> consumer = value -> {
@@ -38,10 +38,9 @@ public class EntityPlayerMPFakeMixin {
     }
 
     @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/entity/player/PlayerAbilities;"))
-    private static PlayerAbilities onPlayerConnect(EntityPlayerMPFake instance, Operation<PlayerAbilities> original) {
-        PlayerAbilities call = original.call(instance);
+    private static PlayerAbilities broadcastSummoner(EntityPlayerMPFake instance, Operation<PlayerAbilities> original) {
         broadcastSummoner(instance);
-        return call;
+        return original.call(instance);
     }
 
     @Unique
