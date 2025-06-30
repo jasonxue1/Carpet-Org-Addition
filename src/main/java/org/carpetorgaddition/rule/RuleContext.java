@@ -46,7 +46,7 @@ public class RuleContext<T> {
     public CarpetRule<T> rule() {
         // 初始化可能在客户端和服务端同时进行
         if (this.rule == null) {
-            synchronized (RuleFactory.class) {
+            synchronized (this) {
                 if (this.rule == null) {
                     this.rule = this.ruleSupplier.get();
                 }

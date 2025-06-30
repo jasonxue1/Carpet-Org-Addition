@@ -936,6 +936,7 @@ public class CarpetOrgAdditionSettings {
     );
 
     // TODO 强制添加注释规则
+    // TODO 更改规则名称
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);
