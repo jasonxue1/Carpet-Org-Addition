@@ -311,7 +311,7 @@
   "carpet.commands.locations.add.fail.already_exists": "无法添加路径点：[%s]已存在",
   "carpet.commands.locations.add.success": "路径点[%s]已添加（%s）",
   "carpet.commands.locations.list.parse": "无法解析坐标[%s]",
-  "carpet.commands.locations.list.no_waypoint": "没有路径点被保存",
+  "carpet.commands.locations.list.no_waypoint": "没有路径点被列出",
   "carpet.commands.locations.comment.remove": "移除了路径点[%s]的注释",
   "carpet.commands.locations.comment.add": "将注释“%s”添加到[%s]中",
   "carpet.commands.locations.comment.io": "无法为路径点[%s]添加注释",

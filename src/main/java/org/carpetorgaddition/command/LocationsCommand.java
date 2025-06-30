@@ -151,6 +151,10 @@ public class LocationsCommand extends AbstractServerCommand {
                 CarpetOrgAddition.LOGGER.warn("Failed to parse waypoint [{}]", IOUtils.removeExtension(name), e);
             }
         }
+        if (messages.isEmpty()) {
+            MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
+            return 0;
+        }
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(context);
         collection.print();
