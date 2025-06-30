@@ -57,7 +57,7 @@ public class EntityPlayerMPFakeMixin {
             MutableText pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
             MessageUtils.broadcastMessage(GenericUtils.getServer(player), builder.build());
-            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", GenericUtils.getPlayerName(player), GenericUtils.getPlayerName(fakePlayer), pos);
+            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", GenericUtils.getPlayerName(player), GenericUtils.getPlayerName(fakePlayer), pos.getString());
         }
     }
 }
