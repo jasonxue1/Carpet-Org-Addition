@@ -17,6 +17,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkCache;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
@@ -263,7 +264,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
 
     @Override
     public void onStart() {
-        if (LoggerRegister.fakePlayerPath) {
+        if (LoggerRegister.fakePlayerPath && CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
             logger.sendPacket(() -> new FakePlayerPathS2CPacket(this));
         }
@@ -271,7 +272,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
 
     @Override
     public void onStop() {
-        if (LoggerRegister.fakePlayerPath) {
+        if (LoggerRegister.fakePlayerPath && CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
             logger.sendPacket(() -> new FakePlayerPathS2CPacket(getFakePlayer().getId(), List.of()));
         }
