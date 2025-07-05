@@ -5,9 +5,8 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
-
-import java.util.Objects;
 
 public class ClientMessageUtils {
     private ClientMessageUtils() {
@@ -40,9 +39,10 @@ public class ClientMessageUtils {
     }
 
     public static void sendErrorMessage(Throwable e, String key, Object... args) {
-        // TODO 修改异常消息内容
+        String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, args);
-        builder.setHover(Objects.requireNonNullElse(e.getMessage(), e.getClass().getSimpleName()));
+        builder.setStringHover(error);
+        builder.setColor(Formatting.RED);
         sendErrorMessage(builder.build());
     }
 }
