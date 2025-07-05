@@ -543,7 +543,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 假玩家合成支持潜影盒
      */
-    public static final Supplier<Boolean> fakePlayerCraftPickItemFromShulkerBox = register(
+    public static final Supplier<Boolean> fakePlayerPickItemFromShulkerBox = register(
             RuleFactory.create(Boolean.class, "fakePlayerCraftPickItemFromShulkerBox", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()

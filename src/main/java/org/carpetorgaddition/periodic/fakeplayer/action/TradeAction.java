@@ -186,7 +186,7 @@ public class TradeAction extends AbstractPlayerAction {
             }
         }
         // 从潜影盒寻找物品
-        if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
             return this.pickFromShulkerBox(merchantScreenHandler, buyItem, slotIndex, tradeSlot);
         }
         return false;

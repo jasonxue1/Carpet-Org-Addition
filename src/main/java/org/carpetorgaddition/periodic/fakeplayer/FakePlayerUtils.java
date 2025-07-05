@@ -511,7 +511,7 @@ public class FakePlayerUtils {
             return true;
         }
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get();
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
         ArrayList<Integer> shulkers = new ArrayList<>();
         // 主手槽位
         int headSlot = hand == Hand.MAIN_HAND ? 36 + fakePlayer.getInventory().selectedSlot : 45;
