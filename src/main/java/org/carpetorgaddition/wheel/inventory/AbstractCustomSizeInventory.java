@@ -55,7 +55,7 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
         if (slot < this.getActualSize()) {
             return this.getInventory().getStack(slot);
         }
-        return stacks.get().get(slot - this.getActualSize());
+        return stacks.get().get(this.getAmendSlotIndex(slot));
     }
 
     @Override

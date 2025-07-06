@@ -1,13 +1,13 @@
 package org.carpetorgaddition.translate;
 
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleContext;
 import org.carpetorgaddition.translate.TranslateParser.Entry;
 import org.carpetorgaddition.wheel.Counter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -173,7 +173,7 @@ public class TranslateTest {
     @Test
     public void testRuleKeyUsage() {
         Set<String> set = this.parsers.get(ZH_CN).listAllRule();
-        List<String> list = Arrays.stream(CarpetOrgAdditionSettings.class.getDeclaredFields()).map(Field::getName).toList();
+        List<String> list = CarpetOrgAdditionSettings.listRules().stream().map(RuleContext::getName).toList();
         if (set.size() == list.size()) {
             return;
         }
