@@ -116,7 +116,7 @@ public abstract class LivingEntityMixin {
         }
         // 如果执行到这里，那么规则值一定是shulker_box，因为如果是true会在上面的if语句中直接返回，如果为false，这个方法都不会被执行
         for (ItemStack shulkerBox : mainInventory) {
-            if (InventoryUtils.isShulkerBoxItem(shulkerBox)) {
+            if (InventoryUtils.isOperableSulkerBox(shulkerBox)) {
                 // 从潜影盒中拿取不死图腾
                 ItemStack totemOfUndying = InventoryUtils.pickItemFromShulkerBox(shulkerBox, stack -> stack.isOf(Items.TOTEM_OF_UNDYING));
                 // 潜影盒中可能没有不死图腾

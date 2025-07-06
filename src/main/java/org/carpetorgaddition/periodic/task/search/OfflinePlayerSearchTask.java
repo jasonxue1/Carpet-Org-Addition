@@ -91,7 +91,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     @Override
     protected void tick() {
-        // TODO 搜索谓词可以为空，表示搜索没有物品的离线玩家
         switch (this.taksState) {
             case START -> {
                 for (File file : files) {

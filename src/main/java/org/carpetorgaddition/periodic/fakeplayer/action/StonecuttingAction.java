@@ -129,7 +129,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.getFakePlayer())) {
                     return false;
                 }
-            } else if (CarpetOrgAdditionSettings.fakePlayerCraftPickItemFromShulkerBox.get() && InventoryUtils.isShulkerBoxItem(itemStack)) {
+            } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get() && InventoryUtils.isOperableSulkerBox(itemStack)) {
                 // 从潜影盒中查找指定物品
                 ItemStack stack = InventoryUtils.pickItemFromShulkerBox(itemStack, content -> content.isOf(this.item));
                 // 未找到指定物品

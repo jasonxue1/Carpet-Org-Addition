@@ -16,6 +16,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -24,18 +25,27 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.permission.PermissionLevel;
+import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.screen.ShipExpressScreenHandler;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class MailCommand extends AbstractServerCommand {
+    public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
+
     public MailCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -57,6 +67,11 @@ public class MailCommand extends AbstractServerCommand {
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(false))
                                 .executes(this::cancel)))
+                .then(CommandManager.literal("intercept")
+                        .requires(intercept)
+                        .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
+                                .suggests(interceptSuggests())
+                                .executes(this::intercept)))
                 .then(CommandManager.literal("list")
                         .executes(this::list))
                 .then(CommandManager.literal("multiple")
@@ -65,7 +80,7 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 自动补全快递单号
-    private @NotNull SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
+    private SuggestionProvider<ServerCommandSource> receiveSuggests(boolean recipient) {
         return (context, builder) -> {
             ServerPlayerEntity player = context.getSource().getPlayer();
             if (player == null) {
@@ -75,6 +90,22 @@ public class MailCommand extends AbstractServerCommand {
             // 获取所有发送给自己的快递（或所有自己发送的快递）
             List<String> list = manager.stream()
                     .filter(express -> recipient ? express.isRecipient(player) : express.isSender(player))
+                    .map(express -> Integer.toString(express.getId()))
+                    .toList();
+            return CommandSource.suggestMatching(list, builder);
+        };
+    }
+
+    // 自动补全快递单号
+    private SuggestionProvider<ServerCommandSource> interceptSuggests() {
+        return (context, builder) -> {
+            ServerPlayerEntity player = context.getSource().getPlayer();
+            if (player == null) {
+                return CommandSource.suggestMatching(List.of(), builder);
+            }
+            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+            // 获取所有发送的快递
+            List<String> list = manager.stream()
                     .map(express -> Integer.toString(express.getId()))
                     .toList();
             return CommandSource.suggestMatching(list, builder);
@@ -163,20 +194,44 @@ public class MailCommand extends AbstractServerCommand {
         }
     }
 
+    /**
+     * 拦截一件快递
+     */
+    private int intercept(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        Express express = getExpress(context);
+        try {
+            express.intercept(player);
+        } catch (IOException e) {
+            IOUtils.loggerError(e);
+        }
+        return express.getId();
+    }
+
     // 列出快递
     private int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ServerCommandSource source = context.getSource();
         List<Express> list = manager.stream().toList();
         if (list.isEmpty()) {
             // 没有快递被列出
             MessageUtils.sendMessage(context, "carpet.commands.mail.list.empty");
+            return 0;
         }
-        list.forEach(express -> list(player, express));
+        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        PagedCollection collection = pageManager.newPagedCollection(source);
+        ArrayList<Supplier<Text>> messages = new ArrayList<>();
+        for (Express express : list) {
+            messages.add(() -> line(player, express));
+        }
+        collection.addContent(messages);
+        MessageUtils.sendEmptyMessage(source);
+        collection.print();
         return list.size();
     }
 
-    private void list(ServerPlayerEntity player, Express express) {
+    private Text line(ServerPlayerEntity player, Express express) {
         ArrayList<MutableText> list = new ArrayList<>();
         TextBuilder builder;
         if (express.isRecipient(player)) {
@@ -193,6 +248,13 @@ public class MailCommand extends AbstractServerCommand {
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.sending"));
             list.add(TextBuilder.empty());
+        } else if (intercept.test(player.getCommandSource())) {
+            builder = new TextBuilder("[I]");
+            // 点击拦截
+            builder.setCommand(CommandProvider.interceptExpress(express.getId()));
+            builder.setColor(Formatting.AQUA);
+            list.add(TextBuilder.translate("carpet.commands.mail.list.intercept"));
+            list.add(TextBuilder.empty());
         } else {
             builder = new TextBuilder("[?]");
         }
@@ -204,12 +266,18 @@ public class MailCommand extends AbstractServerCommand {
         list.add(TextBuilder.translate("carpet.commands.mail.list.time", express.getTime()));
         // 拼接字符串
         builder.setHover(TextBuilder.joinList(list));
-        MessageUtils.sendMessage(player, "carpet.commands.mail.list.each",
-                express.getId(), express.getExpress().toHoverableText(), express.getSender(), express.getRecipient(), builder.build());
+        return TextBuilder.translate(
+                "carpet.commands.mail.list.each",
+                express.getId(),
+                express.getExpress().toHoverableText(),
+                express.getSender(),
+                express.getRecipient(),
+                builder.build()
+        );
     }
 
     // 获取快递
-    private @NotNull Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");

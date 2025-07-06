@@ -9,6 +9,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
@@ -85,32 +86,33 @@ public class InventoryUtils {
         return itemStack;
     }
 
-    // TODO 添加规则开关
     @CheckReturnValue
     public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, PlayerInventory inventory) {
-        itemStack = itemStack.copyAndEmpty();
-        // 所有潜影盒所在的索引
-        ArrayList<Integer> shulkers = new ArrayList<>();
-        for (int i = 0; i < inventory.size(); i++) {
-            ItemStack shulker = inventory.getStack(i);
-            if (isShulkerBoxItem(shulker)) {
-                shulkers.add(i);
-                // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
-                if (canAcceptAsSingleItemType(shulker, itemStack, false) || isJunkBox(shulker)) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+            itemStack = itemStack.copyAndEmpty();
+            // 所有潜影盒所在的索引
+            ArrayList<Integer> shulkers = new ArrayList<>();
+            for (int i = 0; i < inventory.size(); i++) {
+                ItemStack shulker = inventory.getStack(i);
+                if (isShulkerBoxItem(shulker)) {
+                    shulkers.add(i);
+                    // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
+                    if (canAcceptAsSingleItemType(shulker, itemStack, false) || isJunkBox(shulker)) {
+                        itemStack = addItemToShulkerBox(shulker, itemStack);
+                        if (itemStack.isEmpty()) {
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+            // 尝试向空潜影盒装入物品
+            for (Integer index : shulkers) {
+                ItemStack shulker = inventory.getStack(index);
+                if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
                     itemStack = addItemToShulkerBox(shulker, itemStack);
                     if (itemStack.isEmpty()) {
                         return ItemStack.EMPTY;
                     }
-                }
-            }
-        }
-        // 尝试向空潜影盒装入物品
-        for (Integer index : shulkers) {
-            ItemStack shulker = inventory.getStack(index);
-            if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
-                itemStack = addItemToShulkerBox(shulker, itemStack);
-                if (itemStack.isEmpty()) {
-                    return ItemStack.EMPTY;
                 }
             }
         }
@@ -145,7 +147,7 @@ public class InventoryUtils {
      */
     @Contract(pure = true)
     public static ItemStack getFirstItemStack(ItemStack container) {
-        if (isShulkerBoxItem(container) && container.getCount() == 1) {
+        if (isOperableSulkerBox(container)) {
             ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
             if (component == null || component == ContainerComponent.DEFAULT) {
                 return ItemStack.EMPTY;
@@ -179,7 +181,7 @@ public class InventoryUtils {
      * @return 潜影盒中是否有指定物品
      */
     public static boolean hasItemStack(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
-        if (isShulkerBoxItem(shulkerBox) && shulkerBox.getCount() == 1) {
+        if (isOperableSulkerBox(shulkerBox)) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             for (ItemStack itemStack : inventory) {
                 if (predicate.test(itemStack)) {
@@ -386,7 +388,7 @@ public class InventoryUtils {
     /**
      * @return 指定潜影盒是否可以存取物品
      */
-    private static boolean isOperableSulkerBox(ItemStack shulker) {
+    public static boolean isOperableSulkerBox(ItemStack shulker) {
         return isShulkerBoxItem(shulker) && shulker.getCount() == 1;
     }
 

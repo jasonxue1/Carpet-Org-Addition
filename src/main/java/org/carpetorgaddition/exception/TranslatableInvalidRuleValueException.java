@@ -7,7 +7,6 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-// TODO 更新日志
 public class TranslatableInvalidRuleValueException extends InvalidRuleValueException {
     @Nullable
     private final Text message;
