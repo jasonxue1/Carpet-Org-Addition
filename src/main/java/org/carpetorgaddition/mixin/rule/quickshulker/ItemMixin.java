@@ -24,7 +24,7 @@ public class ItemMixin {
             if (clickType == ClickType.LEFT || stack.isEmpty()) {
                 return;
             }
-            if (InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1) {
+            if (InventoryUtils.isOperableSulkerBox(stack)) {
                 ItemStack slotStack = slot.getStack();
                 if (slotStack.isEmpty()) {
                     ItemStack first = InventoryUtils.getFirstItemStack(stack);
@@ -71,7 +71,7 @@ public class ItemMixin {
                 return;
             }
             // 要求槽位是可以取可以放的，避免玩家向工作台输出槽中的潜影盒中放入物品
-            if (InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1 && slot.canTakePartial(player)) {
+            if (InventoryUtils.isOperableSulkerBox(stack) && slot.canTakePartial(player)) {
                 ItemStack itemStack = InventoryUtils.addItemToShulkerBox(stack, reference.get());
                 reference.set(itemStack);
                 cir.setReturnValue(true);

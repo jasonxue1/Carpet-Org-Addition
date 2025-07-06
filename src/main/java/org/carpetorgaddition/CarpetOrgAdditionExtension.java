@@ -11,8 +11,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
+import org.carpetorgaddition.command.SpectatorCommand;
 import org.carpetorgaddition.config.CustomCommandConfig;
 import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.logger.LoggerRegister;
@@ -20,6 +22,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.Translation;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
@@ -79,6 +82,12 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
         UuidNameMappingTable.getInstance().put(player.getGameProfile());
+        MinecraftServer server = GenericUtils.getServer(player);
+        GameMode gameMode = server.getForcedGameMode();
+        if (gameMode != null) {
+            SpectatorCommand instance = CommandRegister.getCommandInstance(SpectatorCommand.class);
+            instance.loadPlayerPos(server, player);
+        }
     }
 
     /**

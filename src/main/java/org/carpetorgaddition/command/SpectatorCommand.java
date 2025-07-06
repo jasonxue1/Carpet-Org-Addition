@@ -159,12 +159,12 @@ public class SpectatorCommand extends AbstractServerCommand {
                 writer.write(jsonString);
             }
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.warn("无法正常将{}的位置信息写入文件", GenericUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", GenericUtils.getPlayerName(player), e);
         }
     }
 
     // 从文件加载位置并传送玩家
-    private void loadPlayerPos(MinecraftServer server, ServerPlayerEntity player) {
+    public void loadPlayerPos(MinecraftServer server, ServerPlayerEntity player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
         File file = worldFormat.file(player.getUuidAsString() + IOUtils.JSON_EXTENSION);
         try {
@@ -182,7 +182,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 WorldUtils.teleport(player, world, x, y, z, yaw, pitch);
             }
         } catch (IOException | NullPointerException e) {
-            CarpetOrgAddition.LOGGER.warn("无法正常读取{}的位置信息", GenericUtils.getPlayerName(player));
+            CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", GenericUtils.getPlayerName(player));
         }
     }
 
