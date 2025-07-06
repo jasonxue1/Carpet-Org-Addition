@@ -32,6 +32,13 @@ public class CommandProvider {
     }
 
     /**
+     * 拦截一件快递
+     */
+    public static String interceptExpress(int id) {
+        return "/%s intercept %s".formatted(getCommandName(MailCommand.class), id);
+    }
+
+    /**
      * 接收所有快递
      */
     public static String receiveAllExpress() {

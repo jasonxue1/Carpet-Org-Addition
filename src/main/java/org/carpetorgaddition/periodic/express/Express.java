@@ -14,6 +14,8 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.command.CommandRegister;
+import org.carpetorgaddition.command.MailCommand;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
@@ -31,7 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 /**
  * 快递
@@ -109,11 +111,11 @@ public class Express implements Comparable<Express> {
         ServerPlayerEntity senderPlayer = playerManager.getPlayer(this.sender);
         ServerPlayerEntity recipientPlayer = playerManager.getPlayer(this.recipient);
         if (senderPlayer == null) {
-            CarpetOrgAddition.LOGGER.error("快递由不存在的玩家发出");
+            CarpetOrgAddition.LOGGER.error("The express delivery is sent by non-existent player");
             return;
         }
         if (recipientPlayer == null) {
-            CarpetOrgAddition.LOGGER.error("向不存在的玩家发送快递");
+            CarpetOrgAddition.LOGGER.error("Sending express delivery to non-existent player");
             return;
         }
         // 向快递发送者发送发出快递的消息
@@ -136,7 +138,7 @@ public class Express implements Comparable<Express> {
         PlayerManager playerManager = this.server.getPlayerManager();
         ServerPlayerEntity player = playerManager.getPlayer(this.recipient);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("接收快递的玩家不存在");
+            CarpetOrgAddition.LOGGER.error("The player who received the package does not exist");
             return;
         }
         if (this.cancel) {
@@ -155,8 +157,8 @@ public class Express implements Comparable<Express> {
                                 count, copy.toHoverableText()));
                 counter.add(copy.getItem(), count);
                 // 通知发送者物品已接收
-                Supplier<Text> message = () -> ExpressManager.getReceiveNotice(player, counter);
-                this.ifItExistsSendIt(this.sender, message);
+                Function<ServerPlayerEntity, Text> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -169,13 +171,13 @@ public class Express implements Comparable<Express> {
                                 count - surplusCount, surplusCount));
                 counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
-                Supplier<Text> message = () -> ExpressManager.getReceiveNotice(player, counter);
-                this.ifItExistsSendIt(this.sender, message);
+                Function<ServerPlayerEntity, Text> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
-            case FAIL -> MessageUtils.sendMessage(player,
-                    TextBuilder.translate("carpet.commands.mail.receive.insufficient_capacity"));
+            case FAIL ->
+                    MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.receive.insufficient_capacity"));
         }
     }
 
@@ -186,7 +188,7 @@ public class Express implements Comparable<Express> {
         PlayerManager playerManager = this.server.getPlayerManager();
         ServerPlayerEntity player = playerManager.getPlayer(this.sender);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("撤回快递的玩家不存在");
+            CarpetOrgAddition.LOGGER.error("The player who withdrew the package does not exist");
             return;
         }
         int count = this.express.getCount();
@@ -194,8 +196,7 @@ public class Express implements Comparable<Express> {
         // 将快递内容放入物品栏
         switch (insertStack(player)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.cancel.success",
-                        count, copy.toHoverableText()));
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", count, copy.toHoverableText());
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -203,20 +204,62 @@ public class Express implements Comparable<Express> {
                 // 剩余的物品数量
                 int surplusCount = this.express.getCount();
                 // 物品部分放入物品栏
-                MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.cancel.partial_reception",
-                        count - surplusCount, surplusCount));
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.partial_reception", count - surplusCount, surplusCount);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
-            case FAIL ->
-                // 物品未能成功放入物品栏
-                    MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.cancel.insufficient_capacity"));
+            // 物品未能成功放入物品栏
+            case FAIL -> MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.insufficient_capacity");
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Supplier<Text> message = () -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
-        this.ifItExistsSendIt(this.recipient, message);
+        Function<ServerPlayerEntity, Text> message = __ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
+        this.sendMessageIfPlayerOnline(this.recipient, message);
         this.cancel = true;
+    }
+
+    /**
+     * 拦截快递
+     */
+    public void intercept(ServerPlayerEntity operator) throws IOException {
+        int count = this.express.getCount();
+        ItemStack copy = this.express.copy();
+        switch (insertStack(operator)) {
+            case COMPLETE -> {
+                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.success", count, copy.toHoverableText());
+                playItemPickupSound(operator);
+            }
+            case PART -> {
+                // 剩余的物品数量
+                int surplusCount = this.express.getCount();
+                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.partial_reception", count - surplusCount, surplusCount);
+                playItemPickupSound(operator);
+            }
+            case FAIL -> {
+                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.insufficient_capacity");
+                return;
+            }
+        }
+        MutableText hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
+        sendMessageIfPlayerOnline(this.sender, player -> {
+            Text text = getOperatorPlayerName(operator, player);
+            TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.sender", text, this.recipient);
+            builder.setGrayItalic();
+            builder.setHover(hover);
+            return builder.build();
+        });
+        sendMessageIfPlayerOnline(this.recipient, player -> {
+            Text text = getOperatorPlayerName(operator, player);
+            TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.recipient", text, this.sender);
+            builder.setGrayItalic();
+            builder.setHover(hover);
+            return builder.build();
+        });
+    }
+
+    private Text getOperatorPlayerName(ServerPlayerEntity operator, ServerPlayerEntity player) {
+        MailCommand instance = CommandRegister.getCommandInstance(MailCommand.class);
+        return instance.intercept.test(player.getCommandSource()) ? operator.getDisplayName() : TextBuilder.translate("carpet.generic.operator");
     }
 
     /**
@@ -285,12 +328,12 @@ public class Express implements Comparable<Express> {
      * @param playerName 要查找的玩家名称
      * @param message    要发送的消息，使用Supplier包装，只在玩家存在时获取消息
      */
-    private void ifItExistsSendIt(String playerName, Supplier<Text> message) {
+    private void sendMessageIfPlayerOnline(String playerName, Function<ServerPlayerEntity, Text> message) {
         ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(playerName);
         if (player == null) {
             return;
         }
-        MessageUtils.sendMessage(player, message.get());
+        MessageUtils.sendMessage(player, message.apply(player));
     }
 
     /**

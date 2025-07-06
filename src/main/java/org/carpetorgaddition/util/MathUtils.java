@@ -63,6 +63,25 @@ public class MathUtils {
     }
 
     /**
+     * 计算两个方块坐标的曼哈顿距离
+     */
+    public static int calculateManhattanDistance(BlockPos start, BlockPos end) {
+        int x = start.getX() - end.getX();
+        int y = start.getY() - end.getY();
+        int z = start.getZ() - end.getZ();
+        return Math.abs(x) + Math.abs(y) + Math.abs(z);
+    }
+
+    /**
+     * 计算两个方块坐标的水平曼哈顿距离
+     */
+    public static int calculateHorizontalManhattanDistance(BlockPos start, BlockPos end) {
+        int x = start.getX() - end.getX();
+        int z = start.getZ() - end.getZ();
+        return Math.abs(x) + Math.abs(z);
+    }
+
+    /**
      * 在集合中从近到远排序<br>
      *
      * @param blockPos   源方块坐标

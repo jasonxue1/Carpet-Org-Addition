@@ -2,10 +2,8 @@ package org.carpetorgaddition.wheel;
 
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -13,7 +11,6 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -111,8 +108,8 @@ public class Waypoint {
     }
 
     // 显示路径点
-    public void show(ServerCommandSource source) {
-        MutableText text = switch (getWorldAsString()) {
+    public Text line() {
+        return switch (getWorldAsString()) {
             case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
                     ? TextBuilder.translate("carpet.commands.locations.show.overworld",
                     this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN))
@@ -130,7 +127,6 @@ public class Waypoint {
             default -> TextBuilder.translate("carpet.commands.locations.show.custom_dimension",
                     this.formatName(), getWorldAsString(), TextProvider.blockPos(this.blockPos, Formatting.GREEN));
         };
-        MessageUtils.sendMessage(source, text);
     }
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象

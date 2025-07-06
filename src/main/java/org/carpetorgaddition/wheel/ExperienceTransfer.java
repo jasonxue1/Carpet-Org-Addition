@@ -266,7 +266,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @param function 每个区间的经验计算公式
      */
     private static double calculateExperienceSum(int start, int end, IntFunction<Double> function) {
-        // 计算等差队列的项数（同时也是从当前等级到目标等级需要升的等级数）
+        // 计算等差数列的项数（同时也是从当前等级到目标等级需要升的等级数）
         int n = end - start + 1;
         return MathUtils.sumOfArithmeticProgression(function.apply(start), function.apply(end), n);
     }
