@@ -11,12 +11,16 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.inventory.AbstractCustomSizeInventory;
 import org.carpetorgaddition.wheel.DisabledSlot;
+import org.carpetorgaddition.wheel.inventory.AbstractCustomSizeInventory;
 
 import java.util.Map;
 
 public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> extends ScreenHandler implements UnavailableSlotSyncInterface, BackgroundSpriteSyncServer {
+    /**
+     * 正在使用Shift移动物品
+     */
+    public static final ThreadLocal<Boolean> isQuickMovingItem = ThreadLocal.withInitial(() -> false);
     /**
      * 容器的背景精灵图
      */
@@ -128,12 +132,12 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
             itemStack = slotItemStack.copy();
             // 如果当前槽位位于GUI的上半部分，将物品移动的玩家物品栏槽位
             if (slotIndex < 54) {
-                if (!this.insertItem(slotItemStack, 54, this.slots.size(), true)) {
+                if (this.quickMove(slotItemStack, 54, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
             } else {
                 // 否则，将物品从玩家物品栏移动到玩家物品栏
-                if (!this.insertItem(slotItemStack, 0, 41, false)) {
+                if (this.quickMove(slotItemStack, 0, 41, false)) {
                     return ItemStack.EMPTY;
                 }
             }
@@ -145,6 +149,18 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
             }
         }
         return itemStack;
+    }
+
+    /**
+     * @return 是否有物品移动了
+     */
+    private boolean quickMove(ItemStack stack, int startIndex, int endIndex, boolean fromLast) {
+        try {
+            isQuickMovingItem.set(true);
+            return !this.insertItem(stack, startIndex, endIndex, fromLast);
+        } finally {
+            isQuickMovingItem.set(false);
+        }
     }
 
     @Override
