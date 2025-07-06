@@ -207,7 +207,7 @@ public class TextProvider {
      * @param world 要获取维度名称的世界对象
      * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
      */
-    public static Text getDimensionName(World world) {
+    public static Text dimension(World world) {
         String dimension = WorldUtils.getDimensionId(world);
         return switch (dimension) {
             case WorldUtils.OVERWORLD -> OVERWORLD;
@@ -217,7 +217,7 @@ public class TextProvider {
         };
     }
 
-    public static Text getDimensionName(String dimension) {
+    public static Text dimension(String dimension) {
         return switch (dimension) {
             case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> OVERWORLD;
             case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER -> THE_NETHER;

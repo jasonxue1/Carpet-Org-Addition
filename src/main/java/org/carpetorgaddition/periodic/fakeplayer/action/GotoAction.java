@@ -13,8 +13,8 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.util.GenericUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -47,12 +47,19 @@ public class GotoAction extends AbstractPlayerAction {
     @Override
     protected void tick() {
         if (this.pathfinder.isFinished()) {
-            Vec3d pos = this.getFakePlayer().getPos();
-            this.target.get().ifPresent(blockPos -> {
-                if (blockPos.toBottomCenterPos().distanceTo(pos) > 3) {
-                    pathfinder.pathfinding();
+            switch (this.targetType) {
+                case BLOCK -> {
+                    return;
                 }
-            });
+                case ENTITY -> this.target.get().ifPresent(blockPos -> {
+                    EntityTracker tracker = (EntityTracker) this.target;
+                    Vec3d pos = tracker.entity.getPos();
+                    if (blockPos.toBottomCenterPos().distanceTo(pos) > 3) {
+                        tracker.update();
+                        pathfinder.pathfinding();
+                    }
+                });
+            }
         }
         this.pathfinder.tick();
     }
@@ -208,6 +215,10 @@ public class GotoAction extends AbstractPlayerAction {
             }
             // 玩家与目标实体不在同一维度
             return Optional.empty();
+        }
+
+        private void update() {
+            this.target = this.entity.getBlockPos();
         }
 
         private World getWorld() {

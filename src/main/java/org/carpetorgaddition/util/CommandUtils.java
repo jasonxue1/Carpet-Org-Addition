@@ -185,8 +185,12 @@ public class CommandUtils {
         try {
             runnable.run();
         } catch (CommandSyntaxException e) {
-            MessageUtils.sendVanillaErrorMessage(source, e);
+            handlingException(e, source);
         }
+    }
+
+    public static void handlingException(CommandSyntaxException e, ServerCommandSource source) {
+        MessageUtils.sendVanillaErrorMessage(source, e);
     }
 
     /**
