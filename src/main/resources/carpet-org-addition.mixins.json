@@ -102,6 +102,7 @@
     "util.CommandRegistryAccessMixin",
     "util.MinecraftServerMixin",
     "util.PlayerManagerMixin",
+    "util.ScreenHandlerMixin",
     "util.ServerPlayerEntityMixin",
     "util.ServerPlayNetworkHandlerMixin",
     "util.carpet.EntityPlayerMPFakeMixin",
