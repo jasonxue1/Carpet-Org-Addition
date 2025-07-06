@@ -81,6 +81,8 @@
     "rule.cceupdatesuppression.ShulkerBoxBlockMixin",
     "rule.disablemobpeacefuldespawn.MobEntityMixin",
     "rule.disablemobpeacefuldespawn.WitherEntityMixin",
+    "rule.displayplayersummoner.EntityPlayerMPFakeMixin",
+    "rule.displayplayersummoner.PlayerCommandMixin",
     "rule.enchantment.AnvilScreenHandlerMixin",
     "rule.enchantment.EnchantmentMixin",
     "rule.entityplayeractionpack.ActionAccessor",

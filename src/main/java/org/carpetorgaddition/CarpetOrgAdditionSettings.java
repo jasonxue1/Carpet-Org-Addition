@@ -9,6 +9,7 @@ import org.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.carpetorgaddition.rule.*;
 import org.carpetorgaddition.rule.value.*;
+import org.carpetorgaddition.wheel.ThreadContextPropagator;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -20,7 +21,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 控制玩家登录登出的消息是否显示
      */
-    public static final ThreadLocal<Boolean> hiddenLoginMessages = ThreadLocal.withInitial(() -> false);
+    public static final ThreadContextPropagator<Boolean> hiddenLoginMessages = new ThreadContextPropagator<>(false);
     /**
      * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
      */
@@ -33,6 +34,8 @@ public class CarpetOrgAdditionSettings {
      * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
      */
     public static final ThreadLocal<ServerPlayerEntity> blockBreaking = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayerEntity> playerSummoner = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayerEntity> internalPlayerSummoner = new ThreadLocal<>();
     /**
      * 当前正在使用铁砧附魔的玩家
      */
@@ -41,7 +44,7 @@ public class CarpetOrgAdditionSettings {
     public static final String OPS = "ops";
     public static final String TRUE = Boolean.TRUE.toString();
     public static final String FALSE = Boolean.FALSE.toString();
-    private static final String[] COMMAND_OPTIONS = {"true", "false", OPS, "0", "1", "2", "3", "4"};
+    private static final String[] COMMAND_OPTIONS = {TRUE, FALSE, OPS, "0", "1", "2", "3", "4"};
     public static final String ORG = "Org";
     public static final String HIDDEN = "Hidden";
 
@@ -540,7 +543,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 假玩家合成支持潜影盒
      */
-    public static final Supplier<Boolean> fakePlayerCraftPickItemFromShulkerBox = register(
+    public static final Supplier<Boolean> fakePlayerPickItemFromShulkerBox = register(
             RuleFactory.create(Boolean.class, "fakePlayerCraftPickItemFromShulkerBox", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
@@ -932,7 +935,17 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 显示假玩家召唤者
+     */
+    public static final Supplier<Boolean> displayPlayerSummoner = register(
+            RuleFactory.create(Boolean.class, "displayPlayerSummoner", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
     // TODO 强制添加注释规则
+    // TODO 更改规则名称
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);
