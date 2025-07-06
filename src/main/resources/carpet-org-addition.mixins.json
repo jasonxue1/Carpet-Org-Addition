@@ -115,7 +115,6 @@
     "network.ScreenHandlerMixin",
     "network.SlotMixin",
     "rule.client.carpet.SettingsManagerMixin",
-    "rule.client.carpet.SettingsManagerMixin",
     "rule.quickshulker.CreativeScreenHandlerMixin",
     "util.MultiPhaseParametersBuilderAccessor",
     "util.ShaderProgramLayersAccessor"
