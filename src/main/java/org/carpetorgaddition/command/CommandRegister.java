@@ -38,7 +38,6 @@ public class CommandRegister {
         // 快递命令
         register(new MailCommand(dispatcher, access));
         register(new OrangeCommand(dispatcher, access));
-        // TODO 检查是否在生产环境注册
         register(new RuntimeCommand(dispatcher, access));
     }
 

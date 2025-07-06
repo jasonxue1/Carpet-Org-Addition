@@ -13,6 +13,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -21,12 +22,16 @@ import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.Waypoint;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 //路径点管理器
 public class LocationsCommand extends AbstractServerCommand {
@@ -117,7 +122,7 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 列出所有路径点
-    private int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) {
+    private int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.toImmutableFileList();
@@ -125,9 +130,9 @@ public class LocationsCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
             return 0;
         }
-        MutableText dividerLine = TextBuilder.create("------------------------------");
-        // 显示分隔线
-        MessageUtils.sendMessage(context.getSource(), dividerLine);
+        PageManager pageManager = FetcherUtils.getPageManager(server);
+        PagedCollection collection = pageManager.newPagedCollection(context.getSource());
+        ArrayList<Supplier<Text>> messages = new ArrayList<>();
         int count = 0;
         // 遍历文件夹下的所有文件
         for (File file : list) {
@@ -139,14 +144,20 @@ public class LocationsCommand extends AbstractServerCommand {
             try {
                 Waypoint waypoint = Waypoint.load(server, name);
                 // 显示路径点
-                waypoint.show(context.getSource());
+                messages.add(waypoint::line);
                 count++;
             } catch (IOException | NullPointerException e) {
                 //无法解析坐标
-                CarpetOrgAddition.LOGGER.warn("无法解析路径点[{}]", IOUtils.removeExtension(name), e);
+                CarpetOrgAddition.LOGGER.warn("Failed to parse waypoint [{}]", IOUtils.removeExtension(name), e);
             }
         }
-        MessageUtils.sendMessage(context.getSource(), dividerLine);
+        if (messages.isEmpty()) {
+            MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
+            return 0;
+        }
+        collection.addContent(messages);
+        MessageUtils.sendEmptyMessage(context);
+        collection.print();
         return count;
     }
 

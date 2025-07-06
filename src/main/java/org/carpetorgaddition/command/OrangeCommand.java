@@ -88,7 +88,7 @@ public class OrangeCommand extends AbstractServerCommand {
     public void register(String name) {
         this.dispatcher.register(CommandManager.literal(name)
                 .then(CommandManager.literal("permission")
-                        .requires(source -> source.hasPermissionLevel(2))
+                        .requires(source -> source.hasPermissionLevel(4))
                         .then(CommandManager.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
                                 .then(CommandManager.argument("level", StringArgumentType.string())
