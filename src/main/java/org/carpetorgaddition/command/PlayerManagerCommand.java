@@ -1,5 +1,7 @@
 package org.carpetorgaddition.command;
 
+import carpet.fakes.ServerPlayerInterface;
+import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -14,12 +16,14 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -28,14 +32,12 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
+import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
 import org.carpetorgaddition.wheel.page.PageManager;
@@ -52,6 +54,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -183,7 +186,19 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                 .executes(context -> cancelSafeAfk(context, true)))))
                         .then(CommandManager.literal("query")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                        .executes(this::querySafeAfk)))));
+                                        .executes(this::querySafeAfk))))
+                .then(CommandManager.literal("batch")
+                        .then(CommandManager.argument("prefix", StringArgumentType.word())
+                                .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
+                                        .then(CommandManager.argument("end", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
+                                                .then(CommandManager.literal("spawn")
+                                                        .executes(this::batchSpawn))
+                                                .then(CommandManager.literal("kill")
+                                                        .executes(this::batchKill))
+                                                .then(CommandManager.literal("drop")
+                                                        .executes(this::batchDrop))
+                                                .then(CommandManager.literal("trial")
+                                                        .executes(this::batchTrial)))))));
     }
 
     private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
@@ -702,6 +717,91 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return interval;
         }
         return 0;
+    }
+
+    /**
+     * 批量生成玩家
+     */
+    private int batchSpawn(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return batchSpawn(context, GenericUtils::pass);
+    }
+
+    /**
+     * 批量生成玩家并踢出玩家
+     */
+    private int batchTrial(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        return batchSpawn(context, scheduleKillPlayer());
+    }
+
+    private static int batchSpawn(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
+        int start = IntegerArgumentType.getInteger(context, "start");
+        int end = IntegerArgumentType.getInteger(context, "end");
+        // 交互最大最小值，玩家可能将end和start参数反向输入
+        int temp = Math.min(start, end);
+        end = Math.max(start, end);
+        start = temp;
+        int count = end - start + 1;
+        if (count > 256) {
+            // 限制单次生成的最大玩家数量
+            throw CommandUtils.createException("carpet.commands.playerManager.batch.exceeds_limit", count, 256);
+        }
+        String prefix = StringArgumentType.getString(context, "prefix");
+        // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
+        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        MinecraftServer server = context.getSource().getServer();
+        UserCache userCache = server.getUserCache();
+        if (userCache == null) {
+            CarpetOrgAddition.LOGGER.warn("Server user cache is null");
+            return 0;
+        }
+        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, consumer));
+        return end - start + 1;
+    }
+
+    /**
+     * 批量生成玩家
+     */
+    private int batchKill(CommandContext<ServerCommandSource> context) {
+        return batchOperation(context, scheduleKillPlayer());
+    }
+
+    private Consumer<EntityPlayerMPFake> scheduleKillPlayer() {
+        return ReLoginTask::logoutPlayer;
+    }
+
+    /**
+     * 批量生成玩家
+     */
+    private int batchDrop(CommandContext<ServerCommandSource> context) {
+        return batchOperation(context, fakePlayer -> {
+            EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
+            actionPack.drop(-2, true);
+        });
+    }
+
+    private static int batchOperation(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) {
+        int start = IntegerArgumentType.getInteger(context, "start");
+        int end = IntegerArgumentType.getInteger(context, "end");
+        // 交互最大最小值，玩家可能将end和start参数反向输入
+        int temp = Math.min(start, end);
+        end = Math.max(start, end);
+        start = temp;
+        String prefix = StringArgumentType.getString(context, "prefix");
+        // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
+        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        MinecraftServer server = context.getSource().getServer();
+        int count = 0;
+        PlayerManager playerManager = server.getPlayerManager();
+        for (int i = start; i <= end; i++) {
+            ServerPlayerEntity player = playerManager.getPlayer(prefix + i);
+            if (player instanceof EntityPlayerMPFake fakePlayer) {
+                consumer.accept(fakePlayer);
+                count++;
+            }
+        }
+        return count;
     }
 
     // 启用内存泄漏修复
