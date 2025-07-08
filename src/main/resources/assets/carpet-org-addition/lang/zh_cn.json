@@ -213,6 +213,8 @@
   "carpet.rule.displayPlayerSummoner.desc": "显示谁召唤了玩家",
   "carpet.rule.disableAnvilExpensive.name": "禁用铁砧昂贵",
   "carpet.rule.disableAnvilExpensive.desc": "将铁砧操作所需经验限制为39级",
+  "carpet.rule.disableFurnaceDropExperience.name": "禁用熔炉经验掉落",
+  "carpet.rule.disableFurnaceDropExperience.desc": "阻止熔炉中的经验掉落",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.message.displayPlayerSummoner": "↑由%s召唤",

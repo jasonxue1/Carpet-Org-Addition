@@ -122,6 +122,7 @@
   "carpet.rule.displayPlayerSummoner.desc": "Show who summoned the player",
   "carpet.rule.disableCreativeContainerDrops.desc": "Disables item drops from container block when broken in Creative mode",
   "carpet.rule.disableAnvilExpensive.desc": "Limit the experience required for anvil operation to level 39",
+  "carpet.rule.disableFurnaceDropExperience.desc": "Prevent experience from dropping in a furnace",
   "carpet.rule.message.disableRespawnBlocksExplode": "Respawn blocks explosion is disabled",
   "carpet.rule.message.CCEUpdateSuppression": "You cannot open the shulkerbox for update surpression",
   "carpet.rule.message.displayPlayerSummoner": "↑ Summoned by %s",

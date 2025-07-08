@@ -944,6 +944,16 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 禁用熔炉掉落经验
+     */
+    public static final Supplier<Boolean> disableFurnaceDropExperience = register(
+            RuleFactory.create(Boolean.class, "disableFurnaceDropExperience", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .setHidden()
+                    .build()
+    );
+
     // TODO 强制添加注释规则
     // TODO 更改规则名称
 
