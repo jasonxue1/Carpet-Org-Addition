@@ -935,6 +935,15 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 禁用铁砧昂贵
+     */
+    public static final Supplier<Boolean> disableExpensive = register(
+            RuleFactory.create(Boolean.class, "disableAnvilExpensive", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
     // TODO 强制添加注释规则
     // TODO 更改规则名称
 

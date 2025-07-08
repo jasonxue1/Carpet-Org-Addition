@@ -211,6 +211,8 @@
   "carpet.rule.disableCreativeContainerDrops.desc": "在创造模式破坏容器方块时不会掉落其中的物品",
   "carpet.rule.displayPlayerSummoner.name": "显示玩家召唤者",
   "carpet.rule.displayPlayerSummoner.desc": "显示谁召唤了玩家",
+  "carpet.rule.disableAnvilExpensive.name": "禁用铁砧昂贵",
+  "carpet.rule.disableAnvilExpensive.desc": "将铁砧操作所需经验限制为39级",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.message.displayPlayerSummoner": "↑由%s召唤",

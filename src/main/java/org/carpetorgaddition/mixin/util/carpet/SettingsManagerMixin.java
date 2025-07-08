@@ -97,6 +97,7 @@ public abstract class SettingsManagerMixin {
     @WrapOperation(method = "loadConfigurationFromConf", at = @At(value = "INVOKE", target = "Ljava/util/Map;keySet()Ljava/util/Set;"))
     private Set<String> migrate(Map<String, String> map, Operation<Set<String>> original) {
         if (thisManager == CarpetOrgAdditionExtension.getSettingManager()) {
+            // TODO 检查carpet.conf是否存在
             RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
             if (ruleConfig.isMigrated()) {
                 ruleConfig.load();
