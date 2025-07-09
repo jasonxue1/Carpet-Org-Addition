@@ -708,7 +708,7 @@ public class CarpetOrgAdditionSettings {
     public static final Supplier<Integer> fakePlayerMaxCraftCount = register(
             RuleFactory.create(Integer.class, "fakePlayerMaxCraftCount", 3)
                     .addCategories(RuleCategory.SURVIVAL)
-                    .addOptions("1", "3", "5", "-1")
+                    .addOptions(1, 3, 5, -1)
                     .setLenient()
                     .addValidator(
                             newValue -> newValue >= RuleUtils.MIN_CRAFT_COUNT || newValue == -1,
@@ -863,7 +863,7 @@ public class CarpetOrgAdditionSettings {
     public static final Supplier<Integer> finderCommandMaxFeedbackCount = register(
             RuleFactory.create(Integer.class, "finderCommandMaxFeedbackCount", 10)
                     .addCategories(RuleCategory.COMMAND)
-                    .addOptions("10", "15", "20", "25")
+                    .addOptions(10, 15, 20, 25)
                     .addValidator(newValue -> newValue > 0, () -> ValidatorFeedbacks.greaterThan(0))
                     .setLenient()
                     .build()
@@ -936,11 +936,17 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * 禁用铁砧昂贵
+     * 设置铁砧经验消耗上限
      */
-    public static final Supplier<Boolean> disableExpensive = register(
-            RuleFactory.create(Boolean.class, "disableAnvilExpensive", false)
+    public static final Supplier<Integer> setAnvilCostLimit = register(
+            RuleFactory.create(Integer.class, "setAnvilExperienceConsumptionLimit", -1)
                     .addCategories(RuleCategory.SURVIVAL)
+                    .addValidator(
+                            integer -> integer == -1 || integer > 0 && integer <= 10000,
+                            () -> ValidatorFeedbacks.rangeOrValue(1, 10000, -1)
+                    )
+                    .addOptions(100, 1000, 10000, -1)
+                    .setLenient()
                     .build()
     );
 

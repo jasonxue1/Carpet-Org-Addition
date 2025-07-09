@@ -78,6 +78,10 @@ public class RuleFactory {
             return this;
         }
 
+        public Builder<T> addOptions(int... options) {
+            return this.addOptions(Arrays.stream(options).mapToObj(Integer::toString).toArray(String[]::new));
+        }
+
         public Builder<T> setClient() {
             this.canBeToggledClientSide = true;
             return this;

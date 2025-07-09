@@ -5,7 +5,6 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
-    "rule.AbstractFurnaceBlockEntityMixin",
     "accessor.PlayerManagerAccessor",
     "command.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
@@ -25,6 +24,7 @@
     "logger.VillagerEntityMixin",
     "logger.WanderingTraderManagerMixin",
     "rule.AbstractBlockStateMixin",
+    "rule.AbstractFurnaceBlockEntityMixin",
     "rule.BatEntityMixin",
     "rule.BeaconBlockEntityMixin",
     "rule.BiomeMixin",
@@ -79,8 +79,6 @@
     "rule.cceupdatesuppression.BlockPlacementDispenserBehaviorMixin",
     "rule.cceupdatesuppression.ShulkerBoxBlockMixin",
     "rule.disableanvilexpensive.AnvilScreenHandlerMixin",
-    "rule.disableanvilexpensive.ComponentHolderMixin",
-    "rule.disableanvilexpensive.ItemStackMixin",
     "rule.disablemobpeacefuldespawn.MobEntityMixin",
     "rule.disablemobpeacefuldespawn.WitherEntityMixin",
     "rule.displayplayersummoner.EntityPlayerMPFakeMixin",
@@ -119,6 +117,7 @@
     "network.ScreenHandlerMixin",
     "network.SlotMixin",
     "rule.client.carpet.SettingsManagerMixin",
+    "rule.disableanvilexpensive.client.AnvilScreenMixin",
     "rule.quickshulker.CreativeScreenHandlerMixin"
   ],
   "injectors": {
