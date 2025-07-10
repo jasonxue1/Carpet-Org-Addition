@@ -882,18 +882,20 @@ public class CarpetOrgAdditionSettings {
     /**
      * /player命令打开玩家物品栏
      */
-    public static final Supplier<OpenPlayerInventory> playerCommandOpenPlayerInventory = register(
-            RuleFactory.create(OpenPlayerInventory.class, "playerCommandOpenPlayerInventory", OpenPlayerInventory.FALSE)
+    public static final Supplier<String> playerCommandOpenPlayerInventory = register(
+            RuleFactory.create(String.class, "playerCommandOpenPlayerInventory", FALSE)
                     .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
                     .build()
     );
 
     /**
      * /player命令假玩家传送
      */
-    public static final Supplier<Boolean> playerCommandTeleportFakePlayer = register(
-            RuleFactory.create(Boolean.class, "playerCommandTeleportFakePlayer", false)
+    public static final Supplier<String> playerCommandTeleportFakePlayer = register(
+            RuleFactory.create(String.class, "playerCommandTeleportFakePlayer", FALSE)
                     .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
                     .build()
     );
 
@@ -957,6 +959,15 @@ public class CarpetOrgAdditionSettings {
             RuleFactory.create(Boolean.class, "disableFurnaceDropExperience", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .setHidden()
+                    .build()
+    );
+
+    /**
+     * /player命令打开玩家物品栏
+     */
+    public static final Supplier<OpenPlayerInventory> playerCommandOpenPlayerInventoryOption = register(
+            RuleFactory.create(OpenPlayerInventory.class, "playerCommandOpenPlayerInventoryOption", OpenPlayerInventory.FAKE_PLAYER)
+                    .addCategories(RuleCategory.COMMAND)
                     .build()
     );
 
