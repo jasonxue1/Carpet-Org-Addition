@@ -224,7 +224,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
         MessageUtils.sendEmptyMessage(this.source);
         this.sendSkipPlayerMessage();
         MessageUtils.sendMessage(this.source, builder.build());
-        // TODO 移动至方法开头，否则如果未找到物品将无法发送此条消息
         CommandUtils.handlingException(this.pagedCollection::print, source);
     }
 
