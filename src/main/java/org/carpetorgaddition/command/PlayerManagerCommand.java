@@ -32,6 +32,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
+import org.carpetorgaddition.periodic.task.SilentLogoutTask;
 import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
@@ -730,7 +731,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      * 批量生成玩家并踢出玩家
      */
     private int batchTrial(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return batchSpawn(context, scheduleKillPlayer());
+        MinecraftServer server = context.getSource().getServer();
+        // 异常由服务器命令源进行处理
+        ServerCommandSource source = server.getCommandSource();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        return batchSpawn(context, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
     }
 
     private static int batchSpawn(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
@@ -764,11 +769,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      * 批量生成玩家
      */
     private int batchKill(CommandContext<ServerCommandSource> context) {
-        return batchOperation(context, scheduleKillPlayer());
-    }
-
-    private Consumer<EntityPlayerMPFake> scheduleKillPlayer() {
-        return ReLoginTask::logoutPlayer;
+        return batchOperation(context, ReLoginTask::logoutPlayer);
     }
 
     /**

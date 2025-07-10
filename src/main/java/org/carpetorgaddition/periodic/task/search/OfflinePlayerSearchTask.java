@@ -222,6 +222,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         builder.setHover("carpet.commands.finder.item.offline_player.prompt", this.getInventoryName());
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, builder.build());
+        // TODO 移动至方法开头，否则如果未找到物品将无法发送此条消息
         int skip = this.skipCount.get();
         if (skip != 0) {
             // 如果this.unknownPlayer为true，那么代码不应该执行到这里
