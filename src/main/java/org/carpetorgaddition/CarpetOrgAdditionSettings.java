@@ -301,26 +301,26 @@ public class CarpetOrgAdditionSettings {
     /**
      * 开放{@code /seed}命令权限
      */
-    public static final Supplier<Boolean> openSeedPermissions = register(
-            RuleFactory.create(Boolean.class, "openSeedPermissions", false)
+    public static final Supplier<Boolean> openSeedPermission = register(
+            RuleFactory.create(Boolean.class, "openSeedPermission", false)
                     .addCategories(RuleCategory.COMMAND)
                     .build()
     );
 
     /**
-     * 开放/carpet命令权限
+     * 开放{@code /carpet}命令权限
      */
-    public static final Supplier<Boolean> openCarpetPermissions = register(
-            RuleFactory.create(Boolean.class, "openCarpetPermissions", false)
+    public static final Supplier<Boolean> openCarpetPermission = register(
+            RuleFactory.create(Boolean.class, "openCarpetPermission", false)
                     .addCategories(RuleCategory.COMMAND, RuleCategory.CLIENT)
                     .build()
     );
 
     /**
-     * 开放/gamerule命令权限
+     * 开放{@code /gamerule}命令权限
      */
-    public static final Supplier<Boolean> openGameRulePermissions = register(
-            RuleFactory.create(Boolean.class, "openGameRulePermissions", false)
+    public static final Supplier<Boolean> openGameRulePermission = register(
+            RuleFactory.create(Boolean.class, "openGameRulePermission", false)
                     .addCategories(RuleCategory.COMMAND)
                     .build()
     );
@@ -439,10 +439,10 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * 假玩家合成保留物品
+     * 假玩家动作保留物品
      */
-    public static final Supplier<Boolean> fakePlayerCraftKeepItem = register(
-            RuleFactory.create(Boolean.class, "fakePlayerCraftKeepItem", false)
+    public static final Supplier<Boolean> fakePlayerActionKeepItem = register(
+            RuleFactory.create(Boolean.class, "fakePlayerActionKeepItem", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );
@@ -488,8 +488,8 @@ public class CarpetOrgAdditionSettings {
     /**
      * 开放/tp命令权限
      */
-    public static final Supplier<Boolean> openTpPermissions = register(
-            RuleFactory.create(Boolean.class, "openTpPermissions", false)
+    public static final Supplier<Boolean> openTpPermission = register(
+            RuleFactory.create(Boolean.class, "openTpPermission", false)
                     .addCategories(RuleCategory.COMMAND)
                     .build()
     );
@@ -525,7 +525,7 @@ public class CarpetOrgAdditionSettings {
      * 更好的不死图腾
      */
     public static final Supplier<BetterTotemOfUndying> betterTotemOfUndying = register(
-            RuleFactory.create(BetterTotemOfUndying.class, "betterTotemOfUndying", BetterTotemOfUndying.FALSE)
+            RuleFactory.create(BetterTotemOfUndying.class, "betterTotemOfUndying", BetterTotemOfUndying.VANILLA)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );
@@ -544,7 +544,7 @@ public class CarpetOrgAdditionSettings {
      * 假玩家合成支持潜影盒
      */
     public static final Supplier<Boolean> fakePlayerPickItemFromShulkerBox = register(
-            RuleFactory.create(Boolean.class, "fakePlayerCraftPickItemFromShulkerBox", false)
+            RuleFactory.create(Boolean.class, "fakePlayerShulkerBoxItemHandling", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );
@@ -703,10 +703,10 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * 假玩家最大合成次数
+     * 假玩家最大物品操作次数
      */
-    public static final Supplier<Integer> fakePlayerMaxCraftCount = register(
-            RuleFactory.create(Integer.class, "fakePlayerMaxCraftCount", 3)
+    public static final Supplier<Integer> fakePlayerMaxItemOperationCount = register(
+            RuleFactory.create(Integer.class, "fakePlayerMaxItemOperationCount", 3)
                     .addCategories(RuleCategory.SURVIVAL)
                     .addOptions(1, 3, 5, -1)
                     .setLenient()
@@ -860,8 +860,8 @@ public class CarpetOrgAdditionSettings {
     /**
      * /finder命令最大反馈数量
      */
-    public static final Supplier<Integer> finderCommandMaxFeedbackCount = register(
-            RuleFactory.create(Integer.class, "finderCommandMaxFeedbackCount", 10)
+    public static final Supplier<Integer> maxLinesPerPage = register(
+            RuleFactory.create(Integer.class, "maxLinesPerPage", 10)
                     .addCategories(RuleCategory.COMMAND)
                     .addOptions(10, 15, 20, 25)
                     .addValidator(newValue -> newValue > 0, () -> ValidatorFeedbacks.greaterThan(0))
@@ -963,7 +963,7 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * /player命令打开玩家物品栏
+     * /player命令打开玩家物品栏选项
      */
     public static final Supplier<OpenPlayerInventory> playerCommandOpenPlayerInventoryOption = register(
             RuleFactory.create(OpenPlayerInventory.class, "playerCommandOpenPlayerInventoryOption", OpenPlayerInventory.FAKE_PLAYER)

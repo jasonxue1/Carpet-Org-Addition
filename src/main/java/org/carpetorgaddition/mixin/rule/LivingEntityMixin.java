@@ -60,7 +60,7 @@ public abstract class LivingEntityMixin {
     @Inject(method = "tryUseTotem", at = @At("HEAD"), cancellable = true)
     private void tryUseTotem(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         // 在一开始就对规则是否开启进行判断，这样当其他Mod也修改了此段代码时，就可以通过关闭改规则来保障其他Mod的正常运行
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.FALSE) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.VANILLA) {
             return;
         }
         LivingEntity thisLivingEntity = (LivingEntity) (Object) this;
@@ -111,7 +111,7 @@ public abstract class LivingEntityMixin {
             }
         }
         // 如果这里规则值为true，或者说规则值不是shulker_box，那就没有必要继续向下执行
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.TRUE) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.INVENTORY) {
             return null;
         }
         // 如果执行到这里，那么规则值一定是shulker_box，因为如果是true会在上面的if语句中直接返回，如果为false，这个方法都不会被执行
