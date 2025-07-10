@@ -204,6 +204,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 发送命令反馈
     private void sendFeedback() {
         if (this.list.isEmpty()) {
+            this.sendSkipPlayerMessage();
             MessageUtils.sendMessage(
                     this.source,
                     "carpet.commands.finder.item.offline_player.not_found",
@@ -221,8 +222,13 @@ public class OfflinePlayerSearchTask extends ServerTask {
         TextBuilder builder = new TextBuilder(message);
         builder.setHover("carpet.commands.finder.item.offline_player.prompt", this.getInventoryName());
         MessageUtils.sendEmptyMessage(this.source);
+        this.sendSkipPlayerMessage();
         MessageUtils.sendMessage(this.source, builder.build());
         // TODO 移动至方法开头，否则如果未找到物品将无法发送此条消息
+        CommandUtils.handlingException(this.pagedCollection::print, source);
+    }
+
+    private void sendSkipPlayerMessage() {
         int skip = this.skipCount.get();
         if (skip != 0) {
             // 如果this.unknownPlayer为true，那么代码不应该执行到这里
@@ -230,7 +236,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
             prompt.setGrayItalic();
             MessageUtils.sendMessage(this.source, prompt.build());
         }
-        CommandUtils.handlingException(this.pagedCollection::print, source);
     }
 
     /**
