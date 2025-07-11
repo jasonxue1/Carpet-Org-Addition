@@ -14,7 +14,7 @@ import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
-import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
@@ -23,8 +23,8 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final MutableText treadName;
 
-    public TradeItemSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
-        super(world, selectionArea, sourcePos, context);
+    public TradeItemSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
+        super(world, blockIterator, sourcePos, context);
         this.predicate = predicate;
         this.treadName = predicate.toText().copy();
     }

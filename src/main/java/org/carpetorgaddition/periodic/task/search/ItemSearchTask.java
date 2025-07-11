@@ -22,12 +22,12 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
-import org.carpetorgaddition.wheel.SelectionArea;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
     private final World world;
-    private final SelectionArea selectionArea;
+    private final BlockIterator blockIterator;
     private final CommandContext<ServerCommandSource> context;
     private Iterator<Entity> entitySearchIterator;
     private Iterator<BlockPos> blockSearchIterator;
@@ -56,9 +56,9 @@ public class ItemSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public ItemSearchTask(World world, ItemStackPredicate predicate, SelectionArea selectionArea, CommandContext<ServerCommandSource> context) {
+    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockIterator blockIterator, CommandContext<ServerCommandSource> context) {
         this.world = world;
-        this.selectionArea = selectionArea;
+        this.blockIterator = blockIterator;
         this.findState = FindState.BLOCK;
         this.tickCount = 0;
         this.predicate = predicate;
@@ -102,7 +102,7 @@ public class ItemSearchTask extends ServerTask {
     // 从容器查找
     private void searchFromContainer() {
         if (this.blockSearchIterator == null) {
-            this.blockSearchIterator = selectionArea.iterator();
+            this.blockSearchIterator = blockIterator.iterator();
         }
         while (this.blockSearchIterator.hasNext()) {
             if (this.timeout()) {
@@ -124,7 +124,7 @@ public class ItemSearchTask extends ServerTask {
 
     // 从实体查找
     private void searchFromEntity() {
-        Box box = selectionArea.toBox();
+        Box box = blockIterator.toBox();
         if (this.entitySearchIterator == null) {
             this.entitySearchIterator = this.world.getNonSpectatingEntities(Entity.class, box).iterator();
         }
