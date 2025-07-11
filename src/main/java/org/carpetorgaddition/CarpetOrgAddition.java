@@ -62,7 +62,13 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final boolean LITHIUM = FabricLoader.getInstance().isModLoaded("lithium");
     /**
-     * 是否启用隐藏功能
+     * 是否启用隐藏功能<br>
+     * <p>
+     * 致开发者：<br>
+     * 你能看到这里，说明你很有可能已经通过阅读源代码知道了在游戏中解锁开关的方式，该   成员变量用来控制是否启用模组内的隐藏功能，
+     * 这包括严重影响游戏平衡功能（如自动破基岩），或一些开放中尚不完善的功能，或一些仅供作者自己使用的功能。使用时，可能破坏游戏体验，
+     * 或引发未知的问题，因此，请<b>不要</b>将解锁这些功能的方式告诉给其他人。
+     * </p>
      */
     public static final boolean ENABLE_HIDDEN_FUNCTION = CarpetOrgAdditionConfigs.isEnableHiddenFunction();
     /**

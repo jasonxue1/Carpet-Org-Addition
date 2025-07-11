@@ -13,7 +13,7 @@ import net.minecraft.util.math.Box;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
-import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.BlockIterator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class SelectionAreaCommand {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> RENDERERS.clear());
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, commandRegistryAccess) ->
                 dispatcher.register(
-                        ClientCommandManager.literal("selectionArea")
+                        ClientCommandManager.literal("blockIterator")
                                 .then(ClientCommandManager.argument("from", ClientBlockPosArgumentType.blockPos())
                                         .then(ClientCommandManager.argument("to", ClientBlockPosArgumentType.blockPos())
                                                 .executes(SelectionAreaCommand::render)))));
@@ -38,7 +38,7 @@ public class SelectionAreaCommand {
         ProductionEnvironmentError.assertDevelopmentEnvironment();
         BlockPos from = ClientBlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = ClientBlockPosArgumentType.getBlockPos(context, "to");
-        RENDERERS.add(new SelectionAreaDebugRenderer(new SelectionArea(from, to)));
+        RENDERERS.add(new SelectionAreaDebugRenderer(new BlockIterator(from, to)));
         return 0;
     }
 
@@ -46,7 +46,7 @@ public class SelectionAreaCommand {
         private final ArrayDeque<Box> deque = new ArrayDeque<>();
         private long previousTick = getGameTime();
 
-        public SelectionAreaDebugRenderer(SelectionArea area) {
+        public SelectionAreaDebugRenderer(BlockIterator area) {
             super(area.toBox());
             for (BlockPos blockPos : area) {
                 deque.push(new Box(blockPos));

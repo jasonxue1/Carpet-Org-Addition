@@ -1,8 +1,11 @@
 package org.carpetorgaddition.dataupdate;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.carpetorgaddition.rule.RuleConfig;
 
 import java.util.List;
+import java.util.Map;
 
 public class CarpetConfDataUpdater implements DataUpdater {
     /**
@@ -102,6 +105,50 @@ public class CarpetConfDataUpdater implements DataUpdater {
 
     @Override
     public JsonObject update(JsonObject json, int version) {
+        if (version <= 1) {
+            JsonObject newJson = new JsonObject();
+            newJson.addProperty(DataUpdater.DATA_VERSION, 2);
+            JsonObject newRules = new JsonObject();
+            for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue().getAsString();
+                switch (key) {
+                    case "playerCommandOpenPlayerInventory" -> {
+                        if (!"false".equals(value)) {
+                            newRules.addProperty("playerCommandOpenPlayerInventoryOption", value);
+                            newRules.addProperty("playerCommandOpenPlayerInventory", "true");
+                        }
+                    }
+                    case "betterTotemOfUndying" -> {
+                        String newValue = switch (value) {
+                            case "true" -> "inventory";
+                            case "false" -> "vanilla";
+                            case "shulker_box" -> "inventory_with_shulker_box";
+                            default -> null;
+                        };
+                        if (newValue != null) {
+                            newRules.addProperty(key, newValue);
+                        }
+                    }
+                    default -> {
+                        String newKey = switch (key) {
+                            case "openSeedPermissions" -> "openSeedPermission";
+                            case "openCarpetPermissions" -> "openCarpetPermission";
+                            case "openGameRulePermissions" -> "openGameRulePermission";
+                            case "openTpPermissions" -> "openTpPermission";
+                            case "fakePlayerCraftKeepItem" -> "fakePlayerActionKeepItem";
+                            case "fakePlayerCraftPickItemFromShulkerBox" -> "fakePlayerShulkerBoxItemHandling";
+                            case "fakePlayerMaxCraftCount" -> "fakePlayerMaxItemOperationCount";
+                            case "finderCommandMaxFeedbackCount" -> "maxLinesPerPage";
+                            default -> key;
+                        };
+                        newRules.addProperty(newKey, value);
+                    }
+                }
+            }
+            newJson.add(RuleConfig.RULES, newRules);
+            return newJson;
+        }
         return json;
     }
 }
