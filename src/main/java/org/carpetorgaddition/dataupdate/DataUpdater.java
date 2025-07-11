@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 @FunctionalInterface
 public interface DataUpdater {
     String DATA_VERSION = "data_version";
-    int VERSION = 1;
+    int VERSION = 2;
     DataUpdater UNCHANGED = (json, version) -> json;
 
     JsonObject update(JsonObject json, int version);

@@ -2,9 +2,9 @@ package org.carpetorgaddition.rule.value;
 
 import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.util.CommandUtils;
 
 public enum OpenPlayerInventory {
-    FALSE(false, false, false),
     FAKE_PLAYER(true, false, false),
     ONLINE_PLAYER(true, true, false),
     NON_WHITELIST(true, false, true),
@@ -48,7 +48,7 @@ public enum OpenPlayerInventory {
         return this == NON_WHITELIST;
     }
 
-    public static boolean isEnable(ServerCommandSource ignored) {
-        return CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get() != FALSE;
+    public static boolean isEnable(ServerCommandSource source) {
+        return CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory);
     }
 }

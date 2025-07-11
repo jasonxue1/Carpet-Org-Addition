@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
  * 用来获取指定范围内所有方块坐标对象，方块坐标对象不是使用集合一次性返回的，
  * 而是使用迭代器逐个返回，因此它不会大量占用内存，并且本类实现了{@link Iterable}接口，可以使用增强for循环遍历
  */
-public class SelectionArea implements Iterable<BlockPos> {
+public class BlockIterator implements Iterable<BlockPos> {
     private final int minX;
     private final int minY;
     private final int minZ;
@@ -21,7 +21,7 @@ public class SelectionArea implements Iterable<BlockPos> {
     private final int maxY;
     private final int maxZ;
 
-    public SelectionArea(World world, BlockPos sourcePos, int range) {
+    public BlockIterator(World world, BlockPos sourcePos, int range) {
         this.minX = sourcePos.getX() - Math.abs(range);
         this.minY = world.getBottomY();
         this.minZ = sourcePos.getZ() - Math.abs(range);
@@ -30,7 +30,7 @@ public class SelectionArea implements Iterable<BlockPos> {
         this.maxZ = sourcePos.getZ() + Math.abs(range);
     }
 
-    public SelectionArea(BlockPos from, BlockPos to) {
+    public BlockIterator(BlockPos from, BlockPos to) {
         this.minX = Math.min(from.getX(), to.getX());
         this.minY = Math.min(from.getY(), to.getY());
         this.minZ = Math.min(from.getZ(), to.getZ());
@@ -39,7 +39,7 @@ public class SelectionArea implements Iterable<BlockPos> {
         this.maxZ = Math.max(from.getZ(), to.getZ());
     }
 
-    public SelectionArea(Box box) {
+    public BlockIterator(Box box) {
         this.minX = (int) box.minX;
         this.minY = (int) box.minY;
         this.minZ = (int) box.minZ;
@@ -110,7 +110,7 @@ public class SelectionArea implements Iterable<BlockPos> {
             /**
              * 最大迭代次数
              */
-            private final int maxIterations = SelectionArea.this.size();
+            private final int maxIterations = BlockIterator.this.size();
             private final int startX = minX;
             private final int startY = minY;
             private final int startZ = minZ;

@@ -13,16 +13,16 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
-import org.carpetorgaddition.wheel.SelectionArea;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final World world;
-    protected final SelectionArea selectionArea;
+    protected final BlockIterator blockIterator;
     protected final BlockPos sourcePos;
     protected final CommandContext<ServerCommandSource> context;
     protected Iterator<MerchantEntity> iterator;
@@ -46,9 +46,9 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      */
     protected int tradeCount;
 
-    public AbstractTradeSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context) {
+    public AbstractTradeSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, CommandContext<ServerCommandSource> context) {
         this.world = world;
-        this.selectionArea = selectionArea;
+        this.blockIterator = blockIterator;
         this.sourcePos = sourcePos;
         this.context = context;
         this.findState = FindState.SEARCH;
@@ -90,7 +90,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     // 查找周围的村民
     private void searchVillager() {
         if (this.iterator == null) {
-            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.selectionArea.toBox()).iterator();
+            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockIterator.toBox()).iterator();
         }
         while (this.iterator.hasNext()) {
             if (timeout()) {
