@@ -105,8 +105,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.getFakePlayer());
                     craftCount++;
                     // 限制每个游戏刻合成次数
-                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get();
-                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get()) {
+                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
+                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
                         return;
                     }
                 } else {

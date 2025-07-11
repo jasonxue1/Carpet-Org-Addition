@@ -15,11 +15,11 @@ public class TeleportCommandMixin {
     // 开放/tp命令权限
     @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;", ordinal = 0))
     private static PermissionLevelPredicate<ServerCommandSource> tpPermissions(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
-        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openTpPermissions, original.call(requiredLevel));
+        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openTpPermission, original.call(requiredLevel));
     }
 
     @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;", ordinal = 1))
     private static PermissionLevelPredicate<ServerCommandSource> teleportPermissions(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
-        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openTpPermissions, original.call(requiredLevel));
+        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openTpPermission, original.call(requiredLevel));
     }
 }

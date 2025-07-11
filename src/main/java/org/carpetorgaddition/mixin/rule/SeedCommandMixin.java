@@ -15,6 +15,6 @@ public class SeedCommandMixin {
     // 开放/seed权限
     @WrapOperation(method = "register", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/command/CommandManager;requirePermissionLevel(I)Lnet/minecraft/command/PermissionLevelPredicate;"))
     private static PermissionLevelPredicate<ServerCommandSource> privilege(int requiredLevel, Operation<PermissionLevelPredicate<ServerCommandSource>> original) {
-        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openSeedPermissions, original.call(requiredLevel));
+        return RuleUtils.requireOrOpenPermissionLevel(CarpetOrgAdditionSettings.openSeedPermission, original.call(requiredLevel));
     }
 }

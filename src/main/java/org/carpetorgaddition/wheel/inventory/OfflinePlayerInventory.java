@@ -123,7 +123,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      * 检查玩家是否有权限打开离线玩家物品栏
      */
     public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayerEntity player) throws CommandSyntaxException {
-        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get().permissionRequired()) {
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().permissionRequired()) {
             if (player.hasPermissionLevel(2)) {
                 return;
             }

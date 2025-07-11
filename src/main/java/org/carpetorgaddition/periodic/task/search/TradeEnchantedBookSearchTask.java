@@ -17,7 +17,7 @@ import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final MutableText treadName;
     private final Enchantment enchantment;
 
-    public TradeEnchantedBookSearchTask(World world, SelectionArea selectionArea, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
-        super(world, selectionArea, sourcePos, context);
+    public TradeEnchantedBookSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
+        super(world, blockIterator, sourcePos, context);
         // 获取附魔名称，不带等级
         MutableText text = EnchantmentUtils.getName(enchantment);
         this.treadName = TextBuilder.combineAll(text, Items.ENCHANTED_BOOK.getName());

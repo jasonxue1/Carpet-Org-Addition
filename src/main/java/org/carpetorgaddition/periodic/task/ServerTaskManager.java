@@ -4,14 +4,15 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.ServerTickManager;
 import org.carpetorgaddition.util.CommandUtils;
 
-import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 /**
  * 服务器任务管理器
  */
 public class ServerTaskManager {
-    private final HashSet<ServerTask> tasks = new HashSet<>();
+    private final Set<ServerTask> tasks = ConcurrentHashMap.newKeySet();
 
     public ServerTaskManager() {
     }

@@ -8,6 +8,7 @@ import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory.PlayerProfile;
 import org.slf4j.Logger;
@@ -21,14 +22,14 @@ public class PlayerManagerMixin {
     // 隐藏玩家登录登出的消息
     @Inject(method = "broadcast(Lnet/minecraft/text/Text;Z)V", at = @At("HEAD"), cancellable = true)
     private void broadcast(Text message, boolean overlay, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.hiddenLoginMessages.getExternal()) {
+        if (CarpetOrgAdditionSettings.hiddenLoginMessages.getExternal() || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() || BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.get()) {
             ci.cancel();
         }
     }
 
     @WrapWithCondition(method = "onPlayerConnect", at = @At(value = "INVOKE", remap = false, target = "Lorg/slf4j/Logger;info(Ljava/lang/String;[Ljava/lang/Object;)V"))
     private boolean hide(Logger instance, String s, Object[] objects) {
-        return !CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal();
+        return !CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() && !BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.get();
     }
 
     /**

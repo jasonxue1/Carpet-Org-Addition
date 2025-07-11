@@ -14,6 +14,7 @@ import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.io.IOException;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -44,6 +45,14 @@ public class CommandUtils {
      */
     public static ServerPlayerEntity getSourcePlayer(ServerCommandSource source) throws CommandSyntaxException {
         return source.getPlayerOrThrow();
+    }
+
+    public static Optional<ServerPlayerEntity> getSourcePlayerNullable(CommandContext<ServerCommandSource> context) {
+        return getSourcePlayerNullable(context.getSource());
+    }
+
+    public static Optional<ServerPlayerEntity> getSourcePlayerNullable(ServerCommandSource source) {
+        return Optional.ofNullable(source.getPlayer());
     }
 
     /**

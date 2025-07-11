@@ -19,6 +19,7 @@ import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.MutableText;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -35,6 +36,7 @@ import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 public class PlayerActionCommand extends AbstractServerCommand {
     public PlayerActionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -307,6 +309,11 @@ public class PlayerActionCommand extends AbstractServerCommand {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
             actionManager.setAction(new BedrockAction(fakePlayer, from, to, ai));
+            Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(context);
+            if (optional.isPresent()) {
+                MutableText translate = TextBuilder.translate("carpet.commands.playerAction.bedrock.share");
+                MessageUtils.sendMessageToHud(optional.get(), translate);
+            }
             return 1;
         }
         return 0;
