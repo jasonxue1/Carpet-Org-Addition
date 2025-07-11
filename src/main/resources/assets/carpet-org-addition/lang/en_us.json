@@ -278,6 +278,7 @@
   "carpet.commands.playerAction.craft": "Failed to craft: Stop crafting",
   "carpet.commands.playerAction.rename.not_experience": "Experience not sufficient, stop renaming",
   "carpet.commands.playerAction.rename": "Failed to rename: Stop renaming",
+  "carpet.commands.playerAction.bedrock.share": "Please do not share the automated bedrock-breaking functionality with others",
   "carpet.commands.playerAction.exception.runtime": "%s meets critical errors when performing %s",
   "carpet.commands.playerAction.action.stop": "Stop",
   "carpet.commands.playerAction.action.sorting": "Sorting Items",
