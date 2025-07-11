@@ -49,11 +49,11 @@ public class EntityPlayerMPFakeMixin {
         ThreadContextPropagator<Boolean> propagator = CarpetOrgAdditionSettings.hiddenLoginMessages;
         Boolean external = propagator.getExternal();
         Boolean hiddenBatchSpawn = BatchSpawnFakePlayerTask.batchSpawnHiddenMessage.get();
-        Consumer<? super T> consumer = value -> {
+        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> {
             try {
                 BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(hiddenBatchSpawn);
                 propagator.setInternal(external);
-                action.accept(value);
+                action.accept(value, throwable);
             } finally {
                 propagator.setInternal(false);
                 BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(false);
