@@ -20,15 +20,13 @@ import java.util.Map;
 
 public class RuleConfig {
     public static final String CONFIG_FINE_NAME = "config.json";
-    private static final String RULES = "rules";
+    public static final String RULES = "rules";
     private final MinecraftServer server;
     private final File file;
-    private final boolean updateRequiredCarpetConf;
 
     public RuleConfig(MinecraftServer server) {
         this.server = server;
         this.file = new WorldFormat(server, null).file(CONFIG_FINE_NAME);
-        this.updateRequiredCarpetConf = !this.file.isFile();
     }
 
     /**
@@ -65,21 +63,20 @@ public class RuleConfig {
     }
 
     private Map<String, String> read() {
+        HashMap<String, String> map = new HashMap<>();
         if (this.file.isFile()) {
-            HashMap<String, String> map = new HashMap<>();
             try {
                 JsonObject json = IOUtils.loadJson(this.file);
+                CarpetConfDataUpdater updater = new CarpetConfDataUpdater();
+                json = updater.update(json, DataUpdater.getVersion(json));
                 for (Map.Entry<String, JsonElement> entry : json.get(RULES).getAsJsonObject().entrySet()) {
                     map.put(entry.getKey(), entry.getValue().getAsString());
                 }
-                return map;
             } catch (IOException | RuntimeException e) {
                 CarpetOrgAddition.LOGGER.warn("When reading Carpet Org Addition rules, an unexpected error occurred", e);
-                return new HashMap<>();
             }
-
         }
-        return new HashMap<>();
+        return map;
     }
 
     private void save(Map<String, String> map) {
@@ -114,9 +111,5 @@ public class RuleConfig {
      */
     public boolean isMigrated() {
         return this.file.isFile();
-    }
-
-    public boolean isUpdateRequiredCarpetConf() {
-        return this.updateRequiredCarpetConf;
     }
 }

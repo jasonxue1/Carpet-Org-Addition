@@ -19,6 +19,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.Contract;
 
@@ -64,7 +65,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                         this.stop();
                     }
                     // 让假玩家退出游戏
-                    this.logoutPlayer(fakePlayer);
+                    logoutPlayer(fakePlayer);
                 }
             } else {
                 this.remainingTick--;
@@ -90,7 +91,7 @@ public class ReLoginTask extends PlayerScheduleTask {
      * @see EntityPlayerMPFake#shakeOff()
      */
     @SuppressWarnings("JavadocReference")
-    private void logoutPlayer(EntityPlayerMPFake fakePlayer) {
+    public static void logoutPlayer(EntityPlayerMPFake fakePlayer) {
         Text reason = Messenger.s("Killed");
         // 停止骑行
         if (fakePlayer.getVehicle() instanceof PlayerEntity) {
@@ -114,7 +115,8 @@ public class ReLoginTask extends PlayerScheduleTask {
                 return;
             }
         }
-        this.server.send(new ServerTask(this.server.getTicks(), () -> {
+        MinecraftServer server = GenericUtils.getServer(fakePlayer);
+        server.send(new ServerTask(server.getTicks(), () -> {
             try {
                 CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
                 /*

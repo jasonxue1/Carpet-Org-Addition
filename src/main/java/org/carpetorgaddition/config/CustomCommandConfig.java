@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// TODO 迁移至carpet-org-addition.json
 public class CustomCommandConfig {
     private final File file = IOUtils.createConfigFile("custom_command_name.json", true);
     private final HashMap<String, Set<String>> commands = new HashMap<>();

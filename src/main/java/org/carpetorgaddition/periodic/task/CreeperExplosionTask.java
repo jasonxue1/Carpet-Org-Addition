@@ -11,7 +11,7 @@ import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.BlockIterator;
 
 import java.util.ArrayList;
 
@@ -33,11 +33,11 @@ public class CreeperExplosionTask extends ServerTask {
         BlockPos playerPos = player.getBlockPos();
         Vec3d fromPos = new Vec3d(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
         Vec3d toPos = new Vec3d(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
-        SelectionArea selectionArea = new SelectionArea(new Box(fromPos, toPos));
+        BlockIterator blockIterator = new BlockIterator(new Box(fromPos, toPos));
         ArrayList<BlockPos> list = new ArrayList<>();
         World world = player.getWorld();
         // 获取符合条件的坐标
-        for (BlockPos blockPos : selectionArea) {
+        for (BlockPos blockPos : blockIterator) {
             // 当前方块是空气
             if (world.getBlockState(blockPos).isAir()
                     // 下方方块是实心方块

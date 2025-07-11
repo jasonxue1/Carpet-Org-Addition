@@ -46,7 +46,7 @@ public class PlayerCommandExtension {
                         .then(CommandManager.argument("caseSensitive", BoolArgumentType.bool())
                                 .executes(context -> openEnderChest(context, BoolArgumentType.getBool(context, "caseSensitive")))))
                 .then(CommandManager.literal("teleport")
-                        .requires(source -> CarpetOrgAdditionSettings.playerCommandTeleportFakePlayer.get())
+                        .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.playerCommandTeleportFakePlayer))
                         .executes(PlayerCommandExtension::fakePlayerTeleport));
     }
 
@@ -57,7 +57,7 @@ public class PlayerCommandExtension {
         MinecraftServer server = source.getServer();
         ServerPlayerEntity argumentPlayer = getPlayerNullable(playerName, server);
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(source);
-        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get();
+        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
         switch (argumentPlayer) {
             case null -> {
                 Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, caseSensitive, server);
@@ -85,7 +85,7 @@ public class PlayerCommandExtension {
 
     public static void openOfflinePlayerInventory(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
         MinecraftServer server = GenericUtils.getServer(sourcePlayer);
-        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get().canOpenOfflinePlayer()) {
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
             if (gameProfile == null) {
                 throw createNoFileFoundException();
             }
@@ -123,7 +123,7 @@ public class PlayerCommandExtension {
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
         String playerName = getPlayerName(context);
         ServerPlayerEntity argumentPlayer = getPlayerNullable(playerName, server);
-        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get();
+        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
         switch (argumentPlayer) {
             case null -> {
                 Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, caseSensitive, server);
@@ -151,7 +151,7 @@ public class PlayerCommandExtension {
 
     public static void openOfflinePlayerEnderChest(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
         MinecraftServer server = GenericUtils.getServer(sourcePlayer);
-        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory.get().canOpenOfflinePlayer()) {
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
             OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
             SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                     (syncId, playerInventory, player) -> {

@@ -11,11 +11,13 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import org.carpetorgaddition.wheel.CreateFakePlayerContext;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class GenericUtils {
     /**
@@ -77,6 +79,13 @@ public class GenericUtils {
 
     /**
      * 创建一个假玩家
+     */
+    public static void createFakePlayer(String username, MinecraftServer server, CreateFakePlayerContext context) {
+        createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
+    }
+
+    /**
+     * 创建一个假玩家
      *
      * @param consumer 玩家生成时执行的函数
      */
@@ -106,9 +115,21 @@ public class GenericUtils {
         return SharedConstants.getGameVersion().getSaveVersion().getId();
     }
 
+    public static <T> T wrapFunction(Supplier<T> supplier, Runnable onEnter, Runnable onExit) {
+        try {
+            onEnter.run();
+            return supplier.get();
+        } finally {
+            onExit.run();
+        }
+    }
+
     /**
      * 一个占位符，什么也不做
      */
     public static void pass() {
+    }
+
+    public static void pass(Object ignored) {
     }
 }
