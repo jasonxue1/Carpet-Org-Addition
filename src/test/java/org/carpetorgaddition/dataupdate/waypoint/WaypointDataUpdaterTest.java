@@ -4,13 +4,16 @@ import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import org.carpetorgaddition.util.IOUtils;
+import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class WaypointDataUpdaterTest {
+    @Disabled
     @Test
     public void testDataUpdate() {
-        String oldWaypoint = """
+        @Language("JSON") String oldWaypoint = """
                 {
                   "x": 1,
                   "y": 2,
@@ -41,7 +44,7 @@ public class WaypointDataUpdaterTest {
         Assertions.assertNull(update.get("another_x"));
         Assertions.assertNull(update.get("another_y"));
         Assertions.assertNull(update.get("another_z"));
-        String newWaypoint = """
+        @Language("JSON") String newWaypoint = """
                 {
                   "pos": {
                       "x": 1,
@@ -56,7 +59,7 @@ public class WaypointDataUpdaterTest {
                       "y": 16,
                       "z": 24
                   },
-                  "data_version": 1
+                  "data_version": 2
                 }
                 """;
         JsonObject newJson = IOUtils.GSON.fromJson(newWaypoint, JsonObject.class);

@@ -4,13 +4,13 @@ public enum BetterTotemOfUndying {
     /**
      * 启用后可以使用物品栏中的不死图腾，但不会使用物品栏中潜影盒里的不死图腾
      */
-    TRUE,
+    INVENTORY,
     /**
      * 原版行为
      */
-    FALSE,
+    VANILLA,
     /**
      * 启用后可以使用物品栏中的不死图腾，包括物品栏中潜影盒里的
      */
-    SHULKER_BOX
+    INVENTORY_WITH_SHULKER_BOX
 }

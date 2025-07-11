@@ -2,7 +2,6 @@ package org.carpetorgaddition.util;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -10,6 +9,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
@@ -68,11 +68,11 @@ public class MessageUtils {
      * 广播一条错误消息
      */
     public static void broadcastErrorMessage(MinecraftServer server, Throwable e, String key, Object... obj) {
-        server.getPlayerManager()
-                .getPlayerList()
-                .stream()
-                .map(Entity::getCommandSource)
-                .forEach(source -> sendErrorMessage(source, e, key, obj));
+        String error = GenericUtils.getExceptionString(e);
+        TextBuilder builder = TextBuilder.of(key, obj);
+        builder.setStringHover(error);
+        builder.setColor(Formatting.RED);
+        broadcastMessage(server, builder.build());
     }
 
     /**
@@ -83,6 +83,7 @@ public class MessageUtils {
      */
     public static void sendMessage(ServerPlayerEntity player, Text message) {
         player.sendMessage(message);
+        writeLog(GenericUtils.getPlayerName(player), message.getString());
     }
 
     /**
@@ -93,7 +94,9 @@ public class MessageUtils {
      */
     public static void sendMessage(ServerCommandSource source, Text message) {
         source.sendMessage(message);
+        writeLog(source.getName(), message.getString());
     }
+
 
     /**
      * 发送一条可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
@@ -108,6 +111,10 @@ public class MessageUtils {
 
     public static void sendMessage(ServerPlayerEntity player, String key, Object... obj) {
         MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
+    }
+
+    private static void writeLog(String name, String message) {
+        CarpetOrgAddition.LOGGER.info("[{} <- {}] {}", name, CarpetOrgAddition.MOD_NAME, message);
     }
 
     /**
