@@ -8,6 +8,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
+import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,11 +36,10 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
 
     public BlockEntityIterator(World world, BlockPos from, BlockPos to) {
         this.world = world;
-        this.from = from;
-        this.to = to;
+        this.from = MathUtils.toMinBlockPos(from, to);
+        this.to = MathUtils.toMaxBlockPos(from, to);
         this.blockIterator = new BlockIterator(from, to);
     }
-
 
     @Override
     public @NotNull Iterator<BlockEntity> iterator() {
