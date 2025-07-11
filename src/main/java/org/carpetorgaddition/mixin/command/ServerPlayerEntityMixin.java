@@ -111,7 +111,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             return false;
         }
         switch (CarpetOrgAdditionSettings.betterTotemOfUndying.get()) {
-            case FALSE: {
+            case VANILLA: {
                 // 主手或副手有不死图腾
                 if (thisPlayer.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
                     return true;
@@ -121,7 +121,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
                 }
                 break;
             }
-            case SHULKER_BOX: {
+            case INVENTORY_WITH_SHULKER_BOX: {
                 // 检查潜影盒中是否有不死图腾
                 PlayerInventory inventory = thisPlayer.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {
@@ -131,7 +131,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
                     }
                 }
             }
-            case TRUE: {
+            case INVENTORY: {
                 // 物品栏中有不死图腾
                 PlayerInventory inventory = thisPlayer.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {

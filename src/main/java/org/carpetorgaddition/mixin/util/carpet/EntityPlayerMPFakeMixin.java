@@ -11,6 +11,7 @@ import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.ThreadContextPropagator;
 import org.spongepowered.asm.mixin.Mixin;
@@ -47,12 +48,18 @@ public class EntityPlayerMPFakeMixin {
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         ThreadContextPropagator<Boolean> propagator = CarpetOrgAdditionSettings.hiddenLoginMessages;
         Boolean external = propagator.getExternal();
-        try {
-            propagator.setInternal(external);
-            return original.call(instance, action, executor);
-        } finally {
-            propagator.setInternal(false);
-        }
+        Boolean hiddenBatchSpawn = BatchSpawnFakePlayerTask.batchSpawnHiddenMessage.get();
+        Consumer<? super T> consumer = value -> {
+            try {
+                BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(hiddenBatchSpawn);
+                propagator.setInternal(external);
+                action.accept(value);
+            } finally {
+                propagator.setInternal(false);
+                BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(false);
+            }
+        };
+        return original.call(instance, consumer, executor);
     }
 
     @Inject(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/entity/player/PlayerAbilities;"))

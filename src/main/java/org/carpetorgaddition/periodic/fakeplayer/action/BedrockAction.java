@@ -40,7 +40,7 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.Counter;
-import org.carpetorgaddition.wheel.SelectionArea;
+import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -53,7 +53,7 @@ import java.util.function.Predicate;
 
 public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
-    private final SelectionArea selectionArea;
+    private final BlockIterator blockIterator;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -102,7 +102,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
         super(fakePlayer);
         this.ai = ai;
-        this.selectionArea = new SelectionArea(from, to);
+        this.blockIterator = new BlockIterator(from, to);
     }
 
     @Override
@@ -151,7 +151,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         double range = this.getFakePlayer().getBlockInteractionRange();
         // 如果this.selectionArea过大，遍历时可能会造成大量卡顿
         Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
-        SelectionArea area = new SelectionArea(box);
+        BlockIterator area = new BlockIterator(box);
         for (BlockPos blockPos : area) {
             if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)
                     && canInteractBedrock(blockPos)
@@ -208,7 +208,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void selectRandomBedrock(World world) {
         if (this.pathfinder.isInvalid()) {
             for (int i = 0; i < 100; i++) {
-                BlockPos blockPos = this.selectionArea.randomBlockPos();
+                BlockPos blockPos = this.blockIterator.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
                     this.bedrockTarget = blockPos;
                     return;
@@ -780,7 +780,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
         }
         if (this.itemEntities.isEmpty()) {
-            Box box = this.selectionArea.toBox().expand(10.0);
+            Box box = this.blockIterator.toBox().expand(10.0);
             List<ItemEntity> list = this.getFakePlayer().getWorld().getNonSpectatingEntities(ItemEntity.class, box)
                     .stream()
                     .filter(itemEntity -> isMaterial(itemEntity.getStack()))
@@ -912,7 +912,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     }
 
     public boolean inSelectionArea(BlockPos blockPos) {
-        return this.selectionArea.contains(blockPos);
+        return this.blockIterator.contains(blockPos);
     }
 
     public boolean isEmpty() {
@@ -923,8 +923,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
-        MutableText from = TextProvider.blockPos(this.selectionArea.getMinBlockPos(), Formatting.GREEN);
-        MutableText to = TextProvider.blockPos(this.selectionArea.getMaxBlockPos(), Formatting.GREEN);
+        MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
+        MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.range", from, to));
         if (this.ai) {
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.ai.enable"));
@@ -935,13 +935,13 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        BlockPos minBlockPos = this.selectionArea.getMinBlockPos();
+        BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
         JsonArray from = new JsonArray();
         from.add(minBlockPos.getX());
         from.add(minBlockPos.getY());
         from.add(minBlockPos.getZ());
         json.add("from", from);
-        BlockPos maxBlockPos = this.selectionArea.getMaxBlockPos();
+        BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
         JsonArray to = new JsonArray();
         to.add(maxBlockPos.getX());
         to.add(maxBlockPos.getY());

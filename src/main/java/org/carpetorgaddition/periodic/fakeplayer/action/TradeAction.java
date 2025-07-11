@@ -120,8 +120,8 @@ public class TradeAction extends AbstractPlayerAction {
                 if (outputSlot.hasStack()) {
                     FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getSellItem(), this.getFakePlayer());
                     if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()
-                            && CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get() > 0
-                            && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxCraftCount.get()) {
+                            && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
+                            && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
                         return;
                     }
                 } else {
