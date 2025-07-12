@@ -90,7 +90,7 @@
   "carpet.rule.disableWaterFreezes.name": "禁止水结冰",
   "carpet.rule.disableWaterFreezes.desc": "在寒冷的生物群系中水不会结冰",
   "carpet.rule.fakePlayerActionKeepItem.name": "假玩家动作保留物品",
-  "carpet.rule.fakePlayerActionKeepItem.desc": "假玩家执行合成，交易等操作物品动作时会在物品栏中保留至少一个合成材料，除非该物品的最大堆叠数为1",
+  "carpet.rule.fakePlayerActionKeepItem.desc": "假玩家执行合成，交易等物品操作时会在物品栏中保留一个物品，除非该物品的最大堆叠数为1",
   "carpet.rule.commandParticleLine.name": "绘制粒子线命令",
   "carpet.rule.commandParticleLine.desc": "启用/particleLine命令用来使用粒子效果来绘制连接两点的线",
   "carpet.rule.disableMobPeacefulDespawn.name": "禁止和平模式下持久生物被清除",

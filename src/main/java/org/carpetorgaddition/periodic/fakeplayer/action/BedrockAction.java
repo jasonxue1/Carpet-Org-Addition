@@ -768,6 +768,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void collectingMaterials() {
         boolean finished = this.pathfinder.isFinished();
         if (finished) {
+            // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
             dropGarbageAndCollectMaterial();
         }
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
@@ -815,7 +816,6 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 return;
             }
         }
-        // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
         boolean dropped = FakePlayerUtils.dropInventoryItem(fakePlayer, this::isGarbage);
         if (dropped) {
             return;

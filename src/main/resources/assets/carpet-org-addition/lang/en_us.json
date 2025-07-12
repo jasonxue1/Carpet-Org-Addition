@@ -48,7 +48,7 @@
   "carpet.rule.fakePlayerSpawnNoKnockback.desc": "Remove the knockback, burning time and falling distance when fake players respawning",
   "carpet.rule.canActivatesObserver.desc": "Enable flint and steel used to directly activate observers",
   "carpet.rule.disableWaterFreezes.desc": "Disable water freezing in cold biomes",
-  "carpet.rule.fakePlayerActionKeepItem.desc": "Fake players keep at least one material item in their inventory when performing item operations (crafting/trading/etc.), unless the item has a maximum stack size of 1",
+  "carpet.rule.fakePlayerActionKeepItem.desc": "When Fake Player perform item operations such as synthesis, trading, etc., they will keep at least one item in their inventory unless the item's maximum stack size is 1",
   "carpet.rule.commandParticleLine.desc": "Enable /particleLine command to draw a line connecting two points with particle effects",
   "carpet.rule.disableMobPeacefulDespawn.desc": "Keep entities with \"PersistenceRequired\" tag (With naming, etc.) from despawning in peaceful mode",
   "carpet.rule.climbingBoat.desc": "Enable boat drove by player to climb up one block high",

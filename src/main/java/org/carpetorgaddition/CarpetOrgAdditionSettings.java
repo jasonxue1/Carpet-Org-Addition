@@ -858,7 +858,7 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * /finder命令最大反馈数量
+     * 每页最大行数
      */
     public static final Supplier<Integer> maxLinesPerPage = register(
             RuleFactory.create(Integer.class, "maxLinesPerPage", 10)
@@ -972,7 +972,6 @@ public class CarpetOrgAdditionSettings {
     );
 
     // TODO 强制添加注释规则
-    // TODO 更改规则名称
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);

@@ -54,6 +54,7 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
 
     @Override
     protected Text getInventoryName() {
+        // TODO 疑似与某些资源包不兼容
         return TextBuilder.translate("container.enderchest");
     }
 }
