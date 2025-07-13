@@ -4,7 +4,7 @@ import carpet.CarpetServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import org.carpetorgaddition.config.CarpetOrgAdditionConfigs;
+import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
@@ -70,7 +70,7 @@ public class CarpetOrgAddition implements ModInitializer {
      * 或引发未知的问题，因此，请<b>不要</b>将解锁这些功能的方式告诉给其他人。
      * </p>
      */
-    public static final boolean ENABLE_HIDDEN_FUNCTION = CarpetOrgAdditionConfigs.isEnableHiddenFunction();
+    public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.isEnableHiddenFunction();
     /**
      * 是否允许自定义规则管理器
      */
@@ -136,7 +136,7 @@ public class CarpetOrgAddition implements ModInitializer {
             // 保存启动次数
             List<LocalDate> list = counter.keySet().stream().sorted().toList();
             // 重新写入前备份文件，写入完毕后删除备份
-            File backup = IOUtils.backup(file, false);
+            File backup = IOUtils.backupFile(file, false);
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             try (writer) {
                 for (LocalDate date : list) {

@@ -31,7 +31,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Mixin(value = SettingsManager.class, remap = false)
 public abstract class SettingsManagerMixin {
@@ -124,7 +127,7 @@ public abstract class SettingsManagerMixin {
     @Unique
     private void removeRulesFromCarpetConf() {
         File file = this.getFile().toFile();
-        IOUtils.backup(file);
+        IOUtils.backupFile(file);
         // 从carpet.conf删除Carpet Org Addition的规则
         ArrayList<String> list = new ArrayList<>();
         try {
@@ -158,11 +161,6 @@ public abstract class SettingsManagerMixin {
         if (split.length <= 1 || split[0].startsWith("#") || split[1].startsWith("#")) {
             return false;
         }
-        for (String rule : CarpetConfDataUpdater.OLD_VERSION_RULES) {
-            if (Objects.equals(rule, split[0])) {
-                return true;
-            }
-        }
-        return false;
+        return CarpetConfDataUpdater.OLD_VERSION_RULES.contains(split[0]);
     }
 }
