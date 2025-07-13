@@ -124,6 +124,14 @@ public abstract class SettingsManagerMixin {
         return original.call(map);
     }
 
+    @WrapOperation(method = "readSettingsFromConf", at = @At(value = "INVOKE", target = "Ljava/util/Map;containsKey(Ljava/lang/Object;)Z"))
+    private boolean readSettingsFromConf(Map<String, String> instance, Object o, Operation<Boolean> original) {
+        if (o instanceof String && CarpetConfDataUpdater.OLD_VERSION_RULES.contains(o)) {
+            return true;
+        }
+        return original.call(instance, o);
+    }
+
     @Unique
     private void removeRulesFromCarpetConf() {
         File file = this.getFile().toFile();
