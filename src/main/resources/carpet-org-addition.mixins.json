@@ -6,7 +6,7 @@
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
     "accessor.PlayerManagerAccessor",
-    "command.EntityPlayerMPFakeMixin",
+    "command.carpet.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
     "command.carpet.PlayerCommandMixin",

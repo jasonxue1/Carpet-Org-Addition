@@ -105,6 +105,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         this.blockIterator = new BlockIterator(from, to);
     }
 
+    // TODO 自动排除岩浆
     @Override
     protected void tick() {
         if (this.ai) {

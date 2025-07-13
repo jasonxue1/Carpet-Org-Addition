@@ -131,6 +131,7 @@ public class CarpetConfDataUpdater implements DataUpdater {
                         }
                     }
                     default -> {
+                        // TODO 自动更新可能失败
                         String newKey = switch (key) {
                             case "openSeedPermissions" -> "openSeedPermission";
                             case "openCarpetPermissions" -> "openCarpetPermission";

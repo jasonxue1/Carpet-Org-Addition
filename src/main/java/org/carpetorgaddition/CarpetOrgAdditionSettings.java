@@ -982,9 +982,13 @@ public class CarpetOrgAdditionSettings {
         for (RuleContext<?> context : allRules) {
             if (context.shouldRegister()) {
                 CarpetRule<?> rule = context.rule();
-                CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
-                if (context.isRuleSelf()) {
-                    RuleSelfManager.RULES.put(context.getName(), rule);
+                try {
+                    CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
+                    if (context.isRuleSelf()) {
+                        RuleSelfManager.RULES.put(context.getName(), rule);
+                    }
+                } catch (UnsupportedOperationException e) {
+                    CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name(), e);
                 }
             }
         }

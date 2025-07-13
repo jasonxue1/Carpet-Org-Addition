@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class CarpetOrgAdditionConfigs {
+    // TODO 处理文件找不到的情况
     private static final File CONFIG = IOUtils.CONFIGURE_DIRECTORY.resolve(CarpetOrgAddition.MOD_ID + ".json").toFile();
 
     static {

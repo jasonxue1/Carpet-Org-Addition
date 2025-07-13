@@ -188,6 +188,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("query")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(this::querySafeAfk))))
+                // TODO 仍可能导致服务器阻塞
                 .then(CommandManager.literal("batch")
                         .then(CommandManager.argument("prefix", StringArgumentType.word())
                                 .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
