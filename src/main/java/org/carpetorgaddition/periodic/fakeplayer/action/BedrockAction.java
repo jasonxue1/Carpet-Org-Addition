@@ -96,6 +96,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private boolean hasAction;
     /**
+     * 是否刚刚完成材料收集
+     */
+    private boolean materialCollectionComplete = false;
+    /**
      * 因处于特殊位置而无法破除的基岩
      */
     private final Counter<BlockPos> invalidBedrock = new Counter<>();
@@ -142,6 +146,10 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void work() {
         this.invalidBedrock.trim();
         this.hasAction = false;
+        if (this.materialCollectionComplete) {
+            this.materialCollectionComplete = false;
+            this.bedrockTarget = null;
+        }
         this.drainFluidLava();
         for (BlockPos blockPos : this.invalidBedrock) {
             this.invalidBedrock.decrement(blockPos);
@@ -897,7 +905,8 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         }
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
             this.itemEntities.remove(this.recentItemEntity);
-            this.pathfinder.stop();
+            this.pathfinder.pause(1);
+            this.materialCollectionComplete = true;
             this.recentItemEntity = null;
             if (this.itemEntities.isEmpty()) {
                 this.phase = PlayerWorkPhase.WORK;
