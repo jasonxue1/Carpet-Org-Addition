@@ -198,6 +198,10 @@ public class AStarPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
+    public void pause(int time) {
+    }
+
+    @Override
     public void stop() {
 
     }

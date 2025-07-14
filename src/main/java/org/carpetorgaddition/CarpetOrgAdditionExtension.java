@@ -109,6 +109,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     @Override
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录
+        // TODO 隐藏玩家登录消息
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
         FetcherUtils.getRuleSelfManager(server).load();

@@ -1,6 +1,8 @@
 package org.carpetorgaddition.wheel;
 
+import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
@@ -39,6 +41,22 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
         this.from = MathUtils.toMinBlockPos(from, to);
         this.to = MathUtils.toMaxBlockPos(from, to);
         this.blockIterator = new BlockIterator(from, to);
+    }
+
+    public static BlockEntityIterator ofAbove(EntityPlayerMPFake fakePlayer, int range) {
+        World world = fakePlayer.getWorld();
+        BlockPos blockPos = fakePlayer.getBlockPos();
+        return ofAbove(world, blockPos, range);
+    }
+
+    public static BlockEntityIterator ofAbove(World world, BlockPos blockPos, int range) {
+        BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
+        BlockPos to = new BlockPos(blockPos.getX() + range, world.getTopY(), blockPos.getZ() + range);
+        return new BlockEntityIterator(world, from, to);
+    }
+
+    public <T extends Entity> boolean contains(Class<T> type) {
+        return !this.world.getNonSpectatingEntities(type, this.toBox()).isEmpty();
     }
 
     @Override
