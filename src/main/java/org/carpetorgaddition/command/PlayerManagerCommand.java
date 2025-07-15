@@ -33,6 +33,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.SilentLogoutTask;
+import org.carpetorgaddition.periodic.task.batch.BatchKillFakePlayer;
 import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
@@ -188,7 +189,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("query")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
                                         .executes(this::querySafeAfk))))
-                // TODO 仍可能导致服务器阻塞
                 .then(CommandManager.literal("batch")
                         .then(CommandManager.argument("prefix", StringArgumentType.word())
                                 .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
@@ -742,7 +742,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private static int batchSpawn(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
-        // 交互最大最小值，玩家可能将end和start参数反向输入
+        // 交换最大最小值，玩家可能将end和start参数反向输入
         int temp = Math.min(start, end);
         end = Math.max(start, end);
         start = temp;
@@ -769,29 +769,30 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchKill(CommandContext<ServerCommandSource> context) {
-        return batchOperation(context, ReLoginTask::logoutPlayer);
+    private int batchKill(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        int start = IntegerArgumentType.getInteger(context, "start");
+        int end = IntegerArgumentType.getInteger(context, "end");
+        int temp = Math.min(start, end);
+        end = Math.max(start, end);
+        start = temp;
+        String prefix = StringArgumentType.getString(context, "prefix");
+        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        MinecraftServer server = context.getSource().getServer();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        taskManager.addTask(new BatchKillFakePlayer(server, prefix, start, end));
+        return end - start + 1;
     }
 
     /**
      * 批量生成玩家
      */
     private int batchDrop(CommandContext<ServerCommandSource> context) {
-        return batchOperation(context, fakePlayer -> {
-            EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
-            actionPack.drop(-2, true);
-        });
-    }
-
-    private static int batchOperation(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
-        // 交互最大最小值，玩家可能将end和start参数反向输入
         int temp = Math.min(start, end);
         end = Math.max(start, end);
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
-        // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         MinecraftServer server = context.getSource().getServer();
         int count = 0;
@@ -799,7 +800,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         for (int i = start; i <= end; i++) {
             ServerPlayerEntity player = playerManager.getPlayer(prefix + i);
             if (player instanceof EntityPlayerMPFake fakePlayer) {
-                consumer.accept(fakePlayer);
+                EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
+                actionPack.drop(-2, true);
                 count++;
             }
         }

@@ -265,6 +265,7 @@
   "carpet.command.api.mojang_api.connection.fail": "无法正确连接到Mojang API",
   "carpet.command.thread.wait.last": "等待上一个线程执行完毕",
   "carpet.command.task.wait.last": "等待上一个任务执行完毕",
+  "carpet.command.task.timeout": "任务超时",
   "carpet.command.error.io": "发生IO错误",
   "carpet.command.operation.timeout": "操作超时",
   "carpet.command.data.unit.byte": "%s字节",
