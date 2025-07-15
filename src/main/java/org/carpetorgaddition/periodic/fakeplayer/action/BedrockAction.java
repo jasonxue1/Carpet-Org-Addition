@@ -96,7 +96,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private boolean hasAction;
     /**
-     * 是否刚刚完成材料收集
+     * 是否刚刚完成材料收集，用于在开始破基岩时清除之前收集材料的寻路
      */
     private boolean materialCollectionComplete = false;
     /**
