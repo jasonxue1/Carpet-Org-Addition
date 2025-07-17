@@ -971,7 +971,14 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
-    // TODO 强制添加注释规则
+    /**
+     * 玩家管理器强制添加注释
+     */
+    public static final Supplier<Boolean> playerManagerForceComment = register(
+            RuleFactory.create(Boolean.class, "playerManagerForceComment", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);

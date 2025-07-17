@@ -619,13 +619,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
             return 0;
         } else {
-            FakePlayerSerializer serializer;
-            if (hasComment) {
-                String comment = StringArgumentType.getString(context, "comment");
-                serializer = new FakePlayerSerializer(fakePlayer, comment);
-            } else {
-                serializer = new FakePlayerSerializer(fakePlayer);
+            String comment = hasComment ? StringArgumentType.getString(context, "comment") : "";
+            if (CarpetOrgAdditionSettings.playerManagerForceComment.get() && comment.isBlank()) {
+                throw CommandUtils.createException("carpet.rule.message.playerManagerForceComment");
             }
+            FakePlayerSerializer serializer = comment.isBlank() ? new FakePlayerSerializer(fakePlayer) : new FakePlayerSerializer(fakePlayer, comment);
             manager.add(serializer);
             // 首次保存
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.success", fakePlayer.getDisplayName());
