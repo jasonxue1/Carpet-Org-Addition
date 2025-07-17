@@ -4,8 +4,8 @@ import carpet.CarpetServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.config.CustomSettingsConfig;
+import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
 import org.carpetorgaddition.util.IOUtils;
@@ -90,6 +90,8 @@ public class CarpetOrgAddition implements ModInitializer {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
         }
+        // 初始化全局配置文件
+        GlobalConfigs.init();
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             this.runs();
         }

@@ -11,15 +11,10 @@ import java.io.IOException;
 import java.util.HashSet;
 
 public class GlobalConfigs {
-    private static final File CONFIG_FILE;
-
-    static {
-        CONFIG_FILE = IOUtils.CONFIGURE_DIRECTORY.resolve(CarpetOrgAddition.MOD_ID + ".json").toFile();
-        if (!CONFIG_FILE.isFile()) {
-            init();
-        }
-    }
-
+    /**
+     * 配置文件的路径
+     */
+    private static final File CONFIG_FILE = IOUtils.CONFIGURE_DIRECTORY.resolve(CarpetOrgAddition.MOD_ID + ".json").toFile();
     /**
      * 是否启用隐藏功能
      */
@@ -31,7 +26,10 @@ public class GlobalConfigs {
     /**
      * 初始化配置文件
      */
-    private static void init() {
+    public static void init() {
+        if (CONFIG_FILE.isFile()) {
+            return;
+        }
         CarpetOrgAddition.LOGGER.info("Initializing configuration file");
         try {
             JsonObject json = new JsonObject();
