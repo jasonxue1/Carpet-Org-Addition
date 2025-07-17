@@ -131,6 +131,28 @@ public class MathUtils {
     }
 
     /**
+     * 计算两个方块坐标的最小边界点
+     */
+    public static BlockPos toMinBlockPos(BlockPos pos1, BlockPos pos2) {
+        return new BlockPos(
+                Math.min(pos1.getX(), pos2.getX()),
+                Math.min(pos1.getY(), pos2.getY()),
+                Math.min(pos1.getZ(), pos2.getZ())
+        );
+    }
+
+    /**
+     * 计算两个方块坐标的最大边界点
+     */
+    public static BlockPos toMaxBlockPos(BlockPos pos1, BlockPos pos2) {
+        return new BlockPos(
+                Math.max(pos1.getX(), pos2.getX()),
+                Math.max(pos1.getY(), pos2.getY()),
+                Math.max(pos1.getZ(), pos2.getZ())
+        );
+    }
+
+    /**
      * 生成一次指定范围内随机整数，包含最大值和最小值，范围也可以包含负数，最大最小值参数也可以反过来传递
      *
      * @param min 随机数的最小值

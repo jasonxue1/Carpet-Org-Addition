@@ -46,6 +46,10 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
      */
     private int sneakTime;
     /**
+     * 剩余暂停时间
+     */
+    private int pauseTime;
+    /**
      * 是否没有路能到达目标位置
      */
     private boolean noRoad = false;
@@ -67,6 +71,9 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) getFakePlayer()).getActionPack();
         if (this.sneakTime > 0) {
             this.sneakTime--;
+        }
+        if (this.pauseTime > 0) {
+            this.pauseTime--;
         }
         actionPack.setSneaking(this.sneakTime > 0);
         Optional<BlockPos> optional = this.target.get();
@@ -172,6 +179,13 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     @Override
     public int getSyncEntityId() {
         return this.getFakePlayer().getId();
+    }
+
+    @Override
+    public void pause(int time) {
+        this.pauseTime = time;
+        EntityPlayerActionPack actionPack = ((ServerPlayerInterface) getFakePlayer()).getActionPack();
+        actionPack.setForward(0);
     }
 
     @Override
