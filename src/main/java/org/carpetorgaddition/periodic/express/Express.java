@@ -10,13 +10,18 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.NbtWriteView;
+import net.minecraft.storage.ReadView;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.ErrorReporter;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.MailCommand;
 import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -392,34 +397,44 @@ public class Express implements Comparable<Express> {
     /**
      * 将快递内容写入NBT
      */
-    @SuppressWarnings("unused")
     public NbtCompound writeNbt(MinecraftServer server) {
-        NbtCompound nbt = new NbtCompound();
-        nbt.putString("sender", this.sender);
-        nbt.putString("recipient", this.recipient);
-        nbt.putBoolean("cancel", this.cancel);
-        nbt.putInt("id", this.id);
-        int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
-        nbt.putIntArray("time", args);
-        nbt.put("item", ItemStack.CODEC, this.express);
-        nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
-        return nbt;
+        ErrorReporter.Logging logging = createErrorReporter();
+        try (logging) {
+            NbtWriteView nbt = NbtWriteView.create(logging, server.getRegistryManager());
+            nbt.putString("sender", this.sender);
+            nbt.putString("recipient", this.recipient);
+            nbt.putBoolean("cancel", this.cancel);
+            nbt.putInt("id", this.id);
+            int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
+            nbt.putIntArray("time", args);
+            nbt.put("item", ItemStack.CODEC, this.express);
+            nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+            return nbt.getNbt();
+        }
     }
 
     /**
      * 从NBT读取快递信息
      */
     public static Express readNbt(MinecraftServer server, NbtCompound nbt) {
-        String sender = nbt.getString("sender").orElseThrow();
-        String recipient = nbt.getString("recipient").orElseThrow();
-        boolean cancel = nbt.getBoolean("cancel").orElseThrow();
-        ItemStack stack = nbt.get("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        int id = nbt.getInt("id").orElseThrow();
-        int[] times = nbt.getIntArray("time").orElseThrow();
-        LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-        Express express = new Express(server, sender, recipient, stack, id, localDateTime);
-        express.cancel = cancel;
-        return express;
+        ErrorReporter.Logging logging = createErrorReporter();
+        try (logging) {
+            ReadView view = NbtReadView.create(logging, server.getRegistryManager(), nbt);
+            String sender = view.getOptionalString("sender").orElse(OfflinePlayerSearchTask.UNKNOWN);
+            String recipient = view.getOptionalString("recipient").orElse(OfflinePlayerSearchTask.UNKNOWN);
+            boolean cancel = view.getBoolean("cancel", false);
+            ItemStack stack = view.read("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
+            int id = view.getOptionalInt("id").orElse(-1);
+            int[] times = view.getOptionalIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
+            LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
+            Express express = new Express(server, sender, recipient, stack, id, localDateTime);
+            express.cancel = cancel;
+            return express;
+        }
+    }
+
+    private static ErrorReporter.Logging createErrorReporter() {
+        return new ErrorReporter.Logging(Express.class::toString, CarpetOrgAddition.LOGGER);
     }
 
     /**
