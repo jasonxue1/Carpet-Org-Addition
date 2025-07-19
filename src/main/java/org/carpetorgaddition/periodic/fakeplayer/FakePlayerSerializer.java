@@ -13,6 +13,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -223,8 +224,8 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         ArrayList<Text> list = new ArrayList<>();
         // 玩家位置
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
-                + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
-                + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
+                     + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
+                     + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
         list.add(TextBuilder.translate("carpet.commands.playerManager.info.pos", pos));
         // 获取朝向
         list.add(TextBuilder.translate("carpet.commands.playerManager.info.direction",
@@ -364,7 +365,18 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             int count = server.getCurrentPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    manager.addTask(new DelayedLoginTask(server, serializer, 1));
+                    manager.addTask(new DelayedLoginTask(server, serializer, 1) {
+                        @Override
+                        public void tick() {
+                            try {
+                                // 隐藏登录游戏的消息：无法保证单人游戏中自己一定先比假玩家先加入游戏，也就无法保证登录消息一定显示
+                                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
+                                super.tick();
+                            } finally {
+                                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
+                            }
+                        }
+                    });
                     count++;
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                     if (count >= server.getMaxPlayerCount() - 1) {

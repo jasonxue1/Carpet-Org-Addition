@@ -575,7 +575,7 @@ public class FakePlayerUtils {
                 return true;
             }
         }
-        return false;
+        return predicate.test(fakePlayer.getOffHandStack());
     }
 
     /**
