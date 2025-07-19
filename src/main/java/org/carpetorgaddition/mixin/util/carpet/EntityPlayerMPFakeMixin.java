@@ -6,12 +6,15 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
+import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.ThreadContextPropagator;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,6 +23,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.BiConsumer;
@@ -84,5 +88,27 @@ public class EntityPlayerMPFakeMixin {
                 throw e;
             }
         }
+    }
+
+    @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
+    private static <T> CompletableFuture<Void> homePositionSpawn(CompletableFuture<T> instance, Consumer<? super T> action, Executor executor, Operation<CompletableFuture<Void>> original) {
+        Boolean shouldHomePosition = ReLoginTask.HOME_POSITION.get();
+        Consumer<? super T> consumer = value -> {
+            try {
+                ReLoginTask.INTERNAL_HOME_POSITION.set(shouldHomePosition);
+                action.accept(value);
+            } finally {
+                ReLoginTask.INTERNAL_HOME_POSITION.set(false);
+            }
+        };
+        return original.call(instance, consumer, executor);
+    }
+
+    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z"))
+    private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerWorld serverWorld, double x, double y, double z, Set<PositionFlag> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
+        if (ReLoginTask.INTERNAL_HOME_POSITION.get()) {
+            return false;
+        }
+        return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
     }
 }

@@ -4,7 +4,6 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
-import org.carpetorgaddition.config.CustomCommandConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +20,6 @@ public class ClientCommandRegister {
         register(new DictionaryCommand(dispatcher, access));
         // 高亮路径点命令
         register(new HighlightCommand(dispatcher, access));
-        // 初始化自定义命令名称
-        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     private static <T extends AbstractClientCommand> void register(T command) {

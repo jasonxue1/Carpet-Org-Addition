@@ -24,6 +24,8 @@ import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.Contract;
 
 public class ReLoginTask extends PlayerScheduleTask {
+    public static final ThreadLocal<Boolean> HOME_POSITION = ThreadLocal.withInitial(() -> false);
+    public static final ThreadLocal<Boolean> INTERNAL_HOME_POSITION = ThreadLocal.withInitial(() -> false);
     // 假玩家名
     private final FakePlayerSerializer serializer;
     // 重新上线的时间间隔
@@ -184,7 +186,12 @@ public class ReLoginTask extends PlayerScheduleTask {
     private void loginPlayer() {
         try {
             CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
-            this.serializer.spawn(this.server);
+            try {
+                HOME_POSITION.set(true);
+                this.serializer.spawn(this.server);
+            } finally {
+                HOME_POSITION.set(false);
+            }
         } catch (CommandSyntaxException e) {
             CommandUtils.handlingException(e, this.source);
             this.stop();

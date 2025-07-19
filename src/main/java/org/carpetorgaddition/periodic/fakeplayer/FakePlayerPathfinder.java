@@ -64,6 +64,13 @@ public interface FakePlayerPathfinder {
     int getSyncEntityId();
 
     /**
+     * 暂停寻路
+     *
+     * @param time 暂停寻路的时间
+     */
+    void pause(int time);
+
+    /**
      * 停止寻路
      */
     void stop();

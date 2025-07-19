@@ -858,7 +858,7 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * /finder命令最大反馈数量
+     * 每页最大行数
      */
     public static final Supplier<Integer> maxLinesPerPage = register(
             RuleFactory.create(Integer.class, "maxLinesPerPage", 10)
@@ -980,8 +980,14 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
-    // TODO 强制添加注释规则
-    // TODO 更改规则名称
+    /**
+     * 玩家管理器强制添加注释
+     */
+    public static final Supplier<Boolean> playerManagerForceComment = register(
+            RuleFactory.create(Boolean.class, "playerManagerForceComment", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);
@@ -992,9 +998,13 @@ public class CarpetOrgAdditionSettings {
         for (RuleContext<?> context : allRules) {
             if (context.shouldRegister()) {
                 CarpetRule<?> rule = context.rule();
-                CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
-                if (context.isRuleSelf()) {
-                    RuleSelfManager.RULES.put(context.getName(), rule);
+                try {
+                    CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
+                    if (context.isRuleSelf()) {
+                        RuleSelfManager.RULES.put(context.getName(), rule);
+                    }
+                } catch (UnsupportedOperationException e) {
+                    CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name(), e);
                 }
             }
         }

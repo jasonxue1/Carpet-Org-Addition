@@ -47,7 +47,7 @@ public class UuidNameMappingTable {
      * 集合可能被多个线程同时访问
      */
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final File config = IOUtils.createConfigFile("uuid_name_mapping.txt", true);
+    private final File config = IOUtils.configFile("uuid_name_mapping.txt", true);
     private static final UuidNameMappingTable MAPPING_TABLE = new UuidNameMappingTable();
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API

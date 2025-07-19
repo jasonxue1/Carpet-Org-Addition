@@ -35,6 +35,6 @@ public class PlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenH
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
-        this.inventory.dropExcess(player);
+        this.inventory.onClose(player);
     }
 }
