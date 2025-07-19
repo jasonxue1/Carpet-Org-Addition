@@ -29,7 +29,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
         int minY = world.getBottomY();
         int minZ = sourcePos.getZ() - Math.abs(range);
         int maxX = sourcePos.getX() + Math.abs(range);
-        int maxY = world.getTopY();
+        int maxY = world.getBottomY() + world.getHeight();
         int maxZ = sourcePos.getZ() + Math.abs(range);
         this.from = new BlockPos(minX, minY, minZ);
         this.to = new BlockPos(maxX, maxY, maxZ);
@@ -51,7 +51,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
 
     public static BlockEntityIterator ofAbove(World world, BlockPos blockPos, int range) {
         BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
-        BlockPos to = new BlockPos(blockPos.getX() + range, world.getTopY(), blockPos.getZ() + range);
+        BlockPos to = new BlockPos(blockPos.getX() + range, world.getBottomY() + world.getHeight(), blockPos.getZ() + range);
         return new BlockEntityIterator(world, from, to);
     }
 
