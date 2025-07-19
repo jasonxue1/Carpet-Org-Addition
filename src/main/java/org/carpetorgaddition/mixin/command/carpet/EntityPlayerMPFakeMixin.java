@@ -1,7 +1,8 @@
-package org.carpetorgaddition.mixin.command;
+package org.carpetorgaddition.mixin.command.carpet;
 
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.entity.damage.DamageSource;
+import org.carpetorgaddition.mixin.command.ServerPlayerEntityMixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;

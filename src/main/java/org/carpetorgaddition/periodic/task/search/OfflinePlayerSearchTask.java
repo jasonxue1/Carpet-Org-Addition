@@ -280,7 +280,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     protected Text getInventoryName() {
-        return TextBuilder.translate("container.inventory");
+        return TextBuilder.translate("carpet.commands.finder.item.offline_player.container.inventory");
     }
 
     @Override
