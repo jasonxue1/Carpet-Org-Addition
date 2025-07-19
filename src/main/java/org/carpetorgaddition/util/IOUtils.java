@@ -51,6 +51,8 @@ public class IOUtils {
      * 创建一个UTF-8编码的字符输出流对象
      */
     public static BufferedWriter toWriter(File file) throws IOException {
+        // 如果文件不存在则创建
+        createFileIfNotExists(file);
         return new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
     }
 
@@ -126,12 +128,15 @@ public class IOUtils {
      *
      * @param file 要备份的文件
      */
-    public static void backup(File file) {
-        backup(file, true);
+    public static void backupFile(File file) {
+        backupFile(file, true);
     }
 
-    public static File backup(File file, boolean force) {
-        File backup = new File(file.getParent(), file.getName() + ".bak");
+    /**
+     * @param force 如果已经存在相同名字的备份了，是否覆盖
+     */
+    public static File backupFile(File file, boolean force) {
+        File backup = new File(file.getParent(), "backup_" + System.currentTimeMillis() + "_" + file.getName());
         if (!force && backup.exists()) {
             throw new IllegalStateException("The backup file already exists");
         }
@@ -180,7 +185,7 @@ public class IOUtils {
         return false;
     }
 
-    public static File createConfigFile(String fileName, boolean create) {
+    public static File configFile(String fileName, boolean create) {
         File file = CONFIGURE_DIRECTORY.resolve(fileName).toFile();
         if (create) {
             createFileIfNotExists(file);
@@ -276,6 +281,21 @@ public class IOUtils {
     public static void removeFile(File file) {
         //noinspection ResultOfMethodCallIgnored
         file.delete();
+    }
+
+    /**
+     * 重命名文件
+     */
+    public static void renameFile(File file, String name) {
+        //noinspection ResultOfMethodCallIgnored
+        file.renameTo(new File(file.getParent(), name));
+    }
+
+    /**
+     * 将一个文件标记为弃用
+     */
+    public static void deprecatedFile(File file) {
+        renameFile(file, "deprecated_" + System.currentTimeMillis() + "_" + file.getName());
     }
 
     /**
