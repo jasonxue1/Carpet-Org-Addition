@@ -90,13 +90,13 @@ public class EntityPlayerMPFakeMixin {
         }
     }
 
-    @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;thenAcceptAsync(Ljava/util/function/Consumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
-    private static <T> CompletableFuture<Void> homePositionSpawn(CompletableFuture<T> instance, Consumer<? super T> action, Executor executor, Operation<CompletableFuture<Void>> original) {
+    @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
+    private static <T> CompletableFuture<T> homePositionSpawn(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         Boolean shouldHomePosition = ReLoginTask.HOME_POSITION.get();
-        Consumer<? super T> consumer = value -> {
+        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> {
             try {
                 ReLoginTask.INTERNAL_HOME_POSITION.set(shouldHomePosition);
-                action.accept(value);
+                action.accept(value, throwable);
             } finally {
                 ReLoginTask.INTERNAL_HOME_POSITION.set(false);
             }
