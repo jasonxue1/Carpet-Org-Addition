@@ -188,6 +188,7 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
 
     @Override
     public void onClosed(PlayerEntity player) {
+        super.onClosed(player);
         AbstractCustomSizeInventory.PLACEHOLDER.setCount(1);
     }
 }

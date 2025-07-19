@@ -7,7 +7,7 @@
   "mixins": [
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerManagerAccessor",
-    "command.EntityPlayerMPFakeMixin",
+    "command.carpet.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
     "command.carpet.PlayerCommandMixin",

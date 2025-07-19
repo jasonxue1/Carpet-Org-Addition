@@ -17,7 +17,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class GenericUtils {
     /**
@@ -113,15 +112,6 @@ public class GenericUtils {
      */
     public static int getNbtDataVersion() {
         return SharedConstants.getGameVersion().getSaveVersion().getId();
-    }
-
-    public static <T> T wrapFunction(Supplier<T> supplier, Runnable onEnter, Runnable onExit) {
-        try {
-            onEnter.run();
-            return supplier.get();
-        } finally {
-            onExit.run();
-        }
     }
 
     /**
