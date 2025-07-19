@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class CustomSettingsConfig {
-    private static final File SETTINGS_MANAGER_CONFIG = IOUtils.createConfigFile("settings_manager.json", false);
+    private static final File SETTINGS_MANAGER_CONFIG = IOUtils.configFile("settings_manager.json", false);
 
     public static void initSettingsManagerConfigs() {
         if (SETTINGS_MANAGER_CONFIG.isFile()) {

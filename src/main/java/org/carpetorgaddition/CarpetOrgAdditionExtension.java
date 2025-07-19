@@ -15,8 +15,8 @@ import net.minecraft.world.GameMode;
 import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
 import org.carpetorgaddition.command.SpectatorCommand;
-import org.carpetorgaddition.config.CustomCommandConfig;
 import org.carpetorgaddition.config.CustomSettingsConfig;
+import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
@@ -112,15 +112,13 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
         FetcherUtils.getRuleSelfManager(server).load();
-        // 初始化自定义命令名称
-        CustomCommandConfig.getInstance().refreshIfExpired();
     }
 
     @Override
     public void onServerClosed(MinecraftServer server) {
         UuidNameMappingTable.getInstance().save();
         PermissionManager.reset();
-        CustomCommandConfig.getInstance().refreshIfExpired();
+        GlobalConfigs.save();
     }
 
     @Override
