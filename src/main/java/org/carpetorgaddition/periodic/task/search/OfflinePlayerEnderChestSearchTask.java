@@ -53,6 +53,6 @@ public class OfflinePlayerEnderChestSearchTask extends OfflinePlayerSearchTask {
 
     @Override
     protected Text getInventoryName() {
-        return TextBuilder.translate("container.enderchest");
+        return TextBuilder.translate("carpet.commands.finder.item.offline_player.container.enderchest");
     }
 }

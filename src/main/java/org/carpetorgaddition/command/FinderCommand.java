@@ -33,6 +33,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.wheel.BlockEntityIterator;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -148,7 +149,7 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourceBlockPos = player.getBlockPos();
         // 查找周围容器中的物品
         World world = player.getWorld();
-        ItemSearchTask task = new ItemSearchTask(world, predicate, new BlockIterator(world, sourceBlockPos, range), context);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, new BlockEntityIterator(world, sourceBlockPos, range), context);
         ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -161,8 +162,8 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取要查找的物品
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
-        BlockIterator blockIterator = new BlockIterator(from, to);
-        ItemSearchTask task = new ItemSearchTask(player.getWorld(), predicate, blockIterator, context);
+        BlockEntityIterator blockEntityIterator = new BlockEntityIterator(player.getWorld(), from, to);
+        ItemSearchTask task = new ItemSearchTask(player.getWorld(), predicate, blockEntityIterator, context);
         ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }

@@ -22,13 +22,13 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
-import org.carpetorgaddition.wheel.page.PageManager;
-import org.carpetorgaddition.wheel.page.PagedCollection;
-import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.BlockEntityIterator;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.page.PageManager;
+import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -37,10 +37,10 @@ import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
     private final World world;
-    private final BlockIterator blockIterator;
+    private final BlockEntityIterator blockEntities;
     private final CommandContext<ServerCommandSource> context;
     private Iterator<Entity> entitySearchIterator;
-    private Iterator<BlockPos> blockSearchIterator;
+    private Iterator<BlockEntity> blockEntitySearchIterator;
     private FindState findState;
     private int count;
     private boolean shulkerBox;
@@ -56,9 +56,9 @@ public class ItemSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockIterator blockIterator, CommandContext<ServerCommandSource> context) {
+    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityIterator blockEntities, CommandContext<ServerCommandSource> context) {
         this.world = world;
-        this.blockIterator = blockIterator;
+        this.blockEntities = blockEntities;
         this.findState = FindState.BLOCK;
         this.tickCount = 0;
         this.predicate = predicate;
@@ -101,15 +101,15 @@ public class ItemSearchTask extends ServerTask {
 
     // 从容器查找
     private void searchFromContainer() {
-        if (this.blockSearchIterator == null) {
-            this.blockSearchIterator = blockIterator.iterator();
+        if (this.blockEntitySearchIterator == null) {
+            this.blockEntitySearchIterator = blockEntities.iterator();
         }
-        while (this.blockSearchIterator.hasNext()) {
+        while (this.blockEntitySearchIterator.hasNext()) {
             if (this.timeout()) {
                 return;
             }
-            BlockPos blockPos = this.blockSearchIterator.next();
-            BlockEntity blockEntity = this.world.getBlockEntity(blockPos);
+            BlockEntity blockEntity = this.blockEntitySearchIterator.next();
+            BlockPos blockPos = blockEntity.getPos();
             if (blockEntity instanceof Inventory inventory) {
                 // 获取容器名称
                 MutableText containerName
@@ -124,7 +124,7 @@ public class ItemSearchTask extends ServerTask {
 
     // 从实体查找
     private void searchFromEntity() {
-        Box box = blockIterator.toBox();
+        Box box = blockEntities.toBox();
         if (this.entitySearchIterator == null) {
             this.entitySearchIterator = this.world.getNonSpectatingEntities(Entity.class, box).iterator();
         }
