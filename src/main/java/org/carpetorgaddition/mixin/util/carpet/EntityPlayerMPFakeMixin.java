@@ -5,6 +5,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -20,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -99,11 +101,11 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleport(Lnet/minecraft/server/world/ServerWorld;DDDFF)V"))
-    private static void homePositionSpawn(EntityPlayerMPFake instance, ServerWorld serverWorld, double x, double y, double z, float yaw, float pitch, Operation<Void> original) {
+    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z"))
+    private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerWorld serverWorld, double x, double y, double z, Set<PositionFlag> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
         if (ReLoginTask.INTERNAL_HOME_POSITION.get()) {
-            return;
+            return false;
         }
-        original.call(instance, serverWorld, x, y, z, yaw, pitch);
+        return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
     }
 }
