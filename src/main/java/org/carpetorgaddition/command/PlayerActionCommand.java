@@ -108,12 +108,21 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .executes(this::setPlant))
                         .then(CommandManager.literal("bedrock")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                                .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
-                                        .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(context -> setBreakBedrock(context, false))
-                                                .then(CommandManager.argument("ai", BoolArgumentType.bool())
-                                                        .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
-                                                        .executes(context -> setBreakBedrock(context, BoolArgumentType.getBool(context, "ai")))))))
+                                .then(CommandManager.literal("cuboid")
+                                        .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
+                                                .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
+                                                        .executes(context -> setBreakCubeBedrock(context, false))
+                                                        .then(CommandManager.argument("ai", BoolArgumentType.bool())
+                                                                .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
+                                                                .executes(context -> setBreakCubeBedrock(context, BoolArgumentType.getBool(context, "ai")))))))
+                                .then(CommandManager.literal("cylinder")
+                                        .then(CommandManager.argument("center", BlockPosArgumentType.blockPos())
+                                                .then(CommandManager.argument("radius", IntegerArgumentType.integer(1))
+                                                        .then(CommandManager.argument("height", IntegerArgumentType.integer(1))
+                                                                .executes(context -> setBreakCylinderBedrock(context, false))
+                                                                .then(CommandManager.argument("ai", BoolArgumentType.bool())
+                                                                        .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
+                                                                        .executes(context -> setBreakCylinderBedrock(context, true))))))))
                         .then(CommandManager.literal("goto")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.literal("block")
@@ -302,13 +311,32 @@ public class PlayerActionCommand extends AbstractServerCommand {
     }
 
     // 设置破基岩
-    private int setBreakBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
+    private int setBreakCubeBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
             BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
             actionManager.setAction(new BedrockAction(fakePlayer, from, to, ai));
+            Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(context);
+            if (optional.isPresent()) {
+                MutableText translate = TextBuilder.translate("carpet.commands.playerAction.bedrock.share");
+                MessageUtils.sendMessageToHud(optional.get(), translate);
+            }
+            return 1;
+        }
+        return 0;
+    }
+
+    // 设置破圆柱范围基岩
+    private int setBreakCylinderBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            BlockPos center = BlockPosArgumentType.getBlockPos(context, "center");
+            int radius = IntegerArgumentType.getInteger(context, "radius");
+            int height = IntegerArgumentType.getInteger(context, "height");
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            actionManager.setAction(new BedrockAction(fakePlayer, center, radius, height, ai));
             Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(context);
             if (optional.isPresent()) {
                 MutableText translate = TextBuilder.translate("carpet.commands.playerAction.bedrock.share");

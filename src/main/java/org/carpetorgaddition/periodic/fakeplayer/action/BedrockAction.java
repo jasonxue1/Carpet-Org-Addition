@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
@@ -34,14 +33,8 @@ import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingContext;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.PlayerWorkPhase;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
-import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.*;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.BlockEntityIterator;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.Counter;
@@ -55,10 +48,11 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
+public class BedrockAction extends AbstractPlayerAction {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final HashSet<BlockPos> lavas = new HashSet<>();
     private final BlockIterator blockIterator;
+    private final BedrockRegionType regionType;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -108,10 +102,19 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private final ArrayList<ItemEntity> itemEntities = new ArrayList<>();
 
-    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
+    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockIterator blockIterator, BedrockRegionType regionType, boolean ai) {
         super(fakePlayer);
+        this.blockIterator = blockIterator;
+        this.regionType = regionType;
         this.ai = ai;
-        this.blockIterator = new BlockIterator(from, to);
+    }
+
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
+        this(fakePlayer, new BlockIterator(from, to), BedrockRegionType.CUBOID, ai);
+    }
+
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai) {
+        this(fakePlayer, new CylinderBlockIterator(center, radius, height), BedrockRegionType.CYLINDER, ai);
     }
 
     @Override
@@ -181,7 +184,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 }
             }
         }
-        for (BedrockBreakingContext context : this) {
+        for (BedrockBreakingContext context : this.contexts) {
             if (context == this.currentContext) {
                 continue;
             }
@@ -213,7 +216,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             this.invalidBedrock.set(optional.get(), 200);
             return;
         }
-        for (BedrockBreakingContext context : this) {
+        for (BedrockBreakingContext context : this.contexts) {
             BlockPos blockPos = context.getBedrockPos();
             if (this.invalidBedrock.getCount(blockPos) > 0) {
                 continue;
@@ -1069,9 +1072,20 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
-        MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
-        MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.range", from, to));
+        switch (this.regionType) {
+            case CUBOID -> {
+                MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
+                MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
+            }
+            case CYLINDER -> {
+                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                MutableText center = TextProvider.blockPos(iterator.center);
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.radius));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.height));
+            }
+        }
         if (this.ai) {
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.ai.enable"));
         }
@@ -1081,19 +1095,22 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
-        JsonArray from = new JsonArray();
-        from.add(minBlockPos.getX());
-        from.add(minBlockPos.getY());
-        from.add(minBlockPos.getZ());
-        json.add("from", from);
-        BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
-        JsonArray to = new JsonArray();
-        to.add(maxBlockPos.getX());
-        to.add(maxBlockPos.getY());
-        to.add(maxBlockPos.getZ());
-        json.add("to", to);
+        switch (this.regionType) {
+            case CUBOID -> {
+                BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
+                json.add("from", JsonUtils.toJson(minBlockPos));
+                BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
+                json.add("to", JsonUtils.toJson(maxBlockPos));
+            }
+            case CYLINDER -> {
+                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                json.add("center", JsonUtils.toJson(iterator.center));
+                json.addProperty("radius", iterator.radius);
+                json.addProperty("height", iterator.height);
+            }
+        }
         json.addProperty("ai", this.ai);
+        json.addProperty("region_type", this.regionType.name().toLowerCase());
         return json;
     }
 
@@ -1110,12 +1127,6 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public boolean isHidden() {
         return true;
-    }
-
-    @NotNull
-    @Override
-    public Iterator<BedrockBreakingContext> iterator() {
-        return this.contexts.iterator();
     }
 
     @Override
@@ -1159,5 +1170,67 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public void onStop() {
         this.pathfinder.onStop();
+    }
+
+    private static class CylinderBlockIterator extends BlockIterator {
+        private final BlockPos center;
+        private final int radius;
+        private final int height;
+
+        public CylinderBlockIterator(BlockPos center, int radius, int height) {
+            super(
+                    new BlockPos(center.getX() - radius, center.getY(), center.getZ() - radius),
+                    new BlockPos(center.getX() + radius, center.getY() + height, center.getZ() + radius)
+            );
+            this.center = center;
+            this.radius = radius;
+            this.height = height;
+        }
+
+        @Override
+        public boolean contains(BlockPos blockPos) {
+            return super.contains(blockPos) && MathUtils.getCalculateBlockIntegerDistance(this.center, blockPos) <= this.radius;
+        }
+
+        @Override
+        public BlockPos randomBlockPos() {
+            while (true) {
+                BlockPos blockPos = super.randomBlockPos();
+                if (this.contains(blockPos)) {
+                    return blockPos;
+                }
+            }
+        }
+
+        @Override
+        @NotNull
+        public Iterator<BlockPos> iterator() {
+            return new Iterator<>() {
+                private final Iterator<BlockPos> iterator = CylinderBlockIterator.super.iterator();
+                private BlockPos blockPos;
+
+                @Override
+                public boolean hasNext() {
+                    if (this.blockPos == null) {
+                        while (this.iterator.hasNext()) {
+                            BlockPos next = this.iterator.next();
+                            if (contains(next)) {
+                                this.blockPos = next;
+                                break;
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+
+                @Override
+                public BlockPos next() {
+                    BlockPos result = this.blockPos;
+                    this.blockPos = null;
+                    return result;
+                }
+            };
+        }
     }
 }
