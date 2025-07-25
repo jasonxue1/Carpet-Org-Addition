@@ -59,18 +59,19 @@ public class BedrockAction extends AbstractPlayerAction {
      * 玩家是否有AI，是否可以自动寻路，自动进食
      */
     private final boolean ai;
+    /**
+     * 下一次定时回收材料的剩余游戏刻数，剩余时间为-1表示禁用定时回收
+     */
+    private int recycleTimer;
     @Nullable
     private BedrockBreakingContext currentContext;
-    /**
-     * 玩家当前任务的阶段
-     */
     @NotNull
     private PlayerWorkPhase phase = PlayerWorkPhase.WORK;
     /**
      * 玩家上一个任务阶段
      */
     @NotNull
-    private PlayerWorkPhase prevPhase = phase;
+    private PlayerWorkPhase prevPhase = getPhase();
     /**
      * 玩家当前的移动目标
      */
@@ -101,20 +102,25 @@ public class BedrockAction extends AbstractPlayerAction {
      * 周围的材料物品
      */
     private final ArrayList<ItemEntity> itemEntities = new ArrayList<>();
+    /**
+     * 定时回收材料的时间间隔（3分钟）
+     */
+    private static final int MATERIAL_RECYCLING_TIME = 3600;
 
-    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockIterator blockIterator, BedrockRegionType regionType, boolean ai) {
+    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockIterator blockIterator, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
         super(fakePlayer);
         this.blockIterator = blockIterator;
         this.regionType = regionType;
         this.ai = ai;
+        this.recycleTimer = timedMaterialRecycling ? MATERIAL_RECYCLING_TIME : -1;
     }
 
-    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
-        this(fakePlayer, new BlockIterator(from, to), BedrockRegionType.CUBOID, ai);
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai, boolean timedMaterialRecycling) {
+        this(fakePlayer, new BlockIterator(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
     }
 
-    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai) {
-        this(fakePlayer, new CylinderBlockIterator(center, radius, height), BedrockRegionType.CYLINDER, ai);
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai, boolean timedMaterialRecycling) {
+        this(fakePlayer, new CylinderBlockIterator(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
     }
 
     @Override
@@ -131,12 +137,20 @@ public class BedrockAction extends AbstractPlayerAction {
                 this.recentItemEntity = null;
             }
             if (shouldEat()) {
-                if (this.phase != PlayerWorkPhase.EAT) {
-                    this.prevPhase = this.phase;
+                if (this.getPhase() != PlayerWorkPhase.EAT) {
+                    this.prevPhase = this.getPhase();
                 }
-                this.phase = PlayerWorkPhase.EAT;
+                this.setPhase(PlayerWorkPhase.EAT);
+            } else if (this.recycleTimer > 0) {
+                this.recycleTimer--;
+                if (this.recycleTimer == 0) {
+                    this.setPhase(PlayerWorkPhase.COLLECT);
+                }
             }
-            switch (this.phase) {
+            if (this.recycleTimer < -1) {
+                throw new IllegalStateException("The remaining time for material recycling should not be %s".formatted(this.recycleTimer));
+            }
+            switch (this.getPhase()) {
                 case WORK -> work();
                 case EAT -> eat();
                 case COLLECT -> collectingMaterials();
@@ -301,7 +315,7 @@ public class BedrockAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 玩家没有足够的材料
-                    this.phase = PlayerWorkPhase.COLLECT;
+                    this.setPhase(PlayerWorkPhase.COLLECT);
                     return StepResult.TICK_COMPLETION;
                 }
             }
@@ -878,7 +892,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private void eat() {
         PlayerWorkPhase prev = this.prevPhase == PlayerWorkPhase.EAT ? PlayerWorkPhase.WORK : this.prevPhase;
         if (this.getFakePlayer().getAbilities().invulnerable) {
-            this.phase = prev;
+            this.setPhase(prev);
             return;
         }
         if (this.getFakePlayer().canConsume(false)) {
@@ -889,11 +903,11 @@ public class BedrockAction extends AbstractPlayerAction {
                     ItemStack food = this.getFakePlayer().getMainHandStack();
                     interactionManager.interactItem(this.getFakePlayer(), world, food, Hand.MAIN_HAND);
                 } else {
-                    this.phase = prev;
+                    this.setPhase(prev);
                 }
             }
         } else {
-            this.phase = prev;
+            this.setPhase(prev);
         }
     }
 
@@ -906,13 +920,15 @@ public class BedrockAction extends AbstractPlayerAction {
             // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
             dropGarbageAndCollectMaterial();
         }
+        // 目标掉落物的位置不可到达
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
             this.itemEntities.remove(this.recentItemEntity);
             this.pathfinder.pause(1);
             this.materialCollectionComplete = true;
             this.recentItemEntity = null;
+            // 要回收的最后一个物品不可到达，结束材料回收
             if (this.itemEntities.isEmpty()) {
-                this.phase = PlayerWorkPhase.WORK;
+                this.setPhase(PlayerWorkPhase.WORK);
                 return;
             }
         }
@@ -924,8 +940,9 @@ public class BedrockAction extends AbstractPlayerAction {
                     .toList();
             this.itemEntities.addAll(list);
         }
+        // 没有材料可以回收
         if (this.itemEntities.isEmpty()) {
-            this.phase = PlayerWorkPhase.WORK;
+            this.setPhase(PlayerWorkPhase.WORK);
             return;
         }
         if (this.recentItemEntity != null) {
@@ -998,7 +1015,7 @@ public class BedrockAction extends AbstractPlayerAction {
                     continue;
                 }
                 FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
-                this.phase = PlayerWorkPhase.WORK;
+                this.setPhase(PlayerWorkPhase.WORK);
                 return;
             } else if (isFoundMost) {
                 // 相同的材料是连续放置的，所以后面的物品都不是要装入潜影盒的材料
@@ -1095,6 +1112,7 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
+        json.addProperty("region_type", this.regionType.name().toLowerCase());
         switch (this.regionType) {
             case CUBOID -> {
                 BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
@@ -1110,7 +1128,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         json.addProperty("ai", this.ai);
-        json.addProperty("region_type", this.regionType.name().toLowerCase());
+        json.addProperty("timed_material_recycling", this.recycleTimer != -1);
         return json;
     }
 
@@ -1143,7 +1161,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * 获取移动目标
      */
     public Optional<BlockPos> getMovingTarget() {
-        switch (this.phase) {
+        switch (this.getPhase()) {
             case WORK -> {
                 World world = this.getFakePlayer().getWorld();
                 if (this.bedrockTarget == null) {
@@ -1170,6 +1188,21 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     public void onStop() {
         this.pathfinder.onStop();
+    }
+
+    /**
+     * 玩家当前任务的阶段
+     */
+    @NotNull
+    private PlayerWorkPhase getPhase() {
+        return phase;
+    }
+
+    private void setPhase(@NotNull PlayerWorkPhase phase) {
+        this.phase = phase;
+        if (this.recycleTimer != -1 && phase == PlayerWorkPhase.WORK) {
+            this.recycleTimer = MATERIAL_RECYCLING_TIME;
+        }
     }
 
     private static class CylinderBlockIterator extends BlockIterator {

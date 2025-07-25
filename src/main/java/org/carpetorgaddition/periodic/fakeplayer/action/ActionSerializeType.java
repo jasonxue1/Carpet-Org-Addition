@@ -113,19 +113,20 @@ public enum ActionSerializeType {
      * 自动破基岩
      */
     BEDROCK(json -> {
-        boolean ai = Optional.ofNullable(json.get("ai")).map(JsonElement::getAsBoolean).orElse(false);
         String regionType = Optional.ofNullable(json.get("region_type")).map(JsonElement::getAsString).orElse("cuboid");
+        boolean ai = Optional.ofNullable(json.get("ai")).map(JsonElement::getAsBoolean).orElse(false);
+        boolean timedMaterialRecycling = Optional.ofNullable(json.get("timed_material_recycling")).map(JsonElement::getAsBoolean).orElse(false);
         switch (regionType) {
             case "cuboid" -> {
                 JsonArray from = json.getAsJsonArray("from");
                 JsonArray to = json.getAsJsonArray("to");
-                return new BedrockAction(null, JsonUtils.toBlockPos(from), JsonUtils.toBlockPos(to), ai);
+                return new BedrockAction(null, JsonUtils.toBlockPos(from), JsonUtils.toBlockPos(to), ai, timedMaterialRecycling);
             }
             case "cylinder" -> {
                 JsonArray center = json.getAsJsonArray("center");
                 int radius = json.get("radius").getAsInt();
                 int height = json.get("height").getAsInt();
-                return new BedrockAction(null, JsonUtils.toBlockPos(center), radius, height, ai);
+                return new BedrockAction(null, JsonUtils.toBlockPos(center), radius, height, ai, timedMaterialRecycling);
             }
             default -> {
                 return new StopAction(null);
