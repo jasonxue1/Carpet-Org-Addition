@@ -994,12 +994,21 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private void collectMaterialToShulkerBox() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        // 整理物品栏
-        FakePlayerUtils.sorting(fakePlayer);
         PlayerInventory inventory = fakePlayer.getInventory();
         // 获取物品栏中数量最多的物品
         ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
+        // TODO 检查是否已经有空槽位了
+        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
+            if (InventoryUtils.canMerge(most, screenHandler.getSlot(i).getStack())) {
+                FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
+                FakePlayerUtils.throwItem(screenHandler, i, fakePlayer);
+                break;
+            }
+        }
+        // 整理物品栏
+        FakePlayerUtils.sorting(fakePlayer);
         // 是否已经遍历到了数量最多的物品
         boolean isFoundMost = false;
         for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
@@ -1010,7 +1019,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             if (InventoryUtils.canMerge(itemStack, most)) {
                 isFoundMost = true;
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, inventory);
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
                 if (result.isEmpty()) {
                     continue;
                 }
@@ -1039,7 +1048,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             // 将已损坏的物品放入潜影盒
             if (InventoryUtils.isToolItem(itemStack) && isDamaged(itemStack)) {
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer.getInventory());
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
                 if (result.isEmpty()) {
                     continue;
                 }
