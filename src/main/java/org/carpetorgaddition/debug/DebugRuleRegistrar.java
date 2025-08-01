@@ -3,7 +3,6 @@ package org.carpetorgaddition.debug;
 import carpet.CarpetExtension;
 import carpet.CarpetServer;
 import carpet.api.settings.SettingsManager;
-import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 
@@ -23,15 +22,12 @@ public class DebugRuleRegistrar implements CarpetExtension {
     }
 
     private DebugRuleRegistrar() {
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
-            this.settingsManager = new SettingsManager(
-                    CarpetOrgAddition.VERSION,
-                    "carpet-debug",
-                    "Carpet Org Addition Debug"
-            );
-        } else {
-            throw new ProductionEnvironmentError();
-        }
+        ProductionEnvironmentError.assertDevelopmentEnvironment();
+        this.settingsManager = new SettingsManager(
+                CarpetOrgAddition.VERSION,
+                "carpet-debug",
+                "Carpet Org Addition Debug"
+        );
     }
 
     public void registrar() {

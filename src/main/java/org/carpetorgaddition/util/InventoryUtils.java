@@ -1,15 +1,17 @@
 package org.carpetorgaddition.util;
 
+import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.screen.PlayerScreenHandler;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
@@ -87,13 +89,14 @@ public class InventoryUtils {
     }
 
     @CheckReturnValue
-    public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, PlayerInventory inventory) {
+    public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, EntityPlayerMPFake fakePlayer) {
         if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
             itemStack = itemStack.copyAndEmpty();
             // 所有潜影盒所在的索引
             ArrayList<Integer> shulkers = new ArrayList<>();
-            for (int i = 0; i < inventory.size(); i++) {
-                ItemStack shulker = inventory.getStack(i);
+            PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+            for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
+                ItemStack shulker = screenHandler.getSlot(i).getStack();
                 if (isShulkerBoxItem(shulker)) {
                     shulkers.add(i);
                     // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
@@ -107,13 +110,21 @@ public class InventoryUtils {
             }
             // 尝试向空潜影盒装入物品
             for (Integer index : shulkers) {
-                ItemStack shulker = inventory.getStack(index);
+                ItemStack shulker = screenHandler.getSlot(index).getStack();
                 if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
                     itemStack = addItemToShulkerBox(shulker, itemStack);
                     if (itemStack.isEmpty()) {
                         return ItemStack.EMPTY;
                     }
                 }
+            }
+            if (shulkers.isEmpty()) {
+                return itemStack;
+            }
+            int last = shulkers.getLast();
+            if (last < FakePlayerUtils.PLAYER_INVENTORY_END && screenHandler.getSlot(last).getStack().getCount() > 1) {
+                FakePlayerUtils.pickupOneAndPlaceItemStack(screenHandler, last, last + 1, fakePlayer);
+                itemStack = addItemToShulkerBox(screenHandler.getSlot(last + 1).getStack(), itemStack);
             }
         }
         return itemStack;
