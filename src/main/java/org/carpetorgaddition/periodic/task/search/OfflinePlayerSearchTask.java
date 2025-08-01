@@ -166,7 +166,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         boolean success = IOUtils.copyFile(unsafe, deletableFile);
         if (success) {
             // 模拟玩家登录，更新玩家数据文件
-            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
+            Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, this.server).map(entry -> new GameProfile(entry.id(), entry.name()));
             optional.ifPresent(gameProfile -> {
                 OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
                 inventory.onOpen(this.player);
