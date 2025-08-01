@@ -213,7 +213,7 @@ _可以用来制作更新抑制器的潜影盒被发射器放置时会移除自�
 - 参考选项：`true`，`false`
 - 分类：`Org`，`特性`
 
-### 开放/seed命令权限(openSeedPermissions)
+### 开放/seed命令权限(openSeedPermission)
 
 允许无权限玩家在服务器使用/seed命令
 
@@ -222,7 +222,7 @@ _可以用来制作更新抑制器的潜影盒被发射器放置时会移除自�
 - 参考选项：`true`，`false`
 - 分类：`Org`，`命令`
 
-### 开放/carpet命令权限(openCarpetPermissions)
+### 开放/carpet命令权限(openCarpetPermission)
 
 仅在单人游戏中有效，允许在无作弊的单人游戏中使用/carpet命令
 
@@ -231,7 +231,7 @@ _可以用来制作更新抑制器的潜影盒被发射器放置时会移除自�
 - 参考选项：`true`，`false`
 - 分类：`Org`，`命令`，`客户端`
 
-### 开放/gamerule命令权限(openGameRulePermissions)
+### 开放/gamerule命令权限(openGameRulePermission)
 
 允许无权限玩家在使用/gamerule命令
 
@@ -348,10 +348,9 @@ _可以用来制作更新抑制器的潜影盒被发射器放置时会移除自�
 - 参考选项：`true`，`false`
 - 分类：`Org`，`特性`
 
-### 假玩家合成保留物品(fakePlayerCraftKeepItem)
+### 假玩家动作保留物品(fakePlayerActionKeepItem)
 
-假玩家合成物品时会在物品栏中保留至少一个合成材料，除非该物品的最大堆叠数为1<br>
-_对假玩家自动交易同样有效_<br>
+假玩家执行合成，交易等物品操作时会在物品栏中保留一个物品，除非该物品的最大堆叠数为1
 
 - 类型：`布尔值`
 - 默认值：`false`
@@ -385,9 +384,10 @@ _upgrade：仅下界合金升级锻造模板不会被消耗_<br>
 
 - 类型：`枚举`
 - 默认值：`false`
+- 参考选项：`true`，`false`，`upgrade`
 - 分类：`Org`，`生存`
 
-### 开放/tp命令权限(openTpPermissions)
+### 开放/tp命令权限(openTpPermission)
 
 允许无权限玩家使用/tp命令
 
@@ -426,12 +426,13 @@ _upgrade：仅下界合金升级锻造模板不会被消耗_<br>
 ### 更好的不死图腾(betterTotemOfUndying)
 
 玩家死亡时只要物品栏内有不死图腾就能生效，而不需要放在手上<br>
-_fasle：禁用本条规则_<br>
-_shulker_box：玩家死亡时只要物品栏内有不死图腾就能生效，包括潜影盒里的_<br>
-_true：玩家死亡时只要物品栏内有不死图腾就能生效，不包括潜影盒_<br>
+_vanilla：禁用本条规则_<br>
+_inventory_with_shulker_box：玩家死亡时只要物品栏内有不死图腾就能生效，包括潜影盒里的_<br>
+_inventory：玩家死亡时只要物品栏内有不死图腾就能生效，不包括潜影盒_<br>
 
 - 类型：`枚举`
-- 默认值：`false`
+- 默认值：`vanilla`
+- 参考选项：`inventory`，`vanilla`，`inventory_with_shulker_box`
 - 分类：`Org`，`生存`
 
 ### 假玩家动作命令(commandPlayerAction)
@@ -443,9 +444,9 @@ _true：玩家死亡时只要物品栏内有不死图腾就能生效，不包括
 - 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
 - 分类：`Org`，`命令`
 
-### 假玩家合成从潜影盒取物(fakePlayerCraftPickItemFromShulkerBox)
+### 假玩家操作潜影盒(fakePlayerShulkerBoxItemHandling)
 
-假玩家合成物品时支持从潜影盒中拿取物品
+允许假玩家直接从潜影盒物品中存取物品
 
 - 类型：`布尔值`
 - 默认值：`false`
@@ -469,6 +470,7 @@ _true：总是可以右键打开_<br>
 
 - 类型：`枚举`
 - 默认值：`false`
+- 参考选项：`false`，`true`，`sneaking`
 - 分类：`Org`，`生存`
 
 ### 假玩家死亡不掉落(fakePlayerKeepInventory)
@@ -543,6 +545,7 @@ _default：使用CarpetOrgAddition的高亮路径点_<br>
 
 - 类型：`枚举`
 - 默认值：`default`
+- 参考选项：`false`，`ommc`，`default`
 - 分类：`Org`，`生存`，`客户端`
 
 ### 玩家管理器(commandPlayerManager)
@@ -556,11 +559,12 @@ _default：使用CarpetOrgAddition的高亮路径点_<br>
 
 ### 方块掉落物直接进入物品栏(blockDropsDirectlyEnterInventory)
 
-方块被玩家挖掘后物品不会掉落，而是直接进入玩家物品栏
+方块被玩家挖掘后物品不会掉落，而是直接进入玩家物品栏<br>
+_如果值为custom，则玩家可以使用/orange命令自行启用规则_<br>
 
-- 类型：`布尔值`
+- 类型：`枚举`
 - 默认值：`false`
-- 参考选项：`true`，`false`
+- 参考选项：`true`，`false`，`custom`
 - 分类：`Org`，`生存`
 
 ### 海龟蛋快速采集(turtleEggFastMine)
@@ -590,9 +594,9 @@ _default：使用CarpetOrgAddition的高亮路径点_<br>
 - 参考选项：`true`，`false`
 - 分类：`Org`，`生存`
 
-### 假玩家最大合成次数(fakePlayerMaxCraftCount)
+### 假玩家最大物品操作次数(fakePlayerMaxItemOperationCount)
 
-控制假玩家在一个游戏刻内最多合成多少次物品<br>
+控制假玩家在一个游戏刻内最多能执行合成交易等操作多少次<br>
 _-1表示无限制_<br>
 
 - 类型：`整数`
@@ -683,9 +687,9 @@ _同时安装锂（Lithium）时，此规则与漏斗计数器等功能不兼容
 - 参考选项：`true`，`false`
 - 分类：`Org`，`特性`
 
-### /finder最大反馈数量(finderCommandMaxFeedbackCount)
+### 每页内容最大行数(maxLinesPerPage)
 
-控制/finder命令的最大反馈数量
+控制每一页内容最多可以有多少行
 
 - 类型：`整数`
 - 默认值：`10`
@@ -696,17 +700,64 @@ _同时安装锂（Lithium）时，此规则与漏斗计数器等功能不兼容
 
 为/player命令添加inventory子命令用来打开玩家物品栏<br>
 _此规则同时也是enderChest子命令的开关_<br>
-_false：禁用本条规则_<br>
-_fake_player：允许打开假玩家的物品栏_<br>
-_online_player：允许打开任意玩家的物品栏_<br>
 
-- 类型：`枚举`
+- 类型：`字符串`
 - 默认值：`false`
+- 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
 - 分类：`Org`，`命令`
 
 ### 假玩家传送(playerCommandTeleportFakePlayer)
 
 为/player命令添加teleport子命令用来将假玩家传送到自己的位置
+
+- 类型：`字符串`
+- 默认值：`false`
+- 参考选项：`true`，`false`，`ops`，`0`，`1`，`2`，`3`，`4`
+- 分类：`Org`，`命令`
+
+### 创造模式破坏容器无掉落(disableCreativeContainerDrops)
+
+在创造模式破坏容器方块时不会掉落其中的物品
+
+- 类型：`布尔值`
+- 默认值：`false`
+- 参考选项：`true`，`false`
+- 分类：`Org`，`创造`
+
+### 显示玩家召唤者(displayPlayerSummoner)
+
+显示谁召唤了玩家
+
+- 类型：`布尔值`
+- 默认值：`false`
+- 参考选项：`true`，`false`
+- 分类：`Org`，`生存`
+
+### 设置铁砧经验消耗上限(setAnvilExperienceConsumptionLimit)
+
+将铁砧单次操作的最大经验消费等级设置为指定值
+
+- 类型：`整数`
+- 默认值：`-1`
+- 参考选项：`100`，`1000`，`10000`，`-1`
+- 分类：`Org`，`生存`
+
+### 打开玩家物品栏选项(playerCommandOpenPlayerInventoryOption)
+
+控制可以打开什么玩家的物品栏<br>
+_fake_player：允许打开假玩家的物品栏_<br>
+_online_player：允许打开任意玩家的物品栏_<br>
+_all_player：允许打开包括离线玩家在内的任意玩家的物品栏_<br>
+_non_whitelist：允许打开离线玩家和假玩家的物品栏，对于白名单玩家，打开物品栏需要OP权限_<br>
+
+- 类型：`枚举`
+- 默认值：`fake_player`
+- 参考选项：`fake_player`，`online_player`，`non_whitelist`，`all_player`
+- 分类：`Org`，`命令`
+
+### 玩家管理器强制添加注释(playerManagerForceComment)
+
+保存玩家数据时强制添加注释
 
 - 类型：`布尔值`
 - 默认值：`false`

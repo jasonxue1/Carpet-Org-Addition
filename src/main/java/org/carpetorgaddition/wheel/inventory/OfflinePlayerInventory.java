@@ -33,13 +33,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家
      */
-    public static final HashMap<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new HashMap<>();
+    public static final Map<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new ConcurrentHashMap<>();
     private final PlayerProfile profile;
     protected final FakePlayer fabricPlayer;
 
@@ -204,8 +205,8 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     public void onOpen(PlayerEntity player) {
         MinecraftServer server = player.getServer();
         if (server != null) {
-            this.initFakePlayer(server);
             INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
+            this.initFakePlayer(server);
             // 译：{}打开了离线玩家{}的物品栏
             CarpetOrgAddition.LOGGER.info(
                     "{} opened the inventory of the offline player {}.",

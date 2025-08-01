@@ -4,8 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.item.Item;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.util.JsonUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 import java.util.Locale;
@@ -113,12 +113,25 @@ public enum ActionSerializeType {
      * 自动破基岩
      */
     BEDROCK(json -> {
-        JsonArray from = json.getAsJsonArray("from");
-        JsonArray to = json.getAsJsonArray("to");
-        BlockPos minPos = new BlockPos(from.get(0).getAsInt(), from.get(1).getAsInt(), from.get(2).getAsInt());
-        BlockPos maxPos = new BlockPos(to.get(0).getAsInt(), to.get(1).getAsInt(), to.get(2).getAsInt());
+        String regionType = Optional.ofNullable(json.get("region_type")).map(JsonElement::getAsString).orElse("cuboid");
         boolean ai = Optional.ofNullable(json.get("ai")).map(JsonElement::getAsBoolean).orElse(false);
-        return new BedrockAction(null, minPos, maxPos, ai);
+        boolean timedMaterialRecycling = Optional.ofNullable(json.get("timed_material_recycling")).map(JsonElement::getAsBoolean).orElse(false);
+        switch (regionType) {
+            case "cuboid" -> {
+                JsonArray from = json.getAsJsonArray("from");
+                JsonArray to = json.getAsJsonArray("to");
+                return new BedrockAction(null, JsonUtils.toBlockPos(from), JsonUtils.toBlockPos(to), ai, timedMaterialRecycling);
+            }
+            case "cylinder" -> {
+                JsonArray center = json.getAsJsonArray("center");
+                int radius = json.get("radius").getAsInt();
+                int height = json.get("height").getAsInt();
+                return new BedrockAction(null, JsonUtils.toBlockPos(center), radius, height, ai, timedMaterialRecycling);
+            }
+            default -> {
+                return new StopAction(null);
+            }
+        }
     }),
     GOTO(json -> new StopAction(null));
 
