@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.minecraft.block.*;
 import net.minecraft.block.enums.BlockFace;
@@ -34,14 +33,8 @@ import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockBreakingContext;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BreakingState;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.PlayerWorkPhase;
-import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.StepResult;
-import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.*;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.BlockEntityIterator;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.Counter;
@@ -55,28 +48,30 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class BedrockAction extends AbstractPlayerAction implements Iterable<BedrockBreakingContext> {
+public class BedrockAction extends AbstractPlayerAction {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final HashSet<BlockPos> lavas = new HashSet<>();
     private final BlockIterator blockIterator;
+    private final BedrockRegionType regionType;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
      * 玩家是否有AI，是否可以自动寻路，自动进食
      */
     private final boolean ai;
+    /**
+     * 下一次定时回收材料的剩余游戏刻数，剩余时间为-1表示禁用定时回收
+     */
+    private int recycleTimer;
     @Nullable
     private BedrockBreakingContext currentContext;
-    /**
-     * 玩家当前任务的阶段
-     */
     @NotNull
     private PlayerWorkPhase phase = PlayerWorkPhase.WORK;
     /**
      * 玩家上一个任务阶段
      */
     @NotNull
-    private PlayerWorkPhase prevPhase = phase;
+    private PlayerWorkPhase prevPhase = getPhase();
     /**
      * 玩家当前的移动目标
      */
@@ -107,11 +102,25 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 周围的材料物品
      */
     private final ArrayList<ItemEntity> itemEntities = new ArrayList<>();
+    /**
+     * 定时回收材料的时间间隔（3分钟）
+     */
+    private static final int MATERIAL_RECYCLING_TIME = 3600;
 
-    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai) {
+    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockIterator blockIterator, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
         super(fakePlayer);
+        this.blockIterator = blockIterator;
+        this.regionType = regionType;
         this.ai = ai;
-        this.blockIterator = new BlockIterator(from, to);
+        this.recycleTimer = timedMaterialRecycling ? MATERIAL_RECYCLING_TIME : -1;
+    }
+
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai, boolean timedMaterialRecycling) {
+        this(fakePlayer, new BlockIterator(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
+    }
+
+    public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai, boolean timedMaterialRecycling) {
+        this(fakePlayer, new CylinderBlockIterator(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
     }
 
     @Override
@@ -128,12 +137,20 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 this.recentItemEntity = null;
             }
             if (shouldEat()) {
-                if (this.phase != PlayerWorkPhase.EAT) {
-                    this.prevPhase = this.phase;
+                if (this.getPhase() != PlayerWorkPhase.EAT) {
+                    this.prevPhase = this.getPhase();
                 }
-                this.phase = PlayerWorkPhase.EAT;
+                this.setPhase(PlayerWorkPhase.EAT);
+            } else if (this.recycleTimer > 0) {
+                this.recycleTimer--;
+                if (this.recycleTimer == 0) {
+                    this.setPhase(PlayerWorkPhase.COLLECT);
+                }
             }
-            switch (this.phase) {
+            if (this.recycleTimer < -1) {
+                throw new IllegalStateException("The remaining time for material recycling should not be %s".formatted(this.recycleTimer));
+            }
+            switch (this.getPhase()) {
                 case WORK -> work();
                 case EAT -> eat();
                 case COLLECT -> collectingMaterials();
@@ -181,7 +198,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                 }
             }
         }
-        for (BedrockBreakingContext context : this) {
+        for (BedrockBreakingContext context : this.contexts) {
             if (context == this.currentContext) {
                 continue;
             }
@@ -213,7 +230,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             this.invalidBedrock.set(optional.get(), 200);
             return;
         }
-        for (BedrockBreakingContext context : this) {
+        for (BedrockBreakingContext context : this.contexts) {
             BlockPos blockPos = context.getBedrockPos();
             if (this.invalidBedrock.getCount(blockPos) > 0) {
                 continue;
@@ -298,7 +315,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     }
                 } else {
                     // 玩家没有足够的材料
-                    this.phase = PlayerWorkPhase.COLLECT;
+                    this.setPhase(PlayerWorkPhase.COLLECT);
                     return StepResult.TICK_COMPLETION;
                 }
             }
@@ -875,7 +892,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     private void eat() {
         PlayerWorkPhase prev = this.prevPhase == PlayerWorkPhase.EAT ? PlayerWorkPhase.WORK : this.prevPhase;
         if (this.getFakePlayer().getAbilities().invulnerable) {
-            this.phase = prev;
+            this.setPhase(prev);
             return;
         }
         if (this.getFakePlayer().canConsume(false)) {
@@ -886,11 +903,11 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     ItemStack food = this.getFakePlayer().getMainHandStack();
                     interactionManager.interactItem(this.getFakePlayer(), world, food, Hand.MAIN_HAND);
                 } else {
-                    this.phase = prev;
+                    this.setPhase(prev);
                 }
             }
         } else {
-            this.phase = prev;
+            this.setPhase(prev);
         }
     }
 
@@ -903,13 +920,15 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             // 玩家可能在到达目标位置的前一瞬间捡起物品，导致在路径在走完之前被更新并不会执行到这里，但这不是问题
             dropGarbageAndCollectMaterial();
         }
+        // 目标掉落物的位置不可到达
         if ((this.pathfinder.isInvalid() || this.pathfinder.isInaccessible()) && !this.itemEntities.isEmpty()) {
             this.itemEntities.remove(this.recentItemEntity);
             this.pathfinder.pause(1);
             this.materialCollectionComplete = true;
             this.recentItemEntity = null;
+            // 要回收的最后一个物品不可到达，结束材料回收
             if (this.itemEntities.isEmpty()) {
-                this.phase = PlayerWorkPhase.WORK;
+                this.setPhase(PlayerWorkPhase.WORK);
                 return;
             }
         }
@@ -921,8 +940,9 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
                     .toList();
             this.itemEntities.addAll(list);
         }
+        // 没有材料可以回收
         if (this.itemEntities.isEmpty()) {
-            this.phase = PlayerWorkPhase.WORK;
+            this.setPhase(PlayerWorkPhase.WORK);
             return;
         }
         if (this.recentItemEntity != null) {
@@ -974,12 +994,21 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      */
     private void collectMaterialToShulkerBox() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        // 整理物品栏
-        FakePlayerUtils.sorting(fakePlayer);
         PlayerInventory inventory = fakePlayer.getInventory();
         // 获取物品栏中数量最多的物品
         ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
+        // TODO 检查是否已经有空槽位了
+        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
+            if (InventoryUtils.canMerge(most, screenHandler.getSlot(i).getStack())) {
+                FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
+                FakePlayerUtils.throwItem(screenHandler, i, fakePlayer);
+                break;
+            }
+        }
+        // 整理物品栏
+        FakePlayerUtils.sorting(fakePlayer);
         // 是否已经遍历到了数量最多的物品
         boolean isFoundMost = false;
         for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
@@ -990,12 +1019,12 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
             if (InventoryUtils.canMerge(itemStack, most)) {
                 isFoundMost = true;
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, inventory);
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
                 if (result.isEmpty()) {
                     continue;
                 }
                 FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
-                this.phase = PlayerWorkPhase.WORK;
+                this.setPhase(PlayerWorkPhase.WORK);
                 return;
             } else if (isFoundMost) {
                 // 相同的材料是连续放置的，所以后面的物品都不是要装入潜影盒的材料
@@ -1019,7 +1048,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
             }
             // 将已损坏的物品放入潜影盒
             if (InventoryUtils.isToolItem(itemStack) && isDamaged(itemStack)) {
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer.getInventory());
+                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
                 if (result.isEmpty()) {
                     continue;
                 }
@@ -1069,9 +1098,20 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     public ArrayList<MutableText> info() {
         ArrayList<MutableText> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
-        MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
-        MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.range", from, to));
+        switch (this.regionType) {
+            case CUBOID -> {
+                MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
+                MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
+            }
+            case CYLINDER -> {
+                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                MutableText center = TextProvider.blockPos(iterator.center);
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.radius));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.height));
+            }
+        }
         if (this.ai) {
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.ai.enable"));
         }
@@ -1081,19 +1121,23 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
-        JsonArray from = new JsonArray();
-        from.add(minBlockPos.getX());
-        from.add(minBlockPos.getY());
-        from.add(minBlockPos.getZ());
-        json.add("from", from);
-        BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
-        JsonArray to = new JsonArray();
-        to.add(maxBlockPos.getX());
-        to.add(maxBlockPos.getY());
-        to.add(maxBlockPos.getZ());
-        json.add("to", to);
+        json.addProperty("region_type", this.regionType.name().toLowerCase());
+        switch (this.regionType) {
+            case CUBOID -> {
+                BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
+                json.add("from", JsonUtils.toJson(minBlockPos));
+                BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
+                json.add("to", JsonUtils.toJson(maxBlockPos));
+            }
+            case CYLINDER -> {
+                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                json.add("center", JsonUtils.toJson(iterator.center));
+                json.addProperty("radius", iterator.radius);
+                json.addProperty("height", iterator.height);
+            }
+        }
         json.addProperty("ai", this.ai);
+        json.addProperty("timed_material_recycling", this.recycleTimer != -1);
         return json;
     }
 
@@ -1112,12 +1156,6 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
         return true;
     }
 
-    @NotNull
-    @Override
-    public Iterator<BedrockBreakingContext> iterator() {
-        return this.contexts.iterator();
-    }
-
     @Override
     protected void onAssignPlayer() {
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this::getMovingTarget);
@@ -1132,7 +1170,7 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
      * 获取移动目标
      */
     public Optional<BlockPos> getMovingTarget() {
-        switch (this.phase) {
+        switch (this.getPhase()) {
             case WORK -> {
                 World world = this.getFakePlayer().getWorld();
                 if (this.bedrockTarget == null) {
@@ -1159,5 +1197,82 @@ public class BedrockAction extends AbstractPlayerAction implements Iterable<Bedr
     @Override
     public void onStop() {
         this.pathfinder.onStop();
+    }
+
+    /**
+     * 玩家当前任务的阶段
+     */
+    @NotNull
+    private PlayerWorkPhase getPhase() {
+        return phase;
+    }
+
+    private void setPhase(@NotNull PlayerWorkPhase phase) {
+        this.phase = phase;
+        if (this.recycleTimer != -1 && phase == PlayerWorkPhase.WORK) {
+            this.recycleTimer = MATERIAL_RECYCLING_TIME;
+        }
+    }
+
+    private static class CylinderBlockIterator extends BlockIterator {
+        private final BlockPos center;
+        private final int radius;
+        private final int height;
+
+        public CylinderBlockIterator(BlockPos center, int radius, int height) {
+            super(
+                    new BlockPos(center.getX() - radius, center.getY(), center.getZ() - radius),
+                    new BlockPos(center.getX() + radius, center.getY() + height, center.getZ() + radius)
+            );
+            this.center = center;
+            this.radius = radius;
+            this.height = height;
+        }
+
+        @Override
+        public boolean contains(BlockPos blockPos) {
+            return super.contains(blockPos) && MathUtils.getCalculateBlockIntegerDistance(this.center, blockPos) <= this.radius;
+        }
+
+        @Override
+        public BlockPos randomBlockPos() {
+            while (true) {
+                BlockPos blockPos = super.randomBlockPos();
+                if (this.contains(blockPos)) {
+                    return blockPos;
+                }
+            }
+        }
+
+        @Override
+        @NotNull
+        public Iterator<BlockPos> iterator() {
+            return new Iterator<>() {
+                private final Iterator<BlockPos> iterator = CylinderBlockIterator.super.iterator();
+                private BlockPos blockPos;
+
+                @Override
+                public boolean hasNext() {
+                    if (this.blockPos == null) {
+                        while (this.iterator.hasNext()) {
+                            BlockPos next = this.iterator.next();
+                            if (contains(next)) {
+                                this.blockPos = next;
+                                break;
+                            }
+                        }
+                        return false;
+                    }
+                    return true;
+                }
+
+                @Override
+                public BlockPos next() {
+                    BlockPos result = this.blockPos;
+                    this.blockPos = null;
+                    return result;
+                }
+            };
+        }
     }
 }

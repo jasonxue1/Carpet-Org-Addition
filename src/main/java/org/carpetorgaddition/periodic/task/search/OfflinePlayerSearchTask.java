@@ -2,8 +2,6 @@ package org.carpetorgaddition.periodic.task.search;
 
 import carpet.CarpetSettings;
 import com.mojang.authlib.GameProfile;
-import com.mojang.datafixers.DataFixer;
-import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
@@ -14,6 +12,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
+import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -22,6 +21,7 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
@@ -42,6 +44,7 @@ import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
     public static final String UNKNOWN = "[Unknown]";
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatters.create();
     /**
      * 当前虚拟线程的数量
      */
@@ -73,7 +76,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // synchronized会导致虚拟线程被锁定吗？还能不能使用并发集合？
     private final ReentrantLock lock = new ReentrantLock();
     private final ArrayList<Result> list = new ArrayList<>();
-    private final WorldFormat tempFileDirectory;
+    /**
+     * 备份文件夹的目录
+     */
+    private volatile WorldFormat backupFileDirectory;
+    private final ReentrantLock backupFileDirectoryInitLock = new ReentrantLock();
     private final PagedCollection pagedCollection;
 
     public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
@@ -84,7 +91,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.server = this.player.server;
         this.files = context.files();
         this.showUnknown = context.showUnknown();
-        this.tempFileDirectory = new WorldFormat(this.server, "temp", "playerdata");
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
     }
@@ -127,22 +133,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.threadCount.getAndIncrement();
         Thread.ofVirtual().start(() -> {
             try {
-                NbtCompound maybeOldNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
-                int version = NbtHelper.getDataVersion(maybeOldNbt, -1);
+                NbtCompound nbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+                int version = NbtHelper.getDataVersion(nbt, -1);
                 // 使用>=而不是==，因为存档可能降级
                 if (version >= GenericUtils.getNbtDataVersion()) {
-                    searchItem(uuid, maybeOldNbt, version, false);
+                    searchItem(uuid, nbt);
                 } else {
-                    // NBT的数据版本与当前游戏的数据版本不匹配，先复制再读取复制的文件，避免对源文件产生影响
-                    File deletableFile = this.tempFileDirectory.file(unsafe.getName());
-                    // 复制文件，避免影响源文件
-                    IOUtils.copyFile(unsafe, deletableFile);
-                    searchItem(uuid, maybeOldNbt, version, true);
-                    // 删除临时文件
-                    if (deletableFile.delete()) {
-                        return;
+                    if (this.backupAndUpdate(unsafe, uuid)) {
+                        NbtCompound newVersionNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+                        searchItem(uuid, newVersionNbt);
+                    } else {
+                        CarpetOrgAddition.LOGGER.warn("Failed to success update player data file: {}", unsafe.getName());
                     }
-                    CarpetOrgAddition.LOGGER.warn("Failed to delete temporary file: {}", deletableFile.getName());
                 }
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.warn("Unable to read player data from file: ", e);
@@ -152,8 +154,29 @@ public class OfflinePlayerSearchTask extends ServerTask {
         });
     }
 
+    /**
+     * 备份并更新玩家数据文件
+     *
+     * @return 是否备份成功
+     */
+    private boolean backupAndUpdate(File unsafe, UUID uuid) {
+        // 备份文件
+        File deletableFile = this.getBackupFileDirectory().file(unsafe.getName());
+        boolean success = IOUtils.copyFile(unsafe, deletableFile);
+        if (success) {
+            // 模拟玩家登录，更新玩家数据文件
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
+            optional.ifPresent(gameProfile -> {
+                OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
+                inventory.onOpen(this.player);
+                inventory.onClose(this.player);
+            });
+        }
+        return success;
+    }
+
     // 查找物品
-    private void searchItem(UUID uuid, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
+    private void searchItem(UUID uuid, NbtCompound nbt) {
         // 获取玩家配置文件
         UuidNameMappingTable table = UuidNameMappingTable.getInstance();
         Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);
@@ -172,10 +195,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (this.server.getPlayerManager().getPlayer(gameProfile.getName()) != null) {
             return;
         }
-        // 从玩家NBT读取物品栏
-        DataFixer dataFixer = this.server.getDataFixer();
-        // 看起来这个方法并没有将新的NBT重新写入文件，这是否意味着它不会对源文件产生影响？
-        NbtCompound nbt = needToUpgrade ? DataFixTypes.PLAYER.update(dataFixer, maybeOldNbt, version) : maybeOldNbt;
         // 统计物品栏物品
         Inventory inventory = getInventory(nbt);
         ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
@@ -320,6 +339,24 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @Override
     public int hashCode() {
         return Objects.hashCode(player);
+    }
+
+    /**
+     * @return 获取备份目录
+     */
+    private WorldFormat getBackupFileDirectory() {
+        if (this.backupFileDirectory == null) {
+            try {
+                this.backupFileDirectoryInitLock.lock();
+                if (this.backupFileDirectory == null) {
+                    String time = LocalDateTime.now().format(FORMATTER) + "_" + GenericUtils.getNbtDataVersion();
+                    this.backupFileDirectory = new WorldFormat(this.server, "backups", "playerdata", time);
+                }
+            } finally {
+                this.backupFileDirectoryInitLock.unlock();
+            }
+        }
+        return this.backupFileDirectory;
     }
 
     /**
