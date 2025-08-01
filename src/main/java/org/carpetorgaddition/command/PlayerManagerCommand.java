@@ -23,7 +23,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -754,13 +754,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = context.getSource().getServer();
-        UserCache userCache = server.getUserCache();
-        if (userCache == null) {
+        NameToIdCache cache = server.getNameToIdCache();
+        if (cache == null) {
             CarpetOrgAddition.LOGGER.warn("Server user cache is null");
             return 0;
         }
         ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, consumer));
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, cache, player, prefix, start, end, consumer));
         return end - start + 1;
     }
 

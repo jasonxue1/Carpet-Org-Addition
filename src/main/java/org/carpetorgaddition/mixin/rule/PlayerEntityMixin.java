@@ -52,7 +52,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Inject(method = "canConsume", at = @At("HEAD"), cancellable = true)
     private void canEat(boolean ignoreHunger, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.healthNotFullCanEat.get() && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
-                && this.getHungerManager().getSaturationLevel() <= 5) {
+            && this.getHungerManager().getSaturationLevel() <= 5) {
             cir.setReturnValue(true);
         }
     }
@@ -127,7 +127,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 最大方块交互距离
     @Inject(method = "getBlockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getBlockInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (thisPlayer.getWorld().isClient && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
+        if (thisPlayer.getWorld().isClient() && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
             return;
         }
         if (RuleUtils.isDefaultDistance()) {

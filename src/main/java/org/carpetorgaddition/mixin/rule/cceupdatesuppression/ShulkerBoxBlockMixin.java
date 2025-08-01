@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.carpetorgaddition.exception.CCEUpdateSuppressException;
 import org.carpetorgaddition.rule.RuleUtils;
@@ -24,9 +25,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ShulkerBoxBlockMixin {
     // CCE更新抑制器
     @Inject(method = "getComparatorOutput", at = @At("HEAD"))
-    private void getComparatorOutput(BlockState state, World world, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
+    private void getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir) {
         // 不要在客户端抛出异常，这可能导致客户端游戏崩溃
-        if (world.isClient) {
+        if (world.isClient()) {
             return;
         }
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {

@@ -1,12 +1,7 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.mob.CreeperEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -27,19 +22,6 @@ public abstract class ServerPlayerEntityMixin {
 
     @Unique
     private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
-
-    // 玩家被闪电苦力怕炸死掉落头颅
-    @Inject(method = "onDeath", at = @At("TAIL"))
-    private void dropHead(DamageSource damageSource, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.playerDropHead.get()
-                && damageSource.getAttacker() instanceof CreeperEntity creeperEntity
-                && creeperEntity.shouldDropHead()) {
-            ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
-            itemStack.set(DataComponentTypes.PROFILE, new ProfileComponent(thisPlayer.getGameProfile()));
-            creeperEntity.onHeadDropped();
-            thisPlayer.dropStack(thisPlayer.getWorld(), itemStack);
-        }
-    }
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {

@@ -332,7 +332,7 @@ public class OrangeCommand extends AbstractServerCommand {
         if (player != null) {
             throw CommandUtils.createException("carpet.commands.orange.textclickevent.openInventory.fail");
         }
-        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+        Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
         if (optional.isEmpty()) {
             throw PlayerCommandExtension.createNoFileFoundException();
         }

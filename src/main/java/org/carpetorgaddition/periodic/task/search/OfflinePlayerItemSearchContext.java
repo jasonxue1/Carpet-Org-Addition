@@ -2,7 +2,7 @@ package org.carpetorgaddition.periodic.task.search;
 
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 import java.io.File;
@@ -10,7 +10,7 @@ import java.io.File;
 public record OfflinePlayerItemSearchContext(
         ServerCommandSource source,
         ItemStackPredicate predicate,
-        UserCache userCache,
+        NameToIdCache cache,
         ServerPlayerEntity player,
         File[] files,
         boolean showUnknown

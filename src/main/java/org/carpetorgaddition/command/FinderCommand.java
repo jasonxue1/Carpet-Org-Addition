@@ -23,7 +23,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.MutableText;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -175,13 +175,13 @@ public class FinderCommand extends AbstractServerCommand {
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        UserCache userCache = player.getWorld().getServer().getUserCache();
-        if (userCache == null) {
+        NameToIdCache cache = player.getWorld().getServer().getNameToIdCache();
+        if (cache == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }
         ServerTask task;
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files, showUnknown);
+        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, cache, player, files, showUnknown);
         if (enderChest) {
             task = new OfflinePlayerEnderChestSearchTask(argument);
         } else {

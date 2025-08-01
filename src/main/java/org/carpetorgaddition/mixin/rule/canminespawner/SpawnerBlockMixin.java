@@ -50,7 +50,7 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
         boolean hasSilkTouch = EnchantmentUtils.hasEnchantment(world, Enchantments.SILK_TOUCH, player.getMainHandStack());
         if (CarpetOrgAdditionSettings.canMineSpawner.get() && !player.isCreative() && hasSilkTouch) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (!world.isClient && blockEntity instanceof MobSpawnerBlockEntity spawner) {
+            if (!world.isClient() && blockEntity instanceof MobSpawnerBlockEntity spawner) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
                 MinecraftServer server = player.getServer();
                 if (server != null) {

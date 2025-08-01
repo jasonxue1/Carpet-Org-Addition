@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.CarpetSettings;
-import com.mojang.authlib.GameProfile;
 import com.mojang.datafixers.DataFixer;
 import net.minecraft.datafixer.DataFixTypes;
 import net.minecraft.inventory.Inventory;
@@ -10,12 +9,13 @@ import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.periodic.task.ServerTask;
@@ -63,7 +63,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private int total = 0;
     protected final ServerCommandSource source;
-    private final UserCache userCache;
+    private final NameToIdCache userCache;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
     private final File[] files;
@@ -79,7 +79,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
         this.source = context.source();
         this.predicate = context.predicate();
-        this.userCache = context.userCache();
+        this.userCache = context.cache();
         this.player = context.player();
         this.server = this.player.getWorld().getServer();
         this.files = context.files();
@@ -156,20 +156,20 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private void searchItem(UUID uuid, NbtCompound maybeOldNbt, int version, boolean needToUpgrade) {
         // 获取玩家配置文件
         UuidNameMappingTable table = UuidNameMappingTable.getInstance();
-        Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);
+        Optional<PlayerConfigEntry> optional = table.fetchGameProfileWithBackup(userCache, uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             if (this.showUnknown) {
-                optional = Optional.of(new GameProfile(uuid, UNKNOWN));
+                optional = Optional.of(new PlayerConfigEntry(uuid, UNKNOWN));
                 unknownPlayer = true;
             } else {
                 this.skipCount.incrementAndGet();
                 return;
             }
         }
-        GameProfile gameProfile = optional.get();
+        PlayerConfigEntry gameProfile = optional.get();
         // 不从在线玩家物品栏查找物品
-        if (this.server.getPlayerManager().getPlayer(gameProfile.getName()) != null) {
+        if (this.server.getPlayerManager().getPlayer(gameProfile.name()) != null) {
             return;
         }
         // 从玩家NBT读取物品栏
@@ -305,9 +305,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 添加打开玩家物品栏按钮
      */
     @Nullable
-    protected Text openInventoryButton(GameProfile gameProfile) {
+    protected Text openInventoryButton(PlayerConfigEntry entry) {
         if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
-            String command = CommandProvider.openPlayerInventory(gameProfile.getId());
+            String command = CommandProvider.openPlayerInventory(entry.id());
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCommand(command);
             builder.setHover("carpet.commands.finder.item.offline_player.open.inventory");
@@ -326,12 +326,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * @apiNote 非静态的内部类强引用了外部类导致暂时无法被回收，但这不是问题
      */
     private class Result implements Supplier<Text> {
-        private final GameProfile gameProfile;
+        private final PlayerConfigEntry playerConfigEntry;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
 
-        private Result(GameProfile gameProfile, ItemStackStatistics statistics, boolean isUnknown) {
-            this.gameProfile = gameProfile;
+        private Result(PlayerConfigEntry playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown) {
+            this.playerConfigEntry = playerConfigEntry;
             this.statistics = statistics;
             this.isUnknown = isUnknown;
         }
@@ -339,8 +339,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
         @Override
         public Text get() {
             // 获取玩家名，并添加UUID悬停提示
-            String name = gameProfile.getName();
-            String uuid = gameProfile().getId().toString();
+            String name = playerConfigEntry.name();
+            String uuid = playerConfigEntry().id().toString();
             // 悬停提示
             Text hover = TextBuilder.combineAll("UUID: %s\n".formatted(uuid), TextProvider.COPY_CLICK);
             // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
@@ -362,7 +362,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             list.add(TextBuilder.of("carpet.commands.finder.item.offline_player.query.non_authentic").setColor(Formatting.RED).build());
             TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
             // 设置单击按钮执行命令
-            button.setCommand(CommandProvider.queryPlayerName(gameProfile().getId()));
+            button.setCommand(CommandProvider.queryPlayerName(playerConfigEntry().id()));
             // 设置按钮悬停提示
             button.setHover(TextBuilder.joinList(list));
             // 设置按钮颜色
@@ -380,7 +380,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                         .setHover(hover)
                         .setColor(Formatting.GRAY)
                         .append(" ")
-                        .append(openInventoryButton(this.gameProfile));
+                        .append(openInventoryButton(this.playerConfigEntry));
             } else {
                 // 单击复制玩家名
                 builder = new TextBuilder("[" + name + "]")
@@ -388,7 +388,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                         .setHover(hover)
                         .setColor(Formatting.GRAY)
                         .append(createLoginButton())
-                        .append(openInventoryButton(this.gameProfile));
+                        .append(openInventoryButton(this.playerConfigEntry));
             }
             return TextBuilder.of("carpet.commands.finder.item.offline_player.each", builder.build(), getInventoryName(), count);
         }
@@ -396,7 +396,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         // 添加单击上线按钮
         private Text createLoginButton() {
             if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer)) {
-                String command = CommandProvider.spawnFakePlayer(gameProfile().getName());
+                String command = CommandProvider.spawnFakePlayer(playerConfigEntry().name());
                 TextBuilder builder = new TextBuilder(" [↑]");
                 builder.setColor(Formatting.GRAY);
                 builder.setCommand(command);
@@ -406,8 +406,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
             return TextBuilder.empty();
         }
 
-        public GameProfile gameProfile() {
-            return gameProfile;
+        public PlayerConfigEntry playerConfigEntry() {
+            return playerConfigEntry;
         }
 
         public ItemStackStatistics statistics() {

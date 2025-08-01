@@ -1,13 +1,13 @@
 package org.carpetorgaddition.periodic.task.batch;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
-import net.minecraft.util.UserCache;
+import net.minecraft.util.NameToIdCache;
 import net.minecraft.util.Uuids;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
@@ -30,7 +30,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
      * 所有要召唤的玩家
      */
-    private final Set<GameProfile> players = ConcurrentHashMap.newKeySet();
+    private final Set<PlayerConfigEntry> players = ConcurrentHashMap.newKeySet();
     private final MinecraftServer server;
     /**
      * 玩家名称的前缀
@@ -58,7 +58,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 是否正在预加载
      */
     private boolean isPreload = true;
-    private Iterator<GameProfile> iterator;
+    private Iterator<PlayerConfigEntry> iterator;
     /**
      * 是否召唤完成，用于确定任务是否结束
      */
@@ -72,7 +72,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private int tickCount = 0;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Consumer<EntityPlayerMPFake> consumer) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, NameToIdCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Consumer<EntityPlayerMPFake> consumer) {
         this.server = server;
         this.prefix = prefix;
         this.start = start;
@@ -87,9 +87,9 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 count--;
                 continue;
             }
-            CompletableFuture<Optional<GameProfile>> future = userCache.findByNameAsync(username);
+            CompletableFuture<Optional<PlayerConfigEntry>> future = userCache.findByNameAsync(username);
             future.thenAccept(optional -> {
-                GameProfile gameProfile = optional.orElseGet(() -> new GameProfile(Uuids.getOfflinePlayerUuid(username), username));
+                PlayerConfigEntry gameProfile = optional.orElseGet(() -> new PlayerConfigEntry(Uuids.getOfflinePlayerUuid(username), username));
                 this.players.add(gameProfile);
             });
         }
@@ -132,8 +132,8 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 if (System.currentTimeMillis() - l > 50) {
                     return;
                 }
-                GameProfile gameProfile = iterator.next();
-                GenericUtils.createFakePlayer(gameProfile.getName(), this.server, this.context);
+                PlayerConfigEntry entry = iterator.next();
+                GenericUtils.createFakePlayer(entry.name(), this.server, this.context);
             }
         } finally {
             batchSpawnHiddenMessage.set(false);

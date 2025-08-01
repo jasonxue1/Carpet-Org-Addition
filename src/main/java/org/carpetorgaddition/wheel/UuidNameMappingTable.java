@@ -1,7 +1,8 @@
 package org.carpetorgaddition.wheel;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.util.UserCache;
+import net.minecraft.server.PlayerConfigEntry;
+import net.minecraft.util.NameToIdCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.IOUtils;
 import org.jetbrains.annotations.NotNull;
@@ -74,9 +75,9 @@ public class UuidNameMappingTable {
         }
     }
 
-    public Optional<GameProfile> getGameProfile(UUID uuid) {
+    public Optional<PlayerConfigEntry> getGameProfile(UUID uuid) {
         Optional<String> optional = get(uuid);
-        return optional.map(name -> new GameProfile(uuid, name));
+        return optional.map(name -> new PlayerConfigEntry(new GameProfile(uuid, name)));
     }
 
     /**
@@ -102,8 +103,8 @@ public class UuidNameMappingTable {
         }
     }
 
-    public Optional<GameProfile> fetchGameProfileWithBackup(UserCache userCache, UUID uuid) {
-        Optional<GameProfile> optional = userCache.getByUuid(uuid);
+    public Optional<PlayerConfigEntry> fetchGameProfileWithBackup(NameToIdCache userCache, UUID uuid) {
+        Optional<PlayerConfigEntry> optional = userCache.getByUuid(uuid);
         if (optional.isPresent()) {
             return optional;
         }

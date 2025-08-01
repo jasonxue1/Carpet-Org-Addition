@@ -6,20 +6,20 @@ import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.entity.FakePlayer;
+import net.minecraft.entity.ContainerUser;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.network.ClientConnection;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.storage.NbtReadView;
 import net.minecraft.storage.ReadView;
-import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.UserCache;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -55,9 +55,14 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     private void initFakePlayer(MinecraftServer server) {
         ErrorReporter.Logging logging = new ErrorReporter.Logging(CarpetOrgAddition.LOGGER);
         try (logging) {
-            Optional<ReadView> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer, logging);
-            RegistryKey<World> registryKey = optional.flatMap(nbt -> nbt.read("Dimension", World.CODEC)).orElse(World.OVERWORLD);
-            ServerWorld world = server.getWorld(registryKey);
+            Optional<ReadView> optional = server.getPlayerManager()
+                    .loadPlayerData(this.fabricPlayer.getPlayerConfigEntry())
+                    .map(nbtCompound -> NbtReadView.create(logging, server.getRegistryManager(), nbtCompound));
+            ServerPlayerEntity.SavePos pos = optional
+                    .flatMap(nbt -> nbt.read(ServerPlayerEntity.SavePos.CODEC))
+                    .orElse(ServerPlayerEntity.SavePos.EMPTY);
+            optional.ifPresent(this.fabricPlayer::readData);
+            ServerWorld world = server.getWorld(pos.dimension().orElse(World.OVERWORLD));
             if (world != null) {
                 // 设置玩家所在维度
                 this.fabricPlayer.setServerWorld(world);
@@ -166,17 +171,17 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         return profiles.contains(profile);
     }
 
-    public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
+    public static Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
-            UserCache userCache = server.getUserCache();
+            NameToIdCache userCache = server.getNameToIdCache();
             if (userCache != null) {
-                Optional<GameProfile> optional = userCache.getByUuid(uuid);
+                Optional<PlayerConfigEntry> optional = userCache.getByUuid(uuid);
                 if (optional.isPresent()) {
                     return optional;
                 }
             }
-            Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
-            return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
+            Optional<PlayerConfigEntry> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
+            return Optional.of(optional.orElse(new PlayerConfigEntry(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN))));
         }
         return Optional.empty();
     }
@@ -201,25 +206,27 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public void onOpen(PlayerEntity player) {
-        MinecraftServer server = player.getServer();
+    public void onOpen(ContainerUser user) {
+        LivingEntity livingEntity = user.asLivingEntity();
+        MinecraftServer server = livingEntity.getServer();
         if (server != null) {
             this.initFakePlayer(server);
-            INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
+            INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) user);
             // 译：{}打开了离线玩家{}的物品栏
             CarpetOrgAddition.LOGGER.info(
                     "{} opened the inventory of the offline player {}.",
-                    player.getName().getString(),
+                    livingEntity.getName().getString(),
                     this.profile.name
             );
         }
     }
 
     @Override
-    public void onClose(PlayerEntity player) {
+    public void onClose(ContainerUser user) {
         try {
+            LivingEntity livingEntity = user.asLivingEntity();
             // 保存玩家数据
-            MinecraftServer server = player.getServer();
+            MinecraftServer server = livingEntity.getServer();
             if (server != null) {
                 PlayerManager playerManager = server.getPlayerManager();
                 PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;
