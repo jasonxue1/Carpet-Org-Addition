@@ -63,6 +63,19 @@ public class MathUtils {
     }
 
     /**
+     * 获取两个方块水平坐标的整数距离(四舍五入)
+     *
+     * @param fromBlockPos 第一个方块的坐标
+     * @param toBlockPos   第二个方块的坐标
+     * @return 两个方块之间四舍五入的整数水平距离
+     */
+    public static int getCalculateBlockIntegerDistance(BlockPos fromBlockPos, BlockPos toBlockPos) {
+        double x = fromBlockPos.getX() - toBlockPos.getX();
+        double z = fromBlockPos.getZ() - toBlockPos.getZ();
+        return (int) Math.round(Math.sqrt(x * x + z * z));
+    }
+
+    /**
      * 计算两个方块坐标的曼哈顿距离
      */
     public static int calculateManhattanDistance(BlockPos start, BlockPos end) {
