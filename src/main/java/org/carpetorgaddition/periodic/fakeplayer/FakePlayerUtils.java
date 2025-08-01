@@ -337,8 +337,7 @@ public class FakePlayerUtils {
      * @param toIndex       将物品放在哪个槽位
      * @param player        操作GUI的假玩家
      */
-    public static void pickupAndMoveHalfItemStack(ScreenHandler screenHandler, int fromIndex,
-                                                  int toIndex, EntityPlayerMPFake player) {
+    public static void pickupAndMoveHalfItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
         if (!screenHandler.getCursorStack().isEmpty()) {
             screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
@@ -347,6 +346,27 @@ public class FakePlayerUtils {
         screenHandler.onSlotClick(fromIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
         // 放置物品依然是左键单击
         screenHandler.onSlotClick(toIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+    }
+
+    /**
+     * 拿取一个物品并放置到目标槽位
+     */
+    public static void pickupOneAndPlaceItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
+        if (fromIndex == toIndex) {
+            return;
+        }
+        ItemStack from = screenHandler.getSlot(fromIndex).getStack();
+        ItemStack to = screenHandler.getSlot(toIndex).getStack();
+        if (to.isEmpty() || InventoryUtils.canMergeTo(from, to)) {
+            ItemStack cursorStack = screenHandler.getCursorStack();
+            if (cursorStack.isEmpty() || !InventoryUtils.canMerge(from, cursorStack)) {
+                screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+                screenHandler.onSlotClick(toIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
+                screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+            } else {
+                screenHandler.onSlotClick(toIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
+            }
+        }
     }
 
     /**
@@ -561,7 +581,7 @@ public class FakePlayerUtils {
         if (itemStack.isEmpty()) {
             return;
         }
-        itemStack = InventoryUtils.putItemToInventoryShulkerBox(itemStack, inventory);
+        itemStack = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
         if (itemStack.isEmpty()) {
             return;
         }
