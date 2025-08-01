@@ -6,6 +6,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -25,20 +26,26 @@ import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.action.*;
+import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionType;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
 
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.function.Function;
 
 public class PlayerActionCommand extends AbstractServerCommand {
+    private final CommandPermission AI_PERMISSION = PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS);
+
     public PlayerActionCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -106,14 +113,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
                         .then(CommandManager.literal("plant")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .executes(this::setPlant))
-                        .then(CommandManager.literal("bedrock")
-                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
-                                .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
-                                        .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
-                                                .executes(context -> setBreakBedrock(context, false))
-                                                .then(CommandManager.argument("ai", BoolArgumentType.bool())
-                                                        .requires(PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS))
-                                                        .executes(context -> setBreakBedrock(context, BoolArgumentType.getBool(context, "ai")))))))
+                        .then(register(CommandManager.literal("bedrock")
+                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)))
                         .then(CommandManager.literal("goto")
                                 .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(CommandManager.literal("block")
@@ -122,6 +123,43 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .then(CommandManager.literal("entity")
                                         .then(CommandManager.argument("target", EntityArgumentType.entity())
                                                 .executes(this::setGotoEntity))))));
+    }
+
+    private LiteralArgumentBuilder<ServerCommandSource> register(LiteralArgumentBuilder<ServerCommandSource> node) {
+        for (BedrockRegionType value : BedrockRegionType.values()) {
+            node.then(CommandManager.literal(value.name().toLowerCase(Locale.ROOT))
+                    .then(register(value).apply(
+                            CommandManager.argument("ai", BoolArgumentType.bool())
+                                    .requires(AI_PERMISSION)
+                                    .executes(context -> {
+                                        boolean ai = BoolArgumentType.getBool(context, "ai");
+                                        return setBreakBedrock(context, value, ai, false);
+                                    })
+                                    .then(CommandManager.argument("timedMaterialRecycling", BoolArgumentType.bool())
+                                            .executes(context -> {
+                                                boolean ai = BoolArgumentType.getBool(context, "ai");
+                                                boolean timedMaterialRecycling = BoolArgumentType.getBool(context, "timedMaterialRecycling");
+                                                return setBreakBedrock(context, value, ai, timedMaterialRecycling);
+                                            })))));
+        }
+        return node;
+    }
+
+    private Function<RequiredArgumentBuilder<ServerCommandSource, ?>, RequiredArgumentBuilder<ServerCommandSource, ?>> register(BedrockRegionType value) {
+        Command<ServerCommandSource> command = context -> setBreakBedrock(context, value, false, false);
+        return switch (value) {
+            case CUBOID -> argument ->
+                    CommandManager.argument("from", BlockPosArgumentType.blockPos())
+                            .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
+                                    .executes(command)
+                                    .then(argument));
+            case CYLINDER -> argument ->
+                    CommandManager.argument("center", BlockPosArgumentType.blockPos())
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(1))
+                                    .then(CommandManager.argument("height", IntegerArgumentType.integer(1))
+                                            .executes(command)
+                                            .then(argument)));
+        };
     }
 
     // 注册物品谓词节点
@@ -302,13 +340,24 @@ public class PlayerActionCommand extends AbstractServerCommand {
     }
 
     // 设置破基岩
-    private int setBreakBedrock(CommandContext<ServerCommandSource> context, boolean ai) throws CommandSyntaxException {
+    private int setBreakBedrock(CommandContext<ServerCommandSource> context, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
-            BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
-            BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            BedrockAction action = switch (regionType) {
+                case CUBOID -> {
+                    BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
+                    BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
+                    yield new BedrockAction(fakePlayer, from, to, ai, timedMaterialRecycling);
+                }
+                case CYLINDER -> {
+                    BlockPos center = BlockPosArgumentType.getBlockPos(context, "center");
+                    int radius = IntegerArgumentType.getInteger(context, "radius");
+                    int height = IntegerArgumentType.getInteger(context, "height");
+                    yield new BedrockAction(fakePlayer, center, radius, height, ai, timedMaterialRecycling);
+                }
+            };
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
-            actionManager.setAction(new BedrockAction(fakePlayer, from, to, ai));
+            actionManager.setAction(action);
             Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(context);
             if (optional.isPresent()) {
                 MutableText translate = TextBuilder.translate("carpet.commands.playerAction.bedrock.share");
