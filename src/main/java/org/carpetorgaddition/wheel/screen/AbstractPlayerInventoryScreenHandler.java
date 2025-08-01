@@ -10,6 +10,7 @@ import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.Identifier;
+import org.carpetorgaddition.mixin.accessor.HorseScreenHandlerAccessor;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.DisabledSlot;
 import org.carpetorgaddition.wheel.inventory.AbstractCustomSizeInventory;
@@ -29,13 +30,15 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
             37, PlayerScreenHandler.EMPTY_CHESTPLATE_SLOT_TEXTURE,
             38, PlayerScreenHandler.EMPTY_LEGGINGS_SLOT_TEXTURE,
             39, PlayerScreenHandler.EMPTY_BOOTS_SLOT_TEXTURE,
-            40, PlayerScreenHandler.EMPTY_OFF_HAND_SLOT_TEXTURE
+            40, PlayerScreenHandler.EMPTY_OFF_HAND_SLOT_TEXTURE,
+            41, HorseScreenHandlerAccessor.getEmptyHorseArmorSlotTexture(),
+            42, HorseScreenHandlerAccessor.getEmptySaddleSlotTexture()
     );
 
     /**
      * 玩家物品栏的大小
      */
-    protected static final int SIZE = 41;
+    protected static final int SIZE = 43;
     /**
      * 玩家正在操作的物品栏
      */
@@ -165,7 +168,7 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Inventory> 
 
     @Override
     public int from() {
-        return 41;
+        return 43;
     }
 
     @Override
