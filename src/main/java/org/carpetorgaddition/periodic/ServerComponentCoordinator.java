@@ -40,6 +40,7 @@ public class ServerComponentCoordinator {
         this.expressManager = new ExpressManager(server);
         this.server = server;
         this.ruleSelfManager = new RuleSelfManager(server);
+        // TODO 应该写在tick方法中吗？
         this.pageManager.tick();
         this.playerSerializationManager = new PlayerSerializationManager(server);
         this.ruleConfig = new RuleConfig(server);
