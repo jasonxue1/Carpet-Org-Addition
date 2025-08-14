@@ -31,7 +31,7 @@ public class EnchantmentMixin {
             if (player == null) {
                 return;
             }
-            if (EnchantmentUtils.isSpecified(player.getWorld(), Enchantments.KNOCKBACK, thisEnchantment)) {
+            if (EnchantmentUtils.isSpecified(player.getEntityWorld(), Enchantments.KNOCKBACK, thisEnchantment)) {
                 cir.setReturnValue(true);
             }
         }

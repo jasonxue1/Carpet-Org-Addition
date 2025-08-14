@@ -43,7 +43,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
     @Inject(method = "mobTick", at = @At("HEAD"))
     private void heal(CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.villagerHeal.get()) {
-            long worldTime = thisVillager.getWorld().getTime();
+            long worldTime = thisVillager.getEntityWorld().getTime();
             // 每四秒回一次血
             if (worldTime % 80 == 0) {
                 thisVillager.heal(1.0F);

@@ -45,7 +45,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
             // 其它异常
             builder.append("发送").append(packet.getClass().getSimpleName()).append("数据包");
         }
-        String worldPos = WorldUtils.toWorldPosString(player.getWorld(), this.triggerPos);
+        String worldPos = WorldUtils.toWorldPosString(player.getEntityWorld(), this.triggerPos);
         builder.append("时触发了CCE更新抑制，在").append(worldPos);
         CarpetOrgAddition.LOGGER.info(builder.toString());
     }

@@ -58,7 +58,7 @@ public class BlockExcavator {
         if (breakingCooldown && this.blockBreakingCooldown > 0) {
             return false;
         }
-        World world = this.player.getWorld();
+        World world = this.player.getEntityWorld();
         ServerPlayerInteractionManager interactionManager = this.player.interactionManager;
         GameMode gameMode = interactionManager.getGameMode();
         // 当前方块是可以破坏的
@@ -145,7 +145,7 @@ public class BlockExcavator {
      * @return 破坏当前方块还需要多少个游戏刻
      */
     public int computingRemainingMiningTime(BlockPos blockPos) {
-        World world = this.player.getWorld();
+        World world = this.player.getEntityWorld();
         if (this.player.isCreative()) {
             return 1;
         }
@@ -155,7 +155,7 @@ public class BlockExcavator {
     }
 
     private void breakingAction(Action action, BlockPos blockPos, Direction direction) {
-        World world = this.player.getWorld();
+        World world = this.player.getEntityWorld();
         this.player.interactionManager.processBlockBreakingAction(blockPos, action, direction, world.getTopYInclusive(), -1);
     }
 
@@ -167,7 +167,7 @@ public class BlockExcavator {
      * @return 玩家是否可以破坏指定位置的方块
      */
     public static boolean canBreak(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
-        World world = fakePlayer.getWorld();
+        World world = fakePlayer.getEntityWorld();
         BlockState blockState = world.getBlockState(blockPos);
         Block block = blockState.getBlock();
         // 非管理员不能破坏管理员方块

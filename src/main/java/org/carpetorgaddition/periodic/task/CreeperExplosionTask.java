@@ -29,13 +29,13 @@ public class CreeperExplosionTask extends ServerTask {
 
     // 将苦力怕传送到合适位置
     private static CreeperEntity teleport(ServerPlayerEntity player) {
-        CreeperEntity creeper = new CreeperEntity(EntityType.CREEPER, player.getWorld());
+        CreeperEntity creeper = new CreeperEntity(EntityType.CREEPER, player.getEntityWorld());
         BlockPos playerPos = player.getBlockPos();
         Vec3d fromPos = new Vec3d(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
         Vec3d toPos = new Vec3d(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
         BlockIterator blockIterator = new BlockIterator(new Box(fromPos, toPos));
         ArrayList<BlockPos> list = new ArrayList<>();
-        World world = player.getWorld();
+        World world = player.getEntityWorld();
         // 获取符合条件的坐标
         for (BlockPos blockPos : blockIterator) {
             // 当前方块是空气
@@ -49,7 +49,7 @@ public class CreeperExplosionTask extends ServerTask {
         }
         // 将苦力怕传送到随机坐标
         BlockPos randomPos = list.isEmpty() ? playerPos : list.get(MathUtils.randomInt(1, list.size()) - 1);
-        TeleportTarget target = new TeleportTarget(player.getWorld(), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
+        TeleportTarget target = new TeleportTarget(player.getEntityWorld(), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
         return (CreeperEntity) creeper.teleportTo(target);
     }
 
@@ -63,7 +63,7 @@ public class CreeperExplosionTask extends ServerTask {
         this.countdown--;
         if (this.countdown == 0) {
             // 产生爆炸
-            this.player.getWorld().createExplosion(creeper, this.creeper.getX(), this.player.getY(),
+            this.player.getEntityWorld().createExplosion(creeper, this.creeper.getX(), this.player.getY(),
                     this.player.getZ(), 3F, false, World.ExplosionSourceType.NONE);
         }
     }

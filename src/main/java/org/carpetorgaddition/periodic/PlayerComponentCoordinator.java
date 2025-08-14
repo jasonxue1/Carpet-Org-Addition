@@ -31,7 +31,7 @@ public class PlayerComponentCoordinator {
 
     public void tick() {
         if (this.fakePlayerActionManager != null) {
-            ServerTickManager tickManager = this.player.getWorld().getServer().getTickManager();
+            ServerTickManager tickManager = this.player.getEntityWorld().getServer().getTickManager();
             if (tickManager.shouldTick()) {
                 this.fakePlayerActionManager.tick();
             }

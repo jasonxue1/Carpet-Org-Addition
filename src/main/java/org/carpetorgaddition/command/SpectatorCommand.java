@@ -93,9 +93,9 @@ public class SpectatorCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         this.requireSpectator(player);
         ServerWorld dimension = DimensionArgumentType.getDimensionArgument(context, "dimension");
-        if (player.getWorld().getRegistryKey() == World.OVERWORLD && dimension.getRegistryKey() == World.NETHER) {
+        if (player.getEntityWorld().getRegistryKey() == World.OVERWORLD && dimension.getRegistryKey() == World.NETHER) {
             WorldUtils.teleport(player, dimension, player.getX() / 8, player.getY(), player.getZ() / 8, player.getYaw(), player.getPitch());
-        } else if (player.getWorld().getRegistryKey() == World.NETHER && dimension.getRegistryKey() == World.OVERWORLD) {
+        } else if (player.getEntityWorld().getRegistryKey() == World.NETHER && dimension.getRegistryKey() == World.OVERWORLD) {
             WorldUtils.teleport(player, dimension, player.getX() * 8, player.getY(), player.getZ() * 8, player.getYaw(), player.getPitch());
         } else {
             WorldUtils.teleport(player, dimension, player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
@@ -126,7 +126,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         // 检查玩家是不是旁观模式
         requireSpectator(player);
         Entity entity = EntityArgumentType.getEntity(context, "entity");
-        WorldUtils.teleport(player, (ServerWorld) entity.getWorld(), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
+        WorldUtils.teleport(player, (ServerWorld) entity.getEntityWorld(), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
         // 发送命令反馈
         MessageUtils.sendMessage(context, "commands.teleport.success.entity.single",
                 player.getDisplayName(), entity.getDisplayName());
@@ -150,7 +150,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         json.addProperty("z", MathUtils.numberToTwoDecimalString(player.getZ()));
         json.addProperty("yaw", MathUtils.numberToTwoDecimalString(player.getYaw()));
         json.addProperty("pitch", MathUtils.numberToTwoDecimalString(player.getPitch()));
-        json.addProperty("dimension", WorldUtils.getDimensionId(player.getWorld()));
+        json.addProperty("dimension", WorldUtils.getDimensionId(player.getEntityWorld()));
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonString = gson.toJson(json, JsonObject.class);
         File file = worldFormat.file(player.getUuidAsString() + IOUtils.JSON_EXTENSION);

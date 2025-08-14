@@ -7,8 +7,8 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class BlockPosNavigator extends AbstractNavigator {
@@ -30,7 +30,7 @@ public class BlockPosNavigator extends AbstractNavigator {
             return;
         }
         MutableText text;
-        if (this.player.getWorld().equals(this.world)) {
+        if (this.player.getEntityWorld().equals(this.world)) {
             MutableText in = TextProvider.simpleBlockPos(this.blockPos);
             MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), in, distance);
@@ -48,7 +48,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     @Override
     protected boolean shouldTerminate() {
         // 玩家与目的地在同一维度
-        if (this.player.getWorld().equals(this.world)) {
+        if (this.player.getEntityWorld().equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos) <= 8) {
                 // 到达目的地，停止追踪
                 MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));

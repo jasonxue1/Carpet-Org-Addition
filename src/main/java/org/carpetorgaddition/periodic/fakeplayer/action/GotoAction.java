@@ -38,7 +38,7 @@ public class GotoAction extends AbstractPlayerAction {
 
     public GotoAction(@NotNull EntityPlayerMPFake fakePlayer, Entity entity) {
         super(fakePlayer);
-        this.target = new EntityTracker(this::getFakePlayer, entity.getWorld(), entity);
+        this.target = new EntityTracker(this::getFakePlayer, entity.getEntityWorld(), entity);
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this.target);
         this.targetType = TargetType.ENTITY;
         this.displayName = entity.getDisplayName();
@@ -210,7 +210,7 @@ public class GotoAction extends AbstractPlayerAction {
                     }
                 }
             }
-            if (fakePlayer.getWorld() == this.getWorld()) {
+            if (fakePlayer.getEntityWorld() == this.getWorld()) {
                 return Optional.of(this.target);
             }
             // 玩家与目标实体不在同一维度
@@ -222,7 +222,7 @@ public class GotoAction extends AbstractPlayerAction {
         }
 
         private World getWorld() {
-            return this.entity.getWorld();
+            return this.entity.getEntityWorld();
         }
     }
 }

@@ -29,7 +29,7 @@ public class KillMeCommand extends AbstractServerCommand {
         //广播自杀消息
         try {
             CarpetOrgAdditionSettings.committingSuicide.set(true);
-            player.kill(player.getWorld());
+            player.kill(player.getEntityWorld());
         } finally {
             CarpetOrgAdditionSettings.committingSuicide.set(false);
         }

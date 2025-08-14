@@ -238,7 +238,7 @@ public class TradeAction extends AbstractPlayerAction {
     private boolean shouldWait(MerchantEntity merchant) {
         // 如果村民所在区块没有被加载，可以交易
         ChunkPos chunkPos = merchant.getChunkPos();
-        if (merchant.getWorld().isChunkLoaded(chunkPos.x, chunkPos.z)) {
+        if (merchant.getEntityWorld().isChunkLoaded(chunkPos.x, chunkPos.z)) {
             // 检查村民是否存在于任何一个维度，如果不存在，可以交易
             UUID uuid = merchant.getUuid();
             MinecraftServer server = merchant.getServer();

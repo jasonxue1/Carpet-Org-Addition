@@ -59,7 +59,7 @@ public class WanderingTraderManagerMixin {
         original.call(trader, pos, i);
         if (LoggerRegister.wanderingTrader && WanderingTraderSpawnLogger.spawnCountdownNonNull()) {
             // 获取流浪商人所在的服务器
-            MinecraftServer server = trader.getWorld().getServer();
+            MinecraftServer server = trader.getEntityWorld().getServer();
             if (server == null) {
                 return;
             }
@@ -88,7 +88,7 @@ public class WanderingTraderManagerMixin {
                     MessageUtils.sendMessage(player, message);
                 }
                 // 播放音效通知流浪商人生成
-                WorldUtils.playSound(trader.getWorld(), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
+                WorldUtils.playSound(trader.getEntityWorld(), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
             }
         }
     }

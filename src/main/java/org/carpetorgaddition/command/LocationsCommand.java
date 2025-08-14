@@ -269,7 +269,7 @@ public class LocationsCommand extends AbstractServerCommand {
     private int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
-        MutableText mutableText = switch (WorldUtils.getDimensionId(player.getWorld())) {
+        MutableText mutableText = switch (WorldUtils.getDimensionId(player.getEntityWorld())) {
             case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
                     player.getDisplayName(),
                     TextProvider.blockPos(blockPos, Formatting.GREEN),
@@ -285,7 +285,7 @@ public class LocationsCommand extends AbstractServerCommand {
             );
             default -> TextBuilder.translate("carpet.commands.locations.here.default",
                     player.getDisplayName(),
-                    WorldUtils.getDimensionId(player.getWorld()),
+                    WorldUtils.getDimensionId(player.getEntityWorld()),
                     TextProvider.blockPos(blockPos, null));
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);

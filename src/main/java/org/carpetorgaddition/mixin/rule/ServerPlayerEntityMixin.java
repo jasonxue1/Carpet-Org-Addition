@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin {
     @Shadow
-    public abstract ServerWorld getWorld();
+    public abstract ServerWorld getEntityWorld();
 
     @Unique
     private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
@@ -31,8 +31,8 @@ public abstract class ServerPlayerEntityMixin {
             restock(inventory);
         }
         // 自动同步玩家状态
-        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && thisPlayer.getWorld().getTime() % 30 == 0) {
-            thisPlayer.getWorld().getServer().getPlayerManager().sendPlayerStatus(thisPlayer);
+        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && thisPlayer.getEntityWorld().getTime() % 30 == 0) {
+            thisPlayer.getEntityWorld().getServer().getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);
             BlockIterator blockIterator = new BlockIterator(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));
@@ -40,7 +40,7 @@ public abstract class ServerPlayerEntityMixin {
                 if (blockPos.toCenterPos().distanceTo(pos.toCenterPos()) > range) {
                     continue;
                 }
-                thisPlayer.networkHandler.sendPacket(new BlockUpdateS2CPacket(pos, this.getWorld().getBlockState(pos)));
+                thisPlayer.networkHandler.sendPacket(new BlockUpdateS2CPacket(pos, this.getEntityWorld().getBlockState(pos)));
             }
         }
     }

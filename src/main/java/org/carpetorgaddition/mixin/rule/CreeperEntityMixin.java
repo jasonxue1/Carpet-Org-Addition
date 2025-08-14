@@ -44,7 +44,7 @@ public abstract class CreeperEntityMixin {
         if (CarpetOrgAdditionSettings.playerDropHead.get() && this.isCharged() && !this.headsDropped && other instanceof ServerPlayerEntity player) {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
             itemStack.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
-            player.dropStack(player.getWorld(), itemStack);
+            player.dropStack(player.getEntityWorld(), itemStack);
         }
     }
 }

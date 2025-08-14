@@ -28,7 +28,7 @@ public record CreateFakePlayerContext(
         this(player.getPos(),
                 player.getYaw(),
                 player.getPitch(),
-                player.getWorld().getRegistryKey(),
+                player.getEntityWorld().getRegistryKey(),
                 player.interactionManager.getGameMode(),
                 player.getAbilities().flying,
                 consumer

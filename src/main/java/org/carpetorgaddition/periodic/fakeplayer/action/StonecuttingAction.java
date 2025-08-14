@@ -157,7 +157,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
         // 获取假玩家所在的世界对象
-        World world = this.getFakePlayer().getWorld();
+        World world = this.getFakePlayer().getEntityWorld();
         ItemStack outputItemStack;
         try {
             // 获取与配方对应的物品
@@ -202,7 +202,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 continue;
             }
             StonecuttingRecipe recipe = optional.get().value();
-            if (recipe.matches(input, fakePlayer.getWorld())) {
+            if (recipe.matches(input, fakePlayer.getEntityWorld())) {
                 return recipe.craft(input, world.getRegistryManager());
             }
         }

@@ -68,7 +68,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     ClientPlayerEntity player = getPlayer();
-                    ServerWorld world = getServer().getWorld(player.getWorld().getRegistryKey());
+                    ServerWorld world = getServer().getWorld(player.getEntityWorld().getRegistryKey());
                     if (world == null) {
                         return;
                     }
@@ -98,7 +98,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     ClientPlayerEntity player = getPlayer();
-                    ServerWorld world = getServer().getWorld(player.getWorld().getRegistryKey());
+                    ServerWorld world = getServer().getWorld(player.getEntityWorld().getRegistryKey());
                     if (world == null) {
                         return;
                     }

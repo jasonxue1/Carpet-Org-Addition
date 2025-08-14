@@ -51,16 +51,16 @@ public class ItemShadowingCommand extends AbstractServerCommand {
                 if (inventory.isEmpty()) {
                     CarpetOrgAddition.LOGGER.info("{}制作了一个空[{}]的物品分身，在{}，坐标:[{}]",
                             GenericUtils.getPlayerName(player), main.getItem().getName().getString(),
-                            WorldUtils.getDimensionId(player.getWorld()), WorldUtils.toPosString(player.getBlockPos()));
+                            WorldUtils.getDimensionId(player.getEntityWorld()), WorldUtils.toPosString(player.getBlockPos()));
                 } else {
                     CarpetOrgAddition.LOGGER.info("{}制作了一个{}的物品分身，包含{}，在{}，坐标:[{}]",
                             GenericUtils.getPlayerName(player), main.getItem().getName().getString(), inventory,
-                            WorldUtils.getDimensionId(player.getWorld()), WorldUtils.toPosString(player.getBlockPos()));
+                            WorldUtils.getDimensionId(player.getEntityWorld()), WorldUtils.toPosString(player.getBlockPos()));
                 }
             } else {
                 CarpetOrgAddition.LOGGER.info("{}制作了一个[{}]的物品分身，在{}，坐标:[{}]",
                         GenericUtils.getPlayerName(player), main.getItem().getName().getString(),
-                        WorldUtils.getDimensionId(player.getWorld()), WorldUtils.toPosString(player.getBlockPos()));
+                        WorldUtils.getDimensionId(player.getEntityWorld()), WorldUtils.toPosString(player.getBlockPos()));
             }
             return 1;
         } else {

@@ -44,7 +44,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
     }
 
     public static BlockEntityIterator ofAbove(EntityPlayerMPFake fakePlayer, int range) {
-        World world = fakePlayer.getWorld();
+        World world = fakePlayer.getEntityWorld();
         BlockPos blockPos = fakePlayer.getBlockPos();
         return ofAbove(world, blockPos, range);
     }

@@ -94,13 +94,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             });
         }
         this.count = count;
-        this.startTime = player.getWorld().getTime();
+        this.startTime = player.getEntityWorld().getTime();
     }
 
     @Override
     protected void tick() {
         int size = this.players.size();
-        long time = this.player.getWorld().getTime();
+        long time = this.player.getEntityWorld().getTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;

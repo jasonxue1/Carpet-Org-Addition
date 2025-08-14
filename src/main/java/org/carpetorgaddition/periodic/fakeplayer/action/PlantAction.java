@@ -89,7 +89,7 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否需要继续循环
      */
     private boolean plantingCrops(ItemStack itemStack, BlockPos blockPos) {
-        World world = this.getFakePlayer().getWorld();
+        World world = this.getFakePlayer().getEntityWorld();
         if (!world.getBlockState(blockPos).isOf(Blocks.FARMLAND)) {
             return true;
         }
@@ -139,7 +139,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     // 种植竹子
     private boolean plantingBamboo(BlockPos plantablePos) {
-        World world = this.getFakePlayer().getWorld();
+        World world = this.getFakePlayer().getEntityWorld();
         // 是否可以种植竹子
         if (!world.getBlockState(plantablePos).isIn(BlockTags.BAMBOO_PLANTABLE_ON)
                 // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉

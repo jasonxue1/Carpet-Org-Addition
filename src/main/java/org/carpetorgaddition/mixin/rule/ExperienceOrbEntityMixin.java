@@ -59,7 +59,7 @@ public abstract class ExperienceOrbEntityMixin {
      */
     @Unique
     private boolean combine() {
-        long time = thisEntity.getWorld().getTime();
+        long time = thisEntity.getEntityWorld().getTime();
         return Math.sin(time / 10.0) > 0;
     }
 }

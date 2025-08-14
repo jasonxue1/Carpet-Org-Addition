@@ -164,7 +164,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     private int navigateToBlock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "blockPos");
-        World world = player.getWorld();
+        World world = player.getEntityWorld();
         // 设置导航器，维度为玩家当前所在维度
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈
@@ -180,7 +180,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         try {
             ServerPlayerEntity.Respawn respawn = Objects.requireNonNull(player.getRespawn());
             BlockPos respawnPos = respawn.pos();
-            ServerWorld world = player.getWorld().getServer().getWorld(respawn.dimension());
+            ServerWorld world = player.getEntityWorld().getServer().getWorld(respawn.dimension());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);

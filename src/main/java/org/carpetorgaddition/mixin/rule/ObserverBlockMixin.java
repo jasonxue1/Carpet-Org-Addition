@@ -3,7 +3,6 @@ package org.carpetorgaddition.mixin.rule;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.FacingBlock;
 import net.minecraft.block.ObserverBlock;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -37,7 +36,7 @@ public abstract class ObserverBlockMixin extends FacingBlock {
             ItemStack itemStack = player.getStackInHand(hand);
             if (itemStack.isOf(Items.FLINT_AND_STEEL) && !player.isSneaking()) {
                 this.scheduleTick(world, world, pos);
-                stack.damage(1, player, LivingEntity.getSlotForHand(hand));
+                stack.damage(1, player, hand);
                 world.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1, 1);
                 player.incrementStat(Stats.USED.getOrCreateStat(itemStack.getItem()));
                 return ActionResult.SUCCESS;

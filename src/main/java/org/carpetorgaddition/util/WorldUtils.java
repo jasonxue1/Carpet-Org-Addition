@@ -163,7 +163,7 @@ public class WorldUtils {
      * @param soundCategory 声音类别
      */
     public static void playSound(ServerPlayerEntity player, SoundEvent soundEvent, SoundCategory soundCategory) {
-        World world = player.getWorld();
+        World world = player.getEntityWorld();
         world.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, soundCategory, 1F, 1F);
     }
 
@@ -257,7 +257,7 @@ public class WorldUtils {
      */
     public static void teleport(Entity source, Entity target) {
         // 不要在客户端传送实体
-        if (target.getWorld() instanceof ServerWorld world) {
+        if (target.getEntityWorld() instanceof ServerWorld world) {
             teleport(source, world, target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
         }
     }

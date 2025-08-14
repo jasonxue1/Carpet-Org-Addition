@@ -28,7 +28,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
         MutableText text;
         MutableText posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
-        if (this.player.getWorld().equals(this.world)) {
+        if (this.player.getEntityWorld().equals(this.world)) {
             MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {

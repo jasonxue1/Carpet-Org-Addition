@@ -74,7 +74,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
             opens.remove(first);
             openCaches.remove(first.blockPos);
             clones.add(first.blockPos);
-            World world = this.getFakePlayer().getWorld();
+            World world = this.getFakePlayer().getEntityWorld();
             this.addSearchNode(world, first, target, opens, openCaches, clones);
         }
     }

@@ -40,7 +40,7 @@ public class Waypoint {
     }
 
     public Waypoint(BlockPos blockPos, String name, ServerPlayerEntity player) {
-        this(blockPos, name, player.getWorld(), player.getName().getString(), player.getServer());
+        this(blockPos, name, player.getEntityWorld(), player.getName().getString(), player.getServer());
     }
 
     // 将路径点写入本地文件

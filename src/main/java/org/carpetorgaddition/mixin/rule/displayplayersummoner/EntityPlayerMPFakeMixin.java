@@ -52,7 +52,7 @@ public class EntityPlayerMPFakeMixin {
             }
             TextBuilder builder = TextBuilder.of("carpet.rule.message.displayPlayerSummoner", player.getDisplayName());
             builder.setGrayItalic();
-            Text dimension = TextProvider.dimension(fakePlayer.getWorld());
+            Text dimension = TextProvider.dimension(fakePlayer.getEntityWorld());
             MutableText blockPos = TextProvider.simpleBlockPos(fakePlayer.getBlockPos());
             MutableText pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);

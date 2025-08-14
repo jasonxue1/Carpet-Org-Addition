@@ -9,9 +9,9 @@ import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.Waypoint;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class WaypointNavigator extends AbstractNavigator {
@@ -40,7 +40,7 @@ public class WaypointNavigator extends AbstractNavigator {
             this.clear();
             return;
         }
-        World playerWorld = this.player.getWorld();
+        World playerWorld = this.player.getEntityWorld();
         // 路径点的目标位置
         BlockPos targetPos = this.waypoint.getBlockPos();
         // 玩家所在的方块位置
@@ -76,7 +76,7 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @Override
     public boolean shouldTerminate() {
-        if (this.player.getWorld() == this.world && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
+        if (this.player.getEntityWorld() == this.world && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();

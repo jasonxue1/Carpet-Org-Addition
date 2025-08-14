@@ -114,7 +114,7 @@ public abstract class LivingEntityMixin extends Entity {
             }
             this.setHealth(1.0F);
             deathProtectionComponent.applyDeathEffects(itemStack, thisLivingEntity);
-            this.getWorld().sendEntityStatus(this, (byte) 35);
+            this.getEntityWorld().sendEntityStatus(this, (byte) 35);
         }
         cir.setReturnValue(deathProtectionComponent != null);
     }
