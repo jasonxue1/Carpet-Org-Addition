@@ -123,7 +123,7 @@ public class EntityNavigator extends AbstractNavigator {
                 UUID uuid = entity.getUuid();
                 // 从服务器查找新实体对象
                 for (ServerWorld world : server.getWorlds()) {
-                    Entity newEntity = world.getEntity(uuid);
+                    Entity newEntity = world.method_66347(uuid);
                     if (newEntity == null || newEntity.isRemoved()) {
                         continue;
                     }

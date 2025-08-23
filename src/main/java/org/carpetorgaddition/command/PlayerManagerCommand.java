@@ -754,7 +754,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = context.getSource().getServer();
-        NameToIdCache cache = server.getNameToIdCache();
+        NameToIdCache cache = server.getApiServices().nameToIdCache();
         if (cache == null) {
             CarpetOrgAddition.LOGGER.warn("Server user cache is null");
             return 0;

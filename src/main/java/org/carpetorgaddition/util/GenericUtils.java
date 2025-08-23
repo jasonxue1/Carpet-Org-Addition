@@ -52,7 +52,7 @@ public class GenericUtils {
     @Nullable
     public static Entity getEntity(MinecraftServer server, UUID uuid) {
         for (ServerWorld world : server.getWorlds()) {
-            Entity entity = world.getEntity(uuid);
+            Entity entity = world.method_66347(uuid);
             if (entity != null) {
                 return entity;
             }

@@ -20,7 +20,6 @@ import org.carpetorgaddition.wheel.TextBuilder;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -87,9 +86,12 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 count--;
                 continue;
             }
-            CompletableFuture<Optional<PlayerConfigEntry>> future = userCache.findByNameAsync(username);
-            future.thenAccept(optional -> {
+            Thread.ofVirtual().start(() -> {
+                Optional<PlayerConfigEntry> optional = userCache.findByName(username);
                 PlayerConfigEntry gameProfile = optional.orElseGet(() -> new PlayerConfigEntry(Uuids.getOfflinePlayerUuid(username), username));
+                if (optional.isEmpty()) {
+                    userCache.add(gameProfile);
+                }
                 this.players.add(gameProfile);
             });
         }

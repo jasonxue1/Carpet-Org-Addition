@@ -43,7 +43,7 @@ public abstract class CreeperEntityMixin {
         // 玩家被闪电苦力怕炸死掉落头颅
         if (CarpetOrgAdditionSettings.playerDropHead.get() && this.isCharged() && !this.headsDropped && other instanceof ServerPlayerEntity player) {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
-            itemStack.set(DataComponentTypes.PROFILE, new ProfileComponent(player.getGameProfile()));
+            itemStack.set(DataComponentTypes.PROFILE, ProfileComponent.ofStatic(player.getGameProfile()));
             player.dropStack(player.getEntityWorld(), itemStack);
         }
     }

@@ -175,7 +175,7 @@ public class FinderCommand extends AbstractServerCommand {
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        NameToIdCache cache = player.getEntityWorld().getServer().getNameToIdCache();
+        NameToIdCache cache = player.getEntityWorld().getServer().getApiServices().nameToIdCache();
         if (cache == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }

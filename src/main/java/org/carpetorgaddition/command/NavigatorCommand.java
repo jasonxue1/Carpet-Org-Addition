@@ -125,7 +125,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         // 从服务器寻找这个UUID的实体
         MinecraftServer server = context.getSource().getServer();
         for (ServerWorld world : server.getWorlds()) {
-            Entity entity = world.getEntity(uuid);
+            Entity entity = world.method_73284(uuid);
             if (entity == null) {
                 continue;
             }
