@@ -99,7 +99,7 @@ public class DictionaryCommand extends AbstractClientCommand {
         return DEFAULT_COMMAND_NAME;
     }
 
-    private enum DictionaryType {
+    public enum DictionaryType {
         /**
          * 物品
          */

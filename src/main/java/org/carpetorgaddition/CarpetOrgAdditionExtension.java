@@ -41,6 +41,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         SettingsManager settingManager = getCustomSettingManager();
         if (settingManager == null) {
             CarpetServer.settingsManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
+            // TODO 是否应移动到if-else后
             CarpetOrgAdditionSettings.register();
             settingsLoaded = true;
         } else {
@@ -50,6 +51,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         mappingTable.init();
     }
 
+    @Deprecated
     @Nullable
     public static SettingsManager getCustomSettingManager() {
         if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER && customSettingManager == null) {

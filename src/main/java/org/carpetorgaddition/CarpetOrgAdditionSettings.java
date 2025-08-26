@@ -995,6 +995,7 @@ public class CarpetOrgAdditionSettings {
                         RuleSelfManager.RULES.put(context.getName(), rule);
                     }
                 } catch (UnsupportedOperationException e) {
+                    // TODO 没有必要保留完整异常堆栈
                     CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name(), e);
                 }
             }

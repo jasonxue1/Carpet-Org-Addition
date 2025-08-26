@@ -11,12 +11,15 @@ import net.minecraft.util.math.ChunkSectionPos;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
-import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -151,7 +154,7 @@ public class BlockSearchTask extends ServerTask {
         return this.findState == FindState.END;
     }
 
-    private class Result implements Supplier<Text> {
+    public class Result implements Supplier<Text> {
         private final BlockPos sourcteBlockPos;
         private final BlockPos blockPos;
 
@@ -189,8 +192,11 @@ public class BlockSearchTask extends ServerTask {
         return Objects.hashCode(this.context.getSource().getPlayer());
     }
 
-    private enum FindState {
-        SEARCH, SORT, FEEDBACK, END
+    public enum FindState {
+        SEARCH,
+        SORT,
+        FEEDBACK,
+        END
     }
 
     @Override

@@ -33,24 +33,26 @@
 
 ### 服务端
 
-- /player
-    - `inventory`子命令，用来打开玩家的物品栏
-        - 使用规则“打开玩家物品栏”控制使用权限
-    - `enderChest`子命令，用来打开玩家的末影箱
-        - 使用规则“打开玩家物品栏”控制使用权限
-        - 规则值为`fake_player`时不允许打开自己的末影箱
-    - `teleport`子命令，用来将假玩家传送到自己的位置
-        - 使用规则“假玩家传送”控制使用权限
+#### /player
+
+- `... inventory [<caseSensitive>]`：打开玩家的物品栏
+- `... enderChest [<caseSensitive>]`：打开玩家的末影箱
+- 以上两条命令中：
+    - 使用规则“打开玩家物品栏”控制使用权限
+    - `caseSensitive`参数用于控制玩家名称是否区分大小写，仅对离线玩家生效，未指定时为`false`
+        - 这里的离线玩家，指的是不在线的玩家，而非使用非正版账户登录的玩家
+- `teleport`子命令，用来将假玩家传送到自己的位置
+    - 使用规则“假玩家传送”控制使用权限
 
 ## 自定义命令名称
 
 可以通过编辑配置文件来更改模组命令的名称，即给命令起别名
 
-配置文件位于`<游戏根目录/config/carpetorgaddition/custom_command_name.json>`，格式如下：
+配置文件位于`<游戏根目录/config/carpetorgaddition/carpet-org-addition.json`，，格式如下：
 
 - `根对象`
     - `data_version`：用于记录数据的版本号，玩家不应该修改它的值
-    - `commands`：一个Json对象，保存所有可自定义名称的命令
+    - `custom_command_name`
         - `命令名称`：一条可自定义名称的命令，值可以为字符串，可以为字符串数组，如果为其他值会被忽略
 
 ### 示例
@@ -60,8 +62,7 @@
 - 原数据：
     ```json
        {
-           "data_version": 1,
-           "commands": {
+           "custom_command_name": {
                "finder": "finder"
            }
        }
@@ -69,8 +70,7 @@
 - 修改后的数据
     ```json
        {
-           "data_version": 1,
-           "commands": {
+           "custom_command_name": {
                "finder": "search"
            }
        }
@@ -82,8 +82,7 @@
 - 命令的自定义名称可以为多个，只需要将表示命令名称的字符串改为字符串数组，例如：
     - ```json
          {
-             "data_version": 1,
-             "commands": {
+             "custom_command_name": {
                  "spectator": [
                      "spectator",
                      "s",
