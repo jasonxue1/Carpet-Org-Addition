@@ -19,7 +19,7 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void tick() {
         super.tick();
-        ServerTickManager tickManager = this.getPlayer().server.getTickManager();
+        ServerTickManager tickManager = this.getPlayer().getWorld().getServer().getTickManager();
         if (tickManager.shouldTick()) {
             this.fakePlayerActionManager.tick();
         }
