@@ -106,9 +106,8 @@ public class IOUtils {
      *
      * @param original 源文件，该文件必须存在且不能是文件夹
      * @param copy     复制的目标位置
-     * @return 是否正常完成备份
      */
-    public static boolean copyFile(File original, File copy) {
+    public static void copyFile(File original, File copy) {
         try {
             BufferedInputStream input = new BufferedInputStream(new FileInputStream(original));
             BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(copy));
@@ -119,10 +118,8 @@ public class IOUtils {
                     output.write(bytes, 0, len);
                 }
             }
-            return true;
         } catch (IOException e) {
             IOUtils.loggerError(e);
-            return false;
         }
     }
 

@@ -1,17 +1,20 @@
 package org.carpetorgaddition.mixin.util;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import org.carpetorgaddition.network.s2c.BackgroundSpriteSyncS2CPacket;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncServer;
 import org.carpetorgaddition.wheel.screen.UnavailableSlotSyncInterface;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,8 +29,12 @@ public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
     @Unique
     private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
     @Unique
-    @NotNull
-    private final PlayerComponentCoordinator manager = new PlayerComponentCoordinator(thisPlayer);
+    private PlayerComponentCoordinator manager;
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void init(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions, CallbackInfo ci) {
+        this.manager = PlayerComponentCoordinator.of(thisPlayer);
+    }
 
     @Override
     public PlayerComponentCoordinator carpet_Org_Addition$getPlayerPeriodicTaskManager() {

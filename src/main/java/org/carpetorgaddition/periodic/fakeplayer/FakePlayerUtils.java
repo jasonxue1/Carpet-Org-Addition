@@ -560,8 +560,8 @@ public class FakePlayerUtils {
                 if (picked.isEmpty()) {
                     continue;
                 }
-                putToEmptySlotOrDrop(fakePlayer, stackInHand);
                 fakePlayer.setStackInHand(hand, picked);
+                putToEmptySlotOrDrop(fakePlayer, stackInHand);
                 return true;
             }
         }
