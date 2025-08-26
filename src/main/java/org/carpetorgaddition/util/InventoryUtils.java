@@ -429,7 +429,7 @@ public class InventoryUtils {
         return itemStack.contains(DataComponentTypes.TOOL);
     }
 
-    private static class ItemStackWrapper extends Counter.Wrapper<ItemStack> {
+    public static class ItemStackWrapper extends Counter.Wrapper<ItemStack> {
         private static final ItemStackWrapper EMPTY = new ItemStackWrapper(ItemStack.EMPTY);
 
         public ItemStackWrapper(ItemStack value) {

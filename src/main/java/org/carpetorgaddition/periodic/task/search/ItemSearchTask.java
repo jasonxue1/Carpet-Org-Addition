@@ -233,7 +233,7 @@ public class ItemSearchTask extends ServerTask {
         return false;
     }
 
-    private record Result(
+    public record Result(
             BlockPos blockPos,
             MutableText containerName,
             ItemStackStatistics statistics
@@ -249,8 +249,12 @@ public class ItemSearchTask extends ServerTask {
         }
     }
 
-    private enum FindState {
-        BLOCK, ENTITY, SORT, FEEDBACK, END
+    public enum FindState {
+        BLOCK,
+        ENTITY,
+        SORT,
+        FEEDBACK,
+        END
     }
 
     @Override
