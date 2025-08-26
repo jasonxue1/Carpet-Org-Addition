@@ -101,7 +101,7 @@ public class GotoAction extends AbstractPlayerAction {
         this.pathfinder.onStop();
     }
 
-    private enum TargetType {
+    public enum TargetType {
         BLOCK("carpet.commands.playerAction.info.goto.block"),
         ENTITY("carpet.commands.playerAction.info.goto.entity");
 
@@ -116,7 +116,7 @@ public class GotoAction extends AbstractPlayerAction {
         }
     }
 
-    private static class EntityTracker implements Supplier<Optional<BlockPos>> {
+    public static class EntityTracker implements Supplier<Optional<BlockPos>> {
         /**
          * 用来获取外部类的玩家，玩家可能会因切换维度导致地址值发生变化
          */

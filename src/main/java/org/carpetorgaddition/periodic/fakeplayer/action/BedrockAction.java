@@ -1214,7 +1214,7 @@ public class BedrockAction extends AbstractPlayerAction {
         }
     }
 
-    private static class CylinderBlockIterator extends BlockIterator {
+    public static class CylinderBlockIterator extends BlockIterator {
         private final BlockPos center;
         private final int radius;
         private final int height;
