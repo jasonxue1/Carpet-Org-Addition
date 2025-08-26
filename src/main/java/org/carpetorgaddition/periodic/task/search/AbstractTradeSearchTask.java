@@ -192,8 +192,11 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         return Objects.hashCode(this.context.getSource().getPlayer());
     }
 
-    private enum FindState {
-        SEARCH, SORT, FEEDBACK, END
+    public enum FindState {
+        SEARCH,
+        SORT,
+        FEEDBACK,
+        END
     }
 
     @Override
