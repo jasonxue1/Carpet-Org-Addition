@@ -355,7 +355,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * @apiNote 非静态的内部类强引用了外部类导致暂时无法被回收，但这不是问题
      */
-    private class Result implements Supplier<Text> {
+    public class Result implements Supplier<Text> {
         private final GameProfile gameProfile;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
@@ -449,7 +449,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
-    private enum State {
+    public enum State {
         START,
         RUNTIME,
         FEEDBACK,

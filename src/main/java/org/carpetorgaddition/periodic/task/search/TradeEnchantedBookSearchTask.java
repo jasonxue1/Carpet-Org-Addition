@@ -92,7 +92,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         return this.treadName;
     }
 
-    private class EnchantedBookFindResult implements Result {
+    public class EnchantedBookFindResult implements Result {
         private final MerchantEntity merchant;
         private final ArrayList<Integer> list;
         private final int level;
