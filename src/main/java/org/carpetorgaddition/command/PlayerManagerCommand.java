@@ -939,7 +939,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 时间单位
      */
-    private enum TimeUnit {
+    public enum TimeUnit {
         /**
          * tick
          */

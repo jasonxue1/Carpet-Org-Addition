@@ -322,7 +322,7 @@ public class PlantAction extends AbstractPlayerAction {
         return true;
     }
 
-    private enum FarmType {
+    public enum FarmType {
         /**
          * 种植普通农作物，小麦、土豆、胡萝卜，甜菜，以及火把花，瓶子草
          */

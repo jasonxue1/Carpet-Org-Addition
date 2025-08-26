@@ -327,7 +327,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     /**
      * 一个占位实体，没有实际作用
      */
-    private static class DummyEntity extends MobEntity {
+    public static class DummyEntity extends MobEntity {
         protected DummyEntity(World world, Vec3d pos) {
             super(EntityType.VILLAGER, world);
             this.setPosition(pos);

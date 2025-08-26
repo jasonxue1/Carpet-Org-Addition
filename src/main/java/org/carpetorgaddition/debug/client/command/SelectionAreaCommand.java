@@ -42,7 +42,7 @@ public class SelectionAreaCommand {
         return 0;
     }
 
-    private static class SelectionAreaDebugRenderer extends BoxRenderer {
+    public static class SelectionAreaDebugRenderer extends BoxRenderer {
         private final ArrayDeque<Box> deque = new ArrayDeque<>();
         private long previousTick = getGameTime();
 
