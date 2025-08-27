@@ -140,7 +140,7 @@ public class WorldUtils {
     @Nullable
     public static Entity getEntityFromUUID(MinecraftServer server, UUID uuid) {
         for (ServerWorld world : server.getWorlds()) {
-            Entity entity = world.method_66347(uuid);
+            Entity entity = world.getEntity(uuid);
             if (entity == null) {
                 continue;
             }

@@ -94,7 +94,7 @@ public class PlayerCommandExtension {
                     (syncId, playerInventory, player) -> {
                         OfflinePlayerInventory inventory = new OfflinePlayerInventory(server, gameProfile);
                         return new OfflinePlayerInventoryScreenHandler(syncId, playerInventory, inventory);
-                    }, offlinePlayerName(gameProfile.getName()));
+                    }, offlinePlayerName(gameProfile.name()));
             sourcePlayer.openHandledScreen(factory);
         } else {
             throw CommandUtils.createPlayerNotFoundException();
@@ -157,7 +157,7 @@ public class PlayerCommandExtension {
                     (syncId, playerInventory, player) -> {
                         OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(server, gameProfile);
                         return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, inventory);
-                    }, offlinePlayerName(gameProfile.getName()));
+                    }, offlinePlayerName(gameProfile.name()));
             sourcePlayer.openHandledScreen(factory);
         } else {
             throw CommandUtils.createPlayerNotFoundException();

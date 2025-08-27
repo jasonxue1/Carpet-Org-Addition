@@ -248,8 +248,8 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         private final UUID uuid;
 
         public PlayerProfile(GameProfile gameProfile) {
-            this.name = gameProfile.getName();
-            this.uuid = gameProfile.getId();
+            this.name = gameProfile.name();
+            this.uuid = gameProfile.id();
         }
 
         @Override

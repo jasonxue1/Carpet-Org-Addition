@@ -246,7 +246,7 @@ public class TradeAction extends AbstractPlayerAction {
                 return true;
             }
             for (ServerWorld world : server.getWorlds()) {
-                if (world.method_66347(uuid) == null) {
+                if (world.getEntity(uuid) == null) {
                     continue;
                 }
                 return true;

@@ -38,7 +38,7 @@ public class GenericUtils {
      * @return 玩家名的字符串形式
      */
     public static String getPlayerName(PlayerEntity player) {
-        return player.getGameProfile().getName();
+        return player.getGameProfile().name();
     }
 
     @Contract("_ -> !null")
@@ -52,7 +52,7 @@ public class GenericUtils {
     @Nullable
     public static Entity getEntity(MinecraftServer server, UUID uuid) {
         for (ServerWorld world : server.getWorlds()) {
-            Entity entity = world.method_66347(uuid);
+            Entity entity = world.getEntity(uuid);
             if (entity != null) {
                 return entity;
             }

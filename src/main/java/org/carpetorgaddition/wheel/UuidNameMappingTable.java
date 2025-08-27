@@ -112,7 +112,7 @@ public class UuidNameMappingTable {
     }
 
     public void put(GameProfile gameProfile) {
-        this.put(gameProfile.getId(), gameProfile.getName());
+        this.put(gameProfile.id(), gameProfile.name());
     }
 
     /**

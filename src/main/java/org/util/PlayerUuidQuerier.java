@@ -74,7 +74,7 @@ public class PlayerUuidQuerier {
      */
     private boolean writeOnlineUuid(String name, List<GameProfile> list, MutableInt ordinal) {
         for (GameProfile gameProfile : list) {
-            if (name.equalsIgnoreCase(gameProfile.getName())) {
+            if (name.equalsIgnoreCase(gameProfile.name())) {
                 ordinal.increment();
                 write(ordinal.getValue(), true, gameProfile);
                 return true;
@@ -89,10 +89,10 @@ public class PlayerUuidQuerier {
                 sum - ordinal,
                 ((float) ordinal / sum),
                 (isOnline ? "正版" : "离线"),
-                gameProfile.getName()
+                gameProfile.name()
         );
         CONSOLE.println(formatted);
-        print.println(gameProfile.getId() + "=" + gameProfile.getName());
+        print.println(gameProfile.id() + "=" + gameProfile.name());
     }
 
     /**

@@ -51,7 +51,7 @@ public class RuleSelfManager {
      * 设置规则是否对自己生效
      */
     public void setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
-        String playerName = player.getGameProfile().getName();
+        String playerName = player.getGameProfile().name();
         HashSet<String> rules = this.disabledRules.get(playerName);
         if (rules == null) {
             if (enabled) {

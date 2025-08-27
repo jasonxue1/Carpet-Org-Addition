@@ -176,7 +176,7 @@ public class CommandProvider {
      * 打开玩家物品栏
      */
     public static String openPlayerInventory(PlayerEntity player) {
-        return openPlayerInventory(player.getGameProfile().getName());
+        return openPlayerInventory(player.getGameProfile().name());
     }
 
     public static String openPlayerInventory(String name) {
@@ -184,7 +184,7 @@ public class CommandProvider {
     }
 
     public static String openPlayerEnderChest(PlayerEntity player) {
-        return openPlayerEnderChest(player.getGameProfile().getName());
+        return openPlayerEnderChest(player.getGameProfile().name());
     }
 
     public static String openPlayerEnderChest(String name) {
