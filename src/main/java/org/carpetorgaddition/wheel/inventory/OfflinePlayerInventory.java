@@ -216,16 +216,17 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         LivingEntity livingEntity = user.asLivingEntity();
         MinecraftServer server = livingEntity.getServer();
         if (server != null && user instanceof ServerPlayerEntity player) {
-            INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
+            INVENTORY_OPERATOR_PLAYERS.put(this.profile, player);
             this.initFakePlayer(server);
             if (this.showLog) {
                 // 译：{}打开了离线玩家{}的物品栏
                 CarpetOrgAddition.LOGGER.info(
                         "{} opened the inventory of the offline player {}.",
-                    GenericUtils.getPlayerName(player),
+                        GenericUtils.getPlayerName(player),
                         this.profile.name
                 );
             }
+        }
     }
 
     @Override
