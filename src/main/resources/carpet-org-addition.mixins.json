@@ -6,9 +6,9 @@
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
     "accessor.PlayerManagerAccessor",
-    "command.carpet.EntityPlayerMPFakeMixin",
     "command.FishingBobberEntityAccessor",
     "command.ServerPlayerEntityMixin",
+    "command.carpet.EntityPlayerMPFakeMixin",
     "command.carpet.PlayerCommandMixin",
     "compat.fabricapi.AbstractChanneledNetworkAddonInvoker",
     "compat.fabricapi.AbstractNetworkAddonMixin",
@@ -36,7 +36,6 @@
     "rule.EnchantmentHelperMixin",
     "rule.EndermanEntityMixin",
     "rule.EnderPearlEntityMixin",
-    "rule.EntityAccessor",
     "rule.EntityMixin",
     "rule.ExperienceOrbEntityMixin",
     "rule.FarmlandBlockMixin",
@@ -122,5 +121,8 @@
   ],
   "injectors": {
     "defaultRequire": 1
+  },
+  "mixinextras": {
+    "minVersion": "0.5.0"
   }
 }
