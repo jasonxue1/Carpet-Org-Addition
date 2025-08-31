@@ -230,7 +230,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         return this.supplier.get();
     }
 
-    private enum Relationship {
+    public enum Relationship {
         /**
          * 相邻
          */
@@ -266,7 +266,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         }
     }
 
-    private static class SearchNode implements Comparable<SearchNode> {
+    public static class SearchNode implements Comparable<SearchNode> {
         /**
          * 上一个节点
          */

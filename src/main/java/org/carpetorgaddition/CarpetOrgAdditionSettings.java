@@ -995,7 +995,7 @@ public class CarpetOrgAdditionSettings {
                         RuleSelfManager.RULES.put(context.getName(), rule);
                     }
                 } catch (UnsupportedOperationException e) {
-                    CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name(), e);
+                    CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name());
                 }
             }
         }

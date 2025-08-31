@@ -291,7 +291,7 @@ public class FinderCommand extends AbstractServerCommand {
         MutableText getName();
     }
 
-    private record ArgumentBlockPredicate(BlockStateArgument argument) implements BlockPredicate {
+    public record ArgumentBlockPredicate(BlockStateArgument argument) implements BlockPredicate {
         @Override
         public boolean test(ServerWorld world, BlockPos pos) {
             return argument.test(world, pos);
@@ -303,7 +303,7 @@ public class FinderCommand extends AbstractServerCommand {
         }
     }
 
-    private record BlockBlockPredicate() implements BlockPredicate {
+    public static class BlockBlockPredicate implements BlockPredicate {
         @Override
         public boolean test(ServerWorld world, BlockPos pos) {
             BlockState blockState = world.getBlockState(pos);
@@ -352,7 +352,7 @@ public class FinderCommand extends AbstractServerCommand {
         }
     }
 
-    private enum OfflinePlayerInventoryType {
+    public enum OfflinePlayerInventoryType {
         INVENTORY,
         ENDER_CHEST
     }

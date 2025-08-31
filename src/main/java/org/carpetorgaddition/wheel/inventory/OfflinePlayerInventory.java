@@ -26,6 +26,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
 
@@ -42,6 +43,10 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      */
     public static final Map<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new ConcurrentHashMap<>();
     private final PlayerProfile profile;
+    /**
+     * 是否在打开物品栏时在日志输出打开物品栏的玩家
+     */
+    private boolean showLog = true;
     protected final FakePlayer fabricPlayer;
 
     public OfflinePlayerInventory(MinecraftServer server, GameProfile gameProfile) {
@@ -211,15 +216,16 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         LivingEntity livingEntity = user.asLivingEntity();
         MinecraftServer server = livingEntity.getServer();
         if (server != null && user instanceof ServerPlayerEntity player) {
-            INVENTORY_OPERATOR_PLAYERS.put(this.profile, player);
+            INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
             this.initFakePlayer(server);
-            // 译：{}打开了离线玩家{}的物品栏
-            CarpetOrgAddition.LOGGER.info(
-                    "{} opened the inventory of the offline player {}.",
-                    livingEntity.getName().getString(),
-                    this.profile.name
-            );
-        }
+            if (this.showLog) {
+                // 译：{}打开了离线玩家{}的物品栏
+                CarpetOrgAddition.LOGGER.info(
+                        "{} opened the inventory of the offline player {}.",
+                    GenericUtils.getPlayerName(player),
+                        this.profile.name
+                );
+            }
     }
 
     @Override
@@ -241,6 +247,10 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     @Override
     protected Inventory getInventory() {
         return this.fabricPlayer.getInventory();
+    }
+
+    public void setShowLog(boolean showLog) {
+        this.showLog = showLog;
     }
 
     public static class PlayerProfile {

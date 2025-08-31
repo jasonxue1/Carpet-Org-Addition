@@ -1,8 +1,8 @@
 # Carpet-Org-Addition
 
-[![License](https://img.shields.io/github/license/cdqtzrc/carpet-org-addition)](https://choosealicense.com/licenses/mit/)
+[![License](https://img.shields.io/github/license/fcsailboat/carpet-org-addition)](https://choosealicense.com/licenses/mit/)
 [![Modrinth](https://img.shields.io/modrinth/dt/carpet-org-addition?color=00AF5C&label=Modrinth%20downloads&logo=modrinth)](https://modrinth.com/mod/carpet-org-addition)
-[![Github](https://img.shields.io/github/downloads/cdqtzrc/carpet-org-addition/total?color=161616&label=Github%20downloads&logo=github)](https://github.com/cdqtzrc/Carpet-Org-Addition/releases)
+[![Github](https://img.shields.io/github/downloads/fcsailboat/carpet-org-addition/total?color=161616&label=Github%20downloads&logo=github)](https://github.com/fcsailboat/Carpet-Org-Addition/releases)
 
 ## 前置模组
 
@@ -14,21 +14,17 @@
 
 ## 版本支持
 
-| 游戏版本   | 开发状态 | 最后支持版本                                                                                                |  
-|--------|------|-------------------------------------------------------------------------------------------------------|
-| 1.19.4 | 停更   | [carpet-org-addition-v1.26.2](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v1.26.2)    |
-| 1.20.1 | 停更   | [carpet-org-addition-v1.34.0](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.0) |
-| 1.20.2 | 停更   | [carpet-org-addition-v1.26.2](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v1.26.2)    |
-| 1.20.3 | 停更   | [carpet-org-addition-v1.19.2](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v1.19.2)    |
-| 1.20.4 | 停更   | [carpet-org-addition-v1.34.1](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.1) |
-| 1.20.5 | 停更   | [carpet-org-addition-v1.27.1](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v.1.27.1)   |
-| 1.20.6 | 停更   | [carpet-org-addition-v1.30.0](https://github.com/cdqtzrc/Carpet-Org-Addition/releases/tag/v1.30.0)    |
-| 1.21   | 维护中  | -                                                                                                     |
-| 1.21.1 | 维护中  | -                                                                                                     |
-| 1.21.2 | 维护中  | -                                                                                                     |
-| 1.21.3 | 维护中  | -                                                                                                     |
-| 1.21.4 | 维护中  | -                                                                                                     |
-| 1.21.5 | 维护中  | -                                                                                                     |
+| 游戏版本           | 开发状态 | 最后支持版本                                                                                                 |  
+|----------------|------|--------------------------------------------------------------------------------------------------------|
+| 1.19.4         | 停更   | [carpet-org-addition-v1.26.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2)  |
+| 1.20.1         | 停更   | [carpet-org-addition-v1.34.0](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.0)  |
+| 1.20.2         | 停更   | [carpet-org-addition-v1.26.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2)  |
+| 1.20.3         | 停更   | [carpet-org-addition-v1.19.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.19.2)  |
+| 1.20.4         | 停更   | [carpet-org-addition-v1.34.1](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.1)  |
+| 1.20.5         | 停更   | [carpet-org-addition-v1.27.1](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v.1.27.1) |
+| 1.20.6         | 停更   | [carpet-org-addition-v1.30.0](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.30.0)  |
+| 1.21（主版本）      | 维护中  | -                                                                                                      |
+| 1.21.1 ~ 最新正式版 | 维护中  | -                                                                                                      |
 
 ## 文档
 
@@ -43,4 +39,4 @@
 ## 下载
 
 - [Modrinth](https://modrinth.com/mod/carpet-org-addition)
-- [Github](https://github.com/cdqtzrc/Carpet-Org-Addition/releases)
+- [Github](https://github.com/fcsailboat/Carpet-Org-Addition/releases)

@@ -109,6 +109,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                             // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
                             continue;
                         }
+                        // TODO 改为线程池
                         this.createVirtualThread(file, uuid);
                         this.total++;
                     }
@@ -140,14 +141,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 if (version >= GenericUtils.getNbtDataVersion()) {
                     searchItem(uuid, nbt);
                 } else {
-                    if (this.backupAndUpdate(unsafe, uuid)) {
-                        NbtCompound newVersionNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
-                        searchItem(uuid, newVersionNbt);
-                    } else {
-                        CarpetOrgAddition.LOGGER.warn("Failed to success update player data file: {}", unsafe.getName());
-                    }
+                    this.backupAndUpdate(unsafe, uuid);
+                    NbtCompound newVersionNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+                    searchItem(uuid, newVersionNbt);
                 }
-            } catch (IOException e) {
+            } catch (RuntimeException | IOException e) {
                 CarpetOrgAddition.LOGGER.warn("Unable to read player data from file: ", e);
             } finally {
                 this.threadCount.getAndDecrement();
@@ -157,23 +155,19 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     /**
      * 备份并更新玩家数据文件
-     *
-     * @return 是否备份成功
      */
-    private boolean backupAndUpdate(File unsafe, UUID uuid) {
-        // 备份文件
-        File deletableFile = this.getBackupFileDirectory().file(unsafe.getName());
-        boolean success = IOUtils.copyFile(unsafe, deletableFile);
-        if (success) {
-            // 模拟玩家登录，更新玩家数据文件
-            Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, this.server).map(entry -> new GameProfile(entry.id(), entry.name()));
-            optional.ifPresent(gameProfile -> {
-                OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
-                inventory.onOpen(this.player);
-                inventory.onClose(this.player);
-            });
-        }
-        return success;
+    private void backupAndUpdate(File unsafe, UUID uuid) {
+        // 模拟玩家登录，更新玩家数据文件
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
+        optional.ifPresent(gameProfile -> {
+            OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
+            inventory.setShowLog(false);
+            inventory.onOpen(this.player);
+            // 备份文件
+            File deletableFile = this.getBackupFileDirectory().file(unsafe.getName());
+            IOUtils.copyFile(unsafe, deletableFile);
+            inventory.onClose(this.player);
+        });
     }
 
     // 查找物品
@@ -363,7 +357,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * @apiNote 非静态的内部类强引用了外部类导致暂时无法被回收，但这不是问题
      */
-    private class Result implements Supplier<Text> {
+    public class Result implements Supplier<Text> {
         private final PlayerConfigEntry playerConfigEntry;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
@@ -457,7 +451,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
-    private enum State {
+    public enum State {
         START,
         RUNTIME,
         FEEDBACK,
