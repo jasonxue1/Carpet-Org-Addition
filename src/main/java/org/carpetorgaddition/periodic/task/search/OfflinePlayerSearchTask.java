@@ -108,6 +108,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                             // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
                             continue;
                         }
+                        // TODO 改为线程池
                         this.createVirtualThread(file, uuid);
                         this.total++;
                     }
@@ -139,7 +140,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 if (version >= GenericUtils.getNbtDataVersion()) {
                     searchItem(uuid, nbt);
                 } else {
-                    // TODO 需要验证是否会在加载玩家数据失败时备份文件
                     this.backupAndUpdate(unsafe, uuid);
                     NbtCompound newVersionNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                     searchItem(uuid, newVersionNbt);
@@ -160,6 +160,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
         optional.ifPresent(gameProfile -> {
             OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
+            inventory.setShowLog(false);
             inventory.onOpen(this.player);
             // 备份文件
             File deletableFile = this.getBackupFileDirectory().file(unsafe.getName());
