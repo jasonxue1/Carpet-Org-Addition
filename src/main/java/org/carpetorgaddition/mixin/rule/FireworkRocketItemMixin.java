@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FireworkRocketItem.class)
 public abstract class FireworkRocketItemMixin {
-    @Inject(method = "useOnBlock", at = @At("HEAD"))
+    @Inject(method = "useOnBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrement(I)V"))
     private void useOnBlock(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
         PlayerEntity player = context.getPlayer();
         if (player == null) {
@@ -27,7 +27,7 @@ public abstract class FireworkRocketItemMixin {
     }
 
     //烟花火箭使用冷却(使用鞘翅飞行时)
-    @Inject(method = "use", at = @At("HEAD"))
+    @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrementUnlessCreative(ILnet/minecraft/entity/LivingEntity;)V"))
     private void use(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
         if (CarpetOrgAdditionSettings.fireworkRocketUseCooldown.get() && user != null && user.isGliding()) {
             user.getItemCooldownManager().set(user.getStackInHand(hand), 5);
