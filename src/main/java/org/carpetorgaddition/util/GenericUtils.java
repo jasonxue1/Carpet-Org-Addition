@@ -43,7 +43,7 @@ public class GenericUtils {
 
     @Contract("_ -> !null")
     public static MinecraftServer getServer(ServerPlayerEntity player) {
-        return player.getServer();
+        return player.getEntityWorld().getServer();
     }
 
     /**

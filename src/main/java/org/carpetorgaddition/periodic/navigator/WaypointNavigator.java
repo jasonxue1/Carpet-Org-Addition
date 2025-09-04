@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
@@ -63,7 +64,7 @@ public class WaypointNavigator extends AbstractNavigator {
                 targetPos = anotherPos;
             } else {
                 // 玩家和路径点在不同维度
-                Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(this.player.getServer(), this.waypoint.getWorldAsString()));
+                Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(GenericUtils.getServer(this.player), this.waypoint.getWorldAsString()));
                 MutableText in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(targetPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }

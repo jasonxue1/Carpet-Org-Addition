@@ -52,7 +52,7 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (!world.isClient() && blockEntity instanceof MobSpawnerBlockEntity spawner) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
-                MinecraftServer server = player.getServer();
+                MinecraftServer server = player.getEntityWorld().getServer();
                 if (server != null) {
                     NbtWriteView view = NbtWriteView.create(ErrorReporter.EMPTY, server.getRegistryManager());
                     MobSpawnerLogic logic = spawner.getLogic();

@@ -1,9 +1,6 @@
 package org.carpetorgaddition.client.util;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
 
 public class ClientKeyBindingUtils {
     /**
@@ -13,7 +10,6 @@ public class ClientKeyBindingUtils {
         if (keyBinding.isUnbound()) {
             return false;
         }
-        InputUtil.Key boundKeyOf = KeyBindingHelper.getBoundKeyOf(keyBinding);
-        return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), boundKeyOf.getCode());
+        return keyBinding.isPressed();
     }
 }

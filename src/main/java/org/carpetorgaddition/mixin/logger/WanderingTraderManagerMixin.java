@@ -44,7 +44,7 @@ public class WanderingTraderManagerMixin {
     private int spawnChance;
 
     @Inject(method = "spawn", at = @At("HEAD"))
-    private void updataLogger(ServerWorld world, boolean spawnMonsters, boolean spawnAnimals, CallbackInfo ci) {
+    private void updataLogger(ServerWorld world, boolean spawnMonsters, CallbackInfo ci) {
         if (world.getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING)) {
             // 获取流浪商人生成的倒计时，并换算成秒
             int countdown = ((this.spawnDelay == 0 ? 1200 : this.spawnDelay) - (1200 - this.spawnTimer)) / 20;

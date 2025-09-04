@@ -10,6 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -40,7 +41,7 @@ public class Waypoint {
     }
 
     public Waypoint(BlockPos blockPos, String name, ServerPlayerEntity player) {
-        this(blockPos, name, player.getEntityWorld(), player.getName().getString(), player.getServer());
+        this(blockPos, name, player.getEntityWorld(), player.getName().getString(), GenericUtils.getServer(player));
     }
 
     // 将路径点写入本地文件

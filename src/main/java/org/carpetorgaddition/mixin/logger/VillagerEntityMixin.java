@@ -26,7 +26,7 @@ public abstract class VillagerEntityMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
-        if (LoggerRegister.villager && thisVillager.getEntityWorld().getTime() % 20 == 0 && thisVillager.getServer() != null) {
+        if (LoggerRegister.villager && thisVillager.getEntityWorld().getTime() % 20 == 0 && thisVillager.getEntityWorld().getServer() != null) {
             NetworkPacketLogger logger = Loggers.getVillagerLogger();
             logger.sendPacket(string -> {
                 VillagerInfo villagerInfo = new VillagerInfo(thisVillager.getId());

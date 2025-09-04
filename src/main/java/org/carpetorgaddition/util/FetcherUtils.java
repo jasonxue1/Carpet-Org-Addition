@@ -33,7 +33,7 @@ public class FetcherUtils {
     }
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
-        return getRuleSelfManager(player.getServer());
+        return getRuleSelfManager(GenericUtils.getServer(player));
     }
 
     public static PageManager getPageManager(MinecraftServer server) {

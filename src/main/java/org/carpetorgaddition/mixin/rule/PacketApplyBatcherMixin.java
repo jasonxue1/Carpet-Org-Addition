@@ -2,7 +2,6 @@ package org.carpetorgaddition.mixin.rule;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.network.NetworkThreadUtils;
 import net.minecraft.network.listener.PacketListener;
 import net.minecraft.network.listener.ServerPlayPacketListener;
 import net.minecraft.network.packet.Packet;
@@ -13,10 +12,10 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(NetworkThreadUtils.class)
-public class NetworkThreadUtilsMixin {
+@Mixin(targets = "net.minecraft.network.PacketApplyBatcher.Entry")
+public class PacketApplyBatcherMixin {
     @SuppressWarnings("unchecked")
-    @WrapOperation(method = "method_11072", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/Packet;apply(Lnet/minecraft/network/listener/PacketListener;)V"))
+    @WrapOperation(method = "apply", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/packet/Packet;apply(Lnet/minecraft/network/listener/PacketListener;)V"))
     private static <T extends PacketListener> void exceptionReason(final Packet<T> packet, final T listener, Operation<Void> original) {
         try {
             original.call(packet, listener);

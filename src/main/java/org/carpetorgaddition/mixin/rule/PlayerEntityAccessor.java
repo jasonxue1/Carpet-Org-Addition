@@ -7,8 +7,8 @@ import org.spongepowered.asm.mixin.gen.Accessor;
 
 @Mixin(PlayerEntity.class)
 public interface PlayerEntityAccessor {
-    @Accessor("PLAYER_MODEL_PARTS")
+/*    @Accessor("PLAYER_MODEL_PARTS")
     static TrackedData<Byte> getPlayerModelParts() {
         throw new AssertionError();
-    }
+    }*/
 }

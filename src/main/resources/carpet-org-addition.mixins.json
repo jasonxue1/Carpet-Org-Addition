@@ -51,7 +51,7 @@
     "rule.LivingEntityMixin",
     "rule.MerchantEntityMixin",
     "rule.MerchantScreenHandlerAccessor",
-    "rule.NetworkThreadUtilsMixin",
+    "rule.PacketApplyBatcherMixin",
     "rule.ObserverBlockMixin",
     "rule.PhantomSpawnerMixin",
     "rule.PiglinBrainMixin",

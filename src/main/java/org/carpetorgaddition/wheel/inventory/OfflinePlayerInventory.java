@@ -214,7 +214,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     @Override
     public void onOpen(ContainerUser user) {
         LivingEntity livingEntity = user.asLivingEntity();
-        MinecraftServer server = livingEntity.getServer();
+        MinecraftServer server = livingEntity.getEntityWorld().getServer();
         if (server != null && user instanceof ServerPlayerEntity player) {
             INVENTORY_OPERATOR_PLAYERS.put(this.profile, player);
             this.initFakePlayer(server);
@@ -234,7 +234,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         try {
             LivingEntity livingEntity = user.asLivingEntity();
             // 保存玩家数据
-            MinecraftServer server = livingEntity.getServer();
+            MinecraftServer server = livingEntity.getEntityWorld().getServer();
             if (server != null) {
                 PlayerManager playerManager = server.getPlayerManager();
                 PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;

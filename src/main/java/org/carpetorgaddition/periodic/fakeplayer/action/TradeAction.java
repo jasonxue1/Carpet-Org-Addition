@@ -241,7 +241,7 @@ public class TradeAction extends AbstractPlayerAction {
         if (merchant.getEntityWorld().isChunkLoaded(chunkPos.x, chunkPos.z)) {
             // 检查村民是否存在于任何一个维度，如果不存在，可以交易
             UUID uuid = merchant.getUuid();
-            MinecraftServer server = merchant.getServer();
+            MinecraftServer server = merchant.getEntityWorld().getServer();
             if (server == null) {
                 return true;
             }
