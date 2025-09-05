@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.logger;
+package org.carpetorgaddition.mixin.accessor.carpet;
 
 import carpet.logging.Logger;
 import org.spongepowered.asm.mixin.Mixin;
