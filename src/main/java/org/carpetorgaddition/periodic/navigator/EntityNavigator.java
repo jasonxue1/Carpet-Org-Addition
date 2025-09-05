@@ -9,10 +9,11 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -46,9 +47,9 @@ public class EntityNavigator extends AbstractNavigator {
             this.clear();
             return;
         }
-        World world = entity.getWorld();
+        World world = FetcherUtils.getWorld(entity);
         Text text;
-        if (player.getWorld().equals(world)) {
+        if (FetcherUtils.getWorld(player).equals(world)) {
             // 获取翻译后的文本信息
             Text in = TextBuilder.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.getBlockPos()));
             Text distance = TextBuilder.translate(DISTANCE,
@@ -58,7 +59,7 @@ public class EntityNavigator extends AbstractNavigator {
             text = getHUDText(eyePos, in, distance);
         } else {
             text = TextBuilder.translate(IN, entity.getName(),
-                    TextBuilder.combineAll(TextProvider.dimension(entity.getWorld()),
+                    TextBuilder.combineAll(TextProvider.dimension(FetcherUtils.getWorld(this.entity)),
                             TextProvider.simpleBlockPos(entity.getBlockPos())));
         }
         MessageUtils.sendMessageToHud(this.player, text);
@@ -73,8 +74,8 @@ public class EntityNavigator extends AbstractNavigator {
         if (this.isContinue) {
             return false;
         }
-        if (this.player.getWorld().equals(this.entity.getWorld())
-                && MathUtils.getBlockDistance(player.getBlockPos(), entity.getBlockPos()) <= 8) {
+        if (FetcherUtils.getWorld(this.player).equals(FetcherUtils.getWorld(this.entity))
+            && MathUtils.getBlockDistance(player.getBlockPos(), entity.getBlockPos()) <= 8) {
             // 停止追踪
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();
@@ -98,7 +99,7 @@ public class EntityNavigator extends AbstractNavigator {
                     // 如果目标实体是玩家，并且玩家已被删除
                     // 就从服务器的玩家管理器中查找新的玩家实体对象，如果找到了，设置目标为新玩家，如果找不到，玩家的追踪器对象不变
                     // 只要这个玩家在线，就不需要清除这个追踪器，因为玩家可以复活
-                    MinecraftServer server = serverPlayerEntity.getWorld().getServer();
+                    MinecraftServer server = FetcherUtils.getServer(serverPlayerEntity);
                     UUID uuid = serverPlayerEntity.getUuid();
                     ServerPlayerEntity newPlayer = server.getPlayerManager().getPlayer(uuid);
                     if (newPlayer == null) {
@@ -116,7 +117,7 @@ public class EntityNavigator extends AbstractNavigator {
                     return true;
                 }
                 // 目标实体被可逆的清除，就尝试在维度找到重新目标实体，如果找到，重新设置玩家的追踪器对象，然后返回false
-                MinecraftServer server = livingEntity.getWorld().getServer();
+                MinecraftServer server = FetcherUtils.getServer(livingEntity);
                 if (server == null) {
                     return true;
                 }

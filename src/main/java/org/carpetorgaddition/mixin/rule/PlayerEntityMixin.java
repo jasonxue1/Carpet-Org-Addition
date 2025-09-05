@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,11 +15,11 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -34,14 +33,9 @@ import java.util.function.Function;
 
 @Mixin(PlayerEntity.class)
 public abstract class PlayerEntityMixin extends LivingEntityMixin {
-    protected PlayerEntityMixin(EntityType<?> type, World world) {
-        super(type, world);
-    }
-
     @Shadow
     public abstract HungerManager getHungerManager();
 
-    @Override
     @Shadow
     public abstract boolean isSpectator();
 
@@ -52,7 +46,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Inject(method = "canConsume", at = @At("HEAD"), cancellable = true)
     private void canEat(boolean ignoreHunger, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.healthNotFullCanEat.get() && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
-                && this.getHungerManager().getSaturationLevel() <= 5) {
+            && this.getHungerManager().getSaturationLevel() <= 5) {
             cir.setReturnValue(true);
         }
     }
@@ -127,7 +121,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 最大方块交互距离
     @Inject(method = "getBlockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getBlockInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (thisPlayer.getWorld().isClient && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
+        if (FetcherUtils.getWorld(thisPlayer).isClient && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
             return;
         }
         if (RuleUtils.isDefaultDistance()) {
