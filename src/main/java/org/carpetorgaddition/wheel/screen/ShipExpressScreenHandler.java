@@ -14,12 +14,13 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.io.IOException;
 
@@ -146,13 +147,13 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
         // 日志输出
         if (onlyOneKind == 2) {
             CarpetOrgAddition.LOGGER.info("{}向{}发送了{}",
-                    this.sourcePlayer.getName().getString(),
-                    this.targetPlayer.getName().getString(),
+                    FetcherUtils.getPlayerName(this.sourcePlayer),
+                    FetcherUtils.getPlayerName(this.targetPlayer),
                     new ImmutableInventory(inventory));
         } else {
             CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}",
-                    this.sourcePlayer.getName().getString(),
-                    this.targetPlayer.getName().getString(),
+                    FetcherUtils.getPlayerName(this.sourcePlayer),
+                    FetcherUtils.getPlayerName(this.targetPlayer),
                     ((MutableText) args[1]).getString(),
                     firstStack.getName().getString());
         }

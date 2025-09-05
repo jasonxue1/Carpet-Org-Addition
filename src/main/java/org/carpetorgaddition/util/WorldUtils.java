@@ -162,7 +162,7 @@ public class WorldUtils {
      * @param soundCategory 声音类别
      */
     public static void playSound(ServerPlayerEntity player, SoundEvent soundEvent, SoundCategory soundCategory) {
-        World world = player.getWorld();
+        World world = FetcherUtils.getWorld(player);
         world.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, soundCategory, 1F, 1F);
     }
 

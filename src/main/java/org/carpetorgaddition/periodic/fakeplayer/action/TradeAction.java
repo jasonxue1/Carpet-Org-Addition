@@ -19,6 +19,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.mixin.rule.MerchantScreenHandlerAccessor;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -120,8 +121,8 @@ public class TradeAction extends AbstractPlayerAction {
                 if (outputSlot.hasStack()) {
                     FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getSellItem(), this.getFakePlayer());
                     if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()
-                            && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
-                            && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
+                        && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
+                        && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
                         return;
                     }
                 } else {
@@ -143,7 +144,7 @@ public class TradeAction extends AbstractPlayerAction {
         // 获取第二个交易物品
         ItemStack secondBuyItem = tradeOffer.getDisplayedSecondBuyItem();// 1索引
         return fillTradeSlot(merchantScreenHandler, firstBuyItem, 0)
-                && fillTradeSlot(merchantScreenHandler, secondBuyItem, 1);
+               && fillTradeSlot(merchantScreenHandler, secondBuyItem, 1);
     }
 
     /**
@@ -238,10 +239,10 @@ public class TradeAction extends AbstractPlayerAction {
     private boolean shouldWait(MerchantEntity merchant) {
         // 如果村民所在区块没有被加载，可以交易
         ChunkPos chunkPos = merchant.getChunkPos();
-        if (merchant.getWorld().isChunkLoaded(chunkPos.x, chunkPos.z)) {
+        if (FetcherUtils.getWorld(merchant).isChunkLoaded(chunkPos.x, chunkPos.z)) {
             // 检查村民是否存在于任何一个维度，如果不存在，可以交易
             UUID uuid = merchant.getUuid();
-            MinecraftServer server = merchant.getServer();
+            MinecraftServer server = FetcherUtils.getServer(merchant);
             if (server == null) {
                 return true;
             }

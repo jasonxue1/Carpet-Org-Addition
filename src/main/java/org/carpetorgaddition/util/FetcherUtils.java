@@ -1,8 +1,12 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.world.World;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
@@ -11,8 +15,40 @@ import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 public class FetcherUtils {
+    private FetcherUtils() {
+    }
+
+    /**
+     * 获取一名玩家的字符串形式的玩家名
+     *
+     * @param player 要获取字符串形式玩家名的玩家
+     * @return 玩家名的字符串形式
+     */
+    public static String getPlayerName(PlayerEntity player) {
+        return player.getGameProfile().getName();
+    }
+
+    @Contract("_ -> !null")
+    public static MinecraftServer getServer(ServerPlayerEntity player) {
+        return player.getServer();
+    }
+
+    @Nullable
+    public static MinecraftServer getServer(Entity entity) {
+        return entity.getServer();
+    }
+
+    public static ServerWorld getWorld(ServerPlayerEntity player) {
+        return player.getServerWorld();
+    }
+
+    public static World getWorld(Entity entity) {
+        return entity.getWorld();
+    }
+
     /**
      * 获取一名假玩家的动作管理器，永远不会返回null
      *

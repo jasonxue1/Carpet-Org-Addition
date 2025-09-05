@@ -313,7 +313,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inventory, playerEntity) -> {
-            ScreenHandlerContext screenHandlerContext = ScreenHandlerContext.create(player.getWorld(), player.getBlockPos());
+            ScreenHandlerContext screenHandlerContext = ScreenHandlerContext.create(FetcherUtils.getWorld(player), player.getBlockPos());
             return new StonecutterSetRecipeScreenHandler(i, inventory, screenHandlerContext, fakePlayer);
         }, TextBuilder.translate("carpet.commands.playerAction.info.stonecutter.gui"));
         player.openHandledScreen(screen);
@@ -429,7 +429,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         // 打开合成GUI
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, playerInventory, playerEntity)
                 -> new CraftingSetRecipeScreenHandler(i, playerInventory, fakePlayer,
-                ScreenHandlerContext.create(player.getWorld(), player.getBlockPos())),
+                ScreenHandlerContext.create(FetcherUtils.getWorld(player), player.getBlockPos())),
                 TextBuilder.translate("carpet.commands.playerAction.info.craft.gui"));
         player.openHandledScreen(screen);
         return 1;
