@@ -15,6 +15,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.OperationTimeoutException;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.ExperienceTransfer;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -243,8 +244,8 @@ public class XpTransferCommand extends AbstractServerCommand {
             BigInteger point
     ) {
         ServerPlayerEntity player = source.getPlayer();
-        String output = player == outputPlayer ? "自己" : outputPlayer.getName().getString();
-        String input = player == inputPlayer ? "自己" : inputPlayer.getName().getString();
+        String output = player == outputPlayer ? "自己" : FetcherUtils.getPlayerName(outputPlayer);
+        String input = player == inputPlayer ? "自己" : FetcherUtils.getPlayerName(inputPlayer);
         CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getName(), output, point.toString(), input);
     }
 

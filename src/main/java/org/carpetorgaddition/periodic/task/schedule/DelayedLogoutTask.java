@@ -6,9 +6,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.MutableText;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class DelayedLogoutTask extends PlayerScheduleTask {
@@ -50,7 +51,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
 
     @Override
     public String getPlayerName() {
-        return this.fakePlayer.getName().getString();
+        return FetcherUtils.getPlayerName(this.fakePlayer);
     }
 
     @Override

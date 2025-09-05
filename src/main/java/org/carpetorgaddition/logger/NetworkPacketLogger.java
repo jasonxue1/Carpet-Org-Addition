@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.mixin.rule.carpet.LoggerAccessor;
+import org.carpetorgaddition.util.FetcherUtils;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class NetworkPacketLogger extends Logger {
     }
 
     public void sendPacketIfOnline(ServerPlayerEntity player, Supplier<CustomPayload> supplier) {
-        if (this.onlinePlayers.containsKey(player.getName().getString())) {
+        if (this.onlinePlayers.containsKey(FetcherUtils.getPlayerName(player))) {
             ServerPlayNetworking.send(player, supplier.get());
         }
     }

@@ -9,6 +9,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.entry.RegistryEntry;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.EnchantmentUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -31,7 +32,7 @@ public class EnchantmentMixin {
             if (player == null) {
                 return;
             }
-            if (EnchantmentUtils.isSpecified(player.getWorld(), Enchantments.KNOCKBACK, thisEnchantment)) {
+            if (EnchantmentUtils.isSpecified(FetcherUtils.getWorld(player), Enchantments.KNOCKBACK, thisEnchantment)) {
                 cir.setReturnValue(true);
             }
         }

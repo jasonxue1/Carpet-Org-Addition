@@ -90,7 +90,7 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否需要继续循环
      */
     private boolean plantingCrops(ItemStack itemStack, BlockPos blockPos) {
-        World world = this.getFakePlayer().getWorld();
+        World world = FetcherUtils.getWorld(this.getFakePlayer());
         if (!world.getBlockState(blockPos).isOf(Blocks.FARMLAND)) {
             return true;
         }
@@ -140,18 +140,18 @@ public class PlantAction extends AbstractPlayerAction {
 
     // 种植竹子
     private boolean plantingBamboo(BlockPos plantablePos) {
-        World world = this.getFakePlayer().getWorld();
+        World world = FetcherUtils.getWorld(this.getFakePlayer());
         // 是否可以种植竹子
         if (!world.getBlockState(plantablePos).isIn(BlockTags.BAMBOO_PLANTABLE_ON)
-                // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉
-                || world.getBlockState(plantablePos).isOf(Blocks.BAMBOO)
-                || world.getBlockState(plantablePos).isOf(Blocks.BAMBOO_SAPLING)) {
+            // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉
+            || world.getBlockState(plantablePos).isOf(Blocks.BAMBOO)
+            || world.getBlockState(plantablePos).isOf(Blocks.BAMBOO_SAPLING)) {
             return true;
         }
         // 排除埋在地下的可种植方块
         if (!world.getBlockState(plantablePos.up()).isAir()
-                && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO)
-                && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO_SAPLING)) {
+            && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO)
+            && !world.getBlockState(plantablePos.up()).isOf(Blocks.BAMBOO_SAPLING)) {
             return true;
         }
         BlockPos bambooPos = plantablePos.up();
@@ -233,8 +233,8 @@ public class PlantAction extends AbstractPlayerAction {
         if (FakePlayerUtils.replenishment(this.getFakePlayer(), predicate)) {
             ItemStack itemStack = this.getFakePlayer().getMainHandStack();
             if (itemStack.getCount() > 1
-                    || this.getFakePlayer().isCreative()
-                    || replenishment(this.getFakePlayer().getInventory().selectedSlot + 36, predicate)) {
+                || this.getFakePlayer().isCreative()
+                || replenishment(this.getFakePlayer().getInventory().selectedSlot + 36, predicate)) {
                 // 如果手上有多余一个的骨粉，就使用骨粉
                 Vec3d centerPos = upPos.toCenterPos();
                 // 让假玩家看向该位置（这不是必须的）
@@ -342,11 +342,11 @@ public class PlantAction extends AbstractPlayerAction {
                 return NONE;
             }
             if ((itemStack.isOf(Items.WHEAT_SEEDS)
-                    || itemStack.isOf(Items.POTATO)
-                    || itemStack.isOf(Items.CARROT)
-                    || itemStack.isOf(Items.BEETROOT_SEEDS)
-                    || itemStack.isOf(Items.TORCHFLOWER_SEEDS)
-                    || itemStack.isOf(Items.PITCHER_POD))) {
+                 || itemStack.isOf(Items.POTATO)
+                 || itemStack.isOf(Items.CARROT)
+                 || itemStack.isOf(Items.BEETROOT_SEEDS)
+                 || itemStack.isOf(Items.TORCHFLOWER_SEEDS)
+                 || itemStack.isOf(Items.PITCHER_POD))) {
                 return CROPS;
             }
             if (itemStack.isOf(Items.BAMBOO)) {
