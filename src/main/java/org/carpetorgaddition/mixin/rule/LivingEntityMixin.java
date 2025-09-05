@@ -7,6 +7,8 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.DeathProtectionComponent;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -15,6 +17,7 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.Pair;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.BetterTotemOfUndying;
@@ -49,7 +52,7 @@ public abstract class LivingEntityMixin {
     }
 
     // 不死图腾无敌时间
-    @Inject(method = "tryUseTotem", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;)Z", ordinal = 0))
+    @Inject(method = "tryUseDeathProtector", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;sendEntityStatus(Lnet/minecraft/entity/Entity;B)V"))
     private void setInvincibleTime(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.get()) {
             this.self.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
@@ -60,8 +63,8 @@ public abstract class LivingEntityMixin {
     @SuppressWarnings("LocalMayBeArgsOnly")
     @Definition(id = "itemStack", local = @Local(type = ItemStack.class, ordinal = 0))
     @Expression("itemStack != null")
-    @ModifyExpressionValue(method = "tryUseTotem", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private boolean tryUseTotem(boolean original, @Local(ordinal = 0) LocalRef<ItemStack> ref) {
+    @ModifyExpressionValue(method = "tryUseDeathProtector", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private boolean tryUseTotem(boolean original, @Local(ordinal = 0) LocalRef<ItemStack> stackRef, @Local LocalRef<DeathProtectionComponent> componentRef) {
         if (original) {
             return true;
         }
@@ -69,11 +72,12 @@ public abstract class LivingEntityMixin {
             return false;
         }
         if (this.self instanceof PlayerEntity player) {
-            ItemStack itemStack = pickTotem(player);
-            if (itemStack == null || itemStack.isEmpty()) {
+            Pair<ItemStack, DeathProtectionComponent> pair = pickTotem(player);
+            if (pair == null || pair.getLeft().isEmpty()) {
                 return false;
             }
-            ref.set(itemStack);
+            stackRef.set(pair.getLeft());
+            componentRef.set(pair.getRight());
             return true;
         }
         return false;
