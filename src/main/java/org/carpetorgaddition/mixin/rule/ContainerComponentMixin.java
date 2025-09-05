@@ -3,6 +3,7 @@ package org.carpetorgaddition.mixin.rule;
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
+import org.carpetorgaddition.mixin.accessor.ContainerComponentAccessor;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;

@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.rule;
+package org.carpetorgaddition.mixin.accessor;
 
 import net.minecraft.screen.MerchantScreenHandler;
 import net.minecraft.village.Merchant;
