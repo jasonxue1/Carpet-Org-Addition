@@ -51,7 +51,7 @@ public abstract class ServerPlayerEntityMixin {
         }
         // 自动同步玩家状态
         if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && FetcherUtils.getWorld(thisPlayer).getTime() % 30 == 0) {
-            thisPlayer.server.getPlayerManager().sendPlayerStatus(thisPlayer);
+            FetcherUtils.getServer(thisPlayer).getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);
             BlockIterator blockIterator = new BlockIterator(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));

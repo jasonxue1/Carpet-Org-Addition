@@ -173,7 +173,7 @@ public class ExpressManager {
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            PlayerManager playerManager = player.server.getPlayerManager();
+            PlayerManager playerManager = FetcherUtils.getServer(player).getPlayerManager();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
                 MutableText message = getReceiveNotice(player, entry.getValue());
@@ -226,7 +226,7 @@ public class ExpressManager {
             builder.setGrayItalic();
             Text message = builder.build();
             for (String name : players) {
-                PlayerManager playerManager = player.server.getPlayerManager();
+                PlayerManager playerManager = FetcherUtils.getServer(player).getPlayerManager();
                 ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
                 if (receivePlayer == null) {
                     continue;
