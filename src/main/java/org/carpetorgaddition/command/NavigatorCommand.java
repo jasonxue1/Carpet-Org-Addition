@@ -180,7 +180,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         MutableText spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(Objects.requireNonNull(player.getSpawnPointPosition()),
-                    player.server.getWorld(Objects.requireNonNull(player.getSpawnPointDimension())), spawnPoint);
+                    FetcherUtils.getServer(player).getWorld(Objects.requireNonNull(player.getSpawnPointDimension())), spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);
         }
