@@ -5,11 +5,11 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
-    "accessor.HorseScreenHandlerAccessor",
     "accessor.ContainerComponentAccessor",
     "accessor.ExperienceOrbEntityAccessor",
     "accessor.FishingBobberEntityAccessor",
     "accessor.HandledScreenAccessor",
+    "accessor.HorseScreenHandlerAccessor",
     "accessor.MerchantScreenHandlerAccessor",
     "accessor.PlayerEntityAccessor",
     "accessor.PlayerManagerAccessor",
