@@ -12,6 +12,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -32,8 +33,8 @@ public abstract class ServerPlayerEntityMixin {
     @Inject(method = "onDeath", at = @At("TAIL"))
     private void dropHead(DamageSource damageSource, CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.playerDropHead.get()
-                && damageSource.getAttacker() instanceof CreeperEntity creeperEntity
-                && creeperEntity.shouldDropHead()) {
+            && damageSource.getAttacker() instanceof CreeperEntity creeperEntity
+            && creeperEntity.shouldDropHead()) {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
             itemStack.set(DataComponentTypes.PROFILE, new ProfileComponent(thisPlayer.getGameProfile()));
             creeperEntity.onHeadDropped();
@@ -49,7 +50,7 @@ public abstract class ServerPlayerEntityMixin {
             restock(inventory);
         }
         // 自动同步玩家状态
-        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && thisPlayer.getWorld().getTime() % 30 == 0) {
+        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && FetcherUtils.getWorld(thisPlayer).getTime() % 30 == 0) {
             thisPlayer.server.getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);

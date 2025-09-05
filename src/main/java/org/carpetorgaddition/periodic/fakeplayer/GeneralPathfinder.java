@@ -22,6 +22,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.FakePlayerPathS2CPacket;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -129,7 +130,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             Direction direction = fakePlayer.getMovementDirection();
             BlockPos down = fakePlayer.getBlockPos().down();
-            World world = fakePlayer.getWorld();
+            World world = FetcherUtils.getWorld(fakePlayer);
             BlockState blockState = world.getBlockState(down);
             if (blockState.isAir() || blockState.isSideSolidFullSquare(world, down, Direction.UP)) {
                 BlockPos offset = down.offset(direction);
@@ -202,7 +203,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         BlockPos blockPos = fakePlayer.getBlockPos();
         BlockPos from = blockPos.add(-FOLLOW_RANGE, -FOLLOW_RANGE, -FOLLOW_RANGE);
         BlockPos to = blockPos.add(FOLLOW_RANGE, FOLLOW_RANGE, FOLLOW_RANGE);
-        World world = fakePlayer.getWorld();
+        World world = FetcherUtils.getWorld(fakePlayer);
         ChunkCache chunkCache = new ChunkCache(world, from, to);
         LandPathNodeMaker maker = new LandPathNodeMaker();
         Vec3d pos = fakePlayer.getPos();

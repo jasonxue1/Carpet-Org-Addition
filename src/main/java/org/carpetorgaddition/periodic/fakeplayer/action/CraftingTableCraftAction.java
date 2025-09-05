@@ -11,6 +11,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -130,8 +131,8 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             } else {
                 if (successCount > 9) {
                     // 找到正确合成材料的次数不应该大于合成槽位数量，如果超过了说明前面的操作出了问题，抛出异常结束方法
-                    throw new IllegalStateException(this.getFakePlayer().getName().getString() + "找到正确合成材料的次数为"
-                            + successCount + "，正常不应该超过9");
+                    throw new IllegalStateException(FetcherUtils.getPlayerName(this.getFakePlayer()) + "找到正确合成材料的次数为"
+                                                    + successCount + "，正常不应该超过9");
                 }
                 // 遍历完物品栏后，如果找到正确合成材料小于9，认为玩家身上没有足够的合成材料了，直接结束方法
                 return;

@@ -21,6 +21,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -164,7 +165,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     private int navigateToBlock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "blockPos");
-        World world = player.getWorld();
+        World world = FetcherUtils.getWorld(player);
         // 设置导航器，维度为玩家当前所在维度
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈

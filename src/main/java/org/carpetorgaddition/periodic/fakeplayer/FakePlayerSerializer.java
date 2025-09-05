@@ -100,11 +100,11 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     private final File file;
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
-        this.fakePlayerName = fakePlayer.getName().getString();
+        this.fakePlayerName = FetcherUtils.getPlayerName(fakePlayer);
         this.playerPos = fakePlayer.getPos();
         this.yaw = fakePlayer.getYaw();
         this.pitch = fakePlayer.getPitch();
-        this.dimension = WorldUtils.getDimensionId(fakePlayer.getWorld());
+        this.dimension = WorldUtils.getDimensionId(FetcherUtils.getWorld(fakePlayer));
         this.gameMode = fakePlayer.interactionManager.getGameMode();
         this.flying = fakePlayer.getAbilities().flying;
         this.sneaking = fakePlayer.isSneaking();

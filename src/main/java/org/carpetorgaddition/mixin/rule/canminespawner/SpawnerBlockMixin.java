@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -49,7 +50,7 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (!world.isClient && blockEntity instanceof MobSpawnerBlockEntity) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
-                NbtCompound nbtCompound = blockEntity.createComponentlessNbtWithIdentifyingData(player.getWorld().getRegistryManager());
+                NbtCompound nbtCompound = blockEntity.createComponentlessNbtWithIdentifyingData(FetcherUtils.getWorld(player).getRegistryManager());
                 BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), nbtCompound);
                 itemStack.applyComponentsFrom(blockEntity.getComponents());
                 if (tryCollect(itemStack)) {
