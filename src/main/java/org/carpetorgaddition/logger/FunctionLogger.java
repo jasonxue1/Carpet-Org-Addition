@@ -3,6 +3,7 @@ package org.carpetorgaddition.logger;
 import carpet.logging.Logger;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.mixin.rule.carpet.LoggerAccessor;
+import org.carpetorgaddition.util.FetcherUtils;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -15,6 +16,6 @@ public class FunctionLogger extends Logger {
     }
 
     public boolean isSubscribed(ServerPlayerEntity player) {
-        return this.onlinePlayers.containsKey(player.getName().getString());
+        return this.onlinePlayers.containsKey(FetcherUtils.getPlayerName(player));
     }
 }

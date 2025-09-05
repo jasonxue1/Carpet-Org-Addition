@@ -6,12 +6,13 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.Waypoint;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class WaypointNavigator extends AbstractNavigator {
@@ -40,7 +41,7 @@ public class WaypointNavigator extends AbstractNavigator {
             this.clear();
             return;
         }
-        World playerWorld = this.player.getWorld();
+        World playerWorld = FetcherUtils.getWorld(this.player);
         // 路径点的目标位置
         BlockPos targetPos = this.waypoint.getBlockPos();
         // 玩家所在的方块位置
@@ -63,7 +64,7 @@ public class WaypointNavigator extends AbstractNavigator {
                 targetPos = anotherPos;
             } else {
                 // 玩家和路径点在不同维度
-                Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(this.player.getServer(), this.waypoint.getWorldAsString()));
+                Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
                 MutableText in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(targetPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
@@ -76,7 +77,7 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @Override
     public boolean shouldTerminate() {
-        if (this.player.getWorld() == this.world && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
+        if (FetcherUtils.getWorld(this.player) == this.world && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();

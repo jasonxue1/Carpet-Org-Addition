@@ -22,10 +22,7 @@ import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.MailCommand;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.util.WorldUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
@@ -71,8 +68,8 @@ public class Express implements Comparable<Express> {
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, int id) throws CommandSyntaxException {
         this.server = server;
-        this.sender = sender.getName().getString();
-        this.recipient = recipient.getName().getString();
+        this.sender = FetcherUtils.getPlayerName(sender);
+        this.recipient = FetcherUtils.getPlayerName(recipient);
         ItemStack mainHandStack = sender.getMainHandStack();
         if (mainHandStack.isEmpty()) {
             ItemStack offHandStack = sender.getOffHandStack();
@@ -90,8 +87,8 @@ public class Express implements Comparable<Express> {
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, ItemStack itemStack, int id) {
         this.server = server;
-        this.sender = sender.getName().getString();
-        this.recipient = recipient.getName().getString();
+        this.sender = FetcherUtils.getPlayerName(sender);
+        this.recipient = FetcherUtils.getPlayerName(recipient);
         this.express = itemStack;
         this.id = id;
         this.time = LocalDateTime.now();
@@ -470,14 +467,14 @@ public class Express implements Comparable<Express> {
      * @return 指定玩家是否是当前快递的发送者
      */
     public boolean isSender(ServerPlayerEntity player) {
-        return Objects.equals(this.sender, player.getName().getString());
+        return Objects.equals(this.sender, FetcherUtils.getPlayerName(player));
     }
 
     /**
      * @return 指定玩家是否是当前快递的接收者
      */
     public boolean isRecipient(ServerPlayerEntity player) {
-        return Objects.equals(this.recipient, player.getName().getString());
+        return Objects.equals(this.recipient, FetcherUtils.getPlayerName(player));
     }
 
     /**

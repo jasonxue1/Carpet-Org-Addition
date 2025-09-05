@@ -24,7 +24,7 @@ public class FakePlayerActionManager {
             // 将错误信息写入日志
             CarpetOrgAddition.LOGGER.error(
                     "{}在执行“{}”时遇到意外错误:",
-                    this.fakePlayer.getName().getString(),
+                    FetcherUtils.getPlayerName(this.fakePlayer),
                     this.getAction().getClass().getSimpleName(),
                     e
             );
