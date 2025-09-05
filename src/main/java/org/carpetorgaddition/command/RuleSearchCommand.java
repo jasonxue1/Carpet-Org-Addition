@@ -13,7 +13,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.mixin.rule.carpet.SettingsManagerAccessor;
+import org.carpetorgaddition.mixin.accessor.carpet.SettingsManagerAccessor;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;

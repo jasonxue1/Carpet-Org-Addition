@@ -2,7 +2,7 @@ package org.carpetorgaddition.logger;
 
 import carpet.logging.Logger;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.carpetorgaddition.mixin.rule.carpet.LoggerAccessor;
+import org.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
 
 import java.lang.reflect.Field;
