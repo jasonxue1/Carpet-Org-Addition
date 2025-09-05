@@ -54,8 +54,6 @@
     "rule.KillCommandMixin",
     "rule.LivingEntityMixin",
     "rule.MerchantEntityMixin",
-    "rule.MerchantScreenHandlerAccessor",
-    "rule.NetworkThreadUtilsMixin",
     "rule.ObserverBlockMixin",
     "rule.PacketApplyBatcherMixin",
     "rule.PhantomSpawnerMixin",
