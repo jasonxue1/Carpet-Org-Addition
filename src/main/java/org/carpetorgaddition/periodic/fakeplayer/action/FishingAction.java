@@ -10,7 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.MutableText;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.carpetorgaddition.mixin.command.FishingBobberEntityAccessor;
+import org.carpetorgaddition.mixin.accessor.FishingBobberEntityAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
