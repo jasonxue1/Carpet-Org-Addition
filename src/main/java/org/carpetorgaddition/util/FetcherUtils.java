@@ -28,25 +28,25 @@ public class FetcherUtils {
      * @return 玩家名的字符串形式
      */
     public static String getPlayerName(PlayerEntity player) {
-        return player.getGameProfile().getName();
+        return player.getGameProfile().name();
     }
 
     @Contract("_ -> !null")
     public static MinecraftServer getServer(ServerPlayerEntity player) {
-        return player.getServer();
+        return getWorld(player).getServer();
     }
 
     @Nullable
     public static MinecraftServer getServer(Entity entity) {
-        return entity.getServer();
+        return getWorld(entity).getServer();
     }
 
     public static ServerWorld getWorld(ServerPlayerEntity player) {
-        return player.getWorld();
+        return player.getEntityWorld();
     }
 
     public static World getWorld(Entity entity) {
-        return entity.getWorld();
+        return entity.getEntityWorld();
     }
 
     /**
@@ -69,7 +69,7 @@ public class FetcherUtils {
     }
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
-        return getRuleSelfManager(GenericUtils.getServer(player));
+        return getRuleSelfManager(getServer(player));
     }
 
     public static PageManager getPageManager(MinecraftServer server) {

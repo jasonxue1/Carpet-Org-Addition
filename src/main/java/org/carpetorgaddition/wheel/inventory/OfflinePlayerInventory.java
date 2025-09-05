@@ -222,7 +222,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
                 // 译：{}打开了离线玩家{}的物品栏
                 CarpetOrgAddition.LOGGER.info(
                         "{} opened the inventory of the offline player {}.",
-                        GenericUtils.getPlayerName(player),
+                        FetcherUtils.getPlayerName(player),
                         this.profile.name
                 );
             }
