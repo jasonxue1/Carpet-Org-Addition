@@ -30,7 +30,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
 
@@ -213,7 +213,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     @Override
     public void onOpen(PlayerEntity player) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = FetcherUtils.getServer(player);
         if (server == null) {
             return;
         }
@@ -223,7 +223,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             // 译：{}打开了离线玩家{}的物品栏
             CarpetOrgAddition.LOGGER.info(
                     "{} opened the inventory of the offline player {}.",
-                    GenericUtils.getPlayerName(player),
+                    FetcherUtils.getPlayerName(player),
                     this.profile.name
             );
         }
@@ -233,7 +233,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     public void onClose(PlayerEntity player) {
         try {
             // 保存玩家数据
-            MinecraftServer server = player.getServer();
+            MinecraftServer server = FetcherUtils.getServer(player);
             if (server != null) {
                 PlayerManager playerManager = server.getPlayerManager();
                 PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;
