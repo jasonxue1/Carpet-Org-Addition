@@ -17,6 +17,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
+import org.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
