@@ -5,10 +5,11 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class HasNamePosNavigator extends BlockPosNavigator {
@@ -28,7 +29,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
         MutableText text;
         MutableText posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
-        if (this.player.getWorld().equals(this.world)) {
+        if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {

@@ -12,6 +12,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -38,7 +39,7 @@ public class GotoAction extends AbstractPlayerAction {
 
     public GotoAction(@NotNull EntityPlayerMPFake fakePlayer, Entity entity) {
         super(fakePlayer);
-        this.target = new EntityTracker(this::getFakePlayer, entity.getWorld(), entity);
+        this.target = new EntityTracker(this::getFakePlayer, FetcherUtils.getWorld(entity), entity);
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this.target);
         this.targetType = TargetType.ENTITY;
         this.displayName = entity.getDisplayName();
@@ -167,7 +168,7 @@ public class GotoAction extends AbstractPlayerAction {
             }
             this.lastUpdateTime = time;
             this.target = this.entity.getBlockPos();
-            MinecraftServer server = GenericUtils.getServer(fakePlayer);
+            MinecraftServer server = FetcherUtils.getServer(fakePlayer);
             // 实体已被删除
             if (this.entity.isRemoved()) {
                 switch (this.entity) {
@@ -210,7 +211,7 @@ public class GotoAction extends AbstractPlayerAction {
                     }
                 }
             }
-            if (fakePlayer.getWorld() == this.getWorld()) {
+            if (FetcherUtils.getWorld(fakePlayer) == this.getWorld()) {
                 return Optional.of(this.target);
             }
             // 玩家与目标实体不在同一维度
@@ -222,7 +223,7 @@ public class GotoAction extends AbstractPlayerAction {
         }
 
         private World getWorld() {
-            return this.entity.getWorld();
+            return FetcherUtils.getWorld(this.entity);
         }
     }
 }

@@ -211,7 +211,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 获取玩家物品栏
     protected Inventory getInventory(NbtCompound nbt) {
-        return SimulatePlayerInventory.of(nbt, this.player.getWorld().getServer());
+        return SimulatePlayerInventory.of(nbt, FetcherUtils.getServer(this.player));
     }
 
     // 发送命令反馈

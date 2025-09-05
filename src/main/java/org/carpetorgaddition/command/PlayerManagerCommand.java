@@ -346,7 +346,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             List<String> onlineList = server.getPlayerManager()
                     .getPlayerList()
                     .stream()
-                    .map(player -> player.getName().getString())
+                    .map(FetcherUtils::getPlayerName)
                     .toList();
             HashSet<String> players = new HashSet<>();
             players.addAll(taskList);
@@ -445,7 +445,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 保存或删除安全挂机阈值
     private void saveSafeAfkThreshold(CommandContext<ServerCommandSource> context, float threshold, EntityPlayerMPFake fakePlayer) throws IOException {
-        String playerName = fakePlayer.getName().getString();
+        String playerName = FetcherUtils.getPlayerName(fakePlayer);
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), null);
         File file = worldFormat.file(SAFEAFK_PROPERTIES);
         // 文件存在或者文件成功创建
@@ -493,7 +493,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 try {
                     // 设置安全挂机阈值
                     FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) player;
-                    String value = properties.getProperty(player.getName().getString());
+                    String value = properties.getProperty(FetcherUtils.getPlayerName(player));
                     if (value == null) {
                         return;
                     }
@@ -505,7 +505,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     builder.setGrayItalic();
                     MessageUtils.broadcastMessage(player.getWorld().getServer(), builder.build());
                 } catch (NumberFormatException e) {
-                    CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", player.getName().getString(), e);
+                    CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", FetcherUtils.getPlayerName(player), e);
                 }
             }
         }
@@ -610,7 +610,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
         // 玩家数据是否已存在
-        String name = fakePlayer.getName().getString();
+        String name = FetcherUtils.getPlayerName(fakePlayer);
         Optional<FakePlayerSerializer> optional = manager.get(name);
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
@@ -634,7 +634,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 修改玩家数据
     private int modifyPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        String name = fakePlayer.getName().getString();
+        String name = FetcherUtils.getPlayerName(fakePlayer);
         FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
         FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer, oldSerializer);
