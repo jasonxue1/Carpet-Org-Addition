@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.rule;
+package org.carpetorgaddition.mixin.accessor;
 
 import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.item.ItemStack;

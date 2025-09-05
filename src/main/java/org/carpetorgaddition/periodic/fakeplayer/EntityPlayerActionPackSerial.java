@@ -7,10 +7,9 @@ import carpet.helpers.EntityPlayerActionPack.ActionType;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
-import org.carpetorgaddition.mixin.rule.entityplayeractionpack.ActionAccessor;
-import org.carpetorgaddition.mixin.rule.entityplayeractionpack.EntityPlayerActionPackAccessor;
-import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -88,7 +87,7 @@ public class EntityPlayerActionPackSerial {
         Action attack = this.actionMap.get(ActionType.ATTACK);
         if (attack != null) {
             list.add(TextBuilder.translate("carpet.commands.playerManager.info.left_click"));
-            if (((ActionAccessor) attack).isContinuous()) {
+            if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
                 // 左键长按
                 list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
             } else {
@@ -100,7 +99,7 @@ public class EntityPlayerActionPackSerial {
         Action use = this.actionMap.get(ActionType.USE);
         if (use != null) {
             list.add(TextBuilder.translate("carpet.commands.playerManager.info.right_click"));
-            if (((ActionAccessor) use).isContinuous()) {
+            if (((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous()) {
                 // 右键长按
                 list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
             } else {
@@ -118,7 +117,7 @@ public class EntityPlayerActionPackSerial {
         if (attack != null && !attack.done) {
             JsonObject attackJson = new JsonObject();
             attackJson.addProperty("interval", attack.interval);
-            attackJson.addProperty("continuous", ((ActionAccessor) attack).isContinuous());
+            attackJson.addProperty("continuous", ((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous());
             json.add("attack", attackJson);
         }
         // 右键动作
@@ -126,7 +125,7 @@ public class EntityPlayerActionPackSerial {
         if (use != null && !use.done) {
             JsonObject useJson = new JsonObject();
             useJson.addProperty("interval", use.interval);
-            useJson.addProperty("continuous", ((ActionAccessor) use).isContinuous());
+            useJson.addProperty("continuous", ((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous());
             json.add("use", useJson);
         }
         return json;
