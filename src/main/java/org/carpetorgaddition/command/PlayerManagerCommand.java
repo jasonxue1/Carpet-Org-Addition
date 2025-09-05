@@ -476,7 +476,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      */
     public static void loadSafeAfk(ServerPlayerEntity player) {
         if (player instanceof EntityPlayerMPFake) {
-            WorldFormat worldFormat = new WorldFormat(player.server, null);
+            WorldFormat worldFormat = new WorldFormat(FetcherUtils.getServer(player), null);
             File file = worldFormat.file(SAFEAFK_PROPERTIES);
             // 文件必须存在
             if (file.isFile()) {
@@ -503,7 +503,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
                     TextBuilder builder = TextBuilder.of(key, player.getDisplayName(), threshold);
                     builder.setGrayItalic();
-                    MessageUtils.broadcastMessage(player.server, builder.build());
+                    MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
                     CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", FetcherUtils.getPlayerName(player), e);
                 }

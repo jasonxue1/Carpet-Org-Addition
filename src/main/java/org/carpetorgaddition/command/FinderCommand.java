@@ -18,6 +18,7 @@ import net.minecraft.command.argument.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -173,11 +174,12 @@ public class FinderCommand extends AbstractServerCommand {
     // 从离线玩家身上查找物品
     private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest, boolean showUnknown) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        File[] files = player.server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
+        MinecraftServer server = FetcherUtils.getServer(player);
+        File[] files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        UserCache userCache = player.server.getUserCache();
+        UserCache userCache = server.getUserCache();
         if (userCache == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }
