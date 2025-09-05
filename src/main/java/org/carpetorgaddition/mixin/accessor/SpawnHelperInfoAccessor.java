@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.rule;
+package org.carpetorgaddition.mixin.accessor;
 
 import net.minecraft.entity.SpawnGroup;
 import net.minecraft.util.math.ChunkPos;

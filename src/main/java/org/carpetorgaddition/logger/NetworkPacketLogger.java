@@ -4,7 +4,7 @@ import carpet.logging.Logger;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.packet.CustomPayload;
 import net.minecraft.server.network.ServerPlayerEntity;
-import org.carpetorgaddition.mixin.rule.carpet.LoggerAccessor;
+import org.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
 
 import java.lang.reflect.Field;

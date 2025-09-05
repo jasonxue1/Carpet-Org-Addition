@@ -17,7 +17,7 @@ import net.minecraft.village.TradeOffer;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
-import org.carpetorgaddition.mixin.rule.MerchantScreenHandlerAccessor;
+import org.carpetorgaddition.mixin.accessor.MerchantScreenHandlerAccessor;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;

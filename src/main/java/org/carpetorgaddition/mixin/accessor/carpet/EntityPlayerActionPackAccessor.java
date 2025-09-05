@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.rule.entityplayeractionpack;
+package org.carpetorgaddition.mixin.accessor.carpet;
 
 import carpet.helpers.EntityPlayerActionPack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,4 +10,10 @@ import java.util.Map;
 public interface EntityPlayerActionPackAccessor {
     @Accessor(remap = false)
     Map<EntityPlayerActionPack.ActionType, EntityPlayerActionPack.Action> getActions();
+
+    @Mixin(EntityPlayerActionPack.Action.class)
+    interface ActionAccessor {
+        @Accessor(value = "isContinuous", remap = false)
+        boolean isContinuous();
+    }
 }
