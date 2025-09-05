@@ -18,7 +18,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerEnderChestInventory;
@@ -83,7 +83,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOfflinePlayerInventory(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
+        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
             if (gameProfile == null) {
                 throw createNoFileFoundException();
@@ -105,7 +105,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOnlinePlayerInventory(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
+        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
                 (syncId, inventory, player) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
@@ -149,7 +149,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOfflinePlayerEnderChest(ServerPlayerEntity sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
+        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
             OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
             SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
@@ -164,7 +164,7 @@ public class PlayerCommandExtension {
     }
 
     public static void openOnlinePlayerEnderChest(ServerPlayerEntity sourcePlayer, ServerPlayerEntity argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = GenericUtils.getServer(sourcePlayer);
+        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         // 创建GUI对象
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory(
@@ -182,10 +182,10 @@ public class PlayerCommandExtension {
         // 断言指定玩家为假玩家
         CommandUtils.assertFakePlayer(fakePlayer);
         // 在假玩家位置播放潜影贝传送音效
-        fakePlayer.getWorld().playSound(null, fakePlayer.prevX, fakePlayer.prevY, fakePlayer.prevZ,
+        FetcherUtils.getWorld(fakePlayer).playSound(null, fakePlayer.prevX, fakePlayer.prevY, fakePlayer.prevZ,
                 SoundEvents.ENTITY_SHULKER_TELEPORT, fakePlayer.getSoundCategory(), 1.0f, 1.0f);
         // 传送玩家
-        fakePlayer.teleport(player.getServerWorld(), player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
+        fakePlayer.teleport(FetcherUtils.getWorld(player), player.getX(), player.getY(), player.getZ(), player.getYaw(), player.getPitch());
         // 获取假玩家名和命令执行玩家名
         Text fakePlayerName = fakePlayer.getDisplayName();
         Text playerName = player.getDisplayName();

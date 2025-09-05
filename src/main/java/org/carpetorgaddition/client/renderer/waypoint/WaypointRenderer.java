@@ -18,6 +18,7 @@ import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -55,8 +56,8 @@ public class WaypointRenderer implements WorldRenderer {
     @Override
     public void render(WorldRenderContext renderContext) {
         if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
-                && MinecraftClient.getInstance().currentScreen == null
-                && this.renderType == WaypointRendererType.HIGHLIGHT) {
+            && MinecraftClient.getInstance().currentScreen == null
+            && this.renderType == WaypointRendererType.HIGHLIGHT) {
             this.setFade();
         }
         MatrixStack matrixStack = renderContext.matrixStack();
@@ -89,7 +90,7 @@ public class WaypointRenderer implements WorldRenderer {
             return null;
         }
         // 获取玩家所在维度ID
-        String playerWorldId = WorldUtils.getDimensionId(player.getWorld());
+        String playerWorldId = WorldUtils.getDimensionId(FetcherUtils.getWorld(player));
         // 玩家和路径点在同一维度
         if (WorldUtils.equalsWorld(this.worldId, playerWorldId)) {
             return this.target;

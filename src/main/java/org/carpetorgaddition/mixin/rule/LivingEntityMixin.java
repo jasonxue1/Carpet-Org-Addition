@@ -1,9 +1,12 @@
 package org.carpetorgaddition.mixin.rule;
 
+import com.llamalad7.mixinextras.expression.Definition;
+import com.llamalad7.mixinextras.expression.Expression;
+import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.advancement.criterion.Criteria;
-import net.minecraft.entity.EntityStatuses;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -12,10 +15,6 @@ import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.BetterTotemOfUndying;
@@ -33,11 +32,14 @@ import java.util.Map;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
+    @Unique
+    private final LivingEntity self = (LivingEntity) (Object) this;
+
     @Shadow
     @Nullable
     protected abstract Map<EquipmentSlot, ItemStack> getEquipmentChanges();
 
-    //禁用伤害免疫
+    // 禁用伤害免疫
     @WrapOperation(method = "damage", at = @At(value = "FIELD", target = "Lnet/minecraft/entity/LivingEntity;timeUntilRegen:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
         if (CarpetOrgAdditionSettings.disableDamageImmunity.get()) {
@@ -47,53 +49,34 @@ public abstract class LivingEntityMixin {
     }
 
     // 不死图腾无敌时间
-    @WrapOperation(method = "damage", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;tryUseTotem(Lnet/minecraft/entity/damage/DamageSource;)Z"))
-    private boolean setInvincibleTime(LivingEntity instance, DamageSource source, Operation<Boolean> original) {
-        boolean call = original.call(instance, source);
-        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.get() && call) {
-            instance.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
+    @Inject(method = "tryUseTotem", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/LivingEntity;addStatusEffect(Lnet/minecraft/entity/effect/StatusEffectInstance;)Z", ordinal = 0))
+    private void setInvincibleTime(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
+        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.get()) {
+            this.self.addStatusEffect(new StatusEffectInstance(StatusEffects.RESISTANCE, 40, 4));
         }
-        return call;
     }
 
     // 增强不死图腾
-    @Inject(method = "tryUseTotem", at = @At("HEAD"), cancellable = true)
-    private void tryUseTotem(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
-        // 在一开始就对规则是否开启进行判断，这样当其他Mod也修改了此段代码时，就可以通过关闭改规则来保障其他Mod的正常运行
+    @SuppressWarnings("LocalMayBeArgsOnly")
+    @Definition(id = "itemStack", local = @Local(type = ItemStack.class, ordinal = 0))
+    @Expression("itemStack != null")
+    @ModifyExpressionValue(method = "tryUseTotem", at = @At("MIXINEXTRAS:EXPRESSION"))
+    private boolean tryUseTotem(boolean original, @Local(ordinal = 0) LocalRef<ItemStack> ref) {
+        if (original) {
+            return true;
+        }
         if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.VANILLA) {
-            return;
+            return false;
         }
-        LivingEntity thisLivingEntity = (LivingEntity) (Object) this;
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            cir.setReturnValue(false);
-            return;
-        }
-        ItemStack itemStack = null;
-        // 原版：从手上获取物品
-        for (Hand hand : Hand.values()) {
-            ItemStack itemStack2 = thisLivingEntity.getStackInHand(hand);
-            if (!itemStack2.isOf(Items.TOTEM_OF_UNDYING)) continue;
-            itemStack = itemStack2.copy();
-            itemStack2.decrement(1);
-            break;
-        }
-        // 从玩家物品栏寻找不死图腾
-        if (itemStack == null && thisLivingEntity instanceof PlayerEntity playerEntity) {
-            itemStack = pickTotem(playerEntity);
-        }
-        if (itemStack != null) {
-            if (thisLivingEntity instanceof ServerPlayerEntity serverPlayerEntity) {
-                serverPlayerEntity.incrementStat(Stats.USED.getOrCreateStat(Items.TOTEM_OF_UNDYING));
-                Criteria.USED_TOTEM.trigger(serverPlayerEntity, itemStack);
+        if (this.self instanceof PlayerEntity player) {
+            ItemStack itemStack = pickTotem(player);
+            if (itemStack == null || itemStack.isEmpty()) {
+                return false;
             }
-            thisLivingEntity.setHealth(1.0f);
-            thisLivingEntity.clearStatusEffects();
-            thisLivingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.REGENERATION, 900, 1));
-            thisLivingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.ABSORPTION, 100, 1));
-            thisLivingEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.FIRE_RESISTANCE, 800, 0));
-            thisLivingEntity.getWorld().sendEntityStatus(thisLivingEntity, EntityStatuses.USE_TOTEM_OF_UNDYING);
+            ref.set(itemStack);
+            return true;
         }
-        cir.setReturnValue(itemStack != null);
+        return false;
     }
 
     @Unique
@@ -101,7 +84,6 @@ public abstract class LivingEntityMixin {
     // 从物品栏获取不死图腾
     private static ItemStack pickTotem(PlayerEntity playerEntity) {
         DefaultedList<ItemStack> mainInventory = playerEntity.getInventory().main;
-        // 从物品栏获取物品，在Inject方法的一开始就判断了规则值是否为false，所以在这里不需要再次判断
         // 无论规则值是true还是shulker_box，都需要从物品栏获取物品
         for (ItemStack totemOfUndying : mainInventory) {
             if (totemOfUndying.isOf(Items.TOTEM_OF_UNDYING)) {
@@ -114,7 +96,6 @@ public abstract class LivingEntityMixin {
         if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.INVENTORY) {
             return null;
         }
-        // 如果执行到这里，那么规则值一定是shulker_box，因为如果是true会在上面的if语句中直接返回，如果为false，这个方法都不会被执行
         for (ItemStack shulkerBox : mainInventory) {
             if (InventoryUtils.isOperableSulkerBox(shulkerBox)) {
                 // 从潜影盒中拿取不死图腾
