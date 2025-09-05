@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.rule.carpet;
+package org.carpetorgaddition.mixin.accessor.carpet;
 
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.SettingsManager;
