@@ -27,7 +27,7 @@ public class MessageUtils {
      */
     @Deprecated(forRemoval = true)
     public static void broadcastMessage(ServerPlayerEntity player, Text message) {
-        MinecraftServer server = GenericUtils.getServer(player);
+        MinecraftServer server = FetcherUtils.getServer(player);
         PlayerManager playerManager = server.getPlayerManager();
         broadcastMessage(playerManager, message);
     }
@@ -83,7 +83,7 @@ public class MessageUtils {
      */
     public static void sendMessage(ServerPlayerEntity player, Text message) {
         player.sendMessage(message);
-        writeLog(GenericUtils.getPlayerName(player), message.getString());
+        writeLog(FetcherUtils.getPlayerName(player), message.getString());
     }
 
     /**

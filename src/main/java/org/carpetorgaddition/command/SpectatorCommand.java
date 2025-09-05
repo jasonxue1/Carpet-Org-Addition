@@ -69,7 +69,7 @@ public class SpectatorCommand extends AbstractServerCommand {
             gameMode = GameMode.SURVIVAL;
             if (!isFakePlayer) {
                 // 假玩家切换游戏模式不需要回到原位置
-                loadPlayerPos(GenericUtils.getServer(player), player);
+                loadPlayerPos(FetcherUtils.getServer(player), player);
             }
         } else {
             gameMode = GameMode.SPECTATOR;
@@ -78,7 +78,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 // Mojang真的修复MC-146582了吗？（https://bugs.mojang.com/browse/MC-146582）
                 player.requestTeleportOffset(0.0, 0.2, 0.0);
             } else {
-                savePlayerPos(GenericUtils.getServer(player), player);
+                savePlayerPos(FetcherUtils.getServer(player), player);
             }
         }
         player.changeGameMode(gameMode);
@@ -126,7 +126,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         // 检查玩家是不是旁观模式
         requireSpectator(player);
         Entity entity = EntityArgumentType.getEntity(context, "entity");
-        WorldUtils.teleport(player, (ServerWorld) entity.getWorld(), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
+        WorldUtils.teleport(player, (ServerWorld) FetcherUtils.getWorld(entity), entity.getX(), entity.getY(), entity.getZ(), entity.getYaw(), entity.getPitch());
         // 发送命令反馈
         MessageUtils.sendMessage(context, "commands.teleport.success.entity.single",
                 player.getDisplayName(), entity.getDisplayName());
@@ -151,7 +151,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         json.addProperty("z", MathUtils.numberToTwoDecimalString(player.getZ()));
         json.addProperty("yaw", MathUtils.numberToTwoDecimalString(player.getYaw()));
         json.addProperty("pitch", MathUtils.numberToTwoDecimalString(player.getPitch()));
-        json.addProperty("dimension", WorldUtils.getDimensionId(player.getWorld()));
+        json.addProperty("dimension", WorldUtils.getDimensionId(FetcherUtils.getWorld(player)));
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String jsonString = gson.toJson(json, JsonObject.class);
         File file = worldFormat.file(player.getUuidAsString() + IOUtils.JSON_EXTENSION);
@@ -160,7 +160,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 writer.write(jsonString);
             }
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", GenericUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", FetcherUtils.getPlayerName(player), e);
         }
     }
 
@@ -183,7 +183,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 WorldUtils.teleport(player, world, x, y, z, yaw, pitch);
             }
         } catch (IOException | NullPointerException e) {
-            CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", GenericUtils.getPlayerName(player));
+            CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", FetcherUtils.getPlayerName(player));
         }
     }
 
