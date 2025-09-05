@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.FakePlayerPathS2CPacket;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,7 +75,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
             opens.remove(first);
             openCaches.remove(first.blockPos);
             clones.add(first.blockPos);
-            World world = this.getFakePlayer().getEntityWorld();
+            World world = FetcherUtils.getWorld(this.getFakePlayer());
             this.addSearchNode(world, first, target, opens, openCaches, clones);
         }
     }

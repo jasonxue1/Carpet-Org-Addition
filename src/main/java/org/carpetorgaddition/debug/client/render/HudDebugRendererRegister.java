@@ -39,6 +39,7 @@ import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.mixin.debug.ExperienceOrbEntityAccessor;
 import org.carpetorgaddition.mixin.debug.HandledScreenAccessor;
 import org.carpetorgaddition.mixin.debug.ScreenAccessor;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Contract;
@@ -68,7 +69,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     ClientPlayerEntity player = getPlayer();
-                    ServerWorld world = getServer().getWorld(player.getEntityWorld().getRegistryKey());
+                    ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
                     if (world == null) {
                         return;
                     }
@@ -98,7 +99,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     ClientPlayerEntity player = getPlayer();
-                    ServerWorld world = getServer().getWorld(player.getEntityWorld().getRegistryKey());
+                    ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
                     if (world == null) {
                         return;
                     }

@@ -18,6 +18,7 @@ import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import org.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import org.carpetorgaddition.util.CommandUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -59,7 +60,7 @@ public class WanderingTraderManagerMixin {
         original.call(trader, pos, i);
         if (LoggerRegister.wanderingTrader && WanderingTraderSpawnLogger.spawnCountdownNonNull()) {
             // 获取流浪商人所在的服务器
-            MinecraftServer server = trader.getEntityWorld().getServer();
+            MinecraftServer server = FetcherUtils.getServer(trader);
             if (server == null) {
                 return;
             }
@@ -88,7 +89,7 @@ public class WanderingTraderManagerMixin {
                     MessageUtils.sendMessage(player, message);
                 }
                 // 播放音效通知流浪商人生成
-                WorldUtils.playSound(trader.getEntityWorld(), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
+                WorldUtils.playSound(FetcherUtils.getWorld(trader), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
             }
         }
     }

@@ -16,6 +16,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
@@ -116,7 +117,7 @@ public class LocationsCommand extends AbstractServerCommand {
             // 成功添加路径点
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.locations.add.success", name, WorldUtils.toPosString(blockPos));
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("{}在尝试将路径点写入本地文件时出现意外问题:", GenericUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.error("{}在尝试将路径点写入本地文件时出现意外问题:", FetcherUtils.getPlayerName(player), e);
         }
         return 1;
     }
@@ -269,7 +270,8 @@ public class LocationsCommand extends AbstractServerCommand {
     private int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
-        MutableText mutableText = switch (WorldUtils.getDimensionId(player.getEntityWorld())) {
+        World world = FetcherUtils.getWorld(player);
+        MutableText mutableText = switch (WorldUtils.getDimensionId(world)) {
             case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
                     player.getDisplayName(),
                     TextProvider.blockPos(blockPos, Formatting.GREEN),
@@ -285,7 +287,7 @@ public class LocationsCommand extends AbstractServerCommand {
             );
             default -> TextBuilder.translate("carpet.commands.locations.here.default",
                     player.getDisplayName(),
-                    WorldUtils.getDimensionId(player.getEntityWorld()),
+                    WorldUtils.getDimensionId(world),
                     TextProvider.blockPos(blockPos, null));
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);

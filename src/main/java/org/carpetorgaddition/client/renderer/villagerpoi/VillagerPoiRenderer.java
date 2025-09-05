@@ -14,6 +14,7 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 import org.carpetorgaddition.client.renderer.*;
+import org.carpetorgaddition.util.FetcherUtils;
 
 import java.util.Objects;
 
@@ -85,7 +86,7 @@ public class VillagerPoiRenderer implements WorldRenderer {
     // 创建床渲染器
     private BoxRenderer createBedRenderer() {
         // 渲染床位置
-        World world = this.villagerEntity.getEntityWorld();
+        World world = FetcherUtils.getWorld(this.villagerEntity);
         BlockPos bedPos = this.bedPos.pos();
         BlockState blockState = world.getBlockState(bedPos);
         // 渲染床轮廓

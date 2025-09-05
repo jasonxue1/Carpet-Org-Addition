@@ -6,6 +6,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
 
 import java.util.function.Consumer;
@@ -28,7 +29,7 @@ public record CreateFakePlayerContext(
         this(player.getPos(),
                 player.getYaw(),
                 player.getPitch(),
-                player.getEntityWorld().getRegistryKey(),
+                FetcherUtils.getWorld(player).getRegistryKey(),
                 player.interactionManager.getGameMode(),
                 player.getAbilities().flying,
                 consumer

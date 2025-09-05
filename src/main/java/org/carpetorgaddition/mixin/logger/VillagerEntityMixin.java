@@ -8,6 +8,7 @@ import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.VillagerPoiSyncS2CPacket;
 import org.carpetorgaddition.network.s2c.VillagerPoiSyncS2CPacket.VillagerInfo;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,7 +27,7 @@ public abstract class VillagerEntityMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void tick(CallbackInfo ci) {
-        if (LoggerRegister.villager && thisVillager.getEntityWorld().getTime() % 20 == 0 && thisVillager.getEntityWorld().getServer() != null) {
+        if (LoggerRegister.villager && FetcherUtils.getWorld(thisVillager).getTime() % 20 == 0 && FetcherUtils.getServer(thisVillager) != null) {
             NetworkPacketLogger logger = Loggers.getVillagerLogger();
             logger.sendPacket(string -> {
                 VillagerInfo villagerInfo = new VillagerInfo(thisVillager.getId());

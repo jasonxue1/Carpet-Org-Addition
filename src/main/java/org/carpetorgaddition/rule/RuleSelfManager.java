@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.wheel.WorldFormat;
 
@@ -40,7 +41,7 @@ public class RuleSelfManager {
         if (this.disabledRules.isEmpty()) {
             return false;
         }
-        HashSet<String> rules = this.disabledRules.get(player.getName().getString());
+        HashSet<String> rules = this.disabledRules.get(FetcherUtils.getPlayerName(player));
         if (rules == null) {
             return false;
         }
@@ -51,7 +52,7 @@ public class RuleSelfManager {
      * 设置规则是否对自己生效
      */
     public void setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
-        String playerName = player.getGameProfile().name();
+        String playerName = FetcherUtils.getPlayerName(player);
         HashSet<String> rules = this.disabledRules.get(playerName);
         if (rules == null) {
             if (enabled) {

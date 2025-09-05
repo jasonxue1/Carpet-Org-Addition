@@ -3,7 +3,6 @@ package org.carpetorgaddition.util;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -12,7 +11,6 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.carpetorgaddition.wheel.CreateFakePlayerContext;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -29,21 +27,6 @@ public class GenericUtils {
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
 
     private GenericUtils() {
-    }
-
-    /**
-     * 获取一名玩家的字符串形式的玩家名
-     *
-     * @param player 要获取字符串形式玩家名的玩家
-     * @return 玩家名的字符串形式
-     */
-    public static String getPlayerName(PlayerEntity player) {
-        return player.getGameProfile().name();
-    }
-
-    @Contract("_ -> !null")
-    public static MinecraftServer getServer(ServerPlayerEntity player) {
-        return player.getEntityWorld().getServer();
     }
 
     /**

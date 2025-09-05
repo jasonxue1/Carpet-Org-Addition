@@ -26,6 +26,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.world.World;
+import org.carpetorgaddition.util.FetcherUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -207,8 +208,8 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 .map(Item::getDefaultStack)
                 .toList();
         CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
-        World world = fakePlayer.getEntityWorld();
-        Optional<RecipeEntry<CraftingRecipe>> optional = fakePlayer.getEntityWorld().getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
+        World world = FetcherUtils.getWorld(fakePlayer);
+        Optional<RecipeEntry<CraftingRecipe>> optional = FetcherUtils.getWorld(fakePlayer).getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
         return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
     }
 

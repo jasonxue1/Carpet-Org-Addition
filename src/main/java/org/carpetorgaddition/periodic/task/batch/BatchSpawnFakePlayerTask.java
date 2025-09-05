@@ -12,6 +12,7 @@ import net.minecraft.util.Uuids;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.CreateFakePlayerContext;
@@ -96,13 +97,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             });
         }
         this.count = count;
-        this.startTime = player.getEntityWorld().getTime();
+        this.startTime = FetcherUtils.getWorld(player).getTime();
     }
 
     @Override
     protected void tick() {
         int size = this.players.size();
-        long time = this.player.getEntityWorld().getTime();
+        long time = FetcherUtils.getWorld(this.player).getTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;

@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
@@ -157,7 +158,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
         // 获取假玩家所在的世界对象
-        World world = this.getFakePlayer().getEntityWorld();
+        World world = FetcherUtils.getWorld(this.getFakePlayer());
         ItemStack outputItemStack;
         try {
             // 获取与配方对应的物品

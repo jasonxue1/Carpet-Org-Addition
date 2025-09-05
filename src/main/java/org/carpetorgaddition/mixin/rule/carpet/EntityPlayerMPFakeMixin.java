@@ -7,6 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,7 +27,7 @@ public class EntityPlayerMPFakeMixin extends ServerPlayerEntity {
     private void fakePlayerTick(CallbackInfo ci) {
         // 假玩家回血
         if (CarpetOrgAdditionSettings.fakePlayerHeal.get()) {
-            long time = thisPlayer.getEntityWorld().getTime();
+            long time = FetcherUtils.getWorld(thisPlayer).getTime();
             if (time % 40 == 0) {
                 // 回复血量
                 thisPlayer.heal(1);

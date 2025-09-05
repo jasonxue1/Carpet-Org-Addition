@@ -7,6 +7,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,8 +32,8 @@ public abstract class ServerPlayerEntityMixin {
             restock(inventory);
         }
         // 自动同步玩家状态
-        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && thisPlayer.getEntityWorld().getTime() % 30 == 0) {
-            thisPlayer.getEntityWorld().getServer().getPlayerManager().sendPlayerStatus(thisPlayer);
+        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && FetcherUtils.getWorld(thisPlayer).getTime() % 30 == 0) {
+            FetcherUtils.getServer(thisPlayer).getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);
             BlockIterator blockIterator = new BlockIterator(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));

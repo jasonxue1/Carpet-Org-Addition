@@ -19,7 +19,7 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.Contract;
 
@@ -63,7 +63,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 this.remainingTick = this.interval;
                 if (player instanceof EntityPlayerMPFake fakePlayer) {
                     // 如果假玩家坠入虚空，设置任务为停止
-                    if (fakePlayer.getY() < fakePlayer.getEntityWorld().getBottomY() - 64) {
+                    if (fakePlayer.getY() < FetcherUtils.getWorld(fakePlayer).getBottomY() - 64) {
                         this.stop();
                     }
                     // 让假玩家退出游戏
@@ -117,7 +117,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 return;
             }
         }
-        MinecraftServer server = GenericUtils.getServer(fakePlayer);
+        MinecraftServer server = FetcherUtils.getServer(fakePlayer);
         server.send(new ServerTask(server.getTicks(), () -> {
             try {
                 CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);

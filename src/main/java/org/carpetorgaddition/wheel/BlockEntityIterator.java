@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 import net.minecraft.world.chunk.WorldChunk;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -44,7 +45,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
     }
 
     public static BlockEntityIterator ofAbove(EntityPlayerMPFake fakePlayer, int range) {
-        World world = fakePlayer.getEntityWorld();
+        World world = FetcherUtils.getWorld(fakePlayer);
         BlockPos blockPos = fakePlayer.getBlockPos();
         return ofAbove(world, blockPos, range);
     }

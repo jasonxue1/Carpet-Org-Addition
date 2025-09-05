@@ -10,6 +10,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.BlockIterator;
 
@@ -29,27 +30,27 @@ public class CreeperExplosionTask extends ServerTask {
 
     // 将苦力怕传送到合适位置
     private static CreeperEntity teleport(ServerPlayerEntity player) {
-        CreeperEntity creeper = new CreeperEntity(EntityType.CREEPER, player.getEntityWorld());
+        CreeperEntity creeper = new CreeperEntity(EntityType.CREEPER, FetcherUtils.getWorld(player));
         BlockPos playerPos = player.getBlockPos();
         Vec3d fromPos = new Vec3d(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
         Vec3d toPos = new Vec3d(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
         BlockIterator blockIterator = new BlockIterator(new Box(fromPos, toPos));
         ArrayList<BlockPos> list = new ArrayList<>();
-        World world = player.getEntityWorld();
+        World world = FetcherUtils.getWorld(player);
         // 获取符合条件的坐标
         for (BlockPos blockPos : blockIterator) {
             // 当前方块是空气
             if (world.getBlockState(blockPos).isAir()
-                    // 下方方块是实心方块
-                    && world.getBlockState(blockPos.down()).isSolidBlock(world, blockPos.down())
-                    // 上方方块是空气
-                    && world.getBlockState(blockPos.up()).isAir()) {
+                // 下方方块是实心方块
+                && world.getBlockState(blockPos.down()).isSolidBlock(world, blockPos.down())
+                // 上方方块是空气
+                && world.getBlockState(blockPos.up()).isAir()) {
                 list.add(blockPos);
             }
         }
         // 将苦力怕传送到随机坐标
         BlockPos randomPos = list.isEmpty() ? playerPos : list.get(MathUtils.randomInt(1, list.size()) - 1);
-        TeleportTarget target = new TeleportTarget(player.getEntityWorld(), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
+        TeleportTarget target = new TeleportTarget(FetcherUtils.getWorld(player), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
         return (CreeperEntity) creeper.teleportTo(target);
     }
 
@@ -63,7 +64,7 @@ public class CreeperExplosionTask extends ServerTask {
         this.countdown--;
         if (this.countdown == 0) {
             // 产生爆炸
-            this.player.getEntityWorld().createExplosion(creeper, this.creeper.getX(), this.player.getY(),
+            FetcherUtils.getWorld(this.player).createExplosion(creeper, this.creeper.getX(), this.player.getY(),
                     this.player.getZ(), 3F, false, World.ExplosionSourceType.NONE);
         }
     }

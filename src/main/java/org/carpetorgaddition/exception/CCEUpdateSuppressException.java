@@ -7,6 +7,7 @@ import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.WorldUtils;
 
 public class CCEUpdateSuppressException extends ClassCastException {
@@ -26,7 +27,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
      */
     public void onCatch(ServerPlayerEntity player, Packet<ServerPlayPacketListener> packet) {
         StringBuilder builder = new StringBuilder();
-        builder.append(player.getName().getString()).append("在");
+        builder.append(FetcherUtils.getPlayerName(player)).append("在");
         if (packet instanceof PlayerActionC2SPacket actionC2SPacket) {
             // 破坏方块
             switch (actionC2SPacket.getAction()) {
@@ -45,7 +46,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
             // 其它异常
             builder.append("发送").append(packet.getClass().getSimpleName()).append("数据包");
         }
-        String worldPos = WorldUtils.toWorldPosString(player.getEntityWorld(), this.triggerPos);
+        String worldPos = WorldUtils.toWorldPosString(FetcherUtils.getWorld(player), this.triggerPos);
         builder.append("时触发了CCE更新抑制，在").append(worldPos);
         CarpetOrgAddition.LOGGER.info(builder.toString());
     }

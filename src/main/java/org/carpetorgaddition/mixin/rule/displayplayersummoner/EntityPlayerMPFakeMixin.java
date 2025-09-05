@@ -9,7 +9,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -52,12 +52,12 @@ public class EntityPlayerMPFakeMixin {
             }
             TextBuilder builder = TextBuilder.of("carpet.rule.message.displayPlayerSummoner", player.getDisplayName());
             builder.setGrayItalic();
-            Text dimension = TextProvider.dimension(fakePlayer.getEntityWorld());
+            Text dimension = TextProvider.dimension(FetcherUtils.getWorld(fakePlayer));
             MutableText blockPos = TextProvider.simpleBlockPos(fakePlayer.getBlockPos());
             MutableText pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
-            MessageUtils.broadcastMessage(GenericUtils.getServer(player), builder.build());
-            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", GenericUtils.getPlayerName(player), GenericUtils.getPlayerName(fakePlayer), pos.getString());
+            MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
+            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", FetcherUtils.getPlayerName(player), FetcherUtils.getPlayerName(fakePlayer), pos.getString());
         }
     }
 }

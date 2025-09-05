@@ -9,6 +9,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.screen.VillagerScreenHandler;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -43,7 +44,7 @@ public abstract class VillagerEntityMixin extends MerchantEntity {
     @Inject(method = "mobTick", at = @At("HEAD"))
     private void heal(CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.villagerHeal.get()) {
-            long worldTime = thisVillager.getEntityWorld().getTime();
+            long worldTime = FetcherUtils.getWorld(thisVillager).getTime();
             // 每四秒回一次血
             if (worldTime % 80 == 0) {
                 thisVillager.heal(1.0F);
