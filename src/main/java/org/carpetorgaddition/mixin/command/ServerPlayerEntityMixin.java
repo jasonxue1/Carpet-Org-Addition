@@ -15,6 +15,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -68,7 +69,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             builder.setColor(Formatting.RED);
             // 添加悬停提示
             builder.setHover(report(source, amount));
-            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
+            MessageUtils.broadcastMessage(FetcherUtils.getServer(thisPlayer), builder.build());
             return;
         }
         // 玩家安全挂机触发成功
@@ -80,7 +81,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             builder.setHover(report(source, amount));
             builder.setGrayItalic();
             // 广播触发消息，斜体淡灰色
-            MessageUtils.broadcastMessage(thisPlayer.server, builder.build());
+            MessageUtils.broadcastMessage(FetcherUtils.getServer(thisPlayer), builder.build());
             // 恢复饥饿值
             thisPlayer.getHungerManager().setFoodLevel(20);
             // 退出假人

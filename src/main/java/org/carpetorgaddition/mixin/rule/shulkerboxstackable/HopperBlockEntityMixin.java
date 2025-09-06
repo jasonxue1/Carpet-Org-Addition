@@ -165,7 +165,7 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
 
     @Unique
     private static boolean tryInsertAndExtract(World world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier) {
-        if (world.isClient) {
+        if (world.isClient()) {
             return false;
         }
         HopperBlockEntityMixin mixin = (HopperBlockEntityMixin) (Object) blockEntity;
