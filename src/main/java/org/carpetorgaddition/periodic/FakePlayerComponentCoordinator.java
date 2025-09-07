@@ -5,6 +5,7 @@ import net.minecraft.server.ServerTickManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
+import org.carpetorgaddition.util.FetcherUtils;
 
 public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     private final FakePlayerActionManager fakePlayerActionManager;
@@ -19,7 +20,7 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void tick() {
         super.tick();
-        ServerTickManager tickManager = this.getPlayer().server.getTickManager();
+        ServerTickManager tickManager = FetcherUtils.getServer(this.getPlayer()).getTickManager();
         if (tickManager.shouldTick()) {
             this.fakePlayerActionManager.tick();
         }
