@@ -89,7 +89,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.predicate = context.predicate();
         this.userCache = context.cache();
         this.player = context.player();
-        this.server = this.player.getEntityWorld().getServer();
+        this.server = FetcherUtils.getServer(this.player);
         this.files = context.files();
         this.showUnknown = context.showUnknown();
         PageManager manager = FetcherUtils.getPageManager(server);

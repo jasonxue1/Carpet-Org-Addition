@@ -181,7 +181,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         try {
             ServerPlayerEntity.Respawn respawn = Objects.requireNonNull(player.getRespawn());
             BlockPos respawnPos = respawn.pos();
-            ServerWorld world = player.getEntityWorld().getServer().getWorld(respawn.dimension());
+            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawn.dimension());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);
