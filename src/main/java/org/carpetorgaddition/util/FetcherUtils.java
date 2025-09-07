@@ -42,7 +42,7 @@ public class FetcherUtils {
     }
 
     public static ServerWorld getWorld(ServerPlayerEntity player) {
-        return player.getServerWorld();
+        return player.getWorld();
     }
 
     public static World getWorld(Entity entity) {
