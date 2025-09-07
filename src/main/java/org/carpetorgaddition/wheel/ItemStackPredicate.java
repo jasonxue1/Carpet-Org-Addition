@@ -209,7 +209,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 .toList();
         CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
         World world = FetcherUtils.getWorld(fakePlayer);
-        Optional<RecipeEntry<CraftingRecipe>> optional = fakePlayer.server.getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
+        Optional<RecipeEntry<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
         return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
     }
 

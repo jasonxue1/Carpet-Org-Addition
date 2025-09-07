@@ -48,7 +48,7 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
         boolean hasSilkTouch = EnchantmentUtils.hasEnchantment(world, Enchantments.SILK_TOUCH, player.getMainHandStack());
         if (CarpetOrgAdditionSettings.canMineSpawner.get() && !player.isCreative() && hasSilkTouch) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (!world.isClient && blockEntity instanceof MobSpawnerBlockEntity) {
+            if (!world.isClient() && blockEntity instanceof MobSpawnerBlockEntity) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
                 NbtCompound nbtCompound = blockEntity.createComponentlessNbtWithIdentifyingData(FetcherUtils.getWorld(player).getRegistryManager());
                 BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), nbtCompound);
