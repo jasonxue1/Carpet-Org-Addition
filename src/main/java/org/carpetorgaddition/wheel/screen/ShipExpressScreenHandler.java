@@ -40,7 +40,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
     ) {
         super(ScreenHandlerType.GENERIC_9X3, syncId, playerInventory, inventory, 3);
         this.inventory = inventory;
-        this.server = targetPlayer.getWorld().getServer();
+        this.server = FetcherUtils.getServer(targetPlayer);
         this.expressManager = ServerComponentCoordinator.getManager(this.server).getExpressManager();
         this.sourcePlayer = sourcePlayer;
         this.targetPlayer = targetPlayer;

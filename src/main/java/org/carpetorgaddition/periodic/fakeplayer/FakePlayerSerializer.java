@@ -110,7 +110,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.sneaking = fakePlayer.isSneaking();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
-        this.file = new WorldFormat(fakePlayer.getWorld().getServer(), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
+        this.file = new WorldFormat(FetcherUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
     }
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {

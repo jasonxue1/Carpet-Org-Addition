@@ -29,7 +29,7 @@ public class FakePlayerActionManager {
                     e
             );
             MessageUtils.broadcastErrorMessage(
-                    this.fakePlayer.getWorld().getServer(),
+                    FetcherUtils.getServer(this.fakePlayer),
                     e,
                     "carpet.commands.playerAction.exception.runtime",
                     this.fakePlayer.getDisplayName(),

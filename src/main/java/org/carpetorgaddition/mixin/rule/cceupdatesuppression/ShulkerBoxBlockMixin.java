@@ -26,7 +26,7 @@ public class ShulkerBoxBlockMixin {
     @Inject(method = "getComparatorOutput", at = @At("HEAD"))
     private void getComparatorOutput(BlockState state, World world, BlockPos pos, CallbackInfoReturnable<Integer> cir) {
         // 不要在客户端抛出异常，这可能导致客户端游戏崩溃
-        if (world.isClient) {
+        if (world.isClient()) {
             return;
         }
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {
