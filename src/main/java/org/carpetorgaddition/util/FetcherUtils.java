@@ -42,7 +42,7 @@ public class FetcherUtils {
     }
 
     public static ServerWorld getWorld(ServerPlayerEntity player) {
-        return player.getWorld();
+        return player.getServerWorld();
     }
 
     public static World getWorld(Entity entity) {
@@ -69,7 +69,7 @@ public class FetcherUtils {
     }
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
-        return getRuleSelfManager(player.getServer());
+        return getRuleSelfManager(FetcherUtils.getServer(player));
     }
 
     public static PageManager getPageManager(MinecraftServer server) {
