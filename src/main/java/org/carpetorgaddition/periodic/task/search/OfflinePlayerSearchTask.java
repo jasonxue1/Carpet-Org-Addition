@@ -33,16 +33,23 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
+            0,
+            Runtime.getRuntime().availableProcessors() + 1,
+            60,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(),
+            OfflinePlayerSearchTask::createNewThread
+    );
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatters.create();
     /**
@@ -73,14 +80,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final ItemStackPredicate predicate;
     private final boolean showUnknown;
     private State taksState = State.START;
-    // synchronized会导致虚拟线程被锁定吗？还能不能使用并发集合？
-    private final ReentrantLock lock = new ReentrantLock();
-    private final ArrayList<Result> list = new ArrayList<>();
+    private final List<Result> results = Collections.synchronizedList(new ArrayList<>());
     /**
      * 备份文件夹的目录
      */
     private volatile WorldFormat backupFileDirectory;
-    private final ReentrantLock backupFileDirectoryInitLock = new ReentrantLock();
+    private final Object backupFileDirectoryInitLock = new Object();
     private final PagedCollection pagedCollection;
 
     public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
@@ -108,8 +113,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                             // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
                             continue;
                         }
-                        // TODO 改为线程池
-                        this.createVirtualThread(file, uuid);
+                        this.submit(file, uuid);
                         this.total++;
                     }
                 }
@@ -130,9 +134,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     // 创建虚拟线程
-    private void createVirtualThread(File unsafe, UUID uuid) {
+    private void submit(File unsafe, UUID uuid) {
         this.threadCount.getAndIncrement();
-        Thread.ofVirtual().start(() -> {
+        EXECUTOR.submit(() -> {
             try {
                 NbtCompound nbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
                 int version = NbtHelper.getDataVersion(nbt, -1);
@@ -201,12 +205,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             this.shulkerBox.set(true);
         }
         Result result = new Result(gameProfile, statistics, unknownPlayer);
-        try {
-            this.lock.lock();
-            this.list.add(result);
-        } finally {
-            this.lock.unlock();
-        }
+        this.results.add(result);
     }
 
     // 获取玩家物品栏
@@ -216,7 +215,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 发送命令反馈
     private void sendFeedback() {
-        if (this.list.isEmpty()) {
+        if (this.results.isEmpty()) {
             this.sendSkipPlayerMessage();
             MessageUtils.sendMessage(
                     this.source,
@@ -226,9 +225,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
             );
             return;
         }
-        int resultCount = this.list.size();
-        this.list.sort((o1, o2) -> o2.statistics().getSum() - o1.statistics().getSum());
-        this.pagedCollection.addContent(this.list);
+        int resultCount = this.results.size();
+        this.results.sort((o1, o2) -> o2.statistics().getSum() - o1.statistics().getSum());
+        this.pagedCollection.addContent(this.results);
         Text itemCount = getItemCount();
         Text numberOfPeople = getNumberOfPeople(resultCount);
         MutableText message = getFirstFeedback(numberOfPeople, itemCount);
@@ -308,10 +307,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     @Override
     public boolean equals(Object o) {
-        if (getClass() == o.getClass()) {
-            return Objects.equals(player, ((OfflinePlayerSearchTask) o).player);
-        }
-        return false;
+        return this == o || this.getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;
     }
 
     /**
@@ -330,27 +331,24 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return null;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(player);
-    }
-
     /**
      * @return 获取备份目录
      */
     private WorldFormat getBackupFileDirectory() {
         if (this.backupFileDirectory == null) {
-            try {
-                this.backupFileDirectoryInitLock.lock();
-                if (this.backupFileDirectory == null) {
-                    String time = LocalDateTime.now().format(FORMATTER) + "_" + GenericUtils.getNbtDataVersion();
-                    this.backupFileDirectory = new WorldFormat(this.server, "backups", "playerdata", time);
-                }
-            } finally {
-                this.backupFileDirectoryInitLock.unlock();
+            synchronized (this.backupFileDirectoryInitLock) {
+                String time = LocalDateTime.now().format(FORMATTER) + "_" + GenericUtils.getNbtDataVersion();
+                this.backupFileDirectory = new WorldFormat(this.server, "backups", "playerdata", time);
             }
         }
         return this.backupFileDirectory;
+    }
+
+    private static Thread createNewThread(Runnable runnable) {
+        Thread thread = new Thread(runnable);
+        thread.setDaemon(true);
+        thread.setName(OfflinePlayerSearchTask.class.getSimpleName() + " - Thread");
+        return thread;
     }
 
     /**
