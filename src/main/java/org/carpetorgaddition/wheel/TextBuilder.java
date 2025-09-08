@@ -117,8 +117,18 @@ public class TextBuilder {
      * 设置单击文本后复制内容到剪贴板
      */
     public TextBuilder setCopyToClipboard(String str) {
+        return setCopyToClipboard(str, true);
+    }
+
+    /**
+     * 设置单击文本后复制内容到剪贴板
+     * @param hover 是否显示“单击复制到剪贴板”的悬停提示
+     */
+    public TextBuilder setCopyToClipboard(String str, boolean hover) {
         this.text.styled(style -> style.withClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, str)));
-        this.setHover(TextProvider.COPY_CLICK);
+        if (hover) {
+            this.setHover(TextProvider.COPY_CLICK);
+        }
         return this;
     }
 
@@ -167,6 +177,11 @@ public class TextBuilder {
      */
     public TextBuilder setUnderline() {
         this.text.styled(style -> style.withUnderline(true));
+        return this;
+    }
+
+    public TextBuilder setObfuscated() {
+        this.text.styled(style -> style.withObfuscated(true));
         return this;
     }
 
