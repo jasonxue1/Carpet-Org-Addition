@@ -48,11 +48,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
             0,
             Runtime.getRuntime().availableProcessors() + 1,
-            60,
-            TimeUnit.SECONDS,
+            5,
+            TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
             OfflinePlayerSearchTask::createNewThread
     );
+    /**
+     * 线程池中，线程的ID
+     */
+    private static final AtomicInteger THREAD_ID = new AtomicInteger(0);
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatters.create();
     /**
@@ -234,7 +238,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
             MessageUtils.sendMessage(
                     this.source,
                     "carpet.commands.finder.item.offline_player.not_found",
-                    this.getContainerName(false),
                     this.predicate.toText()
             );
             return;
@@ -246,7 +249,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Text numberOfPeople = getNumberOfPeople(resultCount);
         MutableText message = getFirstFeedback(numberOfPeople, itemCount);
         TextBuilder builder = new TextBuilder(message);
-        builder.setHover("carpet.commands.finder.item.offline_player.prompt", this.getContainerName(false));
+        builder.setHover("carpet.commands.finder.item.offline_player.prompt");
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, builder.build());
         CommandUtils.handlingException(this.pagedCollection::print, source);
@@ -259,7 +262,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return TextBuilder.translate(
                 "carpet.commands.finder.item.offline_player",
                 numberOfPeople,
-                this.getContainerName(false),
                 itemCount,
                 this.predicate.toText()
         );
@@ -292,9 +294,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     private Text getContainerName(boolean isEnderChest) {
-        return isEnderChest
-                ? TextBuilder.translate("carpet.commands.finder.item.offline_player.container.enderchest")
-                : TextBuilder.translate("carpet.commands.finder.item.offline_player.container.inventory");
+        if (isEnderChest) {
+            return TextBuilder.of("carpet.commands.finder.item.offline_player.container.enderchest")
+                    .setColor(Formatting.DARK_PURPLE)
+                    .build();
+        } else {
+            return TextBuilder.of("carpet.commands.finder.item.offline_player.container.inventory")
+                    .setColor(Formatting.YELLOW)
+                    .build();
+        }
     }
 
     @Override
@@ -363,7 +371,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private static Thread createNewThread(Runnable runnable) {
         Thread thread = new Thread(runnable);
         thread.setDaemon(true);
-        thread.setName(OfflinePlayerSearchTask.class.getSimpleName() + " - Thread");
+        thread.setName(OfflinePlayerSearchTask.class.getSimpleName() + "-Thread-" + THREAD_ID.incrementAndGet());
+        thread.setUncaughtExceptionHandler((t, e) -> CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e));
         return thread;
     }
 
