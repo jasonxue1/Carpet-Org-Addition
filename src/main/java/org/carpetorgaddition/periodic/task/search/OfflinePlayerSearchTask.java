@@ -191,20 +191,20 @@ public class OfflinePlayerSearchTask extends ServerTask {
             optional = Optional.of(new PlayerConfigEntry(uuid, UNKNOWN));
             unknownPlayer = true;
         }
-        PlayerConfigEntry gameProfile = optional.get();
+        PlayerConfigEntry entry = optional.get();
         // 不从在线玩家物品栏查找物品
-        if (this.server.getPlayerManager().getPlayer(gameProfile.name()) != null) {
+        if (this.server.getPlayerManager().getPlayer(entry.name()) != null) {
             return;
         }
         // 统计物品栏物品
-        statistics(this.getInventory(nbt), gameProfile, unknownPlayer, false);
-        statistics(this.getEnderChest(nbt), gameProfile, unknownPlayer, true);
+        statistics(this.getInventory(nbt), entry, unknownPlayer, false);
+        statistics(this.getEnderChest(nbt), entry, unknownPlayer, true);
     }
 
     /**
      * 统计物品
      */
-    private void statistics(Inventory inventory, GameProfile gameProfile, boolean unknownPlayer, boolean isEnderChest) {
+    private void statistics(Inventory inventory, PlayerConfigEntry entry, boolean unknownPlayer, boolean isEnderChest) {
         ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
         statistics.statistics(inventory);
         if (statistics.getSum() == 0) {
@@ -214,7 +214,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (statistics.hasNestingItem()) {
             this.shulkerBox.set(true);
         }
-        Result result = new Result(gameProfile, statistics, unknownPlayer, isEnderChest);
+        Result result = new Result(entry, statistics, unknownPlayer, isEnderChest);
         this.results.add(result);
     }
 
@@ -226,12 +226,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * 从NBT读取玩家末影箱
      *
-     * @see PlayerEntity#readCustomDataFromNbt(NbtCompound)
+     * @see PlayerEntity#readCustomData(ReadView)
      */
     @SuppressWarnings("JavadocReference")
     protected Inventory getEnderChest(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
-        ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, this.player.getWorld().getRegistryManager(), nbt);
+        ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, FetcherUtils.getWorld(this.player).getRegistryManager(), nbt);
         inventory.readData(readView.getTypedListView("EnderItems", StackWithSlot.CODEC));
         return inventory;
     }
@@ -346,9 +346,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     @Nullable
-    private Text openEnderChestButton(GameProfile gameProfile) {
+    private Text openEnderChestButton(PlayerConfigEntry entry) {
         if (CommandUtils.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
-            String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
+            String command = CommandProvider.openPlayerEnderChest(entry.id());
             MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");
             builder.setColor(Formatting.GRAY);
@@ -421,7 +421,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 builder.append(createLoginButton())
                         .setCopyToClipboard(name, false);
             }
-            Text button = isEnderChest ? openEnderChestButton(this.gameProfile()) : openInventoryButton(this.gameProfile());
+            Text button = isEnderChest ? openEnderChestButton(this.playerConfigEntry()) : openInventoryButton(this.playerConfigEntry());
             builder.append(button)
                     .setHover(hover)
                     .setColor(Formatting.GRAY);
@@ -453,7 +453,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             list.add(TextBuilder.of("carpet.commands.finder.item.offline_player.query.non_authentic").setColor(Formatting.RED).build());
             TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
             // 设置单击按钮执行命令
-            button.setCommand(CommandProvider.queryPlayerName(gameProfile().getId()));
+            button.setCommand(CommandProvider.queryPlayerName(playerConfigEntry().id()));
             // 设置按钮悬停提示
             button.setHover(TextBuilder.joinList(list));
             return button;
