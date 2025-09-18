@@ -34,6 +34,10 @@ public final class ImmutableInventory implements Inventory, Iterable<ItemStack> 
         this.inventory = new SimpleInventory(list.toArray(ItemStack[]::new));
     }
 
+    public ImmutableInventory(ItemStack itemStack) {
+        this(List.of(itemStack));
+    }
+
     private ImmutableInventory() {
         this.inventory = new SimpleInventory();
     }
