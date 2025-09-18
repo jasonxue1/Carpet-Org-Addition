@@ -7,6 +7,7 @@ import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.VehicleInventory;
@@ -23,6 +24,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
+import org.carpetorgaddition.mixin.accessor.AbstractHorseEntityAccessor;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -164,6 +166,17 @@ public class ItemSearchTask extends ServerTask {
                 case VillagerEntity villager when CarpetOrgAdditionSettings.openVillagerInventory.get() -> {
                     SimpleInventory inventory = villager.getInventory();
                     this.count(inventory, villager.getBlockPos(), villager.getName());
+                }
+                // 驴，骡和羊驼
+                case AbstractDonkeyEntity donkey when donkey.hasChest() -> {
+                    ArrayList<ItemStack> list = new ArrayList<>();
+                    AbstractHorseEntityAccessor accessor = (AbstractHorseEntityAccessor) donkey;
+                    SimpleInventory inventory = accessor.getDonkeyInventory();
+                    // 跳过第一个物品，第一个物品是鞍
+                    for (int i = 1; i < inventory.size(); i++) {
+                        list.add(inventory.getStack(i));
+                    }
+                    this.count(new ImmutableInventory(list), donkey.getBlockPos(), donkey.getName());
                 }
                 default -> {
                 }
