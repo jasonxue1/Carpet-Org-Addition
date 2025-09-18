@@ -173,8 +173,7 @@ public class ItemSearchTask extends ServerTask {
                     ArrayList<ItemStack> list = new ArrayList<>();
                     AbstractHorseEntityAccessor accessor = (AbstractHorseEntityAccessor) donkey;
                     SimpleInventory inventory = accessor.getDonkeyInventory();
-                    // 跳过第一个物品，第一个物品是鞍
-                    for (int i = 1; i < inventory.size(); i++) {
+                    for (int i = 0; i < inventory.size(); i++) {
                         list.add(inventory.getStack(i));
                     }
                     this.count(new ImmutableInventory(list), donkey.getBlockPos(), donkey.getName());

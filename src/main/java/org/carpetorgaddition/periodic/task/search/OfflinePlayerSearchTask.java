@@ -5,7 +5,10 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtHelper;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -224,8 +227,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @SuppressWarnings("JavadocReference")
     protected Inventory getEnderChest(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
-        if (nbt.contains("EnderItems", NbtElement.LIST_TYPE)) {
-            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.player.getRegistryManager());
+        if (nbt.contains("EnderItems")) {
+            inventory.readNbtList(nbt.getList("EnderItems").orElseThrow(), this.player.getRegistryManager());
             return inventory;
         } else {
             return ImmutableInventory.EMPTY;
