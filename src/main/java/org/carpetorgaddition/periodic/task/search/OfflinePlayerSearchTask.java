@@ -46,13 +46,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 任务的线程池，逻辑上只能同时执行一个任务
      */
     private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
-            0,
+            Runtime.getRuntime().availableProcessors() + 1,
             Runtime.getRuntime().availableProcessors() + 1,
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
             OfflinePlayerSearchTask::createNewThread
     );
+
+    static {
+        EXECUTOR.allowCoreThreadTimeOut(true);
+    }
+
     /**
      * 线程池中，线程的ID
      */

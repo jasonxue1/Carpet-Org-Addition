@@ -87,6 +87,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 count--;
                 continue;
             }
+            // TODO 需要测试是否能正常快速创建假玩家
             Thread.ofVirtual().start(() -> {
                 Optional<GameProfile> optional = userCache.findByName(username);
                 GameProfile gameProfile = optional.orElseGet(() -> new GameProfile(Uuids.getOfflinePlayerUuid(username), username));
