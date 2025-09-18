@@ -8,6 +8,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
+import net.minecraft.entity.passive.AllayEntity;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.VehicleInventory;
@@ -177,6 +178,11 @@ public class ItemSearchTask extends ServerTask {
                         list.add(inventory.getStack(i));
                     }
                     this.count(new ImmutableInventory(list), donkey.getBlockPos(), donkey.getName());
+                }
+                // 悦灵
+                case AllayEntity allay -> {
+                    ImmutableInventory inventory = new ImmutableInventory(allay.getMainHandStack());
+                    this.count(inventory, allay.getBlockPos(), allay.getName());
                 }
                 default -> {
                 }
