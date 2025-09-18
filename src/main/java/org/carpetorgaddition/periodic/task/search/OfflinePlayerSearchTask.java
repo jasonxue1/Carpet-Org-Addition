@@ -5,6 +5,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.inventory.StackWithSlot;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIo;
@@ -12,9 +13,12 @@ import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.storage.NbtReadView;
+import net.minecraft.storage.ReadView;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
+import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -227,12 +231,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @SuppressWarnings("JavadocReference")
     protected Inventory getEnderChest(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
-        if (nbt.contains("EnderItems")) {
-            inventory.readNbtList(nbt.getList("EnderItems").orElseThrow(), this.player.getRegistryManager());
-            return inventory;
-        } else {
-            return ImmutableInventory.EMPTY;
-        }
+        ReadView readView = NbtReadView.create(ErrorReporter.EMPTY, this.player.getWorld().getRegistryManager(), nbt);
+        inventory.readData(readView.getTypedListView("EnderItems", StackWithSlot.CODEC));
+        return inventory;
     }
 
     // 发送命令反馈
