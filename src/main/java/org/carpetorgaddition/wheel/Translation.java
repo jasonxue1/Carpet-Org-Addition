@@ -1,19 +1,14 @@
 package org.carpetorgaddition.wheel;
 
-import carpet.CarpetServer;
 import carpet.CarpetSettings;
-import carpet.api.settings.SettingsManager;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.io.IOUtils;
-import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -70,31 +65,7 @@ public class Translation {
         String json = IOUtils.toString(input, StandardCharsets.UTF_8);
         var typeToken = new TypeToken<Map<String, String>>() {
         };
-        Map<String, String> map = GSON.fromJson(json, typeToken);
-        return parse(map);
-    }
-
-    private Map<String, String> parse(Map<String, String> map) {
-        if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER) {
-            SettingsManager customSettingManager = CarpetOrgAdditionExtension.getCustomSettingManager();
-            if (customSettingManager == null) {
-                return map;
-            }
-            String identifier = customSettingManager.identifier();
-            if (customSettingManager == CarpetServer.settingsManager || "carpet".equals(identifier)) {
-                return map;
-            }
-            // 如果启用了自定义规则管理器，则更改翻译键以保证Carpet正确读取
-            HashMap<String, String> hashMap = new HashMap<>();
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith("carpet.rule")) {
-                    hashMap.put(identifier + key.substring("carpet".length()), entry.getValue());
-                }
-            }
-            return hashMap;
-        }
-        return map;
+        return GSON.fromJson(json, typeToken);
     }
 
     /**
