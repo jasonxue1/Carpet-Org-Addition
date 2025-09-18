@@ -4,7 +4,6 @@ import carpet.CarpetServer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.metadata.ModMetadata;
-import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.debug.DebugRuleRegistrar;
 import org.carpetorgaddition.network.NetworkS2CPacketRegister;
@@ -71,19 +70,12 @@ public class CarpetOrgAddition implements ModInitializer {
      * </p>
      */
     public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.isEnableHiddenFunction();
-    /**
-     * 是否允许自定义规则管理器
-     */
-    public static final boolean ALLOW_CUSTOM_SETTINGS_MANAGER = false;
 
     /**
      * 模组初始化
      */
     @Override
     public void onInitialize() {
-        if (ALLOW_CUSTOM_SETTINGS_MANAGER) {
-            CustomSettingsConfig.initSettingsManagerConfigs();
-        }
         CarpetServer.manageExtension(new CarpetOrgAdditionExtension());
         // 注册网络数据包
         NetworkS2CPacketRegister.register();

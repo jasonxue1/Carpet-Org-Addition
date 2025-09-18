@@ -1,6 +1,5 @@
 package org.carpetorgaddition.rule;
 
-import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
 import carpet.api.settings.RuleHelper;
@@ -10,8 +9,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
-import org.carpetorgaddition.rule.validator.Validator;
 import org.carpetorgaddition.rule.validator.StrictValidator;
+import org.carpetorgaddition.rule.validator.Validator;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -147,8 +146,7 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     @Override
     public SettingsManager settingsManager() {
-        SettingsManager settingManager = CarpetOrgAdditionExtension.getCustomSettingManager();
-        return settingManager == null ? CarpetServer.settingsManager : settingManager;
+        return CarpetOrgAdditionExtension.getSettingManager();
     }
 
     @Override
