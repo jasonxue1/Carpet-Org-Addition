@@ -21,7 +21,6 @@ import org.carpetorgaddition.wheel.TextBuilder;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
@@ -69,9 +68,9 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private final long startTime;
     /**
-     * 自玩家开始创建以来经过的游戏刻数
+     * 玩家开始创建时的时间
      */
-    private int tickCount = 0;
+    private long startSpawnTime = -1L;
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Consumer<EntityPlayerMPFake> consumer) {
         this.server = server;
@@ -88,9 +87,12 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 count--;
                 continue;
             }
-            CompletableFuture<Optional<GameProfile>> future = userCache.findByNameAsync(username);
-            future.thenAccept(optional -> {
+            Thread.ofVirtual().start(() -> {
+                Optional<GameProfile> optional = userCache.findByName(username);
                 GameProfile gameProfile = optional.orElseGet(() -> new GameProfile(Uuids.getOfflinePlayerUuid(username), username));
+                if (optional.isEmpty()) {
+                    userCache.add(gameProfile);
+                }
                 this.players.add(gameProfile);
             });
         }
@@ -119,8 +121,11 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             }
             this.isPreload = false;
         }
-        this.tickCount++;
-        if (this.tickCount > 15) {
+        if (this.startSpawnTime == -1L) {
+            this.startSpawnTime = System.currentTimeMillis();
+        }
+        // 如果召唤未能在两秒内完成，强行停止
+        if (System.currentTimeMillis() - this.startSpawnTime > 2000) {
             this.timeout();
         }
         try {

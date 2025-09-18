@@ -12,7 +12,6 @@ public record OfflinePlayerItemSearchContext(
         ItemStackPredicate predicate,
         UserCache userCache,
         ServerPlayerEntity player,
-        File[] files,
-        boolean showUnknown
+        File[] files
 ) {
 }

@@ -39,9 +39,6 @@ public class RuleSearchCommand extends AbstractServerCommand {
         if (filter.matches("\".*\"")) {
             filter = filter.substring(1, filter.length() - 1);
         }
-        if (CarpetServer.settingsManager == null) {
-            return 0;
-        }
         MutableText text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter).setBold().build();
         // 将文本设置为粗体
         text.styled(style -> style.withBold(true));

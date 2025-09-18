@@ -60,6 +60,7 @@ public class PlayerCommandExtension {
         OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
         switch (argumentPlayer) {
             case null -> {
+                // TODO 规则值为fake_player时，尝试打开未登录过游戏的玩家物品栏时命令反馈不正确
                 Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, caseSensitive, server);
                 if (optional.isEmpty()) {
                     throw PlayerCommandExtension.createNoFileFoundException();
