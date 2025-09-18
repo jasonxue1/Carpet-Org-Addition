@@ -100,9 +100,6 @@ public class GenericUtils {
     /**
      * 一个占位符，什么也不做
      */
-    public static void pass() {
-    }
-
-    public static void pass(Object ignored) {
+    public static void pass(Object... ignored) {
     }
 }
