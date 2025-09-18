@@ -1,9 +1,7 @@
 package org.carpetorgaddition.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -44,7 +42,6 @@ import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.io.File;
-import java.util.Locale;
 import java.util.function.Predicate;
 
 public class FinderCommand extends AbstractServerCommand {
@@ -101,7 +98,9 @@ public class FinderCommand extends AbstractServerCommand {
                                                 .then(CommandManager.literal("to")
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(this::areaItemFinder))))
-                                        .then(offlinePlayerItemSearchNode()))))
+                                        .then(CommandManager.literal("offline_player")
+                                                .requires(PermissionManager.register("finder.item.from.offline_player", PermissionLevel.PASS))
+                                                .executes(this::searchItemFromOfflinePlayer)))))
                 .then(CommandManager.literal("trade")
                         .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
                         .then(CommandManager.literal("item")
@@ -122,20 +121,6 @@ public class FinderCommand extends AbstractServerCommand {
                         .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
                                 .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                         .executes(this::mayAffectWorldEater)))));
-    }
-
-    private LiteralArgumentBuilder<ServerCommandSource> offlinePlayerItemSearchNode() {
-        LiteralArgumentBuilder<ServerCommandSource> literal = CommandManager.literal("offline_player");
-        literal.requires(PermissionManager.register("finder.item.from.offline_player", PermissionLevel.PASS));
-        literal.executes(context -> searchItemFromOfflinePlayer(context, false, false));
-        for (OfflinePlayerInventoryType value : OfflinePlayerInventoryType.values()) {
-            boolean isEnderChest = (value == OfflinePlayerInventoryType.ENDER_CHEST);
-            literal.then(CommandManager.literal(value.name().toLowerCase(Locale.ROOT))
-                    .executes(context -> searchItemFromOfflinePlayer(context, isEnderChest, false))
-                    .then(CommandManager.argument("showUnknown", BoolArgumentType.bool())
-                            .executes(context -> searchItemFromOfflinePlayer(context, isEnderChest, BoolArgumentType.getBool(context, "showUnknown")))));
-        }
-        return literal;
     }
 
     private SuggestionProvider<ServerCommandSource> suggestionDefaultDistance() {
@@ -172,7 +157,7 @@ public class FinderCommand extends AbstractServerCommand {
     }
 
     // 从离线玩家身上查找物品
-    private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context, boolean enderChest, boolean showUnknown) throws CommandSyntaxException {
+    private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = FetcherUtils.getServer(player);
         File[] files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
@@ -183,14 +168,9 @@ public class FinderCommand extends AbstractServerCommand {
         if (userCache == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
         }
-        ServerTask task;
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files, showUnknown);
-        if (enderChest) {
-            task = new OfflinePlayerEnderChestSearchTask(argument);
-        } else {
-            task = new OfflinePlayerSearchTask(argument);
-        }
+        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files);
+        ServerTask task = new OfflinePlayerSearchTask(argument);
         ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -354,10 +334,5 @@ public class FinderCommand extends AbstractServerCommand {
         public MutableText getName() {
             return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
         }
-    }
-
-    public enum OfflinePlayerInventoryType {
-        INVENTORY,
-        ENDER_CHEST
     }
 }

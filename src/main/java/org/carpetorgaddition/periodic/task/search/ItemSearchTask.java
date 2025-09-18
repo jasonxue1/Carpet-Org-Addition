@@ -6,9 +6,15 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.passive.AbstractDonkeyEntity;
+import net.minecraft.entity.passive.AllayEntity;
+import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.VehicleInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -16,8 +22,10 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
+import org.carpetorgaddition.mixin.accessor.AbstractHorseEntityAccessor;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -26,6 +34,7 @@ import org.carpetorgaddition.wheel.BlockEntityIterator;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -133,27 +142,57 @@ public class ItemSearchTask extends ServerTask {
                 return;
             }
             Entity entity = this.entitySearchIterator.next();
-            // 掉落物
-            if (entity instanceof ItemEntity itemEntity) {
-                MutableText drops = TextBuilder.translate("carpet.commands.finder.item.drops");
-                this.count(new SimpleInventory(itemEntity.getStack()), itemEntity.getBlockPos(), drops);
-                continue;
-            }
-            // 假玩家
-            if (entity instanceof EntityPlayerMPFake fakePlayer) {
-                this.count(fakePlayer.getInventory(), fakePlayer.getBlockPos(), fakePlayer.getName().copy());
-                continue;
-            }
-            // 容器实体
-            if (entity instanceof VehicleInventory inventory) {
-                this.count(inventory, entity.getBlockPos(), entity.getName().copy());
+            switch (entity) {
+                // 掉落物
+                case ItemEntity itemEntity -> {
+                    MutableText drops = TextBuilder.translate("carpet.commands.finder.item.drops");
+                    this.count(new SimpleInventory(itemEntity.getStack()), itemEntity.getBlockPos(), drops);
+                }
+                // 假玩家
+                case EntityPlayerMPFake fakePlayer -> {
+                    PlayerInventory inventory = fakePlayer.getInventory();
+                    this.count(inventory, fakePlayer.getBlockPos(), fakePlayer.getName());
+                }
+                // 容器实体
+                case VehicleInventory inventory -> this.count(inventory, entity.getBlockPos(), entity.getName());
+                // 物品展示框
+                case ItemFrameEntity itemFrame -> {
+                    ItemStack itemStack = itemFrame.getHeldItemStack();
+                    if (itemStack != null) {
+                        ImmutableInventory inventory = new ImmutableInventory(itemStack);
+                        this.count(inventory, itemFrame.getBlockPos(), itemFrame.getName());
+                    }
+                }
+                // 村民
+                case VillagerEntity villager when CarpetOrgAdditionSettings.openVillagerInventory.get() -> {
+                    SimpleInventory inventory = villager.getInventory();
+                    this.count(inventory, villager.getBlockPos(), villager.getName());
+                }
+                // 驴，骡和羊驼
+                case AbstractDonkeyEntity donkey when donkey.hasChest() -> {
+                    ArrayList<ItemStack> list = new ArrayList<>();
+                    AbstractHorseEntityAccessor accessor = (AbstractHorseEntityAccessor) donkey;
+                    SimpleInventory inventory = accessor.getDonkeyInventory();
+                    // 跳过第一个物品，第一个物品是鞍
+                    for (int i = 1; i < inventory.size(); i++) {
+                        list.add(inventory.getStack(i));
+                    }
+                    this.count(new ImmutableInventory(list), donkey.getBlockPos(), donkey.getName());
+                }
+                // 悦灵
+                case AllayEntity allay -> {
+                    ImmutableInventory inventory = new ImmutableInventory(allay.getMainHandStack());
+                    this.count(inventory, allay.getBlockPos(), allay.getName());
+                }
+                default -> {
+                }
             }
         }
         this.findState = FindState.SORT;
     }
 
     // 统计符合条件的物品
-    private void count(Inventory inventory, BlockPos blockPos, MutableText containerName) {
+    private void count(Inventory inventory, BlockPos blockPos, Text containerName) {
         // 是否有物品是在潜影盒中找到的
         ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
         statistics.statistics(inventory);
@@ -235,7 +274,7 @@ public class ItemSearchTask extends ServerTask {
 
     public record Result(
             BlockPos blockPos,
-            MutableText containerName,
+            Text containerName,
             ItemStackStatistics statistics
     ) implements Supplier<Text> {
         @Override

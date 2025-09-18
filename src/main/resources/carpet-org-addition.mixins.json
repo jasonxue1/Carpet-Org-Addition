@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
+    "accessor.AbstractHorseEntityAccessor",
     "accessor.ContainerComponentAccessor",
     "accessor.ExperienceOrbEntityAccessor",
     "accessor.FishingBobberEntityAccessor",

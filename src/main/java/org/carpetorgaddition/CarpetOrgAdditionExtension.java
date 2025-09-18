@@ -15,7 +15,6 @@ import net.minecraft.world.GameMode;
 import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
 import org.carpetorgaddition.command.SpectatorCommand;
-import org.carpetorgaddition.config.CustomSettingsConfig;
 import org.carpetorgaddition.config.GlobalConfigs;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -25,47 +24,24 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.Translation;
 import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
 public class CarpetOrgAdditionExtension implements CarpetExtension {
-    private static SettingsManager customSettingManager;
     private static boolean settingsLoaded = false;
 
     // 在游戏开始时
     @Override
     public void onGameStarted() {
         // 解析Carpet设置
-        SettingsManager settingManager = getCustomSettingManager();
-        if (settingManager == null) {
-            CarpetServer.settingsManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
-            // TODO 是否应移动到if-else后
-            CarpetOrgAdditionSettings.register();
-            settingsLoaded = true;
-        } else {
-            settingManager.parseSettingsClass(CarpetOrgAdditionSettings.class);
-        }
+        CarpetOrgAdditionSettings.register();
+        settingsLoaded = true;
         UuidNameMappingTable mappingTable = UuidNameMappingTable.getInstance();
         mappingTable.init();
     }
 
-    @Deprecated
-    @Nullable
-    public static SettingsManager getCustomSettingManager() {
-        if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER && customSettingManager == null) {
-            try {
-                customSettingManager = CustomSettingsConfig.getSettingManager();
-            } catch (RuntimeException e) {
-                return null;
-            }
-        }
-        return customSettingManager;
-    }
-
     public static SettingsManager getSettingManager() {
-        SettingsManager settingManager = getCustomSettingManager();
-        return settingManager == null ? CarpetServer.settingsManager : settingManager;
+        return CarpetServer.settingsManager;
     }
 
     public static boolean isCarpetRuleLoaded() {
@@ -120,18 +96,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         UuidNameMappingTable.getInstance().save();
         PermissionManager.reset();
         GlobalConfigs.save();
-    }
-
-    @Override
-    public SettingsManager extensionSettingsManager() {
-        if (CarpetOrgAddition.ALLOW_CUSTOM_SETTINGS_MANAGER) {
-            SettingsManager settingManager = CarpetOrgAdditionExtension.getCustomSettingManager();
-            if (settingManager == CarpetServer.settingsManager) {
-                return CarpetExtension.super.extensionSettingsManager();
-            }
-            return settingManager;
-        }
-        return CarpetExtension.super.extensionSettingsManager();
     }
 
     // 设置模组翻译
