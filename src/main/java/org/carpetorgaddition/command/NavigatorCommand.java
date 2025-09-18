@@ -18,6 +18,7 @@ import net.minecraft.text.MutableText;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProperties;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
@@ -179,9 +180,9 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         MutableText spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
-            ServerPlayerEntity.Respawn respawn = Objects.requireNonNull(player.getRespawn());
-            BlockPos respawnPos = respawn.pos();
-            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawn.dimension());
+            WorldProperties.class_12064 respawnData = Objects.requireNonNull(player.getRespawn()).respawnData();
+            BlockPos respawnPos = respawnData.method_74897();
+            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawnData.method_74894());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);
