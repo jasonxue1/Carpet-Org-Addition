@@ -332,18 +332,22 @@ public class OrangeCommand extends AbstractServerCommand {
         if (player != null) {
             throw CommandUtils.createException("carpet.commands.orange.textclickevent.openInventory.fail");
         }
-        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
-        if (optional.isEmpty()) {
-            throw PlayerCommandExtension.createNoFileFoundException();
-        }
-        GameProfile gameProfile = optional.get();
-        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-        if (isInventory) {
-            PlayerCommandExtension.openOfflinePlayerInventory(sourcePlayer, gameProfile);
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, server);
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            if (isInventory) {
+                PlayerCommandExtension.openOfflinePlayerInventory(sourcePlayer, gameProfile);
+            } else {
+                PlayerCommandExtension.openOfflinePlayerEnderChest(sourcePlayer, gameProfile);
+            }
+            return 1;
         } else {
-            PlayerCommandExtension.openOfflinePlayerEnderChest(sourcePlayer, gameProfile);
+            throw CommandUtils.createPlayerNotFoundException();
         }
-        return 1;
     }
 
     @Override

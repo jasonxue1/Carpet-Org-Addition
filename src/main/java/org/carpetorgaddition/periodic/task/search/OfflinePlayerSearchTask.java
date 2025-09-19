@@ -15,6 +15,7 @@ import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
@@ -335,7 +336,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     @Nullable
     private Text openInventoryButton(GameProfile gameProfile) {
-        if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
+        if (this.canOpenOfflinePlayerInventory(source)) {
             String command = CommandProvider.openPlayerInventory(gameProfile.getId());
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCommand(command);
@@ -348,7 +349,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     @Nullable
     private Text openEnderChestButton(GameProfile gameProfile) {
-        if (CommandUtils.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
+        if (this.canOpenOfflinePlayerInventory(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
             MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");
@@ -358,6 +359,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
             return builder.build();
         }
         return null;
+    }
+
+    /**
+     * @return 玩家是否可以打开离线玩家物品栏
+     */
+    private boolean canOpenOfflinePlayerInventory(ServerCommandSource source) {
+        return CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer)
+               && OpenPlayerInventory.isEnable(source)
+               && CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer();
     }
 
     /**
