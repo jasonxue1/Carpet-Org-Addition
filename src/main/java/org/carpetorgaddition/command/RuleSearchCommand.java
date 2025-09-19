@@ -9,7 +9,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -39,9 +38,9 @@ public class RuleSearchCommand extends AbstractServerCommand {
         if (filter.matches("\".*\"")) {
             filter = filter.substring(1, filter.length() - 1);
         }
-        MutableText text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter).setBold().build();
-        // 将文本设置为粗体
-        text.styled(style -> style.withBold(true));
+        Text text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter)
+                .setBold()
+                .build();
         MessageUtils.sendMessage(context.getSource(), text);
         // 如果字符串为空，不搜索规则
         if (filter.isEmpty()) {
@@ -62,7 +61,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
                 } else if (RuleHelper.translatedDescription(rule).contains(filter)) {
                     // 规则名中不包含字符串，但是规则描述中包含
                     Text message = new TextBuilder(accessor.displayInteractiveSettings(rule)).setItalic().build();
-                    MessageUtils.sendMessage(context.getSource(), message.copy());
+                    MessageUtils.sendMessage(context.getSource(), message);
                     ruleCount.increment();
                 }
             }

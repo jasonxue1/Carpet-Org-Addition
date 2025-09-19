@@ -2,7 +2,6 @@ package org.carpetorgaddition.client.renderer.waypoint;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -19,6 +18,7 @@ import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -57,17 +57,16 @@ public class WaypointRenderer implements WorldRenderer {
     @Override
     public void render(WorldRenderContext renderContext) {
         if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
-            && MinecraftClient.getInstance().currentScreen == null
+            && ClientUtils.getCurrentScreen() == null
             && this.renderType == WaypointRendererType.HIGHLIGHT) {
             this.setFade();
         }
         MatrixStack matrixStack = renderContext.matrixStack();
-        MinecraftClient client = MinecraftClient.getInstance();
-        Camera camera = client.gameRenderer.getCamera();
+        Camera camera = ClientUtils.getCamera();
         if (camera == null) {
             return;
         }
-        Vec3d vec3d = this.getPos(client);
+        Vec3d vec3d = this.getAdjustPos();
         if (vec3d == null) {
             return;
         }
@@ -85,9 +84,9 @@ public class WaypointRenderer implements WorldRenderer {
     }
 
     @Nullable
-    private Vec3d getPos(MinecraftClient client) {
-        ClientPlayerEntity player = client.player;
-        if (player == null || this.target == null || this.worldId == null) {
+    private Vec3d getAdjustPos() {
+        ClientPlayerEntity player = ClientUtils.getPlayer();
+        if (this.target == null || this.worldId == null) {
             return null;
         }
         // 获取玩家所在维度ID
@@ -96,7 +95,7 @@ public class WaypointRenderer implements WorldRenderer {
         if (WorldUtils.equalsWorld(this.worldId, playerWorldId)) {
             return this.target;
         }
-        Camera camera = client.gameRenderer.getCamera();
+        Camera camera = ClientUtils.getCamera();
         // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
         if (WorldUtils.isOverworld(playerWorldId) && WorldUtils.isTheNether(this.worldId)) {
             return new Vec3d(this.target.getX() * 8, camera.getPos().getY(), this.target.getZ() * 8);
@@ -117,7 +116,7 @@ public class WaypointRenderer implements WorldRenderer {
         // 玩家距离目标的位置
         Vec3d offset = target.subtract(cameraPos);
         // 获取客户端渲染距离
-        int renderDistance = MinecraftClient.getInstance().options.getViewDistance().getValue() * 16;
+        int renderDistance = ClientUtils.getGameOptions().getViewDistance().getValue() * 16;
         // 修正路径点渲染位置
         Vec3d correctionVec3d = new Vec3d(offset.getX(), offset.getY(), offset.getZ());
         if (correctionVec3d.length() > renderDistance) {
@@ -165,7 +164,7 @@ public class WaypointRenderer implements WorldRenderer {
      * 绘制距离文本
      */
     private void drawDistance(WorldRenderContext context, MatrixStack matrixStack, Vec3d offset, Tessellator tessellator) {
-        TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+        TextRenderer textRenderer = ClientUtils.getTextRenderer();
         // 计算距离
         double distance = offset.length();
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
@@ -177,7 +176,7 @@ public class WaypointRenderer implements WorldRenderer {
         // 获取文本宽度
         int width = textRenderer.getWidth(formatted);
         // 获取背景不透明度
-        float backgroundOpacity = MinecraftClient.getInstance().options.getTextBackgroundOpacity(0.25F);
+        float backgroundOpacity = ClientUtils.getGameOptions().getTextBackgroundOpacity(0.25F);
         int opacity = (int) (backgroundOpacity * 255.0F) << 24;
         matrixStack.push();
         // 缩小文字

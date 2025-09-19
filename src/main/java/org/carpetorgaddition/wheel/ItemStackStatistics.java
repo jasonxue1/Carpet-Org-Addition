@@ -6,7 +6,6 @@ import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 
 import java.util.ArrayList;
@@ -118,7 +117,7 @@ public class ItemStackStatistics {
     public Text getCountText() {
         ArrayList<Text> list = new ArrayList<>();
         for (Item item : this.counter) {
-            MutableText itemCount = itemCount(this.counter.getCount(item), item.getMaxCount());
+            Text itemCount = itemCount(this.counter.getCount(item), item.getMaxCount());
             if (this.nestingItem.contains(item)) {
                 TextBuilder builder = TextBuilder.fromCombined(item.getName(), " ", itemCount);
                 builder.setItalic();
@@ -127,13 +126,13 @@ public class ItemStackStatistics {
                 list.add(TextBuilder.combineAll(item.getName(), " ", itemCount));
             }
         }
-        MutableText text = TextBuilder.create(this.getSum());
+        Text text = TextBuilder.create(this.getSum());
         TextBuilder builder = new TextBuilder(text);
         builder.setHover(TextBuilder.joinList(list));
         return this.nestingItem.isEmpty() ? builder.build() : builder.setItalic().build();
     }
 
-    private MutableText itemCount(int count, int maxCount) {
+    private Text itemCount(int count, int maxCount) {
         // 计算物品有多少组
         int group = count / maxCount;
         // 计算物品余几个

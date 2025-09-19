@@ -10,7 +10,6 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -116,11 +115,11 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        MutableText cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId()));
+        Text cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId()));
         Object[] senderArray = {recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextBuilder.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
-        MutableText receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId()));
+        Text receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId()));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
         MessageUtils.sendMessage(recipientPlayer, TextBuilder.translate("carpet.commands.mail.sending.recipient", recipientArray));
         // 在接收者位置播放音效
@@ -237,7 +236,7 @@ public class Express implements Comparable<Express> {
                 return;
             }
         }
-        MutableText hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
+        Text hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
         sendMessageIfPlayerOnline(this.sender, player -> {
             Text text = getOperatorPlayerName(operator, player);
             TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.sender", text, this.recipient);
@@ -357,7 +356,7 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 将消息设置为灰色斜体
-        MutableText message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
+        Text message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 
@@ -433,7 +432,7 @@ public class Express implements Comparable<Express> {
         return recipient;
     }
 
-    public MutableText getTime() {
+    public Text getTime() {
         return TextBuilder.translate("carpet.command.time.format",
                 this.time.getYear(),
                 this.time.getMonthValue(),
