@@ -14,6 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * @apiNote 信标范围渲染器存在跨维度渲染的问题，但因当时数据包未指定版本号，除非创建一个新的数据包，否则难以在保证兼容性的情况下修复
+ */
 public class BeaconBoxRenderer extends BoxRenderer implements WorldRenderer {
     private SizeModifier sizeModifier;
     private final BlockPos blockPos;
