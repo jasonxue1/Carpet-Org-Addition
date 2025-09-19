@@ -3,7 +3,6 @@ package org.carpetorgaddition.periodic.task.search;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -12,21 +11,21 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
 
 public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
-    private final MutableText treadName;
+    private final Text treadName;
 
     public TradeItemSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
         super(world, blockIterator, sourcePos, context);
         this.predicate = predicate;
-        this.treadName = predicate.toText().copy();
+        this.treadName = predicate.toText();
     }
 
     @Override
@@ -62,7 +61,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
                 // 村民所在坐标
                 BlockPos blockPos = merchant.getBlockPos();
                 // 村民或流浪商人的名称
-                MutableText villagerName = merchant.getName().copy();
+                Text villagerName = merchant.getName();
                 return TextBuilder.translate("carpet.commands.finder.trade.item.each",
                         TextProvider.blockPos(blockPos, Formatting.GREEN), villagerName, getIndexArray(list));
             }
@@ -82,8 +81,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected MutableText getTradeName() {
+    protected Text getTradeName() {
         return this.treadName;
     }
-
 }

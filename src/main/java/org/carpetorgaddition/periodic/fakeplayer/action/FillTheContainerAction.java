@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -93,9 +93,9 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
-        MutableText translate = TextBuilder.translate(
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
+        Text translate = TextBuilder.translate(
                 "carpet.commands.playerAction.info.fill.predicate",
                 this.getFakePlayer().getDisplayName(),
                 this.predicate.toText()
@@ -117,7 +117,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.fill");
     }
 

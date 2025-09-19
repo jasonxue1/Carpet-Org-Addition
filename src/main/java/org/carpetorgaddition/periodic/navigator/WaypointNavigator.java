@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.navigator;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -65,7 +64,7 @@ public class WaypointNavigator extends AbstractNavigator {
             } else {
                 // 玩家和路径点在不同维度
                 Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
-                MutableText in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(targetPos)));
+                Text in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(targetPos)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
         }
@@ -95,12 +94,12 @@ public class WaypointNavigator extends AbstractNavigator {
     }
 
     @NotNull
-    private MutableText getIn(BlockPos blockPos) {
+    private Text getIn(BlockPos blockPos) {
         return TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(blockPos));
     }
 
     @NotNull
-    private static MutableText getDistance(BlockPos playerBlockPos, BlockPos blockPos) {
+    private static Text getDistance(BlockPos playerBlockPos, BlockPos blockPos) {
         return TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(playerBlockPos, blockPos));
     }
 }

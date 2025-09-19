@@ -9,7 +9,6 @@ import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
@@ -253,7 +252,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.pagedCollection.addContent(this.results);
         Text itemCount = getItemCount();
         Text numberOfPeople = getNumberOfPeople(resultCount);
-        MutableText message = getFirstFeedback(numberOfPeople, itemCount);
+        Text message = getFirstFeedback(numberOfPeople, itemCount);
         TextBuilder builder = new TextBuilder(message);
         builder.setHover("carpet.commands.finder.item.offline_player.prompt");
         MessageUtils.sendEmptyMessage(this.source);
@@ -264,7 +263,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * 获取首条反馈消息
      */
-    private MutableText getFirstFeedback(Text numberOfPeople, Text itemCount) {
+    private Text getFirstFeedback(Text numberOfPeople, Text itemCount) {
         return TextBuilder.translate(
                 "carpet.commands.finder.item.offline_player",
                 numberOfPeople,
@@ -351,7 +350,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private Text openEnderChestButton(GameProfile gameProfile) {
         if (this.canOpenOfflinePlayerInventory(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
-            MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
+            Text clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");
             builder.setColor(Formatting.GRAY);
             builder.setHover(clickLogin);

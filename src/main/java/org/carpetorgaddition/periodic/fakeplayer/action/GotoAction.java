@@ -6,7 +6,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -66,11 +65,11 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
+    public ArrayList<Text> info() {
         Text name = this.getFakePlayer().getDisplayName();
         String key = this.targetType.getTranslateKey();
-        MutableText text = TextBuilder.translate(key, name, displayName);
-        ArrayList<MutableText> list = new ArrayList<>();
+        Text text = TextBuilder.translate(key, name, displayName);
+        ArrayList<Text> list = new ArrayList<>();
         list.add(text);
         return list;
     }
@@ -82,7 +81,7 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.goto");
     }
 

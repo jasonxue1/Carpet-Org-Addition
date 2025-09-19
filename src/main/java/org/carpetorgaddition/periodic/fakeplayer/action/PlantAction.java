@@ -11,7 +11,7 @@ import net.minecraft.item.ToolItem;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
@@ -298,7 +298,7 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
+    public ArrayList<Text> info() {
         return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.getFakePlayer().getDisplayName()));
     }
 
@@ -308,7 +308,7 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.farm");
     }
 

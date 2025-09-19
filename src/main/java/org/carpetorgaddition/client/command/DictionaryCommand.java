@@ -16,7 +16,6 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -88,7 +87,7 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     // 将字符串id转换成可以单击复制的形式
     @NotNull
-    private MutableText canCopyId(String id) {
+    private Text canCopyId(String id) {
         return new TextBuilder(id)
                 .setCopyToClipboard(id)
                 .setHover(TextProvider.COPY_CLICK)

@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.navigator;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -26,11 +25,11 @@ public class HasNamePosNavigator extends BlockPosNavigator {
             this.clear();
             return;
         }
-        MutableText text;
-        MutableText posText = TextProvider.simpleBlockPos(this.blockPos);
+        Text text;
+        Text posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
-            MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
+            Text distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {
             text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(TextProvider.dimension(this.world), posText));

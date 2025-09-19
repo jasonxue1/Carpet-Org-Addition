@@ -8,7 +8,6 @@ import net.minecraft.screen.GenericContainerScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -114,23 +113,23 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             break;
         }
         Text playerName = this.targetPlayer.getDisplayName();
-        MutableText command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
+        Text command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
         int count = inventory.count();
         Object[] args = switch (onlyOneKind) {
             case 0 -> {
-                MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
+                Text itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
                 yield new Object[]{playerName, itemCount, firstStack.toHoverableText(), command};
             }
             case 1 -> {
                 // 物品名称
                 Text hoverableText = firstStack.getItem().getDefaultStack().toHoverableText();
                 // 物品堆叠数
-                MutableText itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
+                Text itemCount = TextProvider.itemCount(count, firstStack.getMaxCount());
                 yield new Object[]{playerName, itemCount, hoverableText, command};
             }
             case 2 -> {
                 // 不显示物品堆叠组数，但鼠标悬停可以显示物品栏
-                MutableText itemText = TextBuilder.translate("carpet.command.item.item");
+                Text itemText = TextBuilder.translate("carpet.command.item.item");
                 yield new Object[]{playerName, count, TextProvider.inventory(itemText, inventory), command};
             }
             default -> throw new IllegalStateException();
@@ -154,7 +153,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}",
                     FetcherUtils.getPlayerName(this.sourcePlayer),
                     FetcherUtils.getPlayerName(this.targetPlayer),
-                    ((MutableText) args[1]).getString(),
+                    ((Text) args[1]).getString(),
                     firstStack.getName().getString());
         }
     }

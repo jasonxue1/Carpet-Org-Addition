@@ -19,7 +19,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -160,7 +159,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<ServerCommandSource> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        MutableText version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
+        Text version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
@@ -205,8 +204,8 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
-        MutableText uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
-        MutableText name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
+        Text uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
+        Text name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
     }
 

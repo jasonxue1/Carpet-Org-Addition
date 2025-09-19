@@ -9,7 +9,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -79,7 +79,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                     number.toString(),
                     to.player().getDisplayName()
             );
-            MutableText hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
+            Text hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
             writeLog(source, to.player(), from.player(), number);
@@ -110,7 +110,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
-            MutableText hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
+            Text hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             TextBuilder builder = TextBuilder.of(
                     "carpet.commands.xpTransfer.half",
                     from.player().getDisplayName(),
@@ -215,7 +215,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                     from.player().getDisplayName(),
                     count.toString(),
                     to.player().getDisplayName());
-            MutableText hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
+            Text hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
             writeLog(source, to.player(), from.player(), count);
@@ -250,7 +250,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     }
 
     // 获取悬停提示
-    private MutableText getHover(
+    private Text getHover(
             ServerPlayerEntity inputPlayer,
             int inputCurrentLevel,
             int inputBeforeLevel,
