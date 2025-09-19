@@ -29,7 +29,6 @@ public class VillagerPoiRenderer implements WorldRenderer {
         this.potentialJobSite = potentialJobSite;
     }
 
-    // TODO 跨维度显示
     @Override
     public void render(WorldRenderContext context) {
         MatrixStack matrixStack = context.matrixStack();

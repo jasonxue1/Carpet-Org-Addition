@@ -7,7 +7,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.enchantment.Enchantment;
@@ -24,9 +23,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -135,7 +135,7 @@ public class DictionaryCommand extends AbstractClientCommand {
 
         // 获取对象id
         private String id(Object obj) {
-            ClientPlayerEntity player = Objects.requireNonNull(MinecraftClient.getInstance().player);
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
             return switch (this) {
                 case ITEM -> Registries.ITEM.getId((Item) obj).toString();
@@ -159,7 +159,7 @@ public class DictionaryCommand extends AbstractClientCommand {
         // 获取对象名称
         private Text name(Object obj) {
             // 获取客户端玩家
-            ClientPlayerEntity player = Objects.requireNonNull(MinecraftClient.getInstance().player);
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             // 获取注册管理器
             DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
             return switch (this) {

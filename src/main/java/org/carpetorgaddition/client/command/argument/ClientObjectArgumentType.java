@@ -8,7 +8,6 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.enchantment.Enchantment;
@@ -20,6 +19,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -109,7 +109,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 方块参数
      */
     public static class ClientBlockArgumentType extends ClientObjectArgumentType<Block> {
-
         @Override
         protected String objectToString(Block block) {
             return block.getName().getString();
@@ -125,7 +124,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 实体参数
      */
     public static class ClientEntityArgumentType extends ClientObjectArgumentType<EntityType<?>> {
-
         @Override
         protected String objectToString(EntityType<?> entityType) {
             return entityType.getName().getString();
@@ -133,11 +131,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<EntityType<?>> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player != null) {
-                return player.networkHandler.getRegistryManager().get(RegistryKeys.ENTITY_TYPE).stream();
-            }
-            return Stream.empty();
+            ClientPlayerEntity player = ClientUtils.getPlayer();
+            return player.networkHandler.getRegistryManager().get(RegistryKeys.ENTITY_TYPE).stream();
         }
     }
 
@@ -145,7 +140,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 附魔参数
      */
     public static class ClientEnchantmentArgumentType extends ClientObjectArgumentType<Enchantment> {
-
         @Override
         protected String objectToString(Enchantment enchantment) {
             return EnchantmentUtils.getName(enchantment).getString();
@@ -153,11 +147,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<Enchantment> getRegistry() {
-            if (MinecraftClient.getInstance().player != null) {
-                Registry<Enchantment> registry = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().get(RegistryKeys.ENCHANTMENT);
-                return registry.stream();
-            }
-            return Stream.empty();
+            Registry<Enchantment> registry = ClientUtils.getPlayer().networkHandler.getRegistryManager().get(RegistryKeys.ENCHANTMENT);
+            return registry.stream();
         }
     }
 
@@ -173,28 +164,21 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<StatusEffect> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player != null) {
-                return player.networkHandler.getRegistryManager().get(RegistryKeys.STATUS_EFFECT).stream();
-            }
-            return Stream.empty();
+            ClientPlayerEntity player = ClientUtils.getPlayer();
+            return player.networkHandler.getRegistryManager().get(RegistryKeys.STATUS_EFFECT).stream();
         }
     }
 
     public static class ClientBiomeArgumentType extends ClientObjectArgumentType<Biome> {
         @Override
         protected String objectToString(Biome biome) {
-            assert MinecraftClient.getInstance().player != null;
-            Registry<Biome> biomes = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().get(RegistryKeys.BIOME);
+            Registry<Biome> biomes = ClientUtils.getPlayer().networkHandler.getRegistryManager().get(RegistryKeys.BIOME);
             return TextBuilder.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
         }
 
         @Override
         protected Stream<Biome> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player == null) {
-                return Stream.empty();
-            }
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             return player.networkHandler.getRegistryManager().get(RegistryKeys.BIOME).stream();
         }
     }
