@@ -17,6 +17,8 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
@@ -215,7 +217,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         @Override
         protected Stream<GameRules.Key<?>> getRegistry() {
             ArrayList<GameRules.Key<?>> list = new ArrayList<>();
-            GameRules.accept(new GameRules.Visitor() {
+            new GameRules(FeatureSet.of(FeatureFlags.MINECART_IMPROVEMENTS)).accept(new GameRules.Visitor() {
                 @Override
                 public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
                     list.add(key);
