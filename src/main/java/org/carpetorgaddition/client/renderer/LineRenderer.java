@@ -17,9 +17,9 @@ public class LineRenderer implements WorldRenderer {
     @NotNull
     private Color color = new Color(1F, 0.8F, 0.4F, 1F);
     @NotNull
-    private Vec3d from;
+    private final Vec3d from;
     @NotNull
-    private Vec3d to;
+    private final Vec3d to;
 
     public LineRenderer(@NotNull Vec3d from, @NotNull Vec3d to) {
         this.from = from;
@@ -64,14 +64,6 @@ public class LineRenderer implements WorldRenderer {
         RenderSystem.enableCull();
         RenderSystem.disableDepthTest();
         matrixStack.pop();
-    }
-
-    public void setFrom(@NotNull Vec3d from) {
-        this.from = from;
-    }
-
-    public void setTo(@NotNull Vec3d to) {
-        this.to = to;
     }
 
     public void setColor(@NotNull Color color) {

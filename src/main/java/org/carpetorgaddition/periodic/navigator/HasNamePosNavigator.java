@@ -21,10 +21,6 @@ public class HasNamePosNavigator extends BlockPosNavigator {
 
     @Override
     public void tick() {
-        if (this.shouldTerminate()) {
-            this.clear();
-            return;
-        }
         Text text;
         Text posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度

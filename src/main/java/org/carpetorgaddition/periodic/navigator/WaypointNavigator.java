@@ -36,10 +36,6 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (shouldTerminate()) {
-            this.clear();
-            return;
-        }
         World playerWorld = FetcherUtils.getWorld(this.player);
         // 路径点的目标位置
         BlockPos targetPos = this.waypoint.getBlockPos();

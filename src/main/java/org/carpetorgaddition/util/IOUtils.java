@@ -51,7 +51,7 @@ public class IOUtils {
      * 创建一个UTF-8编码的字符输出流对象
      */
     public static BufferedWriter toWriter(File file) throws IOException {
-        // 如果文件不存在则创建
+        // 如果文件不存在则创建，会同时创建父级目录
         createFileIfNotExists(file);
         return new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
     }
@@ -85,6 +85,7 @@ public class IOUtils {
      *
      * @return 是否创建成功
      */
+    @SuppressWarnings("UnusedReturnValue")
     public static boolean createFileIfNotExists(File file) {
         if (file.isFile()) {
             return true;

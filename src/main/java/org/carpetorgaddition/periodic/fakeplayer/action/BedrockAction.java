@@ -1090,10 +1090,6 @@ public class BedrockAction extends AbstractPlayerAction {
         return this.blockIterator.contains(blockPos);
     }
 
-    public boolean isEmpty() {
-        return this.contexts.isEmpty();
-    }
-
     @Override
     public ArrayList<Text> info() {
         ArrayList<Text> list = new ArrayList<>();

@@ -26,10 +26,6 @@ public class BlockPosNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (this.shouldTerminate()) {
-            this.clear();
-            return;
-        }
         Text text;
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             Text in = TextProvider.simpleBlockPos(this.blockPos);
