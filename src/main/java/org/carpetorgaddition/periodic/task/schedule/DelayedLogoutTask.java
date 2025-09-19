@@ -5,7 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -65,7 +65,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
         );
     }
 
-    private @NotNull MutableText getDisplayTime() {
+    private @NotNull Text getDisplayTime() {
         TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
         builder.setHover(TextProvider.tickToRealTime(this.delayed));
         return builder.build();

@@ -12,7 +12,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -271,7 +270,7 @@ public class LocationsCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
-        MutableText mutableText = switch (WorldUtils.getDimensionId(world)) {
+        Text text = switch (WorldUtils.getDimensionId(world)) {
             case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
                     player.getDisplayName(),
                     TextProvider.blockPos(blockPos, Formatting.GREEN),
@@ -290,7 +289,7 @@ public class LocationsCommand extends AbstractServerCommand {
                     WorldUtils.getDimensionId(world),
                     TextProvider.blockPos(blockPos, null));
         };
-        MessageUtils.broadcastMessage(context.getSource().getServer(), mutableText);
+        MessageUtils.broadcastMessage(context.getSource().getServer(), text);
         return 1;
     }
 

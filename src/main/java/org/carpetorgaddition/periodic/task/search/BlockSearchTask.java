@@ -3,7 +3,6 @@ package org.carpetorgaddition.periodic.task.search;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -124,7 +123,7 @@ public class BlockSearchTask extends ServerTask {
     private void sort() {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
-            MutableText name = this.blockPredicate.getName();
+            Text name = this.blockPredicate.getName();
             MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.not_found_block", name);
             this.findState = FindState.END;
             return;
@@ -136,7 +135,7 @@ public class BlockSearchTask extends ServerTask {
     // 发送反馈
     protected void sendFeedback() {
         int count = this.results.size();
-        MutableText name = this.blockPredicate.getName();
+        Text name = this.blockPredicate.getName();
         MessageUtils.sendEmptyMessage(this.context);
         MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find", count, name);
         this.pagedCollection.addContent(this.results);
@@ -173,7 +172,7 @@ public class BlockSearchTask extends ServerTask {
         }
     }
 
-    protected MutableText getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
+    protected Text getResultMessage(BlockPos sourcteBlockPos, BlockPos blockPos) {
         return TextBuilder.translate("carpet.commands.finder.block.feedback",
                 MathUtils.getBlockIntegerDistance(sourcteBlockPos, blockPos),
                 TextProvider.blockPos(blockPos, Formatting.GREEN));

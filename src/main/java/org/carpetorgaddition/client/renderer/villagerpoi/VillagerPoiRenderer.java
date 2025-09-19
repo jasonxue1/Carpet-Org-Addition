@@ -5,7 +5,6 @@ import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.block.enums.BedPart;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.Frustum;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -14,9 +13,8 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 import org.carpetorgaddition.client.renderer.*;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-
-import java.util.Objects;
 
 public class VillagerPoiRenderer implements WorldRenderer {
     private final VillagerEntity villagerEntity;
@@ -31,15 +29,10 @@ public class VillagerPoiRenderer implements WorldRenderer {
         this.potentialJobSite = potentialJobSite;
     }
 
-    // TODO 跨维度显示
     @Override
     public void render(WorldRenderContext context) {
         MatrixStack matrixStack = context.matrixStack();
         if (matrixStack == null) {
-            return;
-        }
-        // 相机距离村民过远时不渲染
-        if (MinecraftClient.getInstance().gameRenderer.getCamera().getPos().distanceTo(villagerEntity.getPos()) > 96) {
             return;
         }
         float tickDelta = context.tickCounter().getTickDelta(true);
@@ -126,7 +119,7 @@ public class VillagerPoiRenderer implements WorldRenderer {
 
     // 生成方块轮廓渲染器
     private BlockOutlineRender getBlockOutlineRender(BlockPos blockPos) {
-        ClientWorld world = Objects.requireNonNull(MinecraftClient.getInstance().world);
+        ClientWorld world = ClientUtils.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
         if (blockState.isAir()) {
             return new BlockOutlineRender(blockPos, VoxelShapes.fullCube());
@@ -137,6 +130,14 @@ public class VillagerPoiRenderer implements WorldRenderer {
 
     @Override
     public boolean shouldStop() {
+        // 玩家与村民不再同一纬度时停止渲染
+        if (ClientUtils.getWorld() != FetcherUtils.getWorld(this.villagerEntity)) {
+            return true;
+        }
+        // 相机距离村民过远时停止渲染
+        if (ClientUtils.getCamera().getPos().distanceTo(villagerEntity.getPos()) > 96) {
+            return true;
+        }
         return this.villagerEntity.isRemoved();
     }
 

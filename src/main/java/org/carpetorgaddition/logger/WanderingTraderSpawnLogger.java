@@ -1,7 +1,6 @@
 package org.carpetorgaddition.logger;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.GameRules;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -18,7 +17,7 @@ public class WanderingTraderSpawnLogger {
             if (LoggerRegister.wanderingTrader && spawnCountdown != null) {
                 // 计算流浪商人生成概率的百分比
                 double chance = spawnCountdown.spawnChance / 10.0;
-                MutableText time;
+                Text time;
                 // 流浪商人生成倒计时（单位：秒）
                 int spawnCountdown = WanderingTraderSpawnLogger.spawnCountdown.countdown + 1;
                 if (spawnCountdown <= 60) {
