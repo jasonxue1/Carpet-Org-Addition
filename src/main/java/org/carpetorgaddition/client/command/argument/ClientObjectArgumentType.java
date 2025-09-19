@@ -17,6 +17,8 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
@@ -59,6 +61,9 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         return list;
     }
 
+    /**
+     * @return 对象的翻译后名称
+     */
     protected abstract String objectToString(T t);
 
     /**
@@ -156,7 +161,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 状态效果参数
      */
     public static class ClientStatusEffectArgumentType extends ClientObjectArgumentType<StatusEffect> {
-
         @Override
         protected String objectToString(StatusEffect statusEffect) {
             return statusEffect.getName().getString();
@@ -180,6 +184,43 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         protected Stream<Biome> getRegistry() {
             ClientPlayerEntity player = ClientUtils.getPlayer();
             return player.networkHandler.getRegistryManager().get(RegistryKeys.BIOME).stream();
+        }
+    }
+
+    /**
+     * 游戏模式参数
+     */
+    public static class ClientGameModeArgumentType extends ClientObjectArgumentType<GameMode> {
+        @Override
+        protected String objectToString(GameMode gameMode) {
+            return gameMode.getTranslatableName().getString();
+        }
+
+        @Override
+        protected Stream<GameMode> getRegistry() {
+            return Stream.of(GameMode.values());
+        }
+    }
+
+    /**
+     * 游戏规则参数
+     */
+    public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRules.Key<?>> {
+        @Override
+        protected String objectToString(GameRules.Key<?> key) {
+            return TextBuilder.translate(key.getTranslationKey()).getString();
+        }
+
+        @Override
+        protected Stream<GameRules.Key<?>> getRegistry() {
+            ArrayList<GameRules.Key<?>> list = new ArrayList<>();
+            GameRules.accept(new GameRules.Visitor() {
+                @Override
+                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                    list.add(key);
+                }
+            });
+            return list.stream();
         }
     }
 }

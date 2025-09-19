@@ -6,6 +6,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -64,6 +65,10 @@ public class TextBuilder {
 
     public static MutableText create(Message message) {
         return Text.of(message).copy();
+    }
+
+    public static MutableText create(Identifier identifier) {
+        return TextBuilder.create(identifier.toString());
     }
 
     /**
