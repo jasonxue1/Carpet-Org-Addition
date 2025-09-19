@@ -66,7 +66,7 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
     @Override
     public void load(@Nullable JsonObject json) {
         if (json == null) {
-            File file = IOUtils.configFile("custom_command_name.json", false);
+            File file = IOUtils.configFile("custom_command_name.json");
             if (file.isFile()) {
                 json = this.migrate(file);
             }
