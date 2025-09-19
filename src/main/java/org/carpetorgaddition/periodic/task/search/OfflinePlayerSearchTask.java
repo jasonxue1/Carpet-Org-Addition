@@ -43,7 +43,7 @@ import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
     /**
-     * 任务的线程池，逻辑上只能同时执行一个任务
+     * 任务的线程池，逻辑上只能同时执行一个离线玩家物品查找任务
      */
     private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors() + 1,

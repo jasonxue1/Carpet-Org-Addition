@@ -999,7 +999,7 @@ public class BedrockAction extends AbstractPlayerAction {
         ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
         // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
-        // TODO 检查是否已经有空槽位了
+        // 执行到这里时，物品栏一定是满的
         for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
             if (InventoryUtils.canMerge(most, screenHandler.getSlot(i).getStack())) {
                 FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
