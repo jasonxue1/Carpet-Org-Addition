@@ -7,9 +7,8 @@
   "mixins": [
     "accessor.AbstractHorseEntityAccessor",
     "accessor.ContainerComponentAccessor",
-    "accessor.ExperienceOrbEntityAccessor",
+    "debug.accessor.ExperienceOrbEntityAccessor",
     "accessor.FishingBobberEntityAccessor",
-    "accessor.HandledScreenAccessor",
     "accessor.MerchantScreenHandlerAccessor",
     "accessor.PlayerManagerAccessor",
     "accessor.SpawnHelperInfoAccessor",
@@ -25,6 +24,7 @@
     "debug.ExperienceOrbEntityMixin",
     "debug.PhantomSpawnerMixin",
     "debug.PlayerEntityMixin",
+    "debug.accessor.HandledScreenAccessor",
     "logger.FishingBobberEntityMixin",
     "logger.FluidBlockMixin",
     "logger.HUDControllerMixin",
@@ -111,7 +111,7 @@
     "util.carpet.SettingsManagerMixin"
   ],
   "client": [
-    "accessor.ScreenAccessor",
+    "debug.accessor.ScreenAccessor",
     "network.ScreenHandlerMixin",
     "network.SlotMixin",
     "rule.client.carpet.SettingsManagerMixin",
