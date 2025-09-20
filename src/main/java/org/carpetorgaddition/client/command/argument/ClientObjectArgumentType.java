@@ -8,7 +8,6 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.CommandSource;
 import net.minecraft.enchantment.Enchantment;
@@ -18,8 +17,13 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.resource.featuretoggle.FeatureFlags;
+import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -59,6 +63,9 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         return list;
     }
 
+    /**
+     * @return 对象的翻译后名称
+     */
     protected abstract String objectToString(T t);
 
     /**
@@ -109,7 +116,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 方块参数
      */
     public static class ClientBlockArgumentType extends ClientObjectArgumentType<Block> {
-
         @Override
         protected String objectToString(Block block) {
             return block.getName().getString();
@@ -125,7 +131,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 实体参数
      */
     public static class ClientEntityArgumentType extends ClientObjectArgumentType<EntityType<?>> {
-
         @Override
         protected String objectToString(EntityType<?> entityType) {
             return entityType.getName().getString();
@@ -133,11 +138,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<EntityType<?>> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player != null) {
-                return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENTITY_TYPE).stream();
-            }
-            return Stream.empty();
+            ClientPlayerEntity player = ClientUtils.getPlayer();
+            return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENTITY_TYPE).stream();
         }
     }
 
@@ -145,7 +147,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 附魔参数
      */
     public static class ClientEnchantmentArgumentType extends ClientObjectArgumentType<Enchantment> {
-
         @Override
         protected String objectToString(Enchantment enchantment) {
             return EnchantmentUtils.getName(enchantment).getString();
@@ -153,11 +154,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<Enchantment> getRegistry() {
-            if (MinecraftClient.getInstance().player != null) {
-                Registry<Enchantment> registry = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
-                return registry.stream();
-            }
-            return Stream.empty();
+            Registry<Enchantment> registry = ClientUtils.getPlayer().networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+            return registry.stream();
         }
     }
 
@@ -165,7 +163,6 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 状态效果参数
      */
     public static class ClientStatusEffectArgumentType extends ClientObjectArgumentType<StatusEffect> {
-
         @Override
         protected String objectToString(StatusEffect statusEffect) {
             return statusEffect.getName().getString();
@@ -173,30 +170,60 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<StatusEffect> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player != null) {
-                return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.STATUS_EFFECT).stream();
-            }
-            return Stream.empty();
+            ClientPlayerEntity player = ClientUtils.getPlayer();
+            return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.STATUS_EFFECT).stream();
         }
     }
 
     public static class ClientBiomeArgumentType extends ClientObjectArgumentType<Biome> {
         @Override
         protected String objectToString(Biome biome) {
-            assert MinecraftClient.getInstance().player != null;
-            Registry<Biome> biomes = MinecraftClient.getInstance().player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
+            Registry<Biome> biomes = ClientUtils.getPlayer().networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
             return TextBuilder.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
 
         }
 
         @Override
         protected Stream<Biome> getRegistry() {
-            ClientPlayerEntity player = MinecraftClient.getInstance().player;
-            if (player == null) {
-                return Stream.empty();
-            }
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME).stream();
+        }
+    }
+
+    /**
+     * 游戏模式参数
+     */
+    public static class ClientGameModeArgumentType extends ClientObjectArgumentType<GameMode> {
+        @Override
+        protected String objectToString(GameMode gameMode) {
+            return gameMode.getTranslatableName().getString();
+        }
+
+        @Override
+        protected Stream<GameMode> getRegistry() {
+            return Stream.of(GameMode.values());
+        }
+    }
+
+    /**
+     * 游戏规则参数
+     */
+    public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRules.Key<?>> {
+        @Override
+        protected String objectToString(GameRules.Key<?> key) {
+            return TextBuilder.translate(key.getTranslationKey()).getString();
+        }
+
+        @Override
+        protected Stream<GameRules.Key<?>> getRegistry() {
+            ArrayList<GameRules.Key<?>> list = new ArrayList<>();
+            new GameRules(FeatureSet.of(FeatureFlags.MINECART_IMPROVEMENTS)).accept(new GameRules.Visitor() {
+                @Override
+                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
+                    list.add(key);
+                }
+            });
+            return list.stream();
         }
     }
 }

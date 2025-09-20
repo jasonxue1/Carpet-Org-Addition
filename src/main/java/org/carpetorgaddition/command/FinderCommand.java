@@ -21,7 +21,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.NameToIdCache;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
@@ -60,7 +60,7 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 村民的游戏内名称
      */
-    public static final MutableText VILLAGER = TextBuilder.translate("entity.minecraft.villager");
+    public static final Text VILLAGER = TextBuilder.translate("entity.minecraft.villager");
     /**
      * 查找超时时抛出异常的反馈消息
      */
@@ -257,7 +257,7 @@ public class FinderCommand extends AbstractServerCommand {
     }
 
     // 将物品数量转换为“多少组多少个”的形式
-    public static MutableText showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
+    public static Text showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
         TextBuilder builder = new TextBuilder(TextProvider.itemCount(count, itemStack.getMaxCount()));
         // 如果包含在潜影盒内找到的物品，在数量上添加斜体效果
         return inTheShulkerBox ? builder.setItalic().build() : builder.build();
@@ -271,7 +271,7 @@ public class FinderCommand extends AbstractServerCommand {
     public interface BlockPredicate {
         boolean test(ServerWorld world, BlockPos pos);
 
-        MutableText getName();
+        Text getName();
     }
 
     public record ArgumentBlockPredicate(BlockStateArgument argument) implements BlockPredicate {
@@ -281,7 +281,7 @@ public class FinderCommand extends AbstractServerCommand {
         }
 
         @Override
-        public MutableText getName() {
+        public Text getName() {
             return argument.getBlockState().getBlock().getName();
         }
     }
@@ -330,7 +330,7 @@ public class FinderCommand extends AbstractServerCommand {
         }
 
         @Override
-        public MutableText getName() {
+        public Text getName() {
             return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
         }
     }

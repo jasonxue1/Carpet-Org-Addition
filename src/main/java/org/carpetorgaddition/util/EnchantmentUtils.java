@@ -15,9 +15,7 @@ import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.EnchantmentTags;
 import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Style;
-import net.minecraft.text.Texts;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -86,23 +84,21 @@ public class EnchantmentUtils {
     /**
      * @return 获取一个附魔的名字，不带等级
      */
-    public static MutableText getName(Enchantment enchantment) {
-        MutableText mutableText = enchantment.description().copy();
-        // 如果是诅咒附魔，设置为红色
-        if (RegistryEntry.of(enchantment).isIn(EnchantmentTags.CURSE)) {
-            Texts.setStyleIfAbsent(mutableText, Style.EMPTY.withColor(Formatting.RED));
-        } else {
-            Texts.setStyleIfAbsent(mutableText, Style.EMPTY.withColor(Formatting.GRAY));
-        }
-        return mutableText;
+    public static Text getName(Enchantment enchantment) {
+        TextBuilder builder = new TextBuilder(enchantment.description());
+        RegistryEntry<Enchantment> entry = RegistryEntry.of(enchantment);
+        // 如果是诅咒附魔，设置为红色，否则，设置为灰色
+        Formatting color = entry.isIn(EnchantmentTags.CURSE) ? Formatting.RED : Formatting.GRAY;
+        builder.setColor(color);
+        return builder.build();
     }
 
     /**
      * @param level 附魔的等级
      * @return 获取一个附魔的名字，带有等级
      */
-    public static MutableText getName(Enchantment enchantment, int level) {
-        MutableText mutableText = getName(enchantment);
+    public static Text getName(Enchantment enchantment, int level) {
+        Text mutableText = getName(enchantment);
         if (level != 1 || enchantment.getMaxLevel() != 1) {
             mutableText = TextBuilder.combineAll(mutableText, ScreenTexts.SPACE, TextBuilder.translate("enchantment.level." + level));
         }

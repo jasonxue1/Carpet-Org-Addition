@@ -263,6 +263,7 @@ public class MathUtils {
     /**
      * @return 获取数组中的随机元素
      */
+    @SuppressWarnings("unused")
     public static <T> T getRandomElement(T[] array) {
         int len = array.length;
         return array[RANDOM.nextInt(len)];

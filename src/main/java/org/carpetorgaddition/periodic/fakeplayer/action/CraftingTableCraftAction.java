@@ -6,7 +6,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.CraftingScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
@@ -142,9 +141,9 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
 
     @Override
-    public ArrayList<MutableText> info() {
+    public ArrayList<Text> info() {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
-        ArrayList<MutableText> list = new ArrayList<>();
+        ArrayList<Text> list = new ArrayList<>();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
@@ -168,7 +167,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         return list;
     }
 
-    private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
+    private void addCraftRecipe(ArrayList<Text> list, ItemStack craftOutput) {
         // 配方第一排
         list.add(
                 TextBuilder.combineAll(
@@ -206,7 +205,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     }
 
     // 添加当前合成方格的状态
-    private void addCraftGridState(CraftingScreenHandler currentScreenHandler, ArrayList<MutableText> list) {
+    private void addCraftGridState(CraftingScreenHandler currentScreenHandler, ArrayList<Text> list) {
         // 合成格第一排
         list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(currentScreenHandler.getSlot(1).getStack()),
@@ -238,7 +237,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.crafting_table_craft");
     }
 

@@ -12,7 +12,6 @@ import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.StonecutterScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -154,7 +153,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
+    public ArrayList<Text> info() {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
         // 获取假玩家所在的世界对象
@@ -175,7 +174,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         } else {
             itemName = outputItemStack.toHoverableText();
         }
-        ArrayList<MutableText> list = new ArrayList<>();
+        ArrayList<Text> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.item",
                 this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName(),
                 this.item.getDefaultStack().toHoverableText(), itemName));
@@ -219,7 +218,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.stonecutting");
     }
 

@@ -7,7 +7,7 @@ import net.minecraft.entity.passive.WanderingTraderEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameRules;
@@ -68,8 +68,8 @@ public class WanderingTraderManagerMixin {
             HUDLogger logger = Loggers.getWanderingTraderLogger();
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
-            MutableText blockPos = TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN);
-            MutableText message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
+            Text blockPos = TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN);
+            Text message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
             for (Map.Entry<String, String> entry : entries) {
                 ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
                 if (player == null) {
@@ -79,12 +79,12 @@ public class WanderingTraderManagerMixin {
                 boolean canNavigate = CommandUtils.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
                 if (canNavigate) {
                     // 带点击导航的消息
-                    MutableText button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
+                    Text button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
                             .setCommand(CommandProvider.navigateToUuidEntity(trader.getUuid()))
                             .setHover(TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()))
                             .setColor(Formatting.AQUA)
                             .build();
-                    MutableText canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
+                    Text canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
                     MessageUtils.sendMessage(player, canNavigateMessage);
                 } else {
                     MessageUtils.sendMessage(player, message);

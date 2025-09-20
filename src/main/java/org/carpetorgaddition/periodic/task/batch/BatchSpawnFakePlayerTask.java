@@ -6,7 +6,7 @@ import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.NameToIdCache;
 import net.minecraft.util.Uuids;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -87,6 +87,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 count--;
                 continue;
             }
+            // TODO 需要测试是否能正常快速创建假玩家
             Thread.ofVirtual().start(() -> {
                 Optional<PlayerConfigEntry> optional = userCache.findByName(username);
                 PlayerConfigEntry gameProfile = optional.orElseGet(() -> new PlayerConfigEntry(Uuids.getOfflinePlayerUuid(username), username));
@@ -110,13 +111,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             if (size < this.count) {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
-                    MutableText message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
+                    Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
                     MessageUtils.sendMessageToHud(this.player, message);
                 }
                 return;
             }
             if (progress) {
-                MutableText message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
+                Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
                 MessageUtils.sendMessageToHud(this.player, message);
             }
             this.isPreload = false;
@@ -146,7 +147,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
-            MutableText summoner = TextBuilder.translate(
+            Text summoner = TextBuilder.translate(
                     "carpet.commands.playerManager.batch.summoner",
                     this.player.getDisplayName(),
                     this.prefix + this.start,

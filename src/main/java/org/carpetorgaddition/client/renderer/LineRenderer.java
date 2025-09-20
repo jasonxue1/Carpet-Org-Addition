@@ -2,11 +2,11 @@ package org.carpetorgaddition.client.renderer;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.client.util.ClientRenderUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
@@ -18,9 +18,9 @@ public class LineRenderer implements WorldRenderer {
     @NotNull
     private Color color = new Color(1F, 0.8F, 0.4F, 1F);
     @NotNull
-    private Vec3d from;
+    private final Vec3d from;
     @NotNull
-    private Vec3d to;
+    private final Vec3d to;
 
     public LineRenderer(@NotNull Vec3d from, @NotNull Vec3d to) {
         this.from = from;
@@ -40,7 +40,7 @@ public class LineRenderer implements WorldRenderer {
         matrixStack.push();
         MatrixStack.Entry peek = matrixStack.peek();
         Matrix4f matrix4f = peek.getPositionMatrix();
-        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Camera camera = ClientUtils.getCamera();
         Vec3d cameraPos = camera.getPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
@@ -54,14 +54,6 @@ public class LineRenderer implements WorldRenderer {
                 .normal(peek, (float) relativize.getX(), (float) relativize.getY(), (float) relativize.getZ());
         ClientRenderUtils.draw(RenderLayer.getLines(), bufferBuilder.end());
         matrixStack.pop();
-    }
-
-    public void setFrom(@NotNull Vec3d from) {
-        this.from = from;
-    }
-
-    public void setTo(@NotNull Vec3d to) {
-        this.to = to;
     }
 
     public void setColor(@NotNull Color color) {

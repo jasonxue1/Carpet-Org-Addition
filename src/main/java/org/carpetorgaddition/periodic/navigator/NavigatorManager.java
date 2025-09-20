@@ -27,7 +27,11 @@ public class NavigatorManager {
             return;
         }
         try {
-            this.navigator.tick();
+            if (this.navigator.shouldTerminate()) {
+                this.clearNavigator();
+            } else {
+                this.navigator.tick();
+            }
         } catch (RuntimeException e) {
             MessageUtils.sendErrorMessage(this.player.getCommandSource(), e, "carpet.commands.navigate.exception");
             CarpetOrgAddition.LOGGER.error("导航器没有按照预期工作", e);

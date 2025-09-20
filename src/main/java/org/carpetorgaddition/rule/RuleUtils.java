@@ -6,7 +6,6 @@ import carpet.utils.Translations;
 import net.minecraft.command.PermissionLevelPredicate;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -115,7 +114,7 @@ public class RuleUtils {
     /**
      * 获取规则的名称
      */
-    public static MutableText simpleTranslationName(CarpetRule<?> rule) {
+    public static Text simpleTranslationName(CarpetRule<?> rule) {
         String key = String.format(TranslationKeys.RULE_NAME_PATTERN, rule.settingsManager().identifier(), rule.name());
         TextBuilder builder = TextBuilder.of(key);
         if (Translations.hasTranslation(key)) {
@@ -134,7 +133,6 @@ public class RuleUtils {
                 .map(TextBuilder::of)
                 .map(builder -> builder.setColor(Formatting.GRAY))
                 .map(TextBuilder::build)
-                .map(text -> (Text) text)
                 .toList();
     }
 }

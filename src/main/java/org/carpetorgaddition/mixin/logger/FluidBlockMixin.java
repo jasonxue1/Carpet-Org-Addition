@@ -7,7 +7,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.logger.FunctionLogger;
@@ -29,7 +29,7 @@ public class FluidBlockMixin {
                 FunctionLogger logger = Loggers.getObsidianLogger();
                 for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
                     if (logger.isSubscribed(player)) {
-                        MutableText text = TextProvider.blockPos(pos, WorldUtils.getColor(world));
+                        Text text = TextProvider.blockPos(pos, WorldUtils.getColor(world));
                         MessageUtils.sendMessage(player, "carpet.logger.obsidian.generate", text);
                     }
                 }
