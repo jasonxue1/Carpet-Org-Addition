@@ -66,7 +66,7 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
     @Override
     public void load(@Nullable JsonObject json) {
         if (json == null) {
-            File file = IOUtils.configFile("custom_command_name.json", false);
+            File file = IOUtils.configFile("custom_command_name.json");
             if (file.isFile()) {
                 json = this.migrate(file);
             }
@@ -96,12 +96,9 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
     }
 
     /**
-     * 获取命令的自定义名称，如果不存在，返回参数本身做为默认值
+     * 获取命令的自定义名称
      */
     public String[] getCommand(String command) {
-        // TODO 方法是否存在逻辑错误，与注释行为不一致
-        Set<String> set;
-        set = this.commands.computeIfAbsent(command, Set::of);
-        return set.toArray(String[]::new);
+        return this.commands.computeIfAbsent(command, Set::of).toArray(String[]::new);
     }
 }

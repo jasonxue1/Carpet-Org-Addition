@@ -4,7 +4,6 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
@@ -53,13 +52,13 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     @Override
     public void onCancel(CommandContext<ServerCommandSource> context) {
         this.markRemove();
-        MutableText time = getDisplayTime();
-        MutableText displayName = this.serial.getDisplayName().copy();
+        Text time = getDisplayTime();
+        Text displayName = this.serial.getDisplayName();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.cancel", displayName, time);
     }
 
     // 获取带有悬停提示的时间
-    private @NotNull MutableText getDisplayTime() {
+    private @NotNull Text getDisplayTime() {
         TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
         builder.setHover(TextProvider.tickToRealTime(this.delayed));
         return builder.build();

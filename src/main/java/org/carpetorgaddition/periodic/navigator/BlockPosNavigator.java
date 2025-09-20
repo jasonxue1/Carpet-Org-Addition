@@ -1,7 +1,7 @@
 package org.carpetorgaddition.periodic.navigator;
 
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
@@ -26,14 +26,10 @@ public class BlockPosNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (this.shouldTerminate()) {
-            this.clear();
-            return;
-        }
-        MutableText text;
+        Text text;
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
-            MutableText in = TextProvider.simpleBlockPos(this.blockPos);
-            MutableText distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
+            Text in = TextProvider.simpleBlockPos(this.blockPos);
+            Text distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
             text = getHUDText(this.blockPos.toCenterPos(), in, distance);
         } else {
             text = TextBuilder.combineAll(TextProvider.dimension(this.world), TextProvider.simpleBlockPos(this.blockPos));

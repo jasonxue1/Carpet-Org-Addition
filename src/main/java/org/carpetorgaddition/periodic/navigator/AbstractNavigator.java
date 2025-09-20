@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -50,8 +49,8 @@ public abstract class AbstractNavigator {
     public abstract AbstractNavigator copy(ServerPlayerEntity player);
 
     @NotNull
-    protected MutableText getHUDText(Vec3d vec3d, Text in, Text distance) {
-        MutableText text;
+    protected Text getHUDText(Vec3d vec3d, Text in, Text distance) {
+        Text text;
         // 添加上下箭头
         text = switch (verticalAngle(this.player, vec3d)) {
             case 1 -> TextBuilder.combineAll(in, " ↑ ", distance);

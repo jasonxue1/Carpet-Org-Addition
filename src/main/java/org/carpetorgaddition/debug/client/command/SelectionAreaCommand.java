@@ -6,18 +6,17 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallba
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.wheel.BlockIterator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class SelectionAreaCommand {
     private static final ArrayList<SelectionAreaDebugRenderer> RENDERERS = new ArrayList<>();
@@ -68,7 +67,7 @@ public class SelectionAreaCommand {
         }
 
         private long getGameTime() {
-            return Objects.requireNonNull(MinecraftClient.getInstance().world).getTime();
+            return ClientUtils.getWorld().getTime();
         }
     }
 }

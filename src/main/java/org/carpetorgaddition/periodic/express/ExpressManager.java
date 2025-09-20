@@ -9,7 +9,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.CommandUtils;
@@ -77,7 +76,7 @@ public class ExpressManager {
         ArrayList<Supplier<Text>> messages = new ArrayList<>();
         for (Express express : list) {
             messages.add(() -> {
-                MutableText clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
+                Text clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
                 ItemStack stack = express.getExpress();
                 return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.toHoverableText(), clickRun);
             });
@@ -176,7 +175,7 @@ public class ExpressManager {
             PlayerManager playerManager = FetcherUtils.getServer(player).getPlayerManager();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
-                MutableText message = getReceiveNotice(player, entry.getValue());
+                Text message = getReceiveNotice(player, entry.getValue());
                 ServerPlayerEntity playerEntity = playerManager.getPlayer(entry.getKey());
                 if (playerEntity == null) {
                     continue;
@@ -240,7 +239,7 @@ public class ExpressManager {
     /**
      * @return 获取快递发送者的快递被接收者接收的消息
      */
-    public static MutableText getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
+    public static Text getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
         ArrayList<Text> list = new ArrayList<>();
         for (Item item : counter) {
             list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));

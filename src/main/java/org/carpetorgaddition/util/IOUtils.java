@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Contract;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Objects;
@@ -44,16 +45,22 @@ public class IOUtils {
      * 创建一个UTF-8编码的字符输入流对象
      */
     public static BufferedReader toReader(File file) throws IOException {
-        return new BufferedReader(new FileReader(file, StandardCharsets.UTF_8));
+        return Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
     }
 
     /**
      * 创建一个UTF-8编码的字符输出流对象
      */
     public static BufferedWriter toWriter(File file) throws IOException {
-        // 如果文件不存在则创建
-        createFileIfNotExists(file);
-        return new BufferedWriter(new FileWriter(file, StandardCharsets.UTF_8));
+        // 如果父级目录不存在则创建
+        // 如果是根目录或父级目录存在，则无需创建父级目录
+        File parent = file.getParentFile();
+        if (parent != null && !parent.exists()) {
+            if (!parent.mkdirs()) {
+                throw new IOException("Failed to create directory: " + parent);
+            }
+        }
+        return Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -78,27 +85,6 @@ public class IOUtils {
         try (reader) {
             return GSON.fromJson(reader, type);
         }
-    }
-
-    /**
-     * 如果一个文件不存在，则创建，如果这个文件的父级也不存在则同时创建
-     *
-     * @return 是否创建成功
-     */
-    public static boolean createFileIfNotExists(File file) {
-        if (file.isFile()) {
-            return true;
-        }
-        File parent = file.getParentFile();
-        // 如果父级路径不存在则创建
-        if (parent.isDirectory() || parent.mkdirs()) {
-            try {
-                return file.createNewFile();
-            } catch (IOException e) {
-                return false;
-            }
-        }
-        return false;
     }
 
     /**
@@ -185,12 +171,8 @@ public class IOUtils {
         return false;
     }
 
-    public static File configFile(String fileName, boolean create) {
-        File file = CONFIGURE_DIRECTORY.resolve(fileName).toFile();
-        if (create) {
-            createFileIfNotExists(file);
-        }
-        return file;
+    public static File configFile(String fileName) {
+        return CONFIGURE_DIRECTORY.resolve(fileName).toFile();
     }
 
     /**
