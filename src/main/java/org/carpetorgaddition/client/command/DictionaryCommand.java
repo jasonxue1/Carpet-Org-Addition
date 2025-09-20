@@ -7,7 +7,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.enchantment.Enchantment;
@@ -17,16 +16,18 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.GameMode;
+import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -86,7 +87,7 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     // 将字符串id转换成可以单击复制的形式
     @NotNull
-    private MutableText canCopyId(String id) {
+    private Text canCopyId(String id) {
         return new TextBuilder(id)
                 .setCopyToClipboard(id)
                 .setHover(TextProvider.COPY_CLICK)
@@ -123,10 +124,15 @@ public class DictionaryCommand extends AbstractClientCommand {
         /**
          * 生物群系
          */
-        BIOME("biome");
+        BIOME("biome"),
         /**
-         * 子命令和子命令参数
+         * 游戏模式
          */
+        GAMEMODE("gamemode"),
+        /**
+         * 游戏规则
+         */
+        GAMERULE("gamerule");
         private final String name;
 
         DictionaryType(String name) {
@@ -135,7 +141,7 @@ public class DictionaryCommand extends AbstractClientCommand {
 
         // 获取对象id
         private String id(Object obj) {
-            ClientPlayerEntity player = Objects.requireNonNull(MinecraftClient.getInstance().player);
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
             return switch (this) {
                 case ITEM -> Registries.ITEM.getId((Item) obj).toString();
@@ -143,23 +149,25 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENTITY -> Registries.ENTITY_TYPE.getId((EntityType<?>) obj).toString();
                 case ENCHANTMENT -> {
                     Identifier id = registry.getOrThrow(RegistryKeys.ENCHANTMENT).getId((Enchantment) obj);
-                    yield Objects.requireNonNull(id, "无法获取附魔id").toString();
+                    yield Objects.requireNonNull(id, "Unable to obtain enchantment id").toString();
                 }
                 case STATUS_EFFECT -> {
                     Identifier id = registry.getOrThrow(RegistryKeys.STATUS_EFFECT).getId((StatusEffect) obj);
-                    yield Objects.requireNonNull(id, "无法获取状态效果id").toString();
+                    yield Objects.requireNonNull(id, "Unable to obtain status effect id").toString();
                 }
                 case BIOME -> {
                     Identifier id = registry.getOrThrow(RegistryKeys.BIOME).getId((Biome) obj);
-                    yield Objects.requireNonNull(id, "无法获取生物群系id").toString();
+                    yield Objects.requireNonNull(id, "Unable to obtain biome id").toString();
                 }
+                case GAMEMODE -> ((GameMode) obj).asString();
+                case GAMERULE -> ((GameRules.Key<?>) obj).getName();
             };
         }
 
         // 获取对象名称
         private Text name(Object obj) {
             // 获取客户端玩家
-            ClientPlayerEntity player = Objects.requireNonNull(MinecraftClient.getInstance().player);
+            ClientPlayerEntity player = ClientUtils.getPlayer();
             // 获取注册管理器
             DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
             return switch (this) {
@@ -169,10 +177,12 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENCHANTMENT -> EnchantmentUtils.getName((Enchantment) obj);
                 case STATUS_EFFECT -> ((StatusEffect) obj).getName();
                 case BIOME -> {
-                    Identifier id = Objects.requireNonNull(registry.getOrThrow(RegistryKeys.BIOME).getId((Biome) obj), "无法获取生物群系id");
+                    Identifier id = Objects.requireNonNull(registry.getOrThrow(RegistryKeys.BIOME).getId((Biome) obj), "Unable to obtain biome id");
                     String key = id.toTranslationKey("biome");
                     yield TextBuilder.translate(key);
                 }
+                case GAMEMODE -> ((GameMode) obj).getTranslatableName();
+                case GAMERULE -> TextBuilder.translate(((GameRules.Key<?>) obj).getTranslationKey());
             };
         }
 
@@ -185,6 +195,8 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENCHANTMENT -> new ClientObjectArgumentType.ClientEnchantmentArgumentType();
                 case STATUS_EFFECT -> new ClientObjectArgumentType.ClientStatusEffectArgumentType();
                 case BIOME -> new ClientObjectArgumentType.ClientBiomeArgumentType();
+                case GAMEMODE -> new ClientObjectArgumentType.ClientGameModeArgumentType();
+                case GAMERULE -> new ClientObjectArgumentType.ClientGameRuleArgumentType();
             };
         }
     }
