@@ -20,7 +20,6 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
@@ -228,7 +227,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
         HashSet<FakePlayerSerializer> set = map.get(null);
         if (set == null) {
-            MutableText translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
+            Text translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
             throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", translate);
         }
         List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
@@ -428,7 +427,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             }
         } else {
             String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
-            MutableText command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
+            Text command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
             MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
         }
         return 1;
@@ -558,7 +557,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.group.name.all");
             setStyle(builder, manager.size(), CommandProvider.listAllPlayer(filter));
             list.add(builder.build());
-            MutableText message = TextBuilder.joinList(list, TextBuilder.create(" "));
+            Text message = TextBuilder.joinList(list, TextBuilder.create(" "));
             MessageUtils.sendMessage(context.getSource(), message);
             return list.size();
         }
@@ -615,7 +614,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
             // 单击执行命令
-            MutableText clickResave = TextProvider.clickRun(command);
+            Text clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
             return 0;
         } else {
@@ -848,7 +847,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        MutableText time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Text time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         if (optional.isEmpty()) {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -878,7 +877,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        MutableText time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Text time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))

@@ -47,7 +47,7 @@ public class UuidNameMappingTable {
      * 集合可能被多个线程同时访问
      */
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final File config = IOUtils.configFile("uuid_name_mapping.txt", true);
+    private final File config = IOUtils.configFile("uuid_name_mapping.txt");
     private static final UuidNameMappingTable MAPPING_TABLE = new UuidNameMappingTable();
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API
@@ -130,14 +130,15 @@ public class UuidNameMappingTable {
      * 从文件加载玩家UUID与名称映射
      */
     public void init() {
-        try {
-            IOUtils.createFileIfNotExists(this.config);
-            BufferedReader reader = IOUtils.toReader(this.config);
-            try (reader) {
-                this.loadFromFile(reader);
+        if (this.config.isFile()) {
+            try {
+                BufferedReader reader = IOUtils.toReader(this.config);
+                try (reader) {
+                    this.loadFromFile(reader);
+                }
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("无法从文件读取玩家UUID与名称的映射表", e);
             }
-        } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("无法从文件读取玩家UUID与名称的映射表", e);
         }
     }
 

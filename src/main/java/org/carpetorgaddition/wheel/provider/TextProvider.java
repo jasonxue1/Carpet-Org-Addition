@@ -2,7 +2,6 @@ package org.carpetorgaddition.wheel.provider;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.text.Texts;
 import net.minecraft.util.Formatting;
@@ -63,7 +62,7 @@ public class TextProvider {
         return value ? TRUE : FALSE;
     }
 
-    public static MutableText blockPos(BlockPos blockPos) {
+    public static Text blockPos(BlockPos blockPos) {
         return blockPos(blockPos, Formatting.GREEN);
     }
 
@@ -72,7 +71,7 @@ public class TextProvider {
      *
      * @param color 文本的颜色，如果为null，不修改颜色
      */
-    public static MutableText blockPos(BlockPos blockPos, @Nullable Formatting color) {
+    public static Text blockPos(BlockPos blockPos, @Nullable Formatting color) {
         TextBuilder builder = new TextBuilder(simpleBlockPos(blockPos));
         // 添加单击事件，复制方块坐标
         builder.setCopyToClipboard(WorldUtils.toPosString(blockPos));
@@ -94,7 +93,7 @@ public class TextProvider {
     /**
      * 返回一个简单的没有任何样式的方块坐标可变文本对象
      */
-    public static MutableText simpleBlockPos(BlockPos blockPos) {
+    public static Text simpleBlockPos(BlockPos blockPos) {
         return Texts.bracketed(Text.translatable("chat.coordinates", blockPos.getX(), blockPos.getY(), blockPos.getZ()));
     }
 
@@ -102,7 +101,7 @@ public class TextProvider {
      * 单击输入命令
      */
     @SuppressWarnings("unused")
-    public static MutableText clickInput(String command) {
+    public static Text clickInput(String command) {
         return TextBuilder.translate("carpet.command.text.click.input", command);
     }
 
@@ -111,7 +110,7 @@ public class TextProvider {
      *
      * @param command 要执行的命令
      */
-    public static MutableText clickRun(String command) {
+    public static Text clickRun(String command) {
         TextBuilder builder = new TextBuilder(CLICK_HERE);
         builder.setCommand(command);
         builder.setHover("carpet.command.text.click.run", command);
@@ -124,7 +123,7 @@ public class TextProvider {
      *
      * @return {@code 物品组数}组{@code 物品个数}个
      */
-    public static MutableText itemCount(int count, int maxCount) {
+    public static Text itemCount(int count, int maxCount) {
         // 计算物品有多少组
         int group = count / maxCount;
         // 计算物品余几个
@@ -145,7 +144,7 @@ public class TextProvider {
      * @param base 原始的文本对象
      * @return 获取物品栏中物品的名称和堆叠数量并用“*”连接，每个物品独占一行
      */
-    public static MutableText inventory(Text base, Inventory inventory) {
+    public static Text inventory(Text base, Inventory inventory) {
         TextBuilder builder = new TextBuilder(base);
         ArrayList<Text> list = new ArrayList<>();
         for (int i = 0; i < inventory.size(); i++) {
@@ -163,7 +162,7 @@ public class TextProvider {
      *
      * @param tick 游戏刻时间
      */
-    public static MutableText tickToTime(long tick) {
+    public static Text tickToTime(long tick) {
         // 游戏刻
         if (tick < 20L) {
             return TextBuilder.translate("carpet.command.time.tick", tick);
@@ -194,7 +193,7 @@ public class TextProvider {
      * @param offset 时间偏移的游戏刻数
      * @return 指定游戏刻之后的时间
      */
-    public static MutableText tickToRealTime(long offset) {
+    public static Text tickToRealTime(long offset) {
         LocalDateTime time = LocalDateTime.now().plusSeconds(offset / 20);
         return TextBuilder.translate("carpet.command.time.format",
                 time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),

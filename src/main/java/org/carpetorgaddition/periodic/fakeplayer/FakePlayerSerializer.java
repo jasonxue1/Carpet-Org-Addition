@@ -7,7 +7,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
@@ -342,14 +341,14 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     private Text toText() {
-        MutableText loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
-        MutableText logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
+        Text loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
+        Text logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
         String name = this.getFakePlayerName();
         String logonCommand = CommandProvider.playerManagerSpawn(name);
         String logoutCommand = CommandProvider.killFakePlayer(name);
-        MutableText login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(Formatting.GREEN).build();
-        MutableText logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
-        MutableText info = new TextBuilder("[?]").setHover(this.info()).setColor(Formatting.GRAY).build();
+        Text login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(Formatting.GREEN).build();
+        Text logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
+        Text info = new TextBuilder("[?]").setHover(this.info()).setColor(Formatting.GRAY).build();
         TextBuilder builder = new TextBuilder(name);
         builder.setHover(this.comment);
         return TextBuilder.combineAll(login, " ", logout, " ", info, " ", builder.build());

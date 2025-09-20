@@ -5,7 +5,6 @@ import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
@@ -86,7 +85,7 @@ public class RuntimeCommand extends AbstractServerCommand {
         long size = runtime.freeMemory() - l;
         Text free = displayMemory(size);
         MessageUtils.sendMessage(context, "carpet.commands.runtime.gc", free);
-        MutableText prompt = TextBuilder.of("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
+        Text prompt = TextBuilder.of("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
         MessageUtils.sendMessage(context.getSource(), prompt);
         return (int) size;
     }

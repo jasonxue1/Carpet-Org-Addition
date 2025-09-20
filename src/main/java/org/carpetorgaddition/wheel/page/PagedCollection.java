@@ -2,14 +2,13 @@ package org.carpetorgaddition.wheel.page;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -65,7 +64,7 @@ public class PagedCollection implements Iterable<Page> {
             list.add("] ");
             list.add(this.nextPageButton(pagination));
             list.add(new TextBuilder("======").setColor(Formatting.DARK_GRAY));
-            MutableText pageTurningButton = TextBuilder.combineList(list);
+            Text pageTurningButton = TextBuilder.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }

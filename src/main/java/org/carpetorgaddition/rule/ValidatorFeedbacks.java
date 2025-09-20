@@ -2,7 +2,6 @@ package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
@@ -76,7 +75,7 @@ public class ValidatorFeedbacks {
             }
             list.add(option);
         }
-        MutableText message = TextBuilder.joinList(list.stream().map(TextBuilder::build).toList(), TextBuilder.create(", "));
+        Text message = TextBuilder.joinList(list.stream().map(TextBuilder::build).toList(), TextBuilder.create(", "));
         return TextBuilder.translate("carpet.rule.validate.valid_options", message);
     }
 }

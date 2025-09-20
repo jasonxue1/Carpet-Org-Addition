@@ -9,7 +9,7 @@ import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.village.Merchant;
@@ -262,8 +262,8 @@ public class TradeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         // 获取按钮的索引
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.item", getFakePlayer().getDisplayName(), index + 1));
         if (getFakePlayer().currentScreenHandler instanceof MerchantScreenHandler merchantScreenHandler) {
@@ -301,7 +301,7 @@ public class TradeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.trade");
     }
 

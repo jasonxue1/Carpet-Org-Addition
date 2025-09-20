@@ -6,7 +6,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
@@ -56,8 +55,8 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         Text text = this.predicate.toText();
         Text playerName = this.getFakePlayer().getDisplayName();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
@@ -65,7 +64,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.clean");
     }
 
