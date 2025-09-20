@@ -15,7 +15,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -232,7 +231,7 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     private Text line(ServerPlayerEntity player, Express express) {
-        ArrayList<MutableText> list = new ArrayList<>();
+        ArrayList<Text> list = new ArrayList<>();
         TextBuilder builder;
         if (express.isRecipient(player)) {
             builder = new TextBuilder("[R]");

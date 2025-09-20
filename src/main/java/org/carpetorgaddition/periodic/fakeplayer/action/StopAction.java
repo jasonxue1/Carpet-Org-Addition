@@ -2,7 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
@@ -18,8 +18,8 @@ public final class StopAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         // 直接将假玩家没有任何动作的信息加入集合然后返回
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.stop", this.getFakePlayer().getDisplayName()));
         return list;
@@ -36,7 +36,7 @@ public final class StopAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.stop");
     }
 

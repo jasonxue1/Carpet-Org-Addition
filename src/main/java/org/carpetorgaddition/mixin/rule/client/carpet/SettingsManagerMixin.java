@@ -1,10 +1,10 @@
 package org.carpetorgaddition.mixin.rule.client.carpet;
 
 import carpet.api.settings.SettingsManager;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.integrated.IntegratedServer;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -17,7 +17,7 @@ public class SettingsManagerMixin {
     @Inject(method = "lambda$registerCommand$11", at = @At("HEAD"), cancellable = true)
     private void carpet(ServerCommandSource player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.openCarpetPermission.get()) {
-            IntegratedServer clientServer = MinecraftClient.getInstance().getServer();
+            IntegratedServer clientServer = ClientUtils.getServer();
             if (clientServer != null) {
                 cir.setReturnValue(true);
             }

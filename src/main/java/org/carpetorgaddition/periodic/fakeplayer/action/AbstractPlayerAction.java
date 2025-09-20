@@ -2,7 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -44,7 +44,7 @@ public abstract class AbstractPlayerAction {
     /**
      * 当前动作的详细信息
      */
-    public abstract ArrayList<MutableText> info();
+    public abstract ArrayList<Text> info();
 
     /**
      * 序列化假玩家动作数据
@@ -54,7 +54,7 @@ public abstract class AbstractPlayerAction {
     /**
      * @return 当前动作类型的显示名称
      */
-    public abstract MutableText getDisplayName();
+    public abstract Text getDisplayName();
 
     public abstract ActionSerializeType getActionSerializeType();
 

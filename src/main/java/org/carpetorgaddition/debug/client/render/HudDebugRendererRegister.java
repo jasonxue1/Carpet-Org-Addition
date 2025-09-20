@@ -9,6 +9,7 @@ import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ComparatorBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Mouse;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -35,6 +36,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.chunk.WorldChunk;
 import org.carpetorgaddition.client.renderer.Tooltip;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
 import org.carpetorgaddition.mixin.accessor.ExperienceOrbEntityAccessor;
@@ -62,14 +64,13 @@ public class HudDebugRendererRegister {
         // 显示方块挖掘速度
         renders.add((context, tickCounter) -> {
             if (DebugSettings.showBlockBreakingSpeed.get()) {
-                MinecraftClient client = MinecraftClient.getInstance();
-                HitResult hitResult = client.crosshairTarget;
+                HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
                     return;
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    ClientPlayerEntity player = getPlayer();
+                    ClientPlayerEntity player = ClientUtils.getPlayer();
                     ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
                     if (world == null) {
                         return;
@@ -92,14 +93,13 @@ public class HudDebugRendererRegister {
         // 渲染比较器强度
         renders.add((context, tickCounter) -> {
             if (DebugSettings.showComparatorLevel.get()) {
-                MinecraftClient client = MinecraftClient.getInstance();
-                HitResult hitResult = client.crosshairTarget;
+                HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
                     return;
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    ClientPlayerEntity player = getPlayer();
+                    ClientPlayerEntity player = ClientUtils.getPlayer();
                     ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
                     if (world == null) {
                         return;
@@ -117,9 +117,8 @@ public class HudDebugRendererRegister {
         });
         // 渲染灵魂沙物品数量
         renders.add((context, tickCounter) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (showSoulSandItemCount(client)) {
-                HitResult hitResult = client.crosshairTarget;
+            if (showSoulSandItemCount()) {
+                HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
                     return;
                 }
@@ -177,16 +176,17 @@ public class HudDebugRendererRegister {
         // 渲染当前HUD信息
         renders.add((context, tickCounter) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
-                MinecraftClient client = MinecraftClient.getInstance();
-                Screen screen = client.currentScreen;
+                MinecraftClient client = ClientUtils.getClient();
+                Screen screen = ClientUtils.getCurrentScreen();
                 if (screen == null) {
                     return;
                 }
                 ArrayList<String> list = new ArrayList<>();
                 String name = screen.getClass().getSimpleName();
                 list.add("类名：" + name);
-                double mouseX = client.mouse.getX();
-                double mouseY = client.mouse.getY();
+                Mouse mouse = ClientUtils.getMouse();
+                double mouseX = mouse.getX();
+                double mouseY = mouse.getY();
                 list.add("鼠标X：" + (int) mouseX);
                 list.add("鼠标Y：" + (int) mouseY);
                 if (screen instanceof HandledScreen<?> handledScreen) {
@@ -210,7 +210,7 @@ public class HudDebugRendererRegister {
                         list.add("槽位物品栏：" + slot.inventory.getClass().getSimpleName());
                     }
                 }
-                context.drawTooltip(client.textRenderer, list.stream().map(Text::of).toList(), 3, 25);
+                context.drawTooltip(ClientUtils.getTextRenderer(), list.stream().map(Text::of).toList(), 3, 25);
             }
         });
     }
@@ -243,22 +243,22 @@ public class HudDebugRendererRegister {
     }
 
     // 是否应该显示灵魂沙物品计数
-    private static boolean showSoulSandItemCount(MinecraftClient client) {
+    private static boolean showSoulSandItemCount() {
         if (DebugSettings.showSoulSandItemCount.get()) {
-            if (client.getServer() == null) {
+            if (ClientUtils.getServer() == null) {
                 return false;
             }
-            if (client.currentScreen == null) {
+            if (ClientUtils.getCurrentScreen() == null) {
                 return true;
             }
-            return client.currentScreen instanceof ChatScreen;
+            return ClientUtils.getCurrentScreen() instanceof ChatScreen;
         }
         return false;
     }
 
     @Contract("-> !null")
     private static ClientWorld getClientWorld() {
-        return MinecraftClient.getInstance().world;
+        return ClientUtils.getWorld();
     }
 
     @Contract("-> !null")
@@ -268,11 +268,6 @@ public class HudDebugRendererRegister {
 
     @Contract("-> !null")
     private static IntegratedServer getServer() {
-        return MinecraftClient.getInstance().getServer();
-    }
-
-    @Contract("-> !null")
-    private static ClientPlayerEntity getPlayer() {
-        return MinecraftClient.getInstance().player;
+        return ClientUtils.getServer();
     }
 }

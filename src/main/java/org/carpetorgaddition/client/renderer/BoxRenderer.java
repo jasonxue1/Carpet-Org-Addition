@@ -8,12 +8,14 @@ import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix4f;
 
 /**
  * 立方体模型渲染器
  */
+@SuppressWarnings("unused")
 public class BoxRenderer implements WorldRenderer {
     private final Tessellator tessellator = Tessellator.getInstance();
     /**
@@ -66,7 +68,7 @@ public class BoxRenderer implements WorldRenderer {
         matrixStack.push();
         MatrixStack.Entry entry = matrixStack.peek();
         Matrix4f matrix4f = entry.getPositionMatrix();
-        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Camera camera = ClientUtils.getCamera();
         Vec3d cameraPos = camera.getPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());

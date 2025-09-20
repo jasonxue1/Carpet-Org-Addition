@@ -105,10 +105,6 @@ public class WorldFormat {
         return Stream.of(files).filter(filter).sorted(Comparator.comparing(file -> file.getName().toLowerCase())).toList();
     }
 
-    public boolean hasFile(String fileName, String extension) {
-        return this.file(fileName, extension).isFile();
-    }
-
     @Override
     public String toString() {
         return this.directory.toString();
