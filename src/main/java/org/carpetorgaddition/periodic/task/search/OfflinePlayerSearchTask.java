@@ -95,13 +95,13 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupFileDirectoryInitLock = new Object();
     private final PagedCollection pagedCollection;
 
-    public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
-        this.source = context.source();
-        this.predicate = context.predicate();
-        this.userCache = context.userCache();
-        this.player = context.player();
+    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, UserCache userCache, ServerPlayerEntity player, File[] files) {
+        this.source = source;
+        this.predicate = predicate;
+        this.userCache = userCache;
+        this.player = player;
         this.server = FetcherUtils.getServer(this.player);
-        this.files = context.files();
+        this.files = files;
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
     }
@@ -139,7 +139,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
-    // 创建虚拟线程
+    // 提交任务
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
         EXECUTOR.submit(() -> {
