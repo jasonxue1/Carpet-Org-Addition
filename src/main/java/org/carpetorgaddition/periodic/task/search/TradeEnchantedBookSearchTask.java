@@ -6,7 +6,6 @@ import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -16,22 +15,22 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.BlockIterator;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
-    private final MutableText treadName;
+    private final Text treadName;
     private final Enchantment enchantment;
 
     public TradeEnchantedBookSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
         super(world, blockIterator, sourcePos, context);
         // 获取附魔名称，不带等级
-        MutableText text = EnchantmentUtils.getName(enchantment);
+        Text text = EnchantmentUtils.getName(enchantment);
         this.treadName = TextBuilder.combineAll(text, Items.ENCHANTED_BOOK.getName());
         this.enchantment = enchantment;
     }
@@ -88,7 +87,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected MutableText getTradeName() {
+    protected Text getTradeName() {
         return this.treadName;
     }
 
@@ -106,9 +105,9 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         @Override
         public Text get() {
             // 村民或流浪商人的名称
-            MutableText villagerName = merchant.getName().copy();
+            Text villagerName = merchant.getName();
             // 获取交易名称
-            MutableText enchantmentName = EnchantmentUtils.getName(enchantment, level);
+            Text enchantmentName = EnchantmentUtils.getName(enchantment, level);
             return TextBuilder.translate("carpet.commands.finder.trade.enchanted_book.each",
                     TextProvider.blockPos(this.villagerPos(), Formatting.GREEN), villagerName, getIndexArray(this.list), enchantmentName);
         }

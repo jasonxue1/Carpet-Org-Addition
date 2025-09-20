@@ -6,6 +6,7 @@ import net.minecraft.text.HoverEvent;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -50,20 +51,24 @@ public class TextBuilder {
         return new TextBuilder(combineAll(args));
     }
 
-    public static MutableText empty() {
+    public static Text empty() {
         return Text.empty();
     }
 
-    public static MutableText create(String str) {
+    public static Text create(String str) {
         return Text.literal(str);
     }
 
-    public static MutableText create(Number number) {
+    public static Text create(Number number) {
         return Text.literal(number.toString());
     }
 
-    public static MutableText create(Message message) {
+    public static Text create(Message message) {
         return Text.of(message).copy();
+    }
+
+    public static Text create(Identifier identifier) {
+        return TextBuilder.create(identifier.toString());
     }
 
     /**
@@ -204,7 +209,7 @@ public class TextBuilder {
         if (text == null) {
             return this;
         }
-        this.text = empty().append(this.text).append(text);
+        this.text = empty().copy().append(this.text).append(text);
         return this;
     }
 
@@ -212,7 +217,7 @@ public class TextBuilder {
         return this.append(builder.text);
     }
 
-    public MutableText build() {
+    public Text build() {
         return this.text;
     }
 
@@ -222,16 +227,16 @@ public class TextBuilder {
      * @param args 要拼接的文本
      * @return 拼接后的 {@code MutableText}对象
      */
-    public static MutableText combineAll(Object... args) {
-        MutableText result = empty();
+    public static Text combineAll(Object... args) {
+        MutableText result = empty().copy();
         for (Object obj : args) {
             appendEach(obj, result);
         }
         return result;
     }
 
-    public static MutableText combineList(List<?> list) {
-        MutableText result = empty();
+    public static Text combineList(List<?> list) {
+        MutableText result = empty().copy();
         list.forEach(obj -> appendEach(obj, result));
         return result;
     }
@@ -255,7 +260,7 @@ public class TextBuilder {
      *
      * @return 拼接后的文本对象
      */
-    public static MutableText joinList(List<? extends Text> list) {
+    public static Text joinList(List<? extends Text> list) {
         return joinList(list, TextProvider.NEW_LINE);
     }
 
@@ -264,8 +269,8 @@ public class TextBuilder {
      *
      * @return 拼接后的文本对象
      */
-    public static MutableText joinList(List<? extends Text> list, Text separator) {
-        MutableText result = empty();
+    public static Text joinList(List<? extends Text> list, Text separator) {
+        MutableText result = empty().copy();
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));
             if (i < list.size() - 1) {
@@ -282,7 +287,7 @@ public class TextBuilder {
      * @return 可翻译文本
      * @apiNote 客户端不需要有对应的翻译
      */
-    public static MutableText translate(String key, Object... obj) {
+    public static Text translate(String key, Object... obj) {
         String value = Translation.getTranslateValue(key);
         return Text.translatableWithFallback(key, value, obj);
     }

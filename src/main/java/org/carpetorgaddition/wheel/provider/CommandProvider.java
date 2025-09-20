@@ -184,6 +184,7 @@ public class CommandProvider {
         return "/player %s inventory".formatted(name);
     }
 
+    @SuppressWarnings("unused")
     public static String openPlayerEnderChest(PlayerEntity player) {
         return openPlayerEnderChest(FetcherUtils.getPlayerName(player));
     }

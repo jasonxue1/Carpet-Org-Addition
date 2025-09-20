@@ -5,10 +5,9 @@ public enum BlockDropsDirectlyEnterInventory {
     FALSE,
     CUSTOM;
 
-    public boolean isEnable() {
-        return this != FALSE;
-    }
-
+    /**
+     * 是否不允许玩家自行决定是否启用规则
+     */
     public boolean isServerDecision() {
         return this != CUSTOM;
     }

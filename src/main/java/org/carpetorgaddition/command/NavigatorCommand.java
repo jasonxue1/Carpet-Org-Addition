@@ -14,7 +14,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.World;
@@ -177,7 +177,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     // 导航到重生点
     private int navigateToSpawnPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MutableText spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
+        Text spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
             ServerPlayerEntity.Respawn respawn = Objects.requireNonNull(player.getRespawn());
             BlockPos respawnPos = respawn.pos();
@@ -196,12 +196,12 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity target = self ? player : CommandUtils.getArgumentPlayer(context);
         Optional<GlobalPos> lastDeathPos = target.getLastDeathPos();
         // 导航器目标的名称
-        MutableText death = TextBuilder.translate("carpet.commands.navigate.name.last_death_location");
+        Text death = TextBuilder.translate("carpet.commands.navigate.name.last_death_location");
         // 非空判断
         if (lastDeathPos.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", target.getDisplayName(), death);
         }
-        MutableText name = self ? death : TextBuilder.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
+        Text name = self ? death : TextBuilder.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
         // 获取死亡坐标和死亡维度
         GlobalPos globalPos = lastDeathPos.get();
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(globalPos.pos(),

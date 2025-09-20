@@ -1,10 +1,8 @@
 package org.carpetorgaddition.client.util;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -16,11 +14,7 @@ public class ClientMessageUtils {
      * 向客户端玩家发送一条聊天消息
      */
     public static void sendMessage(Text message) {
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player == null) {
-            CarpetOrgAddition.LOGGER.error("尝试在游戏外发送聊天消息");
-            return;
-        }
+        ClientPlayerEntity player = ClientUtils.getPlayer();
         player.sendMessage(message, false);
     }
 

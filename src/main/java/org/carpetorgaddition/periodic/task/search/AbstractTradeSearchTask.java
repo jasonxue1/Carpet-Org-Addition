@@ -3,7 +3,6 @@ package org.carpetorgaddition.periodic.task.search;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -112,7 +111,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
 
     protected abstract void notFound();
 
-    protected abstract MutableText getTradeName();
+    protected abstract Text getTradeName();
 
     // 对结果进行排序
     private void sort() {

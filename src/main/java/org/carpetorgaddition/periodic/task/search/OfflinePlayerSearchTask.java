@@ -15,13 +15,13 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.storage.NbtReadView;
 import net.minecraft.storage.ReadView;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
@@ -49,16 +49,21 @@ import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
     /**
-     * 任务的线程池，逻辑上只能同时执行一个任务
+     * 任务的线程池，逻辑上只能同时执行一个离线玩家物品查找任务
      */
     private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
-            0,
+            Runtime.getRuntime().availableProcessors() + 1,
             Runtime.getRuntime().availableProcessors() + 1,
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
             OfflinePlayerSearchTask::createNewThread
     );
+
+    static {
+        EXECUTOR.allowCoreThreadTimeOut(true);
+    }
+
     /**
      * 线程池中，线程的ID
      */
@@ -250,7 +255,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.pagedCollection.addContent(this.results);
         Text itemCount = getItemCount();
         Text numberOfPeople = getNumberOfPeople(resultCount);
-        MutableText message = getFirstFeedback(numberOfPeople, itemCount);
+        Text message = getFirstFeedback(numberOfPeople, itemCount);
         TextBuilder builder = new TextBuilder(message);
         builder.setHover("carpet.commands.finder.item.offline_player.prompt");
         MessageUtils.sendEmptyMessage(this.source);
@@ -261,7 +266,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * 获取首条反馈消息
      */
-    private MutableText getFirstFeedback(Text numberOfPeople, Text itemCount) {
+    private Text getFirstFeedback(Text numberOfPeople, Text itemCount) {
         return TextBuilder.translate(
                 "carpet.commands.finder.item.offline_player",
                 numberOfPeople,
@@ -333,7 +338,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     @Nullable
     private Text openInventoryButton(GameProfile gameProfile) {
-        if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(source)) {
+        if (this.canOpenOfflinePlayerInventory(source)) {
             String command = CommandProvider.openPlayerInventory(gameProfile.getId());
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCommand(command);
@@ -346,9 +351,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     @Nullable
     private Text openEnderChestButton(GameProfile gameProfile) {
-        if (CommandUtils.canUseCommand(this.source, CarpetSettings.commandPlayer) && OpenPlayerInventory.isEnable(this.source)) {
+        if (this.canOpenOfflinePlayerInventory(this.source)) {
             String command = CommandProvider.openPlayerEnderChest(gameProfile.getId());
-            MutableText clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
+            Text clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");
             builder.setColor(Formatting.GRAY);
             builder.setHover(clickLogin);
@@ -356,6 +361,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
             return builder.build();
         }
         return null;
+    }
+
+    /**
+     * @return 玩家是否可以打开离线玩家物品栏
+     */
+    private boolean canOpenOfflinePlayerInventory(ServerCommandSource source) {
+        return CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer)
+               && OpenPlayerInventory.isEnable(source)
+               && CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer();
     }
 
     /**

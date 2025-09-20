@@ -20,7 +20,6 @@ import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.input.CraftingRecipeInput;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
@@ -164,8 +163,8 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);
-            MutableText ellipsis = TextBuilder.create("...");
-            MutableText result = TextBuilder.combineAll(substring, ellipsis);
+            Text ellipsis = TextBuilder.create("...");
+            Text result = TextBuilder.combineAll(substring, ellipsis);
             TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
             return builder.build();
         }

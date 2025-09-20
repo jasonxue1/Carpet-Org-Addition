@@ -16,7 +16,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Direction;
@@ -619,13 +619,13 @@ public class FakePlayerUtils {
     /**
      * 获取物品堆栈的可变文本形式：物品名称*堆叠数量
      */
-    public static MutableText getWithCountHoverText(ItemStack itemStack) {
+    public static Text getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
             return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(Formatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         String capitalizeFirstLetter = getInitial(itemStack);
-        MutableText hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
+        Text hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
         return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
     }
 

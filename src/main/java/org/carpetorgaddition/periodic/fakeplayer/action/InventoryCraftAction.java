@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
@@ -137,9 +136,9 @@ public class InventoryCraftAction extends AbstractPlayerAction {
 
 
     @Override
-    public ArrayList<MutableText> info() {
+    public ArrayList<Text> info() {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
-        ArrayList<MutableText> list = new ArrayList<>();
+        ArrayList<Text> list = new ArrayList<>();
         // 获取假玩家的显示名称
         Text playerName = this.getFakePlayer().getDisplayName();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
@@ -158,7 +157,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     // 添加合成配方文本
-    private void addCraftRecipe(ArrayList<MutableText> list, ItemStack craftOutput) {
+    private void addCraftRecipe(ArrayList<Text> list, ItemStack craftOutput) {
         // 配方第一排
         list.add(
                 TextBuilder.combineAll(
@@ -181,7 +180,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     // 合成方格内的物品状态
-    private void addCraftGridState(ArrayList<MutableText> list, PlayerScreenHandler playerScreenHandler) {
+    private void addCraftGridState(ArrayList<Text> list, PlayerScreenHandler playerScreenHandler) {
         // 合成格第一排
         list.add(TextBuilder.combineAll(
                 "    ", FakePlayerUtils.getWithCountHoverText(playerScreenHandler.getSlot(1).getStack()),
@@ -205,7 +204,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.inventory_craft");
     }
 

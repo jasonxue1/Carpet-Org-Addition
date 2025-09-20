@@ -16,7 +16,6 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
@@ -121,9 +120,9 @@ public class ItemSearchTask extends ServerTask {
             BlockPos blockPos = blockEntity.getPos();
             if (blockEntity instanceof Inventory inventory) {
                 // 获取容器名称
-                MutableText containerName
+                Text containerName
                         = inventory instanceof LockableContainerBlockEntity lockableContainer
-                        ? lockableContainer.getName().copy()
+                        ? lockableContainer.getName()
                         : this.world.getBlockState(blockPos).getBlock().getName();
                 this.count(inventory, blockPos, containerName);
             }
@@ -145,7 +144,7 @@ public class ItemSearchTask extends ServerTask {
             switch (entity) {
                 // 掉落物
                 case ItemEntity itemEntity -> {
-                    MutableText drops = TextBuilder.translate("carpet.commands.finder.item.drops");
+                    Text drops = TextBuilder.translate("carpet.commands.finder.item.drops");
                     this.count(new SimpleInventory(itemEntity.getStack()), itemEntity.getBlockPos(), drops);
                 }
                 // 假玩家
@@ -228,7 +227,7 @@ public class ItemSearchTask extends ServerTask {
 
     // 发送命令反馈
     private void feedback() {
-        MutableText itemCount;
+        Text itemCount;
         boolean canConvert = predicate.isConvertible();
         if (canConvert) {
             // 为数量添加鼠标悬停效果
