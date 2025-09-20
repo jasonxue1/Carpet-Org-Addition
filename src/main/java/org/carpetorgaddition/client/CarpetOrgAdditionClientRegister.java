@@ -74,14 +74,14 @@ public class CarpetOrgAdditionClientRegister {
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {
             ScreenHandler screen = context.player().currentScreenHandler;
             if (screen.syncId == payload.syncId() && screen instanceof UnavailableSlotImplInterface anInterface) {
-                anInterface.sync(payload);
+                anInterface.carpet_Org_Addition$sync(payload);
             }
         });
         // 背景精灵同步数据包
         ClientPlayNetworking.registerGlobalReceiver(BackgroundSpriteSyncS2CPacket.ID, (payload, context) -> {
             ScreenHandler screen = context.player().currentScreenHandler;
             if (screen.syncId == payload.syncId() && screen.getSlot(payload.slotIndex()) instanceof BackgroundSpriteSyncSlot slot) {
-                slot.setIdentifier(payload.identifier());
+                slot.carpet_Org_Addition$setIdentifier(payload.identifier());
             }
         });
         // 信标范围更新数据包

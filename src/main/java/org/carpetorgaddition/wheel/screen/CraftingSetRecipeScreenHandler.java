@@ -28,7 +28,7 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
 
     public CraftingSetRecipeScreenHandler(int syncId, PlayerInventory playerInventory, EntityPlayerMPFake fakePlayer, ScreenHandlerContext context) {
         super(syncId, playerInventory, context);
-        this.inputInventory = ((FakePlayerCraftRecipeInterface) this).getInput();
+        this.inputInventory = ((FakePlayerCraftRecipeInterface) this).carpet_Org_Addition$getInput();
         this.fakePlayer = fakePlayer;
     }
 

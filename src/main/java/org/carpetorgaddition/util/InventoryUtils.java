@@ -231,7 +231,7 @@ public class InventoryUtils {
         if (component == null || component == ContainerComponent.DEFAULT) {
             return;
         }
-        ContainerComponent copy = ((ContainerDeepCopy) (Object) component).copy();
+        ContainerComponent copy = ((ContainerDeepCopy) (Object) component).carpet_Org_Addition$copy();
         shulkerBox.set(DataComponentTypes.CONTAINER, copy);
     }
 
