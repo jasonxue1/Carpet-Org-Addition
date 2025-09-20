@@ -180,9 +180,9 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Text spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
-            WorldProperties.class_12064 respawnData = Objects.requireNonNull(player.getRespawn()).respawnData();
-            BlockPos respawnPos = respawnData.method_74897();
-            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawnData.method_74894());
+            WorldProperties.SpawnPoint respawnData = Objects.requireNonNull(player.getRespawn()).respawnData();
+            BlockPos respawnPos = respawnData.getPos();
+            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawnData.getDimension());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);
