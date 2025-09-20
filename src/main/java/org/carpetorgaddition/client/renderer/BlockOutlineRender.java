@@ -2,7 +2,6 @@ package org.carpetorgaddition.client.renderer;
 
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
@@ -10,10 +9,9 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.shape.VoxelShape;
 import org.carpetorgaddition.client.util.ClientRenderUtils;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
-
-import java.util.Objects;
 
 public class BlockOutlineRender {
     private final Tessellator tessellator = Tessellator.getInstance();
@@ -22,7 +20,7 @@ public class BlockOutlineRender {
 
     public BlockOutlineRender(BlockPos blockPos) {
         this.blockPos = blockPos;
-        ClientWorld world = Objects.requireNonNull(MinecraftClient.getInstance().world);
+        ClientWorld world = ClientUtils.getWorld();
         BlockState blockState = world.getBlockState(blockPos);
         this.voxelShape = blockState.getOutlineShape(world, this.blockPos);
     }
@@ -37,7 +35,7 @@ public class BlockOutlineRender {
             return;
         }
         BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
-        Camera camera = MinecraftClient.getInstance().gameRenderer.getCamera();
+        Camera camera = ClientUtils.getCamera();
         Vec3d cameraPos = camera.getPos();
         matrixStack.push();
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());

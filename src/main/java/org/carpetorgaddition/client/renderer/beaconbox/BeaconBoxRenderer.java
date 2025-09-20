@@ -3,17 +3,20 @@ package org.carpetorgaddition.client.renderer.beaconbox;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * @apiNote 信标范围渲染器存在跨维度渲染的问题，但因当时数据包未指定版本号，除非创建一个新的数据包，否则难以在保证兼容性的情况下修复
+ */
 public class BeaconBoxRenderer extends BoxRenderer implements WorldRenderer {
     private SizeModifier sizeModifier;
     private final BlockPos blockPos;
@@ -66,10 +69,7 @@ public class BeaconBoxRenderer extends BoxRenderer implements WorldRenderer {
 
     @Override
     public boolean shouldStop() {
-        ClientWorld world = MinecraftClient.getInstance().world;
-        if (world == null) {
-            return true;
-        }
+        ClientWorld world = ClientUtils.getWorld();
         BlockState blockState = world.getBlockState(this.blockPos);
         return blockState == null || !blockState.isOf(Blocks.BEACON);
     }

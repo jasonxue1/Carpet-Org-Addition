@@ -17,7 +17,7 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
@@ -999,7 +999,7 @@ public class BedrockAction extends AbstractPlayerAction {
         ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
         PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
         // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
-        // TODO 检查是否已经有空槽位了
+        // 执行到这里时，物品栏一定是满的
         for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
             if (InventoryUtils.canMerge(most, screenHandler.getSlot(i).getStack())) {
                 FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
@@ -1090,23 +1090,19 @@ public class BedrockAction extends AbstractPlayerAction {
         return this.blockIterator.contains(blockPos);
     }
 
-    public boolean isEmpty() {
-        return this.contexts.isEmpty();
-    }
-
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
         switch (this.regionType) {
             case CUBOID -> {
-                MutableText from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
-                MutableText to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
+                Text from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
+                Text to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
             }
             case CYLINDER -> {
                 CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
-                MutableText center = TextProvider.blockPos(iterator.center);
+                Text center = TextProvider.blockPos(iterator.center);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.radius));
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.height));
@@ -1142,7 +1138,7 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.bedrock");
     }
 

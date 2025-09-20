@@ -8,7 +8,6 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.AnvilScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -68,7 +67,7 @@ public class RenameAction extends AbstractPlayerAction {
             for (int index = 3; !oneSlotCorrect && index < anvilScreenHandler.slots.size(); index++) {
                 // 这里遍历的是玩家物品栏
                 if (anvilScreenHandler.getSlot(index).hasStack()
-                        && anvilScreenHandler.getSlot(index).getStack().isOf(item)) {
+                    && anvilScreenHandler.getSlot(index).getStack().isOf(item)) {
                     // 找到指定物品后，模拟按住Shift键将物品移动到铁砧输入槽，然后跳出for循环
                     FakePlayerUtils.quickMove(anvilScreenHandler, index, getFakePlayer());
                     break;
@@ -114,8 +113,8 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         // 获取假玩家的显示名称
         Text playerName = getFakePlayer().getDisplayName();
         // 将假玩家要重命名的物品和物品新名称的信息添加到集合
@@ -147,7 +146,7 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.rename");
     }
 

@@ -16,7 +16,6 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
@@ -83,7 +82,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         }
         player.changeGameMode(gameMode);
         // 发送命令反馈
-        MutableText text = gameMode.getTranslatableName().copy();
+        Text text = gameMode.getTranslatableName();
         player.sendMessage(Text.translatable("commands.gamemode.success.self", text), true);
         return gameMode == GameMode.SURVIVAL ? 1 : 0;
     }

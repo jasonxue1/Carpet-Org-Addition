@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import net.minecraft.command.argument.EntityAnchorArgumentType;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.exception.InfiniteLoopException;
@@ -107,8 +106,8 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<MutableText> info() {
-        ArrayList<MutableText> list = new ArrayList<>();
+    public ArrayList<Text> info() {
+        ArrayList<Text> list = new ArrayList<>();
         // 获取要分拣的物品名称
         Text itemName = this.predicate.toText();
         // 获取假玩家的显示名称
@@ -116,9 +115,9 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
         // 将假玩家正在分拣物品的消息添加到集合中
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
         // 获取分拣物品要丢出的方向
-        MutableText thisPos = posText(this.thisVec.getX(), this.thisVec.getY(), this.thisVec.getZ());
+        Text thisPos = posText(this.thisVec.getX(), this.thisVec.getY(), this.thisVec.getZ());
         // 获取非分拣物品要丢出的方向
-        MutableText otherPos = posText(this.otherVec.getX(), this.otherVec.getY(), this.otherVec.getZ());
+        Text otherPos = posText(this.otherVec.getX(), this.otherVec.getY(), this.otherVec.getZ());
         // 将丢要分拣物品的方向的信息添加到集合
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.this", itemName, thisPos));
         // 将丢其他物品的方向的信息添加到集合
@@ -146,12 +145,12 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
         return json;
     }
 
-    private MutableText posText(double x, double y, double z) {
+    private Text posText(double x, double y, double z) {
         return TextBuilder.create(String.format("%.2f %.2f %.2f", x, y, z));
     }
 
     @Override
-    public MutableText getDisplayName() {
+    public Text getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.sorting");
     }
 

@@ -37,10 +37,6 @@ public class EntityNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        if (this.shouldTerminate()) {
-            this.clear();
-            return;
-        }
         if (this.targetDeath()) {
             // 如果目标实体死亡，就清除玩家的追踪器
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate("carpet.commands.navigate.hud.target_death"));
@@ -141,10 +137,6 @@ public class EntityNavigator extends AbstractNavigator {
             }
         }
         return this.entity.isRemoved();
-    }
-
-    public Entity getEntity() {
-        return this.entity;
     }
 
     @Override

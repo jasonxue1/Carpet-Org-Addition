@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.entity.player.PlayerAbilities;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -53,8 +52,8 @@ public class EntityPlayerMPFakeMixin {
             TextBuilder builder = TextBuilder.of("carpet.rule.message.displayPlayerSummoner", player.getDisplayName());
             builder.setGrayItalic();
             Text dimension = TextProvider.dimension(FetcherUtils.getWorld(fakePlayer));
-            MutableText blockPos = TextProvider.simpleBlockPos(fakePlayer.getBlockPos());
-            MutableText pos = TextBuilder.combineAll(dimension, ": ", blockPos);
+            Text blockPos = TextProvider.simpleBlockPos(fakePlayer.getBlockPos());
+            Text pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
             MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
             CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", FetcherUtils.getPlayerName(player), FetcherUtils.getPlayerName(fakePlayer), pos.getString());
