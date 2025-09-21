@@ -7,7 +7,6 @@
   "mixins": [
     "accessor.AbstractHorseEntityAccessor",
     "accessor.ContainerComponentAccessor",
-    "debug.accessor.ExperienceOrbEntityAccessor",
     "accessor.FishingBobberEntityAccessor",
     "accessor.MerchantScreenHandlerAccessor",
     "accessor.PlayerManagerAccessor",
@@ -22,8 +21,10 @@
     "command.carpet.PlayerCommandMixin",
     "compat.fabricapi.AbstractNetworkAddonMixin",
     "debug.ExperienceOrbEntityMixin",
+    "debug.FishingBobberEntityMixin",
     "debug.PhantomSpawnerMixin",
     "debug.PlayerEntityMixin",
+    "debug.accessor.ExperienceOrbEntityAccessor",
     "debug.accessor.HandledScreenAccessor",
     "logger.FishingBobberEntityMixin",
     "logger.FluidBlockMixin",

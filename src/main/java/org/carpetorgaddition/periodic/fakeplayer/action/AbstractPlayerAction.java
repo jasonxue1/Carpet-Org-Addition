@@ -76,6 +76,9 @@ public abstract class AbstractPlayerAction {
         return false;
     }
 
+    /**
+     * 当玩家停止当前动作时调用
+     */
     public void onStop() {
     }
 
