@@ -115,16 +115,10 @@ public class IOUtils {
      *
      * @param file 要备份的文件
      */
-    public static void backupFile(File file) {
-        backupFile(file, true);
-    }
-
-    /**
-     * @param force 如果已经存在相同名字的备份了，是否覆盖
-     */
-    public static File backupFile(File file, boolean force) {
+    public static File backupFile(File file) {
         File backup = new File(file.getParent(), "backup_" + System.currentTimeMillis() + "_" + file.getName());
-        if (!force && backup.exists()) {
+        if (backup.exists()) {
+            // 不太可能出现重名备份文件
             throw new IllegalStateException("The backup file already exists");
         }
         copyFile(file, backup);

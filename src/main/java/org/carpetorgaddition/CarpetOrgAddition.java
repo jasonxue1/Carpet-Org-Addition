@@ -130,7 +130,7 @@ public class CarpetOrgAddition implements ModInitializer {
             // 保存启动次数
             List<LocalDate> list = counter.keySet().stream().sorted().toList();
             // 重新写入前备份文件，写入完毕后删除备份
-            File backup = IOUtils.backupFile(file, false);
+            File backup = IOUtils.backupFile(file);
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             try (writer) {
                 for (LocalDate date : list) {
