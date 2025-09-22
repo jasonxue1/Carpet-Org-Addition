@@ -75,35 +75,25 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         }
     }
 
-    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
-        try {
-            Optional<GameProfile> optional = getGameProfile(username, true, server);
-            if (optional.isPresent()) {
-                return optional;
-            }
-            // 取消匹配大小写，然后重新查询
-            return getGameProfile(username, false, server);
-        } catch (IOException | JsonParseException | NullPointerException e) {
-            // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
-            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
-        }
-        return Optional.empty();
-    }
-
     /**
      * 根据玩家名称获取玩家档案
      */
-    private static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) throws IOException {
-        Optional<GameProfile> optional = GameProfileCache.getGameProfile(username, caseSensitive);
-        if (optional.isPresent()) {
-            return optional;
-        }
-        // 获取玩家的离线UUID
-        UUID uuid = Uuids.getOfflinePlayerUuid(username);
-        if (playerDataExists(uuid, server)) {
-            GameProfile gameProfile = new GameProfile(uuid, username);
-            GameProfileCache.put(gameProfile);
-            return Optional.of(gameProfile);
+    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
+        try {
+            Optional<GameProfile> optional = GameProfileCache.getGameProfile(username);
+            if (optional.isPresent()) {
+                return optional;
+            }
+            // 获取玩家的离线UUID
+            UUID uuid = Uuids.getOfflinePlayerUuid(username);
+            if (playerDataExists(uuid, server)) {
+                GameProfile gameProfile = new GameProfile(uuid, username);
+                GameProfileCache.put(gameProfile);
+                return Optional.of(gameProfile);
+            }
+        } catch (JsonParseException | NullPointerException e) {
+            // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
+            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
         }
         return Optional.empty();
     }

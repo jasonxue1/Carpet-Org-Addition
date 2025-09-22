@@ -5,11 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
 public class GameProfileCache {
-    private static final HashMap<UUID, String> TABLE = new HashMap<>();
+    private static final Table TABLE = new Table();
     /**
      * 集合可能被多个线程同时访问
      */
@@ -71,8 +71,7 @@ public class GameProfileCache {
     public static Optional<String> get(UUID uuid) {
         try {
             LOCK.readLock().lock();
-            String value = TABLE.get(uuid);
-            return Optional.ofNullable(value);
+            return TABLE.get(uuid);
         } finally {
             LOCK.readLock().unlock();
         }
@@ -84,38 +83,21 @@ public class GameProfileCache {
     }
 
     /**
-     * 根据玩家名称获取玩家UUID
+     * 根据玩家名称获取玩家UUID<br>
+     * 如果玩家名称与缓存中的某个玩家名大小写完全匹配，则返回这个名称大小写完全相同的玩家档案<br>
+     * 如果没有完全匹配的，但是有仅大小写不同的玩家，则返回其中一个玩家档案<br>
+     * 否则返回空的{@code Optional}
      *
-     * @param name          玩家的名称
-     * @param caseSensitive 是否区分大小写
+     * @param name 玩家的名称
      */
-    public static Optional<GameProfile> getGameProfile(@NotNull String name, boolean caseSensitive) {
+    public static Optional<GameProfile> getGameProfile(@NotNull String name) {
         try {
             LOCK.readLock().lock();
-            Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
-            for (Map.Entry<UUID, String> entry : entries) {
-                String value = entry.getValue();
-                boolean equal = caseSensitive ? name.equals(value) : name.equalsIgnoreCase(value);
-                if (equal) {
-                    return Optional.of(new GameProfile(entry.getKey(), value));
-                }
-            }
-            return Optional.empty();
+            Optional<UUID> optional = TABLE.get(name);
+            return optional.map(value -> new GameProfile(value, name));
         } finally {
             LOCK.readLock().unlock();
         }
-    }
-
-    /**
-     * 从{@code usercache.json}获取玩家档案，如果文件没有，从本类的表中获取
-     */
-    @Deprecated(forRemoval = true)
-    public static Optional<GameProfile> fetchGameProfile(UserCache userCache, UUID uuid) {
-        Optional<GameProfile> optional = userCache.getByUuid(uuid);
-        if (optional.isPresent()) {
-            return optional;
-        }
-        return getGameProfile(uuid);
     }
 
     public static void put(GameProfile gameProfile) {
@@ -262,6 +244,83 @@ public class GameProfileCache {
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
             }
+        }
+    }
+
+    public static class Table {
+        private final HashMap<String, HashSet<String>> usernames = new HashMap<>();
+        private final HashMap<UUID, String> uuidToName = new HashMap<>();
+        private final HashMap<String, UUID> nameToUuid = new HashMap<>();
+
+        /**
+         * 根据玩家名称获取玩家UUID，如果缓存中有玩家名大小写完全匹配的，返回完全匹配玩家名的UUID，如果没有，返回一个大小写不完全匹配的，如果还是没有，返回空
+         */
+        @VisibleForTesting
+        public Optional<UUID> get(String name) {
+            if (name == null) {
+                throw new IllegalArgumentException("Null as a parameter");
+            }
+            HashSet<String> set = this.usernames.get(name.toLowerCase(Locale.ROOT));
+            if (set == null || set.isEmpty()) {
+                return Optional.empty();
+            }
+            // 优先获取正确大小写的
+            for (String playerName : set) {
+                if (name.equals(playerName)) {
+                    return Optional.of(this.nameToUuid.get(playerName));
+                }
+            }
+            return Optional.of(this.nameToUuid.get(set.iterator().next()));
+        }
+
+        @VisibleForTesting
+        public Optional<String> get(UUID uuid) {
+            return Optional.ofNullable(this.uuidToName.get(uuid));
+        }
+
+        @VisibleForTesting
+        public void put(UUID uuid, String name) {
+            String lowerCase = name.toLowerCase(Locale.ROOT);
+            HashSet<String> set = this.usernames.get(lowerCase);
+            if (set == null) {
+                HashSet<String> names = new HashSet<>();
+                names.add(name);
+                this.usernames.put(lowerCase, names);
+            } else {
+                set.add(name);
+            }
+            this.nameToUuid.put(name, uuid);
+            this.uuidToName.put(uuid, name);
+        }
+
+        @VisibleForTesting
+        public void remove(String name) {
+            String lowerCase = name.toLowerCase(Locale.ROOT);
+            HashSet<String> set = this.usernames.get(lowerCase);
+            if (set == null) {
+                return;
+            }
+            if (set.remove(name)) {
+                if (set.isEmpty()) {
+                    this.usernames.remove(lowerCase);
+                }
+                UUID uuid = this.nameToUuid.get(name);
+                this.nameToUuid.remove(name);
+                this.uuidToName.remove(uuid);
+            }
+        }
+
+        @VisibleForTesting
+        public void remove(UUID uuid) {
+            String name = this.uuidToName.get(uuid);
+            if (name == null) {
+                return;
+            }
+            this.remove(name);
+        }
+
+        private Set<Map.Entry<UUID, String>> entrySet() {
+            return this.uuidToName.entrySet();
         }
     }
 }
