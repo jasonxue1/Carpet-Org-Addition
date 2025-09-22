@@ -32,7 +32,7 @@ import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.wheel.UuidNameMappingTable;
+import org.carpetorgaddition.wheel.GameProfileMap;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -103,7 +103,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         if (entry.isPresent()) {
             return entry;
         }
-        Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(username, caseSensitive);
+        Optional<GameProfile> optional = GameProfileMap.getGameProfile(username, caseSensitive);
         if (optional.isPresent()) {
             return optional;
         }
@@ -197,7 +197,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
                     return optional;
                 }
             }
-            Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
+            Optional<GameProfile> optional = GameProfileMap.getGameProfile(uuid);
             return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
         }
         return Optional.empty();

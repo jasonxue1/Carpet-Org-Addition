@@ -21,8 +21,8 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.wheel.GameProfileMap;
 import org.carpetorgaddition.wheel.Translation;
-import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 
 import java.util.Map;
@@ -36,8 +36,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 解析Carpet设置
         CarpetOrgAdditionSettings.register();
         settingsLoaded = true;
-        UuidNameMappingTable mappingTable = UuidNameMappingTable.getInstance();
-        mappingTable.init();
+        GameProfileMap.init();
     }
 
     public static SettingsManager getSettingManager() {
@@ -58,7 +57,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
-        UuidNameMappingTable.getInstance().put(player.getGameProfile());
+        GameProfileMap.put(player.getGameProfile());
         MinecraftServer server = FetcherUtils.getServer(player);
         GameMode gameMode = server.getForcedGameMode();
         if (gameMode != null) {
@@ -93,7 +92,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     @Override
     public void onServerClosed(MinecraftServer server) {
-        UuidNameMappingTable.getInstance().save();
+        GameProfileMap.save();
         PermissionManager.reset();
         GlobalConfigs.save();
     }

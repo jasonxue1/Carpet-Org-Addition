@@ -31,8 +31,8 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.wheel.GameProfileMap;
 import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.UuidNameMappingTable;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -166,9 +166,8 @@ public class OrangeCommand extends AbstractServerCommand {
 
     private int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         try {
-            UuidNameMappingTable table = UuidNameMappingTable.getInstance();
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-            Optional<String> optional = table.get(uuid);
+            Optional<String> optional = GameProfileMap.get(uuid);
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerUuid = uuid.toString();
@@ -176,7 +175,7 @@ public class OrangeCommand extends AbstractServerCommand {
                 sendFeekback(context, playerUuid, playerName);
             } else {
                 // 本地不存在，从Mojang API获取
-                QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid, table));
+                QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid));
                 MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.start");
             }
         } catch (RejectedExecutionException e) {
@@ -189,7 +188,7 @@ public class OrangeCommand extends AbstractServerCommand {
     /**
      * 在独立线程查询玩家名称
      */
-    private void queryPlayerName(CommandContext<ServerCommandSource> context, UUID uuid, UuidNameMappingTable table) {
+    private void queryPlayerName(CommandContext<ServerCommandSource> context, UUID uuid) {
         String name;
         try {
             name = queryPlayerNameFromMojangApi(uuid);
@@ -197,7 +196,7 @@ public class OrangeCommand extends AbstractServerCommand {
             context.getSource().handleException(e, false, null);
             return;
         }
-        table.put(uuid, name);
+        GameProfileMap.put(uuid, name);
         MinecraftServer server = context.getSource().getServer();
         // 在服务器线程发送命令反馈
         server.execute(() -> sendFeekback(context, uuid.toString(), name));
@@ -215,7 +214,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private String queryPlayerNameFromMojangApi(UUID uuid) throws CommandSyntaxException {
         URL url;
         try {
-            URI uri = new URI(UuidNameMappingTable.MOJANG_API.formatted(uuid.toString()));
+            URI uri = new URI(GameProfileMap.MOJANG_API.formatted(uuid.toString()));
             url = uri.toURL();
         } catch (URISyntaxException | MalformedURLException e) {
             throw CommandUtils.createException(e, "carpet.command.url.parse.fail");

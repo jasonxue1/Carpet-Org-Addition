@@ -41,40 +41,35 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  *
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
-public class UuidNameMappingTable {
-    private final HashMap<UUID, String> hashMap = new HashMap<>();
+public class GameProfileMap {
+    private static final HashMap<UUID, String> TABLE = new HashMap<>();
     /**
      * 集合可能被多个线程同时访问
      */
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-    private final File config = IOUtils.configFile("uuid_name_mapping.txt");
-    private static final UuidNameMappingTable MAPPING_TABLE = new UuidNameMappingTable();
+    private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+    private static final File CONFIG = IOUtils.configFile("uuid_name_mapping.txt");
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API
      */
     public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
 
-    private UuidNameMappingTable() {
-    }
-
-    public static UuidNameMappingTable getInstance() {
-        return MAPPING_TABLE;
+    private GameProfileMap() {
     }
 
     /**
      * 根据UUID获取对应的玩家名
      */
-    public Optional<String> get(UUID uuid) {
+    public static Optional<String> get(UUID uuid) {
         try {
-            this.lock.readLock().lock();
-            String value = this.hashMap.get(uuid);
+            LOCK.readLock().lock();
+            String value = TABLE.get(uuid);
             return Optional.ofNullable(value);
         } finally {
-            this.lock.readLock().unlock();
+            LOCK.readLock().unlock();
         }
     }
 
-    public Optional<GameProfile> getGameProfile(UUID uuid) {
+    public static Optional<GameProfile> getGameProfile(UUID uuid) {
         Optional<String> optional = get(uuid);
         return optional.map(name -> new GameProfile(uuid, name));
     }
@@ -85,10 +80,10 @@ public class UuidNameMappingTable {
      * @param name          玩家的名称
      * @param caseSensitive 是否区分大小写
      */
-    public Optional<GameProfile> getGameProfile(@NotNull String name, boolean caseSensitive) {
+    public static Optional<GameProfile> getGameProfile(@NotNull String name, boolean caseSensitive) {
         try {
-            this.lock.readLock().lock();
-            Set<Map.Entry<UUID, String>> entries = this.hashMap.entrySet();
+            LOCK.readLock().lock();
+            Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
             for (Map.Entry<UUID, String> entry : entries) {
                 String value = entry.getValue();
                 boolean equal = caseSensitive ? name.equals(value) : name.equalsIgnoreCase(value);
@@ -98,43 +93,46 @@ public class UuidNameMappingTable {
             }
             return Optional.empty();
         } finally {
-            this.lock.readLock().unlock();
+            LOCK.readLock().unlock();
         }
     }
 
-    public Optional<GameProfile> fetchGameProfileWithBackup(UserCache userCache, UUID uuid) {
+    /**
+     * 从{@code usercache.json}获取玩家档案，如果文件没有，从本类的表中获取
+     */
+    public static Optional<GameProfile> fetchGameProfile(UserCache userCache, UUID uuid) {
         Optional<GameProfile> optional = userCache.getByUuid(uuid);
         if (optional.isPresent()) {
             return optional;
         }
-        return this.getGameProfile(uuid);
+        return getGameProfile(uuid);
     }
 
-    public void put(GameProfile gameProfile) {
-        this.put(gameProfile.getId(), gameProfile.getName());
+    public static void put(GameProfile gameProfile) {
+        put(gameProfile.getId(), gameProfile.getName());
     }
 
     /**
      * 将玩家UUID与玩家名称的对应关系添加至集合
      */
-    public void put(UUID uuid, String name) {
+    public static void put(UUID uuid, String name) {
         try {
-            this.lock.writeLock().lock();
-            this.hashMap.put(uuid, name);
+            LOCK.writeLock().lock();
+            TABLE.put(uuid, name);
         } finally {
-            this.lock.writeLock().unlock();
+            LOCK.writeLock().unlock();
         }
     }
 
     /**
      * 从文件加载玩家UUID与名称映射
      */
-    public void init() {
-        if (this.config.isFile()) {
+    public static void init() {
+        if (CONFIG.isFile()) {
             try {
-                BufferedReader reader = IOUtils.toReader(this.config);
+                BufferedReader reader = IOUtils.toReader(CONFIG);
                 try (reader) {
-                    this.loadFromFile(reader);
+                    loadFromFile(reader);
                 }
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("无法从文件读取玩家UUID与名称的映射表", e);
@@ -142,7 +140,7 @@ public class UuidNameMappingTable {
         }
     }
 
-    private void loadFromFile(BufferedReader reader) throws IOException {
+    private static void loadFromFile(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             String[] split = line.split("=");
@@ -160,10 +158,10 @@ public class UuidNameMappingTable {
                 continue;
             }
             try {
-                this.lock.writeLock().lock();
-                this.hashMap.put(uuid, playerName);
+                LOCK.writeLock().lock();
+                TABLE.put(uuid, playerName);
             } finally {
-                this.lock.writeLock().unlock();
+                LOCK.writeLock().unlock();
             }
         }
     }
@@ -171,18 +169,18 @@ public class UuidNameMappingTable {
     /**
      * 将玩家UUID与名称的映射表写入本地文件
      */
-    public void save() {
+    public static void save() {
         try {
-            BufferedWriter writer = IOUtils.toWriter(this.config);
+            BufferedWriter writer = IOUtils.toWriter(CONFIG);
             try (writer) {
-                this.lock.readLock().lock();
-                Set<Map.Entry<UUID, String>> entries = this.hashMap.entrySet();
+                LOCK.readLock().lock();
+                Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
                 for (Map.Entry<UUID, String> entry : entries) {
                     writer.write(entry.getKey().toString() + "=" + entry.getValue());
                     writer.newLine();
                 }
             } finally {
-                this.lock.readLock().unlock();
+                LOCK.readLock().unlock();
             }
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.error("无法将玩家UUID与名称的映射表写入文件", e);
