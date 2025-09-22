@@ -61,6 +61,10 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final boolean LITHIUM = FabricLoader.getInstance().isModLoaded("lithium");
     /**
+     * 是否同时加载了{@code Carpet TIS Addition}模组
+     */
+    public static final boolean CARPET_TIS_ADDITION = FabricLoader.getInstance().isModLoaded("carpet-tis-addition");
+    /**
      * 是否启用隐藏功能<br>
      * <p>
      * 致开发者：<br>

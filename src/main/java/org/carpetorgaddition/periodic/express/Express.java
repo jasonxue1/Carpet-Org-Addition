@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.Function;
-
+// TODO 发送接收拦截物品时检查数据版本并发出警告
 /**
  * 快递
  */
