@@ -106,6 +106,7 @@
     "util.ScreenHandlerMixin",
     "util.ServerPlayerEntityMixin",
     "util.ServerPlayNetworkHandlerMixin",
+    "util.UserCacheMixin",
     "util.carpet.EntityPlayerMPFakeMixin",
     "util.carpet.LoggerRegistryMixin",
     "util.carpet.RuleHelperMixin",

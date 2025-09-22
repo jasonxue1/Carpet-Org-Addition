@@ -57,7 +57,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
-        GameProfileMap.put(player.getGameProfile());
         MinecraftServer server = FetcherUtils.getServer(player);
         GameMode gameMode = server.getForcedGameMode();
         if (gameMode != null) {

@@ -97,12 +97,6 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
      */
     private static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) throws IOException {
-        // 从本地获取玩家的在线UUID
-        JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
-        Optional<GameProfile> entry = readUsercacheJson(username, caseSensitive, array, server);
-        if (entry.isPresent()) {
-            return entry;
-        }
         Optional<GameProfile> optional = GameProfileMap.getGameProfile(username, caseSensitive);
         if (optional.isPresent()) {
             return optional;
@@ -111,32 +105,6 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         UUID uuid = Uuids.getOfflinePlayerUuid(username);
         if (playerDataExists(uuid, server)) {
             return Optional.of(new GameProfile(uuid, username));
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * 从usercache.json读取玩家档案
-     *
-     * @param username      玩家的名称
-     * @param caseSensitive 玩家名称是否区分大小写
-     * @param array         usercache.json保存的json数组
-     * @return 玩家档案，可能为空
-     */
-    private static Optional<GameProfile> readUsercacheJson(String username, boolean caseSensitive, JsonArray array, MinecraftServer server) {
-        Set<Map.Entry<String, String>> set = array.asList().stream()
-                .map(JsonElement::getAsJsonObject)
-                .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
-                .collect(Collectors.toSet());
-        for (Map.Entry<String, String> entry : set) {
-            String key = entry.getKey();
-            if (caseSensitive ? Objects.equals(username, key) : username.equalsIgnoreCase(key)) {
-                UUID uuid = UUID.fromString(entry.getValue());
-                if (playerDataExists(uuid, server)) {
-                    return Optional.of(new GameProfile(uuid, key));
-                }
-                return Optional.empty();
-            }
         }
         return Optional.empty();
     }

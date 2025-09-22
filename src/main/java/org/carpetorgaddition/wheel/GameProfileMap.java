@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -134,6 +135,26 @@ public class GameProfileMap {
     }
 
     /**
+     * 将usercache.json合并到profile.json
+     */
+    private static void mergeUsercache() {
+        try {
+            JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
+            Set<Map.Entry<String, String>> set = array.asList().stream()
+                    .map(JsonElement::getAsJsonObject)
+                    .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
+                    .collect(Collectors.toSet());
+            for (Map.Entry<String, String> entry : set) {
+                String name = entry.getKey();
+                UUID uuid = UUID.fromString(entry.getValue());
+                put(uuid, name);
+            }
+        } catch (RuntimeException | IOException e) {
+            CarpetOrgAddition.LOGGER.warn("Unable to merge usercahce.json into profile.json", e);
+        }
+    }
+
+    /**
      * 从文件加载玩家UUID与名称映射
      */
     public static void init() {
@@ -162,6 +183,7 @@ public class GameProfileMap {
         } catch (NullPointerException | JsonParseException | IOException e) {
             CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
         }
+        mergeUsercache();
     }
 
     private static void migration(BufferedReader reader) throws IOException {
