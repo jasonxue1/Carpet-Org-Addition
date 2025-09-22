@@ -76,22 +76,32 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
         }
     }
 
+    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
+        try {
+            Optional<GameProfile> optional = getGameProfile(username, true, server);
+            if (optional.isPresent()) {
+                return optional;
+            }
+            // 取消匹配大小写，然后重新查询
+            return getGameProfile(username, false, server);
+        } catch (IOException | JsonParseException | NullPointerException e) {
+            // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
+            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
+        }
+        return Optional.empty();
+    }
+
     /**
      * 根据玩家名称获取玩家档案
      *
      * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
      */
-    public static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) {
-        try {
-            // 从本地获取玩家的在线UUID
-            JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
-            Optional<GameProfile> entry = readUsercacheJson(username, caseSensitive, array, server);
-            if (entry.isPresent()) {
-                return entry;
-            }
-        } catch (IOException | JsonParseException | NullPointerException e) {
-            // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
-            CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
+    private static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) throws IOException {
+        // 从本地获取玩家的在线UUID
+        JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
+        Optional<GameProfile> entry = readUsercacheJson(username, caseSensitive, array, server);
+        if (entry.isPresent()) {
+            return entry;
         }
         Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(username, caseSensitive);
         if (optional.isPresent()) {
@@ -108,8 +118,9 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * 从usercache.json读取玩家档案
      *
-     * @param username 玩家的名称
-     * @param array    usercache.json保存的json数组
+     * @param username      玩家的名称
+     * @param caseSensitive 玩家名称是否区分大小写
+     * @param array         usercache.json保存的json数组
      * @return 玩家档案，可能为空
      */
     private static Optional<GameProfile> readUsercacheJson(String username, boolean caseSensitive, JsonArray array, MinecraftServer server) {

@@ -2,7 +2,6 @@ package org.carpetorgaddition.command;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -36,21 +35,17 @@ public class PlayerCommandExtension {
         return builder
                 .then(CommandManager.literal("inventory")
                         .requires(OpenPlayerInventory::isEnable)
-                        .executes(context -> openPlayerInventory(context, false))
-                        .then(CommandManager.argument("caseSensitive", BoolArgumentType.bool())
-                                .executes(context -> openPlayerInventory(context, BoolArgumentType.getBool(context, "caseSensitive")))))
+                        .executes(PlayerCommandExtension::openPlayerInventory))
                 .then(CommandManager.literal("enderChest")
                         .requires(OpenPlayerInventory::isEnable)
-                        .executes(context -> openEnderChest(context, false))
-                        .then(CommandManager.argument("caseSensitive", BoolArgumentType.bool())
-                                .executes(context -> openEnderChest(context, BoolArgumentType.getBool(context, "caseSensitive")))))
+                        .executes(PlayerCommandExtension::openEnderChest))
                 .then(CommandManager.literal("teleport")
                         .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.playerCommandTeleportFakePlayer))
                         .executes(PlayerCommandExtension::fakePlayerTeleport));
     }
 
     // 打开玩家物品栏
-    private static int openPlayerInventory(CommandContext<ServerCommandSource> context, boolean caseSensitive) throws CommandSyntaxException {
+    private static int openPlayerInventory(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         String playerName = getPlayerName(context);
         MinecraftServer server = source.getServer();
@@ -60,7 +55,7 @@ public class PlayerCommandExtension {
         switch (argumentPlayer) {
             case null -> {
                 if (ruleValue.canOpenOfflinePlayer()) {
-                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, caseSensitive, server);
+                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
                     if (optional.isEmpty()) {
                         throw PlayerCommandExtension.createNoFileFoundException();
                     }
@@ -116,7 +111,7 @@ public class PlayerCommandExtension {
     }
 
     // 打开玩家末影箱
-    private static int openEnderChest(CommandContext<ServerCommandSource> context, boolean caseSensitive) throws CommandSyntaxException {
+    private static int openEnderChest(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerCommandSource source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
@@ -126,7 +121,7 @@ public class PlayerCommandExtension {
         switch (argumentPlayer) {
             case null -> {
                 if (ruleValue.canOpenOfflinePlayer()) {
-                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, caseSensitive, server);
+                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
                     if (optional.isEmpty()) {
                         throw createNoFileFoundException();
                     }
