@@ -20,7 +20,6 @@ import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
@@ -32,7 +31,7 @@ import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.wheel.GameProfileMap;
+import org.carpetorgaddition.wheel.GameProfileCache;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -93,18 +92,18 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     /**
      * 根据玩家名称获取玩家档案
-     *
-     * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
      */
     private static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) throws IOException {
-        Optional<GameProfile> optional = GameProfileMap.getGameProfile(username, caseSensitive);
+        Optional<GameProfile> optional = GameProfileCache.getGameProfile(username, caseSensitive);
         if (optional.isPresent()) {
             return optional;
         }
         // 获取玩家的离线UUID
         UUID uuid = Uuids.getOfflinePlayerUuid(username);
         if (playerDataExists(uuid, server)) {
-            return Optional.of(new GameProfile(uuid, username));
+            GameProfile gameProfile = new GameProfile(uuid, username);
+            GameProfileCache.put(gameProfile);
+            return Optional.of(gameProfile);
         }
         return Optional.empty();
     }
@@ -158,14 +157,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
-            UserCache userCache = server.getUserCache();
-            if (userCache != null) {
-                Optional<GameProfile> optional = userCache.getByUuid(uuid);
-                if (optional.isPresent()) {
-                    return optional;
-                }
-            }
-            Optional<GameProfile> optional = GameProfileMap.getGameProfile(uuid);
+            Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
             return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
         }
         return Optional.empty();

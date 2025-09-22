@@ -21,7 +21,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.GameProfileMap;
+import org.carpetorgaddition.wheel.GameProfileCache;
 import org.carpetorgaddition.wheel.Translation;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 
@@ -36,7 +36,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 解析Carpet设置
         CarpetOrgAdditionSettings.register();
         settingsLoaded = true;
-        GameProfileMap.init();
+        GameProfileCache.init();
     }
 
     public static SettingsManager getSettingManager() {
@@ -91,7 +91,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     @Override
     public void onServerClosed(MinecraftServer server) {
-        GameProfileMap.save();
+        GameProfileCache.save();
         PermissionManager.reset();
         GlobalConfigs.save();
     }

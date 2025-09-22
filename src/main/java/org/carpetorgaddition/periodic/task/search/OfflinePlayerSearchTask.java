@@ -12,7 +12,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
@@ -81,7 +80,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private int total = 0;
     protected final ServerCommandSource source;
-    private final UserCache userCache;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
     private final File[] files;
@@ -95,10 +93,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupFileDirectoryInitLock = new Object();
     private final PagedCollection pagedCollection;
 
-    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, UserCache userCache, ServerPlayerEntity player, File[] files) {
+    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player, File[] files) {
         this.source = source;
         this.predicate = predicate;
-        this.userCache = userCache;
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
         this.files = files;
@@ -182,7 +179,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 查找物品
     private void searchItem(UUID uuid, NbtCompound nbt) {
         // 获取玩家配置文件
-        Optional<GameProfile> optional = GameProfileMap.fetchGameProfile(userCache, uuid);
+        Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             optional = Optional.of(new GameProfile(uuid, UNKNOWN));

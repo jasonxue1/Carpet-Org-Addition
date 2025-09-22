@@ -31,7 +31,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.GameProfileMap;
+import org.carpetorgaddition.wheel.GameProfileCache;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
@@ -167,7 +167,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         try {
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-            Optional<String> optional = GameProfileMap.get(uuid);
+            Optional<String> optional = GameProfileCache.get(uuid);
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerUuid = uuid.toString();
@@ -196,7 +196,7 @@ public class OrangeCommand extends AbstractServerCommand {
             context.getSource().handleException(e, false, null);
             return;
         }
-        GameProfileMap.put(uuid, name);
+        GameProfileCache.put(uuid, name);
         MinecraftServer server = context.getSource().getServer();
         // 在服务器线程发送命令反馈
         server.execute(() -> sendFeekback(context, uuid.toString(), name));
@@ -214,7 +214,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private String queryPlayerNameFromMojangApi(UUID uuid) throws CommandSyntaxException {
         URL url;
         try {
-            URI uri = new URI(GameProfileMap.MOJANG_API.formatted(uuid.toString()));
+            URI uri = new URI(GameProfileCache.MOJANG_API.formatted(uuid.toString()));
             url = uri.toURL();
         } catch (URISyntaxException | MalformedURLException e) {
             throw CommandUtils.createException(e, "carpet.command.url.parse.fail");

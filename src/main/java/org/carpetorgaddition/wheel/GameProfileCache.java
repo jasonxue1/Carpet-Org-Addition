@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  *
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
-public class GameProfileMap {
+public class GameProfileCache {
     private static final HashMap<UUID, String> TABLE = new HashMap<>();
     /**
      * 集合可能被多个线程同时访问
@@ -62,7 +62,7 @@ public class GameProfileMap {
      */
     public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
 
-    private GameProfileMap() {
+    private GameProfileCache() {
     }
 
     /**
@@ -109,6 +109,7 @@ public class GameProfileMap {
     /**
      * 从{@code usercache.json}获取玩家档案，如果文件没有，从本类的表中获取
      */
+    @Deprecated(forRemoval = true)
     public static Optional<GameProfile> fetchGameProfile(UserCache userCache, UUID uuid) {
         Optional<GameProfile> optional = userCache.getByUuid(uuid);
         if (optional.isPresent()) {
