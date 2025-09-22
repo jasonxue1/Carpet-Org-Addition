@@ -1,13 +1,17 @@
 package org.carpetorgaddition.wheel;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -47,7 +51,11 @@ public class GameProfileMap {
      * 集合可能被多个线程同时访问
      */
     private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
-    private static final File CONFIG = IOUtils.configFile("uuid_name_mapping.txt");
+    private static final File CONFIG = IOUtils.configFile("profile.json");
+    /**
+     * 自上次保存以来，数据是否发生了变化
+     */
+    private static boolean changed = false;
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API
      */
@@ -119,6 +127,7 @@ public class GameProfileMap {
         try {
             LOCK.writeLock().lock();
             TABLE.put(uuid, name);
+            changed = true;
         } finally {
             LOCK.writeLock().unlock();
         }
@@ -128,19 +137,34 @@ public class GameProfileMap {
      * 从文件加载玩家UUID与名称映射
      */
     public static void init() {
-        if (CONFIG.isFile()) {
-            try {
-                BufferedReader reader = IOUtils.toReader(CONFIG);
-                try (reader) {
-                    loadFromFile(reader);
+        if (!CONFIG.isFile()) {
+            // 迁移配置文件
+            File file = IOUtils.configFile("uuid_name_mapping.txt");
+            if (file.isFile()) {
+                try {
+                    BufferedReader reader = IOUtils.toReader(file);
+                    try (reader) {
+                        migration(reader);
+                        changed = true;
+                    }
+                    // 在启用文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
+                    save();
+                    // 弃用旧的文件
+                    IOUtils.deprecatedFile(file);
+                    return;
+                } catch (IOException e) {
+                    CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
                 }
-            } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.error("无法从文件读取玩家UUID与名称的映射表", e);
             }
+        }
+        try {
+            load();
+        } catch (NullPointerException | JsonParseException | IOException e) {
+            CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
         }
     }
 
-    private static void loadFromFile(BufferedReader reader) throws IOException {
+    private static void migration(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             String[] split = line.split("=");
@@ -153,13 +177,35 @@ public class GameProfileMap {
             } catch (IllegalArgumentException e) {
                 continue;
             }
-            String playerName = split[1].strip();
-            if (playerName.isEmpty()) {
+            String name = split[1].strip();
+            if (name.isEmpty()) {
                 continue;
             }
             try {
                 LOCK.writeLock().lock();
-                TABLE.put(uuid, playerName);
+                TABLE.put(uuid, name);
+            } finally {
+                LOCK.writeLock().unlock();
+            }
+        }
+    }
+
+    private static void load() throws IOException {
+        JsonObject json = IOUtils.loadJson(CONFIG);
+        JsonArray array = json.getAsJsonArray("usercache");
+        for (JsonElement element : array) {
+            UUID uuid;
+            String name;
+            try {
+                JsonObject entry = element.getAsJsonObject();
+                uuid = UUID.fromString(entry.get("uuid").getAsString());
+                name = entry.get("name").getAsString();
+            } catch (RuntimeException e) {
+                continue;
+            }
+            try {
+                LOCK.writeLock().lock();
+                TABLE.put(uuid, name);
             } finally {
                 LOCK.writeLock().unlock();
             }
@@ -170,20 +216,29 @@ public class GameProfileMap {
      * 将玩家UUID与名称的映射表写入本地文件
      */
     public static void save() {
-        try {
-            BufferedWriter writer = IOUtils.toWriter(CONFIG);
-            try (writer) {
+        if (changed) {
+            JsonObject json = new JsonObject();
+            json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+            JsonArray array = new JsonArray();
+            try {
                 LOCK.readLock().lock();
                 Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
                 for (Map.Entry<UUID, String> entry : entries) {
-                    writer.write(entry.getKey().toString() + "=" + entry.getValue());
-                    writer.newLine();
+                    JsonObject profile = new JsonObject();
+                    profile.addProperty("uuid", entry.getKey().toString());
+                    profile.addProperty("name", entry.getValue());
+                    array.add(profile);
                 }
             } finally {
                 LOCK.readLock().unlock();
             }
-        } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("无法将玩家UUID与名称的映射表写入文件", e);
+            json.add("usercache", array);
+            try {
+                IOUtils.saveJson(CONFIG, json);
+                changed = false;
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
+            }
         }
     }
 }
