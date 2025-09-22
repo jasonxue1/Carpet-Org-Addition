@@ -4,6 +4,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
@@ -30,11 +31,12 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.Function;
-// TODO 发送接收拦截物品时检查数据版本并发出警告
+
 /**
  * 快递
  */
 public class Express implements Comparable<Express> {
+    private static final String NBT_DATA_VERSION = "NbtDataVersion";
     /**
      * 寄件人
      */
@@ -58,6 +60,7 @@ public class Express implements Comparable<Express> {
     private final MinecraftServer server;
     private final LocalDateTime time;
     private final WorldFormat worldFormat;
+    private final int nbtDataVersion;
     public static final String EXPRESS = "express";
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, int id) throws CommandSyntaxException {
@@ -77,6 +80,7 @@ public class Express implements Comparable<Express> {
         this.id = id;
         this.time = LocalDateTime.now();
         this.worldFormat = new WorldFormat(server, EXPRESS);
+        this.nbtDataVersion = GenericUtils.getNbtDataVersion();
     }
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, ItemStack itemStack, int id) {
@@ -87,16 +91,18 @@ public class Express implements Comparable<Express> {
         this.id = id;
         this.time = LocalDateTime.now();
         this.worldFormat = new WorldFormat(server, EXPRESS);
+        this.nbtDataVersion = GenericUtils.getNbtDataVersion();
     }
 
-    private Express(MinecraftServer server, String sender, String recipient, ItemStack express, int id, LocalDateTime time) {
+    private Express(MinecraftServer server, String sender, String recipient, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
         this.server = server;
         this.sender = sender;
         this.recipient = recipient;
         this.express = express;
         this.id = id;
         this.time = time;
-        worldFormat = new WorldFormat(server, EXPRESS);
+        this.worldFormat = new WorldFormat(server, EXPRESS);
+        this.nbtDataVersion = nbtDataVersion;
     }
 
     /**
@@ -115,11 +121,11 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        Text cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId()));
+        Text cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
         Object[] senderArray = {recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextBuilder.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
-        Text receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId()));
+        Text receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
         MessageUtils.sendMessage(recipientPlayer, TextBuilder.translate("carpet.commands.mail.sending.recipient", recipientArray));
         // 在接收者位置播放音效
@@ -390,6 +396,8 @@ public class Express implements Comparable<Express> {
      */
     public NbtCompound writeNbt(MinecraftServer server) {
         NbtCompound nbt = new NbtCompound();
+        nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        nbt.putInt(NBT_DATA_VERSION, GenericUtils.getNbtDataVersion());
         nbt.putString("sender", this.sender);
         nbt.putString("recipient", this.recipient);
         nbt.putBoolean("cancel", this.cancel);
@@ -397,7 +405,6 @@ public class Express implements Comparable<Express> {
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
         nbt.putIntArray("time", args);
         nbt.put("item", this.express.encode(server.getRegistryManager(), new NbtCompound()));
-        nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
         return nbt;
     }
 
@@ -405,6 +412,7 @@ public class Express implements Comparable<Express> {
      * 从NBT读取快递信息
      */
     public static Express readNbt(MinecraftServer server, NbtCompound nbt) {
+        int nbtDataVersion = nbt.contains(NBT_DATA_VERSION, NbtElement.NUMBER_TYPE) ? nbt.getInt(NBT_DATA_VERSION) : -1;
         String sender = nbt.getString("sender");
         String recipient = nbt.getString("recipient");
         boolean cancel = nbt.getBoolean("cancel");
@@ -412,7 +420,7 @@ public class Express implements Comparable<Express> {
         int id = nbt.getInt("id");
         int[] times = nbt.getIntArray("time");
         LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-        Express express = new Express(server, sender, recipient, stack, id, localDateTime);
+        Express express = new Express(server, sender, recipient, stack, id, localDateTime, nbtDataVersion);
         express.cancel = cancel;
         return express;
     }
@@ -490,6 +498,10 @@ public class Express implements Comparable<Express> {
     @Override
     public int compareTo(@NotNull Express o) {
         return this.id - o.id;
+    }
+
+    public int getNbtDataVersion() {
+        return this.nbtDataVersion;
     }
 
     /**

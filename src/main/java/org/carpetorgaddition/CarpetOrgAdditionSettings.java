@@ -553,7 +553,6 @@ public class CarpetOrgAdditionSettings {
      * 自定义猪灵交易时间
      */
     public static final Supplier<Long> customPiglinBarteringTime = register(
-            // TODO 猪灵交易无限速度
             RuleFactory.create(Long.class, "customPiglinBarteringTime", -1L)
                     .addCategories(RuleCategory.SURVIVAL)
                     .addValidator(
