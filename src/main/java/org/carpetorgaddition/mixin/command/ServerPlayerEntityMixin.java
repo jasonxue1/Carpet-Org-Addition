@@ -29,7 +29,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.Optional;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ServerPlayerEntity.class)
 public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterface {
     @Unique
@@ -61,7 +60,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             return;
         }
         // 安全挂机触发失败，玩家已死亡
-        if (this.afkTriggerFail()) {
+        if (this.carpet_Org_Addition$afkTriggerFail()) {
             TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
             // 设置为斜体
             builder.setItalic();
@@ -149,17 +148,17 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
     }
 
     @Override
-    public void setHealthThreshold(float threshold) {
+    public void carpet_Org_Addition$setHealthThreshold(float threshold) {
         this.safeAfkThreshold = threshold;
     }
 
     @Override
-    public float getHealthThreshold() {
+    public float carpet_Org_Addition$getHealthThreshold() {
         return this.safeAfkThreshold;
     }
 
     @Override
-    public boolean afkTriggerFail() {
+    public boolean carpet_Org_Addition$afkTriggerFail() {
         return false;
     }
 }

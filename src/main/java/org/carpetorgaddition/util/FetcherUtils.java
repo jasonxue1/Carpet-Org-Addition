@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -47,6 +48,10 @@ public class FetcherUtils {
 
     public static World getWorld(Entity entity) {
         return entity.getWorld();
+    }
+
+    public static World getWorld(BlockEntity blockEntity) {
+        return blockEntity.getWorld();
     }
 
     /**

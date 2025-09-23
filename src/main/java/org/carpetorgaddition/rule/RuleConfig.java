@@ -98,7 +98,7 @@ public class RuleConfig {
 
     public void migrate(JsonObject rules) {
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, 0);
+        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.ZERO);
         json.add(RULES, rules);
         CarpetConfDataUpdater dataUpdater = new CarpetConfDataUpdater();
         JsonObject update = dataUpdater.update(json, DataUpdater.getVersion(json));
