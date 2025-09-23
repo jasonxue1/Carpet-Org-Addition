@@ -2,6 +2,7 @@ package org.carpetorgaddition.command;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -23,16 +24,14 @@ import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.carpetorgaddition.wheel.screen.ShipExpressScreenHandler;
 
 import java.io.IOException;
@@ -42,7 +41,9 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+// TODO 需要测试
 public class MailCommand extends AbstractServerCommand {
+    private static final int CURRENT_DATA_VERSION = GenericUtils.getNbtDataVersion();
     public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
 
     public MailCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -60,17 +61,23 @@ public class MailCommand extends AbstractServerCommand {
                         .executes(this::receiveAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(true))
-                                .executes(this::receive)))
+                                .executes(context -> receive(context, false))
+                                .then(CommandManager.argument("force", BoolArgumentType.bool())
+                                        .executes(context -> receive(context, BoolArgumentType.getBool(context, "force"))))))
                 .then(CommandManager.literal("cancel")
                         .executes(this::cancelAll)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(receiveSuggests(false))
-                                .executes(this::cancel)))
+                                .executes(context -> cancel(context, false))
+                                .then(CommandManager.argument("force", BoolArgumentType.bool())
+                                        .executes(context -> cancel(context, BoolArgumentType.getBool(context, "force"))))))
                 .then(CommandManager.literal("intercept")
                         .requires(intercept)
                         .then(CommandManager.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(interceptSuggests())
-                                .executes(this::intercept)))
+                                .executes(context -> intercept(context, false))
+                                .then(CommandManager.argument("force", BoolArgumentType.bool())
+                                        .executes(context -> intercept(context, BoolArgumentType.getBool(context, "force"))))))
                 .then(CommandManager.literal("list")
                         .executes(this::list))
                 .then(CommandManager.literal("multiple")
@@ -142,20 +149,29 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 接收快递
-    private int receive(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int receive(CommandContext<ServerCommandSource> context, boolean force) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取快递
         Express express = getExpress(context);
-        // 只能接收发送给自己的快递
-        if (express.isRecipient(player)) {
-            try {
-                express.receive();
-            } catch (IOException e) {
-                throw CommandExecuteIOException.of(e);
+        int dataVersion = express.getNbtDataVersion();
+        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+            // 只能接收发送给自己的快递
+            if (express.isRecipient(player)) {
+                try {
+                    express.receive();
+                } catch (IOException e) {
+                    throw CommandExecuteIOException.of(e);
+                }
+                return 1;
             }
-            return 1;
+            throw CommandUtils.createException("carpet.commands.mail.receive.recipient");
+        } else {
+            Text action = TextBuilder.translate("carpet.commands.mail.action.receive");
+            Text button = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), true));
+            Text message = this.differentVersions(action, dataVersion, button);
+            MessageUtils.sendMessage(context.getSource(), message);
+            return 0;
         }
-        throw CommandUtils.createException("carpet.commands.mail.receive.recipient");
     }
 
     // 接收所有快递
@@ -169,18 +185,27 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 撤回快递
-    private int cancel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancel(CommandContext<ServerCommandSource> context, boolean force) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
-        if (express.isSender(player)) {
-            try {
-                express.cancel();
-            } catch (IOException e) {
-                throw CommandExecuteIOException.of(e);
+        int dataVersion = express.getNbtDataVersion();
+        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+            if (express.isSender(player)) {
+                try {
+                    express.cancel();
+                } catch (IOException e) {
+                    throw CommandExecuteIOException.of(e);
+                }
+                return 1;
             }
-            return 1;
+            throw CommandUtils.createException("carpet.commands.mail.cancel.recipient");
+        } else {
+            Text action = TextBuilder.translate("carpet.commands.mail.action.cancel");
+            Text button = TextProvider.clickRun(CommandProvider.cancelExpress(express.getId(), true));
+            Text message = this.differentVersions(action, dataVersion, button);
+            MessageUtils.sendMessage(context.getSource(), message);
+            return 0;
         }
-        throw CommandUtils.createException("carpet.commands.mail.cancel.recipient");
     }
 
     // 撤回所有快递
@@ -196,15 +221,35 @@ public class MailCommand extends AbstractServerCommand {
     /**
      * 拦截一件快递
      */
-    private int intercept(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int intercept(CommandContext<ServerCommandSource> context, boolean force) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
-        try {
-            express.intercept(player);
-        } catch (IOException e) {
-            IOUtils.loggerError(e);
+        int dataVersion = express.getNbtDataVersion();
+        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+            try {
+                express.intercept(player);
+            } catch (IOException e) {
+                IOUtils.loggerError(e);
+            }
+            return express.getId();
+        } else {
+            Text action = TextBuilder.translate("carpet.commands.mail.action.intercept");
+            Text button = TextProvider.clickRun(CommandProvider.interceptExpress(express.getId(), true));
+            Text message = this.differentVersions(action, dataVersion, button);
+            MessageUtils.sendMessage(context.getSource(), message);
+            return 0;
         }
-        return express.getId();
+    }
+
+    private Text differentVersions(Text action, int dataVersion, Text button) {
+        TextBuilder builder = dataVersion > CURRENT_DATA_VERSION
+                ? TextBuilder.of("carpet.commands.mail.action.version.new")
+                : TextBuilder.of("carpet.commands.mail.action.version.old");
+        builder.setHover(TextBuilder.joinList(List.of(
+                TextBuilder.translate("carpet.commands.mail.action.version.expect", CURRENT_DATA_VERSION),
+                TextBuilder.translate("carpet.commands.mail.action.version.actua", dataVersion)
+        )));
+        return TextBuilder.translate("carpet.commands.mail.action.version.fail", action, builder.build(), button, action);
     }
 
     // 列出快递
@@ -236,21 +281,21 @@ public class MailCommand extends AbstractServerCommand {
         if (express.isRecipient(player)) {
             builder = new TextBuilder("[R]");
             // 点击接收
-            builder.setCommand(CommandProvider.receiveExpress(express.getId()));
+            builder.setCommand(CommandProvider.receiveExpress(express.getId(), false));
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.receive"));
             list.add(TextBuilder.empty());
         } else if (express.isSender(player)) {
             builder = new TextBuilder("[C]");
             // 点击撤回
-            builder.setCommand(CommandProvider.cancelExpress(express.getId()));
+            builder.setCommand(CommandProvider.cancelExpress(express.getId(), false));
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.sending"));
             list.add(TextBuilder.empty());
         } else if (intercept.test(player.getCommandSource())) {
             builder = new TextBuilder("[I]");
             // 点击拦截
-            builder.setCommand(CommandProvider.interceptExpress(express.getId()));
+            builder.setCommand(CommandProvider.interceptExpress(express.getId(), false));
             builder.setColor(Formatting.AQUA);
             list.add(TextBuilder.translate("carpet.commands.mail.list.intercept"));
             list.add(TextBuilder.empty());

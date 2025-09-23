@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.accessor;
+package org.carpetorgaddition.mixin.debug.accessor;
 
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;

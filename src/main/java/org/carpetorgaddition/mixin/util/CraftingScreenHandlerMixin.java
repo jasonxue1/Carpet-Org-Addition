@@ -7,7 +7,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(CraftingScreenHandler.class)
 public abstract class CraftingScreenHandlerMixin implements FakePlayerCraftRecipeInterface {
     @Shadow
@@ -15,7 +14,7 @@ public abstract class CraftingScreenHandlerMixin implements FakePlayerCraftRecip
     private RecipeInputInventory input;
 
     @Override
-    public RecipeInputInventory getInput() {
+    public RecipeInputInventory carpet_Org_Addition$getInput() {
         return this.input;
     }
 }

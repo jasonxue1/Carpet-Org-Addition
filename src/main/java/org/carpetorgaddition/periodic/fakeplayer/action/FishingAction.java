@@ -4,19 +4,20 @@ import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
-import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.mixin.accessor.FishingBobberEntityAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
 
 public class FishingAction extends AbstractPlayerAction {
-    private final MutableInt timer = new MutableInt();
+    private int timer = 0;
 
     public FishingAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
@@ -30,23 +31,24 @@ public class FishingAction extends AbstractPlayerAction {
             FishingBobberEntity fishHook = this.getFakePlayer().fishHook;
             if (fishHook == null) {
                 // 检查计时器是否清零
-                if (this.timer.getValue() == 0) {
+                if (this.timer == 0) {
                     // 右键抛出钓鱼竿
                     this.use();
                 } else {
-                    this.timer.decrement();
+                    this.timer--;
                 }
             } else {
                 // 如果钓鱼竿钩到方块或其它实体，通过切换物品收杆，防止额外的耐久损耗
-                if (fishHook.isOnGround() || fishHook.getHookedEntity() != null) {
-                    switchInventory();
+                Entity entity = fishHook.getHookedEntity();
+                if (fishHook.isOnGround() || (entity != null && !(entity instanceof ItemEntity))) {
+                    this.switchInventory();
                 }
                 // 检查鱼是否上钩
-                if (canReelInTheFishingPole(fishHook)) {
+                if (this.canReelInTheFishingPole(fishHook)) {
                     // 右键收杆
                     this.use();
-                    // 设置5个游戏刻后重新抛竿
-                    this.timer.setValue(5);
+                    // 设置10个游戏刻后重新抛竿
+                    this.timer = 10;
                 }
             }
         }
