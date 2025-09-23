@@ -186,7 +186,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 查找物品
     private void searchItem(UUID uuid, NbtCompound nbt) {
         // 获取玩家配置文件
-        Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
+        Optional<PlayerConfigEntry> optional = GameProfileCache.getPlayerConfigEntry(uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             optional = Optional.of(new PlayerConfigEntry(uuid, UNKNOWN));

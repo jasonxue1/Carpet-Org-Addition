@@ -149,7 +149,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     public static Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
-            Optional<PlayerConfigEntry> optional = GameProfileCache.getGameProfile(uuid);
+            Optional<PlayerConfigEntry> optional = GameProfileCache.getPlayerConfigEntry(uuid);
             return Optional.of(optional.orElse(new PlayerConfigEntry(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN))));
         }
         return Optional.empty();

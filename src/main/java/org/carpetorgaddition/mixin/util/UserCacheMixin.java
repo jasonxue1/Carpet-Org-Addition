@@ -1,6 +1,6 @@
 package org.carpetorgaddition.mixin.util;
 
-import com.mojang.authlib.GameProfile;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.util.UserCache;
 import org.carpetorgaddition.wheel.GameProfileCache;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,8 +10,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(UserCache.class)
 public class UserCacheMixin {
-    @Inject(method = "add(Lcom/mojang/authlib/GameProfile;)V", at = @At("HEAD"))
-    private void add(GameProfile profile, CallbackInfo ci) {
-        GameProfileCache.put(profile);
+    @Inject(method = "add(Lnet/minecraft/server/PlayerConfigEntry;)V", at = @At("HEAD"))
+    private void add(PlayerConfigEntry entry, CallbackInfo ci) {
+        GameProfileCache.put(entry);
     }
 }

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.server.PlayerConfigEntry;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
@@ -82,6 +83,10 @@ public class GameProfileCache {
         return optional.map(name -> new GameProfile(uuid, name));
     }
 
+    public static Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid) {
+        return getGameProfile(uuid).map(PlayerConfigEntry::new);
+    }
+
     /**
      * 根据玩家名称获取玩家UUID<br>
      * 如果玩家名称与缓存中的某个玩家名大小写完全匹配，则返回这个名称大小写完全相同的玩家档案<br>
@@ -101,7 +106,11 @@ public class GameProfileCache {
     }
 
     public static void put(GameProfile gameProfile) {
-        put(gameProfile.getId(), gameProfile.getName());
+        put(gameProfile.id(), gameProfile.name());
+    }
+
+    public static void put(PlayerConfigEntry entry) {
+        put(entry.id(), entry.name());
     }
 
     /**
