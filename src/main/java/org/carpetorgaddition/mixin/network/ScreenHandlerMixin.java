@@ -14,7 +14,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(value = ScreenHandler.class, priority = 1001)
 public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     @Shadow
@@ -33,7 +32,7 @@ public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     }
 
     @Override
-    public void sync(UnavailableSlotSyncS2CPacket pack) {
+    public void carpet_Org_Addition$sync(UnavailableSlotSyncS2CPacket pack) {
         if (this.syncId == pack.syncId()) {
             this.from = pack.from();
             this.to = pack.to();

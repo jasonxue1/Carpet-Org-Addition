@@ -3,5 +3,5 @@ package org.carpetorgaddition.wheel;
 import net.minecraft.component.type.ContainerComponent;
 
 public interface ContainerDeepCopy {
-    ContainerComponent copy();
+    ContainerComponent carpet_Org_Addition$copy();
 }

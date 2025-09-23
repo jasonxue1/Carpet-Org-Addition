@@ -11,7 +11,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(Slot.class)
 public class SlotMixin implements BackgroundSpriteSyncSlot {
     @Unique
@@ -26,7 +25,7 @@ public class SlotMixin implements BackgroundSpriteSyncSlot {
     }
 
     @Override
-    public void setIdentifier(Identifier identifier) {
+    public void carpet_Org_Addition$setIdentifier(Identifier identifier) {
         this.identifier = identifier;
     }
 }

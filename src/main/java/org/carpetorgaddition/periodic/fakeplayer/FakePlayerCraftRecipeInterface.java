@@ -7,5 +7,5 @@ public interface FakePlayerCraftRecipeInterface {
     /**
      * @return 获取工作台输入物品栏
      */
-    RecipeInputInventory getInput();
+    RecipeInputInventory carpet_Org_Addition$getInput();
 }
