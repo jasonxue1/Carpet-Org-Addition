@@ -8,7 +8,6 @@
     "accessor.AbstractHorseEntityAccessor",
     "accessor.ContainerComponentAccessor",
     "accessor.FishingBobberEntityAccessor",
-    "accessor.HandledScreenAccessor",
     "accessor.HorseScreenHandlerAccessor",
     "accessor.MerchantScreenHandlerAccessor",
     "accessor.PlayerEntityAccessor",
