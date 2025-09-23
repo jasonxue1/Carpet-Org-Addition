@@ -3,6 +3,7 @@ package org.carpetorgaddition.util;
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.exception.FileOperationException;
 import org.jetbrains.annotations.Contract;
 
 import java.io.*;
@@ -114,16 +115,10 @@ public class IOUtils {
      *
      * @param file 要备份的文件
      */
-    public static void backupFile(File file) {
-        backupFile(file, true);
-    }
-
-    /**
-     * @param force 如果已经存在相同名字的备份了，是否覆盖
-     */
-    public static File backupFile(File file, boolean force) {
+    public static File backupFile(File file) {
         File backup = new File(file.getParent(), "backup_" + System.currentTimeMillis() + "_" + file.getName());
-        if (!force && backup.exists()) {
+        if (backup.exists()) {
+            // 不太可能出现重名备份文件
             throw new IllegalStateException("The backup file already exists");
         }
         copyFile(file, backup);
@@ -257,20 +252,22 @@ public class IOUtils {
 
     /**
      * 删除一个文件
-     *
-     * @apiNote 此方法是为了避免编译器发出未使用方法返回值警告
      */
     public static void removeFile(File file) {
-        //noinspection ResultOfMethodCallIgnored
-        file.delete();
+        if (file.delete()) {
+            return;
+        }
+        throw new FileOperationException("Unable to delete file %s".formatted(file.toString()));
     }
 
     /**
      * 重命名文件
      */
     public static void renameFile(File file, String name) {
-        //noinspection ResultOfMethodCallIgnored
-        file.renameTo(new File(file.getParent(), name));
+        if (file.renameTo(new File(file.getParent(), name))) {
+            return;
+        }
+        throw new FileOperationException("Unable to rename file %s".formatted(file.toString()));
     }
 
     /**

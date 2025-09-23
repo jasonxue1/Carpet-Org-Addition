@@ -22,7 +22,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.UserCache;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -164,13 +163,8 @@ public class FinderCommand extends AbstractServerCommand {
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        UserCache userCache = server.getUserCache();
-        if (userCache == null) {
-            throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
-        }
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, userCache, player, files);
-        ServerTask task = new OfflinePlayerSearchTask(argument);
+        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player, files);
         ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }

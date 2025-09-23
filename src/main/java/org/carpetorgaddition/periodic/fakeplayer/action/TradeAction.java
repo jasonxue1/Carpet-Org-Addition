@@ -59,7 +59,7 @@ public class TradeAction extends AbstractPlayerAction {
         // 获取按钮的索引
         // 判断当前打开的GUI是否为交易界面
         if (this.getFakePlayer().currentScreenHandler instanceof MerchantScreenHandler merchantScreenHandler) {
-            // 获取计数器，记录村民距离上次被加载的时间是否超过了5游戏刻（区块卸载后村民似乎不会立即卸载）
+            // 获取计时器，记录村民距离上次被加载的时间是否超过了1游戏刻（区块卸载后村民似乎不会立即卸载）
             if (this.voidTrade) {
                 // 获取正在接受交易的村民
                 MerchantScreenHandlerAccessor accessor = (MerchantScreenHandlerAccessor) merchantScreenHandler;
@@ -71,13 +71,13 @@ public class TradeAction extends AbstractPlayerAction {
                         return;
                     }
                 }
-                // 检查计数器是否归零
+                // 检查计时器是否归零
                 if (this.timer.getValue() != 0) {
-                    // 如果没有归零，计数器递减，然后结束方法
+                    // 如果没有归零，计时器递减，然后结束方法
                     this.timer.decrement();
                     return;
                 } else {
-                    // 如果归零，重置计数器，然后开始交易
+                    // 如果归零，重置计时器，然后开始交易
                     this.timer.setValue(TRADE_WAIT_TIME);
                 }
             }

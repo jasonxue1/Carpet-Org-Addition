@@ -1,4 +1,4 @@
-package org.carpetorgaddition.mixin.accessor;
+package org.carpetorgaddition.mixin.debug.accessor;
 
 import net.minecraft.entity.ExperienceOrbEntity;
 import org.carpetorgaddition.debug.OnlyDeveloped;

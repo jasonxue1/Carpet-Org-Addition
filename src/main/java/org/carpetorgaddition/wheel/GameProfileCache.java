@@ -1,0 +1,326 @@
+package org.carpetorgaddition.wheel;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.mojang.authlib.GameProfile;
+import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.dataupdate.DataUpdater;
+import org.carpetorgaddition.util.IOUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.VisibleForTesting;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 使用{@code /finder item 物品ID from offline_player}命令查找离线玩家的物品时，
+ * 玩家数据是以UUID的形式保存的，但是召唤假玩家需要的是玩家名，因此就需要根据玩家UUID
+ * 找到对应的玩家名。
+ * </p>
+ * <p>
+ * 在游戏根目录下，有一个{@code usercache.json}文件，虽然可以通过它来获取对应的玩家名称，
+ * 但是，这个文件只会保存1000名玩家，长时间没有上线的玩家可能会被覆盖，因此需要一个类来记录
+ * 所有的映射关系，保证不常上线的玩家名也能获取。
+ * </p>
+ * <p>
+ * Mojang提供了根据玩家UUID获取玩家名称的API，但是这对服务器中的非正版玩家无能为力，
+ * 并且如果找不到名称的玩家狠多，如果每个都去查询，Mojang也不会同时处理这么多的请求。
+ * </p>
+ * <p>
+ * 本类用于记录每个上线过的玩家UUID与玩家名称的对应关系，它在所有世界中共享，但是并不能彻底解决以上问题：
+ * <ul>
+ * <li>只能记录安装本Mod之后上线的玩家，不能记录之前的。</li>
+ * <li>玩家可能更改他们的名称。</li>
+ * </ul>
+ * </p>
+ * <p>
+ * 综上所述，本类不是{@code usercache.json}的替代，而是该文件中找不到玩家名时的备用方案。
+ * </p>
+ *
+ * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
+ */
+public class GameProfileCache {
+    private static final Table TABLE = new Table();
+    /**
+     * 集合可能被多个线程同时访问
+     */
+    private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+    private static final File CONFIG = IOUtils.configFile("profile.json");
+    /**
+     * 自上次保存以来，数据是否发生了变化
+     */
+    private static boolean changed = false;
+    /**
+     * Mojang提供的根据玩家UUID查询玩家名的API
+     */
+    public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
+
+    private GameProfileCache() {
+    }
+
+    /**
+     * 根据UUID获取对应的玩家名
+     */
+    public static Optional<String> get(UUID uuid) {
+        try {
+            LOCK.readLock().lock();
+            return TABLE.get(uuid);
+        } finally {
+            LOCK.readLock().unlock();
+        }
+    }
+
+    public static Optional<GameProfile> getGameProfile(UUID uuid) {
+        Optional<String> optional = get(uuid);
+        return optional.map(name -> new GameProfile(uuid, name));
+    }
+
+    /**
+     * 根据玩家名称获取玩家UUID<br>
+     * 如果玩家名称与缓存中的某个玩家名大小写完全匹配，则返回这个名称大小写完全相同的玩家档案<br>
+     * 如果没有完全匹配的，但是有仅大小写不同的玩家，则返回其中一个玩家档案<br>
+     * 否则返回空的{@code Optional}
+     *
+     * @param name 玩家的名称
+     */
+    public static Optional<GameProfile> getGameProfile(@NotNull String name) {
+        try {
+            LOCK.readLock().lock();
+            Optional<UUID> optional = TABLE.get(name);
+            return optional.map(value -> new GameProfile(value, name));
+        } finally {
+            LOCK.readLock().unlock();
+        }
+    }
+
+    public static void put(GameProfile gameProfile) {
+        put(gameProfile.getId(), gameProfile.getName());
+    }
+
+    /**
+     * 将玩家UUID与玩家名称的对应关系添加至集合
+     */
+    public static void put(UUID uuid, String name) {
+        try {
+            LOCK.writeLock().lock();
+            TABLE.put(uuid, name);
+            changed = true;
+        } finally {
+            LOCK.writeLock().unlock();
+        }
+    }
+
+    /**
+     * 将usercache.json合并到profile.json
+     */
+    private static void mergeUsercache() {
+        try {
+            JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
+            Set<Map.Entry<String, String>> set = array.asList().stream()
+                    .map(JsonElement::getAsJsonObject)
+                    .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
+                    .collect(Collectors.toSet());
+            for (Map.Entry<String, String> entry : set) {
+                String name = entry.getKey();
+                UUID uuid = UUID.fromString(entry.getValue());
+                put(uuid, name);
+            }
+        } catch (RuntimeException | IOException e) {
+            CarpetOrgAddition.LOGGER.warn("Unable to merge usercahce.json into profile.json", e);
+        }
+    }
+
+    /**
+     * 从文件加载玩家UUID与名称映射
+     */
+    public static void init() {
+        if (!CONFIG.isFile()) {
+            // 迁移配置文件
+            File file = IOUtils.configFile("uuid_name_mapping.txt");
+            if (file.isFile()) {
+                try {
+                    BufferedReader reader = IOUtils.toReader(file);
+                    try (reader) {
+                        migration(reader);
+                        changed = true;
+                    }
+                    // 在启用文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
+                    save();
+                    // 弃用旧的文件
+                    IOUtils.deprecatedFile(file);
+                    return;
+                } catch (IOException e) {
+                    CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
+                }
+            }
+        }
+        try {
+            load();
+        } catch (NullPointerException | JsonParseException | IOException e) {
+            CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
+        }
+        mergeUsercache();
+    }
+
+    private static void migration(BufferedReader reader) throws IOException {
+        String line;
+        while ((line = reader.readLine()) != null) {
+            String[] split = line.split("=");
+            if (split.length != 2) {
+                continue;
+            }
+            UUID uuid;
+            try {
+                uuid = UUID.fromString(split[0].strip());
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+            String name = split[1].strip();
+            if (name.isEmpty()) {
+                continue;
+            }
+            try {
+                LOCK.writeLock().lock();
+                TABLE.put(uuid, name);
+            } finally {
+                LOCK.writeLock().unlock();
+            }
+        }
+    }
+
+    private static void load() throws IOException {
+        JsonObject json = IOUtils.loadJson(CONFIG);
+        JsonArray array = json.getAsJsonArray("usercache");
+        for (JsonElement element : array) {
+            UUID uuid;
+            String name;
+            try {
+                JsonObject entry = element.getAsJsonObject();
+                uuid = UUID.fromString(entry.get("uuid").getAsString());
+                name = entry.get("name").getAsString();
+            } catch (RuntimeException e) {
+                continue;
+            }
+            try {
+                LOCK.writeLock().lock();
+                TABLE.put(uuid, name);
+            } finally {
+                LOCK.writeLock().unlock();
+            }
+        }
+    }
+
+    /**
+     * 将玩家UUID与名称的映射表写入本地文件
+     */
+    public static void save() {
+        if (changed) {
+            JsonObject json = new JsonObject();
+            json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+            JsonArray array = new JsonArray();
+            try {
+                LOCK.readLock().lock();
+                Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
+                for (Map.Entry<UUID, String> entry : entries) {
+                    JsonObject profile = new JsonObject();
+                    profile.addProperty("uuid", entry.getKey().toString());
+                    profile.addProperty("name", entry.getValue());
+                    array.add(profile);
+                }
+            } finally {
+                LOCK.readLock().unlock();
+            }
+            json.add("usercache", array);
+            try {
+                IOUtils.saveJson(CONFIG, json);
+                changed = false;
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
+            }
+        }
+    }
+
+    public static class Table {
+        private final HashMap<String, HashSet<String>> usernames = new HashMap<>();
+        private final HashMap<UUID, String> uuidToName = new HashMap<>();
+        private final HashMap<String, UUID> nameToUuid = new HashMap<>();
+
+        /**
+         * 根据玩家名称获取玩家UUID，如果缓存中有玩家名大小写完全匹配的，返回完全匹配玩家名的UUID，如果没有，返回一个大小写不完全匹配的，如果还是没有，返回空
+         */
+        @VisibleForTesting
+        public Optional<UUID> get(String name) {
+            if (name == null) {
+                throw new IllegalArgumentException("Null as a parameter");
+            }
+            HashSet<String> set = this.usernames.get(name.toLowerCase(Locale.ROOT));
+            if (set == null || set.isEmpty()) {
+                return Optional.empty();
+            }
+            // 优先获取正确大小写的
+            for (String playerName : set) {
+                if (name.equals(playerName)) {
+                    return Optional.of(this.nameToUuid.get(playerName));
+                }
+            }
+            return Optional.of(this.nameToUuid.get(set.iterator().next()));
+        }
+
+        @VisibleForTesting
+        public Optional<String> get(UUID uuid) {
+            return Optional.ofNullable(this.uuidToName.get(uuid));
+        }
+
+        @VisibleForTesting
+        public void put(UUID uuid, String name) {
+            String lowerCase = name.toLowerCase(Locale.ROOT);
+            HashSet<String> set = this.usernames.get(lowerCase);
+            if (set == null) {
+                HashSet<String> names = new HashSet<>();
+                names.add(name);
+                this.usernames.put(lowerCase, names);
+            } else {
+                set.add(name);
+            }
+            this.nameToUuid.put(name, uuid);
+            this.uuidToName.put(uuid, name);
+        }
+
+        @VisibleForTesting
+        public void remove(String name) {
+            String lowerCase = name.toLowerCase(Locale.ROOT);
+            HashSet<String> set = this.usernames.get(lowerCase);
+            if (set == null) {
+                return;
+            }
+            if (set.remove(name)) {
+                if (set.isEmpty()) {
+                    this.usernames.remove(lowerCase);
+                }
+                UUID uuid = this.nameToUuid.get(name);
+                this.nameToUuid.remove(name);
+                this.uuidToName.remove(uuid);
+            }
+        }
+
+        @VisibleForTesting
+        public void remove(UUID uuid) {
+            String name = this.uuidToName.get(uuid);
+            if (name == null) {
+                return;
+            }
+            this.remove(name);
+        }
+
+        private Set<Map.Entry<UUID, String>> entrySet() {
+            return this.uuidToName.entrySet();
+        }
+    }
+}
