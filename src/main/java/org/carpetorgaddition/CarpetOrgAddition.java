@@ -61,6 +61,10 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final boolean LITHIUM = FabricLoader.getInstance().isModLoaded("lithium");
     /**
+     * 是否同时加载了{@code Carpet TIS Addition}模组
+     */
+    public static final boolean CARPET_TIS_ADDITION = FabricLoader.getInstance().isModLoaded("carpet-tis-addition");
+    /**
      * 是否启用隐藏功能<br>
      * <p>
      * 致开发者：<br>
@@ -130,7 +134,7 @@ public class CarpetOrgAddition implements ModInitializer {
             // 保存启动次数
             List<LocalDate> list = counter.keySet().stream().sorted().toList();
             // 重新写入前备份文件，写入完毕后删除备份
-            File backup = IOUtils.backupFile(file, false);
+            File backup = IOUtils.backupFile(file);
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             try (writer) {
                 for (LocalDate date : list) {

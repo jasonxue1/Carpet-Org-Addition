@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(EntityPlayerMPFake.class)
 public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntityMixin {
     @Unique
@@ -21,7 +20,7 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntityMixin {
     }
 
     @Override
-    public boolean afkTriggerFail() {
+    public boolean carpet_Org_Addition$afkTriggerFail() {
         return this.isDead;
     }
 }

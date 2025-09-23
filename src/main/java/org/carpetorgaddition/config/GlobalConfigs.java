@@ -85,7 +85,7 @@ public class GlobalConfigs {
         try {
             config.load((E) element);
         } catch (RuntimeException e) {
-            IOUtils.backupFile(CONFIG_FILE, true);
+            IOUtils.backupFile(CONFIG_FILE);
             json.add(config.getKey(), config.getJsonValue());
             markUpdateRequired();
             CarpetOrgAddition.LOGGER.warn("Global config partially corrupted - resetting damaged section", e);
