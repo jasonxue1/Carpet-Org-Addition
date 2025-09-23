@@ -97,7 +97,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      */
     public static ItemStackPredicate parse(String input) {
         CommandRegistryAccessor accessor = (CommandRegistryAccessor) CarpetServer.minecraft_server.getCommandManager();
-        CommandRegistryAccess access = accessor.getAccess();
+        CommandRegistryAccess access = accessor.carpet_Org_Addition$getAccess();
         try {
             StringReader reader = new StringReader(input);
             ItemStackPredicateArgument predicate = ItemPredicateArgumentType.itemPredicate(access).parse(reader);

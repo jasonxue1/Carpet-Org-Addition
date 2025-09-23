@@ -163,13 +163,8 @@ public class FinderCommand extends AbstractServerCommand {
         if (files == null) {
             throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
         }
-        NameToIdCache cache = server.getApiServices().nameToIdCache();
-        if (cache == null) {
-            throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_usercache");
-        }
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        OfflinePlayerItemSearchContext argument = new OfflinePlayerItemSearchContext(context.getSource(), predicate, cache, player, files);
-        ServerTask task = new OfflinePlayerSearchTask(argument);
+        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player, files);
         ServerComponentCoordinator.getManager(context).getServerTaskManager().addTask(task);
         return 1;
     }

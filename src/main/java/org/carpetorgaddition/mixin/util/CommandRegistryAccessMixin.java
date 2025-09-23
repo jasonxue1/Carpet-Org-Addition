@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(CommandManager.class)
 public class CommandRegistryAccessMixin implements CommandRegistryAccessor {
     @Unique
@@ -22,7 +21,7 @@ public class CommandRegistryAccessMixin implements CommandRegistryAccessor {
 
 
     @Override
-    public CommandRegistryAccess getAccess() {
+    public CommandRegistryAccess carpet_Org_Addition$getAccess() {
         return this.commandRegistryAccess;
     }
 }

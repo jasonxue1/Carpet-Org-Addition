@@ -367,7 +367,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         // 设置安全挂机阈值
         FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) fakePlayer;
-        safeAfk.setHealthThreshold(threshold);
+        safeAfk.carpet_Org_Addition$setHealthThreshold(threshold);
         if (save) {
             try {
                 saveSafeAfkThreshold(context, threshold, fakePlayer);
@@ -398,7 +398,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         int count = 0;
         // 遍历所有在线并且设置了安全挂机的假玩家
         for (ServerPlayerEntity player : list) {
-            float threshold = ((FakePlayerSafeAfkInterface) player).getHealthThreshold();
+            float threshold = ((FakePlayerSafeAfkInterface) player).carpet_Org_Addition$getHealthThreshold();
             if (threshold < 0) {
                 continue;
             }
@@ -418,7 +418,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 设置安全挂机阈值
         FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) fakePlayer;
-        safeAfk.setHealthThreshold(-1);
+        safeAfk.carpet_Org_Addition$setHealthThreshold(-1);
         if (remove) {
             try {
                 saveSafeAfkThreshold(context, -1, fakePlayer);
@@ -436,7 +436,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 查询指定玩家的安全挂机阈值
     private int querySafeAfk(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).getHealthThreshold();
+        float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).carpet_Org_Addition$getHealthThreshold();
         String key = "carpet.commands.playerManager.safeafk.list.each";
         MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), threshold);
         return (int) threshold;
@@ -497,7 +497,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         return;
                     }
                     float threshold = Float.parseFloat(value);
-                    safeAfk.setHealthThreshold(threshold);
+                    safeAfk.carpet_Org_Addition$setHealthThreshold(threshold);
                     // 广播阈值设置的消息
                     String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
                     TextBuilder builder = TextBuilder.of(key, player.getDisplayName(), threshold);
