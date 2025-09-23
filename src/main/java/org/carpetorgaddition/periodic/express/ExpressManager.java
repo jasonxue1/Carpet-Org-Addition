@@ -76,7 +76,7 @@ public class ExpressManager {
         ArrayList<Supplier<Text>> messages = new ArrayList<>();
         for (Express express : list) {
             messages.add(() -> {
-                Text clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId()));
+                Text clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), false));
                 ItemStack stack = express.getExpress();
                 return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.toHoverableText(), clickRun);
             });
