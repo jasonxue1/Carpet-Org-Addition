@@ -6,5 +6,5 @@ public interface UnavailableSlotImplInterface {
     /**
      * 通知客户端哪些槽位被禁用
      */
-    void sync(UnavailableSlotSyncS2CPacket pack);
+    void carpet_Org_Addition$sync(UnavailableSlotSyncS2CPacket pack);
 }

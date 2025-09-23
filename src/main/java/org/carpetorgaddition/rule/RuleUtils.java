@@ -1,5 +1,6 @@
 package org.carpetorgaddition.rule;
 
+import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
@@ -8,6 +9,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -28,6 +30,8 @@ public class RuleUtils {
      * 最小合成次数
      */
     public static final int MIN_CRAFT_COUNT = 1;
+    public static final Supplier<Boolean> hopperCountersUnlimitedSpeed = getCarpetRule("hopperCountersUnlimitedSpeed");
+    public static final Supplier<Boolean> hopperNoItemCost = getCarpetRule("hopperNoItemCost");
 
     /**
      * 潜影盒是否可以触发更新抑制器
@@ -71,6 +75,17 @@ public class RuleUtils {
         } finally {
             CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.set(changed);
         }
+    }
+
+    private static Supplier<Boolean> getCarpetRule(String rule) {
+        if (CarpetOrgAddition.CARPET_TIS_ADDITION) {
+            CarpetRule<?> carpetRule = CarpetServer.settingsManager.getCarpetRule(rule);
+            if (carpetRule == null) {
+                return () -> false;
+            }
+            return () -> carpetRule.value() instanceof Boolean value ? value : false;
+        }
+        return () -> false;
     }
 
     /**

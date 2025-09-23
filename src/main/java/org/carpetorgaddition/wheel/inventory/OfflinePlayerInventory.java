@@ -17,7 +17,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.storage.ReadView;
 import net.minecraft.util.ErrorReporter;
-import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.World;
@@ -28,7 +27,7 @@ import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.wheel.UuidNameMappingTable;
+import org.carpetorgaddition.wheel.GameProfileCache;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -57,7 +56,6 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
      */
-    @SuppressWarnings("deprecation")
     private void initFakePlayer(MinecraftServer server) {
         ErrorReporter.Logging logging = new ErrorReporter.Logging(CarpetOrgAddition.LOGGER);
         try (logging) {
@@ -73,54 +71,23 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     /**
      * 根据玩家名称获取玩家档案
-     *
-     * @apiNote {@link UserCache#findByName(String)}似乎不是只读的
      */
-    public static Optional<GameProfile> getGameProfile(String username, boolean caseSensitive, MinecraftServer server) {
+    public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
         try {
-            // 从本地获取玩家的在线UUID
-            JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
-            Optional<GameProfile> entry = readUsercacheJson(username, caseSensitive, array, server);
-            if (entry.isPresent()) {
-                return entry;
+            Optional<GameProfile> optional = GameProfileCache.getGameProfile(username);
+            if (optional.isPresent()) {
+                return optional;
             }
-        } catch (IOException | JsonParseException | NullPointerException e) {
+            // 获取玩家的离线UUID
+            UUID uuid = Uuids.getOfflinePlayerUuid(username);
+            if (playerDataExists(uuid, server)) {
+                GameProfile gameProfile = new GameProfile(uuid, username);
+                GameProfileCache.put(gameProfile);
+                return Optional.of(gameProfile);
+            }
+        } catch (JsonParseException | NullPointerException e) {
             // 译：读取usercache.json时出现意外问题，正在使用离线玩家UUID
             CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
-        }
-        Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(username, caseSensitive);
-        if (optional.isPresent()) {
-            return optional;
-        }
-        // 获取玩家的离线UUID
-        UUID uuid = Uuids.getOfflinePlayerUuid(username);
-        if (playerDataExists(uuid, server)) {
-            return Optional.of(new GameProfile(uuid, username));
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * 从usercache.json读取玩家档案
-     *
-     * @param username 玩家的名称
-     * @param array    usercache.json保存的json数组
-     * @return 玩家档案，可能为空
-     */
-    private static Optional<GameProfile> readUsercacheJson(String username, boolean caseSensitive, JsonArray array, MinecraftServer server) {
-        Set<Map.Entry<String, String>> set = array.asList().stream()
-                .map(JsonElement::getAsJsonObject)
-                .map(json -> Map.entry(json.get("name").getAsString(), json.get("uuid").getAsString()))
-                .collect(Collectors.toSet());
-        for (Map.Entry<String, String> entry : set) {
-            String key = entry.getKey();
-            if (caseSensitive ? Objects.equals(username, key) : username.equalsIgnoreCase(key)) {
-                UUID uuid = UUID.fromString(entry.getValue());
-                if (playerDataExists(uuid, server)) {
-                    return Optional.of(new GameProfile(uuid, key));
-                }
-                return Optional.empty();
-            }
         }
         return Optional.empty();
     }
@@ -174,14 +141,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
-            UserCache userCache = server.getUserCache();
-            if (userCache != null) {
-                Optional<GameProfile> optional = userCache.getByUuid(uuid);
-                if (optional.isPresent()) {
-                    return optional;
-                }
-            }
-            Optional<GameProfile> optional = UuidNameMappingTable.getInstance().getGameProfile(uuid);
+            Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
             return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
         }
         return Optional.empty();

@@ -55,6 +55,12 @@ public class DebugSettings {
                     .setDisplayName("禁用经验球环绕")
                     .build()
     );
+    public static final Supplier<Integer> fixedFishingHookTime = register(
+            RuleFactory.create(Integer.class, "fixedFishingHookTime", -1)
+                    .addCategories("Debug")
+                    .setDisplayName("固定钓鱼上钩时间")
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();
