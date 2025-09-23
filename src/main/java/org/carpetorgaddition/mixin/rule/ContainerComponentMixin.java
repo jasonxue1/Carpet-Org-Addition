@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-@SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ContainerComponent.class)
 public class ContainerComponentMixin implements ContainerDeepCopy {
 
@@ -18,7 +17,7 @@ public class ContainerComponentMixin implements ContainerDeepCopy {
     private DefaultedList<ItemStack> stacks;
 
     @Override
-    public ContainerComponent copy() {
+    public ContainerComponent carpet_Org_Addition$copy() {
         DefaultedList<ItemStack> list = this.stacks;
         DefaultedList<ItemStack> copy = DefaultedList.ofSize(list.size(), ItemStack.EMPTY);
         for (int index = 0; index < copy.size(); index++) {

@@ -21,22 +21,43 @@ public class CommandProvider {
     /**
      * 接收一件快递
      */
-    public static String receiveExpress(int id) {
-        return "/%s receive %s".formatted(getCommandName(MailCommand.class), id);
+    public static String receiveExpress(int id, boolean force) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(MailCommand.class))
+                .add("receive")
+                .add(String.valueOf(id));
+        if (force) {
+            joiner.add("true");
+        }
+        return joiner.toString();
     }
 
     /**
      * 撤回一件快递
      */
-    public static String cancelExpress(int id) {
-        return "/%s cancel %s".formatted(getCommandName(MailCommand.class), id);
+    public static String cancelExpress(int id, boolean force) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(MailCommand.class))
+                .add("cancel")
+                .add(String.valueOf(id));
+        if (force) {
+            joiner.add("true");
+        }
+        return joiner.toString();
     }
 
     /**
      * 拦截一件快递
      */
-    public static String interceptExpress(int id) {
-        return "/%s intercept %s".formatted(getCommandName(MailCommand.class), id);
+    public static String interceptExpress(int id, boolean force) {
+        StringJoiner joiner = new StringJoiner(" ", "/", "");
+        joiner.add(getCommandName(MailCommand.class))
+                .add("intercept")
+                .add(String.valueOf(id));
+        if (force) {
+            joiner.add("true");
+        }
+        return joiner.toString();
     }
 
     /**

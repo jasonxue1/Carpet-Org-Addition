@@ -15,7 +15,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.UserCache;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
@@ -84,7 +83,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private int total = 0;
     protected final ServerCommandSource source;
-    private final UserCache userCache;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
     private final File[] files;
@@ -98,13 +96,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupFileDirectoryInitLock = new Object();
     private final PagedCollection pagedCollection;
 
-    public OfflinePlayerSearchTask(OfflinePlayerItemSearchContext context) {
-        this.source = context.source();
-        this.predicate = context.predicate();
-        this.userCache = context.userCache();
-        this.player = context.player();
+    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player, File[] files) {
+        this.source = source;
+        this.predicate = predicate;
+        this.player = player;
         this.server = FetcherUtils.getServer(this.player);
-        this.files = context.files();
+        this.files = files;
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
     }
@@ -142,7 +139,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
-    // 创建虚拟线程
+    // 提交任务
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
         EXECUTOR.submit(() -> {
@@ -185,8 +182,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 查找物品
     private void searchItem(UUID uuid, NbtCompound nbt) {
         // 获取玩家配置文件
-        UuidNameMappingTable table = UuidNameMappingTable.getInstance();
-        Optional<GameProfile> optional = table.fetchGameProfileWithBackup(userCache, uuid);
+        Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             optional = Optional.of(new GameProfile(uuid, UNKNOWN));
