@@ -16,6 +16,7 @@
     "accessor.carpet.LoggerAccessor",
     "accessor.carpet.SettingsManagerAccessor",
     "accessor.fabricapi.AbstractChanneledNetworkAddonAccessor",
+    "command.DataResultErrorMixin",
     "command.ServerPlayerEntityMixin",
     "command.carpet.EntityPlayerMPFakeMixin",
     "command.carpet.PlayerCommandMixin",
