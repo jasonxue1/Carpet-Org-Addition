@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-// TODO 需要测试
 public class MailCommand extends AbstractServerCommand {
     public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
 
