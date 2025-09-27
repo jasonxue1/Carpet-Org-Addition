@@ -100,7 +100,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.fakePlayerName = FetcherUtils.getPlayerName(fakePlayer);
-        this.playerPos = fakePlayer.getPos();
+        this.playerPos = FetcherUtils.getFootPos(fakePlayer);
         this.yaw = fakePlayer.getYaw();
         this.pitch = fakePlayer.getPitch();
         this.dimension = WorldUtils.getDimensionId(FetcherUtils.getWorld(fakePlayer));

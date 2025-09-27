@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.Camera;
@@ -14,6 +13,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientRenderUtils;
@@ -153,7 +153,7 @@ public class WaypointRenderer implements WorldRenderer {
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
         TextBuilder builder = new TextBuilder(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
+        if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(ClientUtils.getWorld()))) {
             builder.setItalic();
         }
         // 获取文本宽度

@@ -1,12 +1,12 @@
 package org.carpetorgaddition.client.renderer.path;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.client.renderer.LineRenderer;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.util.ClientUtils;
 
 import java.util.ArrayList;

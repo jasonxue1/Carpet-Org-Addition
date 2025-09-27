@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer.beaconbox;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.world.ClientWorld;
@@ -8,6 +7,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;

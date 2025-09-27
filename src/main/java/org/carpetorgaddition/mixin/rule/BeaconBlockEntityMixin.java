@@ -16,6 +16,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
 import org.carpetorgaddition.logger.NetworkPacketLogger;
 import org.carpetorgaddition.network.s2c.BeaconBoxUpdateS2CPacket;
+import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BeaconRangeBox;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -67,7 +68,7 @@ public abstract class BeaconBlockEntityMixin {
     private static void sendBoxUpdate(World world, BlockPos pos, BeaconRangeBox beaconRangeBox) {
         int viewDistance = world.getServer().getPlayerManager().getViewDistance();
         for (PlayerEntity player : world.getPlayers()) {
-            Vec3d playerPos = player.getPos();
+            Vec3d playerPos = FetcherUtils.getFootPos(player);
             Vec3d blockPos = pos.toCenterPos();
             double x = playerPos.getX() - blockPos.getX();
             double z = playerPos.getZ() - blockPos.getZ();

@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer.villagerpoi;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
@@ -13,6 +12,7 @@ import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
 import org.carpetorgaddition.client.renderer.*;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 
@@ -135,7 +135,7 @@ public class VillagerPoiRenderer implements WorldRenderer {
             return true;
         }
         // 相机距离村民过远时停止渲染
-        if (ClientUtils.getCamera().getPos().distanceTo(villagerEntity.getPos()) > 96) {
+        if (ClientUtils.getCamera().getPos().distanceTo(FetcherUtils.getFootPos(this.villagerEntity)) > 96) {
             return true;
         }
         return this.villagerEntity.isRemoved();

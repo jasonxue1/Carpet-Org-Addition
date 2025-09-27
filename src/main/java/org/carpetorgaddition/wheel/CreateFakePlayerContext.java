@@ -26,7 +26,7 @@ public record CreateFakePlayerContext(
     }
 
     public CreateFakePlayerContext(ServerPlayerEntity player, Consumer<EntityPlayerMPFake> consumer) {
-        this(player.getPos(),
+        this(FetcherUtils.getFootPos(player),
                 player.getYaw(),
                 player.getPitch(),
                 FetcherUtils.getWorld(player).getRegistryKey(),

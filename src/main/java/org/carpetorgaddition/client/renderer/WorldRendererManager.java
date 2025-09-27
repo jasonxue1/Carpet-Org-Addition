@@ -1,7 +1,7 @@
 package org.carpetorgaddition.client.renderer;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class WorldRendererManager {
         // 断开连接时清除路径点
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> renders.clear());
         // 清除不再需要的渲染器
-        WorldRenderEvents.START.register(context -> renders.forEach((clazz, renderers) -> renderers.removeIf(WorldRenderer::shouldStop)));
+        WorldRenderEvents.START.register(() -> renders.forEach((clazz, renderers) -> renderers.removeIf(WorldRenderer::shouldStop)));
     }
 
     public static void addOrUpdate(WorldRenderer render) {

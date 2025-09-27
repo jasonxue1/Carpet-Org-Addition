@@ -53,7 +53,7 @@ public class GotoAction extends AbstractPlayerAction {
                 }
                 case ENTITY -> this.target.get().ifPresent(blockPos -> {
                     EntityTracker tracker = (EntityTracker) this.target;
-                    Vec3d pos = tracker.entity.getPos();
+                    Vec3d pos = FetcherUtils.getFootPos(tracker.entity);
                     if (blockPos.toBottomCenterPos().distanceTo(pos) > 3) {
                         tracker.update();
                         pathfinder.pathfinding();

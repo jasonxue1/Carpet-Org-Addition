@@ -7,6 +7,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -52,6 +53,14 @@ public class FetcherUtils {
 
     public static World getWorld(BlockEntity blockEntity) {
         return blockEntity.getWorld();
+    }
+
+    public static Vec3d getFootPos(Entity entity) {
+        return entity.getEntityPos();
+    }
+
+    public static Vec3d getEyePos(Entity entity) {
+        return entity.getEyePos();
     }
 
     /**

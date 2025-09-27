@@ -92,7 +92,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             this.setValid();
         }
         this.previous = blockPos;
-        Vec3d pos = this.getFakePlayer().getPos();
+        Vec3d pos = FetcherUtils.getFootPos(this.getFakePlayer());
         this.directTravelTime--;
         if (this.updateTime > 0) {
             this.updateTime--;
@@ -206,7 +206,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         World world = FetcherUtils.getWorld(fakePlayer);
         ChunkCache chunkCache = new ChunkCache(world, from, to);
         LandPathNodeMaker maker = new LandPathNodeMaker();
-        Vec3d pos = fakePlayer.getPos();
+        Vec3d pos = FetcherUtils.getFootPos(fakePlayer);
         DummyEntity entity = new DummyEntity(world, pos);
         PathNodeNavigator navigator = new PathNodeNavigator(maker, FOLLOW_RANGE * 16);
         Path path = navigator.findPathToAny(chunkCache, entity, Set.of(optional.get()), FOLLOW_RANGE, 0, 1F);
@@ -233,7 +233,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     public boolean arrivedAtAnyNode() {
         for (int i = this.currentIndex; i < this.nodes.size(); i++) {
             Vec3d current = this.nodes.get(i);
-            Vec3d pos = this.getFakePlayer().getPos();
+            Vec3d pos = FetcherUtils.getFootPos(this.getFakePlayer());
             if (current.distanceTo(pos) <= 0.5) {
                 if (i > 0) {
                     this.setValid();
@@ -254,7 +254,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             return false;
         }
         for (int i = 0; i < this.currentIndex; i++) {
-            if (this.nodes.get(i).distanceTo(this.getFakePlayer().getPos()) < 0.5) {
+            if (this.nodes.get(i).distanceTo(FetcherUtils.getFootPos(this.getFakePlayer())) < 0.5) {
                 return true;
             }
         }

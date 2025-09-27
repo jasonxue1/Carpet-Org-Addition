@@ -1,6 +1,6 @@
 package org.carpetorgaddition.client.renderer;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 
 public interface WorldRenderer {
     void render(WorldRenderContext context);

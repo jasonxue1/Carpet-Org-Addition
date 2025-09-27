@@ -2,13 +2,13 @@ package org.carpetorgaddition.client.util;
 
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.DepthTestFunction;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.BuiltBuffer;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.mixin.util.MultiPhaseParametersBuilderAccessor;
 import org.carpetorgaddition.mixin.util.ShaderProgramLayersAccessor;
 import org.joml.Matrix4f;
