@@ -43,7 +43,6 @@ import java.util.function.Supplier;
 
 // TODO 需要测试
 public class MailCommand extends AbstractServerCommand {
-    private static final int CURRENT_DATA_VERSION = GenericUtils.getNbtDataVersion();
     public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
 
     public MailCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
@@ -154,7 +153,7 @@ public class MailCommand extends AbstractServerCommand {
         // 获取快递
         Express express = getExpress(context);
         int dataVersion = express.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
             // 只能接收发送给自己的快递
             if (express.isRecipient(player)) {
                 try {
@@ -189,7 +188,7 @@ public class MailCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
         int dataVersion = express.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
             if (express.isSender(player)) {
                 try {
                     express.cancel();
@@ -225,7 +224,7 @@ public class MailCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         Express express = getExpress(context);
         int dataVersion = express.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == CURRENT_DATA_VERSION) {
+        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
             try {
                 express.intercept(player);
             } catch (IOException e) {
@@ -242,11 +241,11 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     private Text differentVersions(Text action, int dataVersion, Text button) {
-        TextBuilder builder = dataVersion > CURRENT_DATA_VERSION
+        TextBuilder builder = dataVersion > GenericUtils.CURRENT_DATA_VERSION
                 ? TextBuilder.of("carpet.commands.mail.action.version.new")
                 : TextBuilder.of("carpet.commands.mail.action.version.old");
         builder.setHover(TextBuilder.joinList(List.of(
-                TextBuilder.translate("carpet.commands.mail.action.version.expect", CURRENT_DATA_VERSION),
+                TextBuilder.translate("carpet.commands.mail.action.version.expect", GenericUtils.CURRENT_DATA_VERSION),
                 TextBuilder.translate("carpet.commands.mail.action.version.actua", dataVersion)
         )));
         return TextBuilder.translate("carpet.commands.mail.action.version.fail", action, builder.build(), button, action);
