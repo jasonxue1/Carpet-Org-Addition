@@ -106,7 +106,7 @@ public class IOUtils {
                 }
             }
         } catch (IOException e) {
-            IOUtils.loggerError(e);
+            throw new FileOperationException(e);
         }
     }
 
@@ -282,5 +282,51 @@ public class IOUtils {
      */
     public static void loggerError(IOException e) {
         CarpetOrgAddition.LOGGER.error("IO error occurred:", e);
+    }
+
+    /**
+     * @return 文件夹中是否包含与指定文件完全相同的文件
+     */
+    public static boolean containsIdenticalFile(File directory, File file) {
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files == null) {
+                return false;
+            }
+            for (File current : files) {
+                if (equalsForSameNamedFiles(file, current)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 比较两个文件的名称和内容是否完全相同
+     */
+    public static boolean equalsForSameNamedFiles(File file1, File file2) {
+        if (Objects.equals(file1.getName(), file2.getName())) {
+            return equals(file1, file2);
+        }
+        return false;
+    }
+
+    /**
+     * 比较两个文件是否完全相同
+     */
+    public static boolean equals(File file1, File file2) {
+        if (file1.length() != file2.length()) {
+            return false;
+        }
+        return equals(file1.toPath(), file2.toPath());
+    }
+
+    public static boolean equals(Path path1, Path path2) {
+        try {
+            return Files.mismatch(path1, path2) == -1L;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
