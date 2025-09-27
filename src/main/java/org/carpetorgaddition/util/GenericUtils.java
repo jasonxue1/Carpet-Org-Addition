@@ -25,6 +25,10 @@ public class GenericUtils {
      * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3d, double, double, RegistryKey, GameMode, boolean)}内部的lambda表达式执行时，调用次函数
      */
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+    /**
+     * 当前{@code Minecraft}的NBT数据版本
+     */
+    public static final int CURRENT_DATA_VERSION = getNbtDataVersion();
 
     private GenericUtils() {
     }
