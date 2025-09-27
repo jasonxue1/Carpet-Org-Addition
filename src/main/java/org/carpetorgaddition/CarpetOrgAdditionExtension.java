@@ -20,6 +20,7 @@ import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.GameProfileCache;
 import org.carpetorgaddition.wheel.Translation;
@@ -94,6 +95,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         GameProfileCache.save();
         PermissionManager.reset();
         GlobalConfigs.save();
+        OfflinePlayerSearchTask.clearCache();
     }
 
     // 设置模组翻译
