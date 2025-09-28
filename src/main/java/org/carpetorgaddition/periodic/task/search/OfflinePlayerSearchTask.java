@@ -181,10 +181,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     return;
                 }
                 this.searchItem(uuid, nbt);
-            } catch (RuntimeException e) {
-                addCorruptedPlayerUUID(uuid);
-            } catch (IOException e) {
+            } catch (RuntimeException | IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to read player data from file for file {}", unsafe.getName(), e);
+                addCorruptedPlayerUUID(uuid);
             } finally {
                 this.taskCount.getAndDecrement();
             }

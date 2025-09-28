@@ -4,20 +4,20 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class FabricPlayerAccessManager {
     private final MinecraftServer server;
     /**
      * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家集合
      */
-    private final Map<GameProfile, Set<ServerPlayerEntity>> viewers = new HashMap<>();
+    private final Map<GameProfile, Set<ServerPlayerEntity>> viewers = new ConcurrentHashMap<>();
     /**
      * 配置文件对应的Fabric玩家访问器
      */
-    private final Map<GameProfile, FabricPlayerAccessor> accessors = new HashMap<>();
+    private final Map<GameProfile, FabricPlayerAccessor> accessors = new ConcurrentHashMap<>();
 
     public FabricPlayerAccessManager(MinecraftServer server) {
         this.server = server;
