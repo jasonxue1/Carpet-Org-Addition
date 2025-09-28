@@ -63,7 +63,7 @@ public class ParticleLineCommand {
         if (distance == 0) {
             return 0;
         }
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         // 新建绘制粒子线任务
         manager.addTask(new DrawParticleLineTask(FetcherUtils.getWorld(player), mainParticle, from, to));
         // 发送箭头

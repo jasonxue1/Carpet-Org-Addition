@@ -303,7 +303,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     @NotNull
     private SuggestionProvider<ServerCommandSource> cancelSuggests() {
         return (context, builder) -> {
-            ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
             Stream<String> stream = manager.stream(PlayerScheduleTask.class).map(PlayerScheduleTask::getPlayerName);
             return CommandSource.suggestMatching(stream, builder);
         };
@@ -338,7 +338,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private SuggestionProvider<ServerCommandSource> reLoginTaskSuggests() {
         return (context, builder) -> {
             MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
             // 所有正在周期性上下线的玩家
             List<String> taskList = manager.stream(ReLoginTask.class).map(ReLoginTask::getPlayerName).toList();
             // 所有在线玩家
@@ -692,7 +692,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             String name = StringArgumentType.getString(context, "name");
             int interval = IntegerArgumentType.getInteger(context, "interval");
             MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
             // 如果任务存在，修改任务，否则添加任务
             Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                     .filter(task -> Objects.equals(task.getPlayerName(), name))
@@ -732,7 +732,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         // 异常由服务器命令源进行处理
         ServerCommandSource source = server.getCommandSource();
-        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         return batchSpawn(context, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
     }
 
@@ -758,7 +758,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             CarpetOrgAddition.LOGGER.warn("Server user cache is null");
             return 0;
         }
-        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, consumer));
         return end - start + 1;
     }
@@ -775,7 +775,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String prefix = StringArgumentType.getString(context, "prefix");
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         MinecraftServer server = context.getSource().getServer();
-        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         taskManager.addTask(new BatchKillFakePlayer(server, prefix, start, end));
         return end - start + 1;
     }
@@ -826,7 +826,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int stopReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         // 获取目标假玩家名
         String name = StringArgumentType.getString(context, "name");
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .findFirst();
@@ -840,7 +840,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     // 延时上线
     private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        ServerTaskManager taskManager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         Optional<DelayedLoginTask> optional = taskManager.stream(DelayedLoginTask.class)
                 .filter(task -> Objects.equals(name, task.getPlayerName()))
@@ -878,7 +878,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
         Text time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))
                 .findFirst();
@@ -897,7 +897,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 取消任务
     private int cancelScheduleTask(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         // 获取符合条件的任务列表
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class)
@@ -912,7 +912,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 列出所有任务
     private int listScheduleTask(CommandContext<ServerCommandSource> context) {
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.list.empty");

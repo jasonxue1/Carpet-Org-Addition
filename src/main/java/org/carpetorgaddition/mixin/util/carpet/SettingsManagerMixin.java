@@ -69,7 +69,7 @@ public abstract class SettingsManagerMixin {
                 cir.setReturnValue(0);
                 return;
             }
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             // 保存规则到配置文件
             ruleConfig.put(rule, stringValue);
             TextBuilder builder = TextBuilder.of("carpet.settings.command.default_set", RuleUtils.simpleTranslationName(rule), stringValue);
@@ -86,7 +86,7 @@ public abstract class SettingsManagerMixin {
                 cir.setReturnValue(0);
                 return;
             }
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             ruleConfig.remove(rule);
             // 将规则设置为默认值
             RuleHelper.resetToDefault(rule, source);
@@ -100,7 +100,7 @@ public abstract class SettingsManagerMixin {
     @WrapOperation(method = "loadConfigurationFromConf", at = @At(value = "INVOKE", target = "Ljava/util/Map;keySet()Ljava/util/Set;"))
     private Set<String> migrate(Map<String, String> map, Operation<Set<String>> original) {
         if (thisManager == CarpetOrgAdditionExtension.getSettingManager()) {
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             if (ruleConfig.isMigrated()) {
                 ruleConfig.load();
                 return original.call(map);

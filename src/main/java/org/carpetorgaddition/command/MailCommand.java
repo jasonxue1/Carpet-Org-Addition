@@ -41,6 +41,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+// TODO 向离线玩家发送物品
 public class MailCommand extends AbstractServerCommand {
     public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
 
@@ -90,7 +91,7 @@ public class MailCommand extends AbstractServerCommand {
             if (player == null) {
                 return CommandSource.suggestMatching(List.of(), builder);
             }
-            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+            ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
             // 获取所有发送给自己的快递（或所有自己发送的快递）
             List<String> list = manager.stream()
                     .filter(express -> recipient ? express.isRecipient(player) : express.isSender(player))
@@ -107,7 +108,7 @@ public class MailCommand extends AbstractServerCommand {
             if (player == null) {
                 return CommandSource.suggestMatching(List.of(), builder);
             }
-            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+            ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
             // 获取所有发送的快递
             List<String> list = manager.stream()
                     .map(express -> Integer.toString(express.getId()))
@@ -123,7 +124,7 @@ public class MailCommand extends AbstractServerCommand {
         // 限制只允许发送给其他真玩家
         checkPlayer(sourcePlayer, targetPlayer);
         MinecraftServer server = context.getSource().getServer();
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         try {
             // 将快递信息添加到快递管理器
             manager.put(new Express(server, sourcePlayer, targetPlayer, manager.generateNumber()));
@@ -176,7 +177,7 @@ public class MailCommand extends AbstractServerCommand {
     private int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerComponentCoordinator.getManager(context).getExpressManager().receiveAll(player);
+            return ServerComponentCoordinator.getCoordinator(context).getExpressManager().receiveAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
@@ -210,7 +211,7 @@ public class MailCommand extends AbstractServerCommand {
     private int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerComponentCoordinator.getManager(context).getExpressManager().cancelAll(player);
+            return ServerComponentCoordinator.getCoordinator(context).getExpressManager().cancelAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
@@ -253,7 +254,7 @@ public class MailCommand extends AbstractServerCommand {
     // 列出快递
     private int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         ServerCommandSource source = context.getSource();
         List<Express> list = manager.stream().toList();
         if (list.isEmpty()) {
@@ -320,7 +321,7 @@ public class MailCommand extends AbstractServerCommand {
 
     // 获取快递
     private Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");
         // 查找指定单号的快递

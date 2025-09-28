@@ -358,7 +358,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(server).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         try {
             List<FakePlayerSerializer> list = FetcherUtils.getFakePlayerSerializationManager(server).list();
             int count = server.getCurrentPlayerCount();
