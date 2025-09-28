@@ -24,11 +24,11 @@ public class FabricPlayerAccessManager {
     }
 
     public FabricPlayerAccessor getOrCreate(GameProfile gameProfile) {
-        return this.accessors.computeIfAbsent(gameProfile, profile -> new FabricPlayerAccessor(server, profile, this));
+        return this.accessors.computeIfAbsent(gameProfile, profile -> new FabricPlayerAccessor(this.server, profile, this));
     }
 
     /**
-     * @return 是否有玩家正常查看离线玩家物品栏
+     * @return 是否有玩家正在查看离线玩家物品栏
      */
     public boolean hasViewers() {
         return !this.viewers.isEmpty();
