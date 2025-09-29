@@ -237,6 +237,7 @@ public class GameProfileCache {
             } finally {
                 LOCK.readLock().unlock();
             }
+            json.addProperty("count", array.size());
             json.add("usercache", array);
             try {
                 IOUtils.saveJson(CONFIG, json);
