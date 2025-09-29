@@ -116,11 +116,11 @@ public class DictionaryCommand extends AbstractClientCommand {
         /**
          * 附魔
          */
-        ENCHANTMENT("enchantment"),
+        ENCHANTMENT("enchant"),
         /**
          * 状态效果
          */
-        STATUS_EFFECT("statusEffect"),
+        STATUS_EFFECT("effect"),
         /**
          * 生物群系
          */
@@ -128,11 +128,11 @@ public class DictionaryCommand extends AbstractClientCommand {
         /**
          * 游戏模式
          */
-        GAMEMODE("gamemode"),
+        GAME_MODE("gamemode"),
         /**
          * 游戏规则
          */
-        GAMERULE("gamerule");
+        GAME_RULE("gamerule");
         private final String name;
 
         DictionaryType(String name) {
@@ -159,8 +159,8 @@ public class DictionaryCommand extends AbstractClientCommand {
                     Identifier id = registry.get(RegistryKeys.BIOME).getId((Biome) obj);
                     yield Objects.requireNonNull(id, "Unable to obtain biome id").toString();
                 }
-                case GAMEMODE -> ((GameMode) obj).asString();
-                case GAMERULE -> ((GameRules.Key<?>) obj).getName();
+                case GAME_MODE -> ((GameMode) obj).asString();
+                case GAME_RULE -> ((GameRules.Key<?>) obj).getName();
             };
         }
 
@@ -181,8 +181,8 @@ public class DictionaryCommand extends AbstractClientCommand {
                     String key = id.toTranslationKey("biome");
                     yield TextBuilder.translate(key);
                 }
-                case GAMEMODE -> ((GameMode) obj).getTranslatableName();
-                case GAMERULE -> TextBuilder.translate(((GameRules.Key<?>) obj).getTranslationKey());
+                case GAME_MODE -> ((GameMode) obj).getTranslatableName();
+                case GAME_RULE -> TextBuilder.translate(((GameRules.Key<?>) obj).getTranslationKey());
             };
         }
 
@@ -195,8 +195,8 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENCHANTMENT -> new ClientObjectArgumentType.ClientEnchantmentArgumentType();
                 case STATUS_EFFECT -> new ClientObjectArgumentType.ClientStatusEffectArgumentType();
                 case BIOME -> new ClientObjectArgumentType.ClientBiomeArgumentType();
-                case GAMEMODE -> new ClientObjectArgumentType.ClientGameModeArgumentType();
-                case GAMERULE -> new ClientObjectArgumentType.ClientGameRuleArgumentType();
+                case GAME_MODE -> new ClientObjectArgumentType.ClientGameModeArgumentType();
+                case GAME_RULE -> new ClientObjectArgumentType.ClientGameRuleArgumentType();
             };
         }
     }
