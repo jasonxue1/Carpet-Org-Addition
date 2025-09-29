@@ -89,7 +89,7 @@ public class CommandUtils {
                     list.add(TextBuilder.translate("%s: %s", EntityType.PLAYER.getName(), gameProfile.getName()));
                 }
                 builder.setHover(TextBuilder.joinList(list));
-                throw createException("carpet.command.argument.player.toomany");
+                throw createException(builder.build());
             }
         };
     }
