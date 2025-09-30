@@ -28,6 +28,8 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
