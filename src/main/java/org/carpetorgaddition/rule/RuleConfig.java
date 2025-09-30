@@ -90,7 +90,7 @@ public class RuleConfig {
 
     private void save(JsonObject json) {
         try {
-            IOUtils.saveJson(this.file, json);
+            IOUtils.write(this.file, json);
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.warn("When saving Carpet Org Addition rules, an unexpected error occurred", e);
         }

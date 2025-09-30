@@ -10,13 +10,14 @@ import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.rule.RuleConfig;
 import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.jetbrains.annotations.NotNull;
 
 public class ServerComponentCoordinator {
     static {
         // 注册服务器保存事件
-        ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> getManager(server).onServerSave());
+        ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> getCoordinator(server).onServerSave());
     }
 
     private final MinecraftServer server;
@@ -34,6 +35,7 @@ public class ServerComponentCoordinator {
     private final PageManager pageManager = new PageManager();
     private final RuleSelfManager ruleSelfManager;
     private final PlayerSerializationManager playerSerializationManager;
+    private final FabricPlayerAccessManager accessManager;
     private final RuleConfig ruleConfig;
 
     public ServerComponentCoordinator(MinecraftServer server) {
@@ -41,6 +43,7 @@ public class ServerComponentCoordinator {
         this.server = server;
         this.ruleSelfManager = new RuleSelfManager(server);
         this.playerSerializationManager = new PlayerSerializationManager(server);
+        this.accessManager = new FabricPlayerAccessManager(server);
         this.ruleConfig = new RuleConfig(server);
     }
 
@@ -71,6 +74,10 @@ public class ServerComponentCoordinator {
         return this.playerSerializationManager;
     }
 
+    public FabricPlayerAccessManager getAccessManager() {
+        return accessManager;
+    }
+
     public RuleConfig getRuleConfig() {
         return this.ruleConfig;
     }
@@ -81,12 +88,12 @@ public class ServerComponentCoordinator {
     }
 
     @NotNull
-    public static ServerComponentCoordinator getManager(CommandContext<ServerCommandSource> context) {
-        return getManager(context.getSource().getServer());
+    public static ServerComponentCoordinator getCoordinator(CommandContext<ServerCommandSource> context) {
+        return getCoordinator(context.getSource().getServer());
     }
 
     @NotNull
-    public static ServerComponentCoordinator getManager(MinecraftServer server) {
+    public static ServerComponentCoordinator getCoordinator(MinecraftServer server) {
         return ((PeriodicTaskManagerInterface) server).carpet_Org_Addition$getServerPeriodicTaskManager();
     }
 }
