@@ -74,6 +74,17 @@ public class GenericUtils {
         createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
     }
 
+    public static Optional<UUID> uuidFromString(@Nullable String str) {
+        if (str == null || str.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(UUID.fromString(str));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
+    }
+
     /**
      * 创建一个假玩家
      *

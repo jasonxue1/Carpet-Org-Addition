@@ -1,5 +1,6 @@
 package org.carpetorgaddition.periodic.express;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -30,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -57,6 +59,8 @@ public class Express implements Comparable<Express> {
      * 快递单号
      */
     private final int id;
+    @Nullable
+    private final UUID uuid;
     private final MinecraftServer server;
     private final LocalDateTime time;
     private final WorldFormat worldFormat;
@@ -64,21 +68,22 @@ public class Express implements Comparable<Express> {
     public static final String EXPRESS = "express";
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, int id) throws CommandSyntaxException {
-        this(server, sender, FetcherUtils.getPlayerName(recipient), getPlayerHandStack(sender), id);
+        this(server, sender, recipient.getGameProfile(), getPlayerHandStack(sender), id);
     }
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, String recipient, ItemStack itemStack, int id) {
-        this(server, FetcherUtils.getPlayerName(sender), recipient, itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
+    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, ItemStack itemStack, int id) {
+        this(server, FetcherUtils.getPlayerName(sender), gameProfile.getName(), gameProfile.getId(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
     }
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, String recipient, int id) throws CommandSyntaxException {
-        this(server, sender, recipient, getPlayerHandStack(sender), id);
+    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
+        this(server, sender, gameProfile, getPlayerHandStack(sender), id);
     }
 
-    private Express(MinecraftServer server, String sender, String recipient, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
+    private Express(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
         this.server = server;
         this.sender = sender;
         this.recipient = recipient;
+        this.uuid = uuid;
         this.express = express;
         this.id = id;
         this.time = time;
@@ -396,6 +401,9 @@ public class Express implements Comparable<Express> {
         nbt.putInt(NBT_DATA_VERSION, GenericUtils.getNbtDataVersion());
         nbt.putString("sender", this.sender);
         nbt.putString("recipient", this.recipient);
+        if (this.uuid != null) {
+            nbt.putString("uuid", this.uuid.toString());
+        }
         nbt.putBoolean("cancel", this.cancel);
         nbt.putInt("id", this.id);
         int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
@@ -411,12 +419,13 @@ public class Express implements Comparable<Express> {
         int nbtDataVersion = nbt.contains(NBT_DATA_VERSION, NbtElement.NUMBER_TYPE) ? nbt.getInt(NBT_DATA_VERSION) : -1;
         String sender = nbt.getString("sender");
         String recipient = nbt.getString("recipient");
+        UUID uuid = GenericUtils.uuidFromString(nbt.getString("uuid")).orElse(null);
         boolean cancel = nbt.getBoolean("cancel");
         ItemStack stack = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound("item")).orElse(ItemStack.EMPTY);
         int id = nbt.getInt("id");
         int[] times = nbt.getIntArray("time");
         LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-        Express express = new Express(server, sender, recipient, stack, id, localDateTime, nbtDataVersion);
+        Express express = new Express(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
         express.cancel = cancel;
         return express;
     }

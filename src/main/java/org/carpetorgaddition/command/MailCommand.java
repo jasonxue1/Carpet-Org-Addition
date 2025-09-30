@@ -126,7 +126,7 @@ public class MailCommand extends AbstractServerCommand {
         ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         Express express;
         if (optional.isEmpty()) {
-            express = new Express(server, sourcePlayer, gameProfile.getName(), manager.generateNumber());
+            express = new Express(server, sourcePlayer, gameProfile, manager.generateNumber());
         } else {
             ServerPlayerEntity targetPlayer = optional.get();
             // 限制只允许发送给其他真玩家
@@ -153,7 +153,7 @@ public class MailCommand extends AbstractServerCommand {
         }
         SimpleInventory inventory = new SimpleInventory(27);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inv, player)
-                -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile.getName(), inventory),
+                -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
                 TextBuilder.translate("carpet.commands.mail.multiple.gui"));
         sourcePlayer.openHandledScreen(screen);
         return 1;

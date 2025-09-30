@@ -1,5 +1,6 @@
 package org.carpetorgaddition.wheel.screen;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -30,13 +31,13 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
     private final ExpressManager expressManager;
     private final MinecraftServer server;
     private final ServerPlayerEntity sourcePlayer;
-    private final String recipient;
+    private final GameProfile recipient;
 
     public ShipExpressScreenHandler(
             int syncId,
             PlayerInventory playerInventory,
             ServerPlayerEntity sourcePlayer,
-            String recipient,
+            GameProfile recipient,
             Inventory inventory
     ) {
         super(ScreenHandlerType.GENERIC_9X3, syncId, playerInventory, inventory, 3);
@@ -108,7 +109,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             break;
         }
         Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(this.server, this.recipient);
-        Text playerName = optional.map(PlayerEntity::getDisplayName).orElse(TextBuilder.create(this.recipient));
+        Text playerName = optional.map(PlayerEntity::getDisplayName).orElse(TextBuilder.create(this.recipient.getName()));
         Text command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
         int count = inventory.count();
         Object[] args = switch (onlyOneKind) {
