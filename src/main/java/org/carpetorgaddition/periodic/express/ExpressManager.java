@@ -109,7 +109,7 @@ public class ExpressManager {
 
     private void put(Express express, boolean message) throws IOException {
         if (express.getExpress().isEmpty()) {
-            CarpetOrgAddition.LOGGER.info("尝试发送一个空气物品，已忽略");
+            CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
             return;
         }
         this.expresses.add(express);

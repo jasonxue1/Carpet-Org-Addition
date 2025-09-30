@@ -34,7 +34,7 @@ public class GlobalConfigs {
         try {
             JsonObject json = new JsonObject();
             json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
-            IOUtils.saveJson(CONFIG_FILE, json);
+            IOUtils.write(CONFIG_FILE, json);
         } catch (IOException e) {
             IOUtils.loggerError(e);
         }
@@ -58,7 +58,7 @@ public class GlobalConfigs {
             for (AbstractConfig<?> configuration : CONFIGURATIONS) {
                 json.add(configuration.getKey(), configuration.getJsonValue());
             }
-            IOUtils.saveJson(CONFIG_FILE, json);
+            IOUtils.write(CONFIG_FILE, json);
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.error("An unexpected error occurred while saving the global configuration file for {}", CarpetOrgAddition.MOD_NAME, e);
         }

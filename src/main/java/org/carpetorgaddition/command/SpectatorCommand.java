@@ -1,7 +1,6 @@
 package org.carpetorgaddition.command;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -26,7 +25,6 @@ import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.WorldFormat;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
@@ -150,13 +148,9 @@ public class SpectatorCommand extends AbstractServerCommand {
         json.addProperty("yaw", MathUtils.numberToTwoDecimalString(player.getYaw()));
         json.addProperty("pitch", MathUtils.numberToTwoDecimalString(player.getPitch()));
         json.addProperty("dimension", WorldUtils.getDimensionId(FetcherUtils.getWorld(player)));
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String jsonString = gson.toJson(json, JsonObject.class);
         File file = worldFormat.file(player.getUuidAsString() + IOUtils.JSON_EXTENSION);
         try {
-            try (BufferedWriter writer = IOUtils.toWriter(file)) {
-                writer.write(jsonString);
-            }
+            IOUtils.write(file, json);
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", FetcherUtils.getPlayerName(player), e);
         }
