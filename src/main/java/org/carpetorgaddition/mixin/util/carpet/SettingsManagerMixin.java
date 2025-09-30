@@ -27,14 +27,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Mixin(value = SettingsManager.class, remap = false)
 public abstract class SettingsManagerMixin {
@@ -149,15 +145,11 @@ public abstract class SettingsManagerMixin {
                     list.add(line);
                 }
             }
-            BufferedWriter writer = IOUtils.toWriter(file);
-            try (writer) {
-                for (int i = 0; i < list.size(); i++) {
-                    writer.write(list.get(i));
-                    if (i < list.size() - 1) {
-                        writer.newLine();
-                    }
-                }
+            StringJoiner joiner = new StringJoiner("\n");
+            for (String rule : list) {
+                joiner.add(rule);
             }
+            IOUtils.write(file, joiner.toString());
         } catch (IOException e) {
             IOUtils.loggerError(e);
         }

@@ -66,13 +66,16 @@ public class IOUtils {
         return Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
     }
 
+    /**
+     * 将一个json对象保存到文件
+     */
     public static void write(File file, JsonObject json) throws IOException {
         String jsonString = GSON.toJson(json, JsonObject.class);
         write(file, jsonString);
     }
 
     /**
-     * 将一个json对象保存到文件
+     * 将一段字符串文本保存到文件
      */
     public static void write(File file, String content) throws IOException {
         File parent = file.getParentFile();
@@ -87,7 +90,7 @@ public class IOUtils {
         try {
             // 将数据保存到临时文件
             writeStringToFile(tempFile, content);
-            // 备份原文件
+            // 备份旧的文件
             if (hasOriginalFile) {
                 Files.deleteIfExists(backupFile.toPath());
                 Files.move(file.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -165,14 +168,13 @@ public class IOUtils {
      *
      * @param file 要备份的文件
      */
-    public static File backupFile(File file) {
+    public static void backupFile(File file) {
         File backup = new File(file.getParent(), "backup_" + System.currentTimeMillis() + "_" + file.getName());
         if (backup.exists()) {
             // 不太可能出现重名备份文件
             throw new IllegalStateException("The backup file already exists");
         }
         copyFile(file, backup);
-        return backup;
     }
 
     /**
@@ -330,7 +332,10 @@ public class IOUtils {
      * 将一个文件标记为弃用
      */
     public static void deprecatedFile(File file) {
-        renameFile(file, "deprecated_" + System.currentTimeMillis() + "_" + file.getName());
+        if (file.renameTo(new File(file.getParent(), "deprecated_" + System.currentTimeMillis() + "_" + file.getName()))) {
+            return;
+        }
+        throw new FileOperationException("Unable to rename file %s".formatted(file.toString()));
     }
 
     /**
