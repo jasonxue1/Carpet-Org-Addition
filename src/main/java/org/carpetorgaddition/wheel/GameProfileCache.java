@@ -240,7 +240,7 @@ public class GameProfileCache {
             json.addProperty("count", array.size());
             json.add("usercache", array);
             try {
-                IOUtils.saveJson(CONFIG, json);
+                IOUtils.write(CONFIG, json);
                 changed = false;
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);

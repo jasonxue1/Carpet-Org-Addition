@@ -184,7 +184,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public void save() {
         try {
-            IOUtils.saveJson(this.file, this.toJson());
+            IOUtils.write(this.file, this.toJson());
         } catch (IOException e) {
             // 译：未能成功保存玩家数据
             CarpetOrgAddition.LOGGER.warn("Failed to successfully save player data", e);
