@@ -1,6 +1,7 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
@@ -13,6 +14,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.wheel.CreateFakePlayerContext;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
@@ -25,6 +27,10 @@ public class GenericUtils {
      * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3d, double, double, RegistryKey, GameMode, boolean)}内部的lambda表达式执行时，调用次函数
      */
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+    /**
+     * 当前{@code Minecraft}的NBT数据版本
+     */
+    public static final int CURRENT_DATA_VERSION = getNbtDataVersion();
 
     private GenericUtils() {
     }
@@ -46,17 +52,19 @@ public class GenericUtils {
     /**
      * 根据UUID获取玩家
      */
-    @Nullable
-    public static ServerPlayerEntity getPlayer(MinecraftServer server, UUID uuid) {
-        return server.getPlayerManager().getPlayer(uuid);
+    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, UUID uuid) {
+        return Optional.ofNullable(server.getPlayerManager().getPlayer(uuid));
     }
 
     /**
      * 根据名称获取玩家
      */
-    @Nullable
-    public static ServerPlayerEntity getPlayer(MinecraftServer server, String name) {
-        return server.getPlayerManager().getPlayer(name);
+    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, String name) {
+        return Optional.ofNullable(server.getPlayerManager().getPlayer(name));
+    }
+
+    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, GameProfile gameProfile) {
+        return getPlayer(server, gameProfile.getName());
     }
 
     /**
@@ -64,6 +72,17 @@ public class GenericUtils {
      */
     public static void createFakePlayer(String username, MinecraftServer server, CreateFakePlayerContext context) {
         createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
+    }
+
+    public static Optional<UUID> uuidFromString(@Nullable String str) {
+        if (str == null || str.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(UUID.fromString(str));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     /**

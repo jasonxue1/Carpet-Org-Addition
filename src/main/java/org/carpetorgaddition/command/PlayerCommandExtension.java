@@ -15,12 +15,15 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerEnderChestInventory;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
@@ -90,7 +93,9 @@ public class PlayerCommandExtension {
         OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
-                    OfflinePlayerInventory inventory = new OfflinePlayerInventory(server, gameProfile);
+                    FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
+                    FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
+                    OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
                     return new OfflinePlayerInventoryScreenHandler(syncId, playerInventory, inventory);
                 }, offlinePlayerName(gameProfile.name()));
         sourcePlayer.openHandledScreen(factory);
@@ -153,7 +158,9 @@ public class PlayerCommandExtension {
         OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
         SimpleNamedScreenHandlerFactory factory = new SimpleNamedScreenHandlerFactory(
                 (syncId, playerInventory, player) -> {
-                    OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(server, gameProfile);
+                    FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
+                    FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
+                    OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(accessor);
                     return GenericContainerScreenHandler.createGeneric9x3(syncId, playerInventory, inventory);
                 }, offlinePlayerName(gameProfile.name()));
         sourcePlayer.openHandledScreen(factory);

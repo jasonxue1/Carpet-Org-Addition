@@ -3,6 +3,7 @@ package org.carpetorgaddition.wheel;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.exception.FileOperationException;
 import org.carpetorgaddition.util.IOUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,6 +58,14 @@ public class WorldFormat {
         CarpetOrgAddition.LOGGER.error("{}文件夹创建失败", this.directory);
     }
 
+    private WorldFormat(WorldFormat worldFormat, String child) {
+        this.directory = new File(worldFormat.directory, child);
+        if (this.directory.isDirectory() || this.directory.mkdirs()) {
+            return;
+        }
+        throw new FileOperationException("Unable to create directory: " + this.directory);
+    }
+
     /**
      * 创建一个当前目录下的文件对象，只创建文件对象，不创建文件
      *
@@ -84,6 +93,13 @@ public class WorldFormat {
     }
 
     /**
+     * 创建一个当前目录下的文件夹对象，只创建文件对象，不创建文件
+     */
+    public File directory(String directory) {
+        return new File(this.directory, directory);
+    }
+
+    /**
      * @return 包含该目录所有文件的不可变的List集合
      * @apiNote Java貌似没有对中文的拼音排序做很好的支持，因此，中文的排序依然是无序的
      */
@@ -103,6 +119,29 @@ public class WorldFormat {
         }
         // 一些操作系统下文件排序可能不是按字母排序
         return Stream.of(files).filter(filter).sorted(Comparator.comparing(file -> file.getName().toLowerCase())).toList();
+    }
+
+    /**
+     * 创建指向当前目录下子目录的新对象
+     */
+    public WorldFormat resolve(String child) {
+        return new WorldFormat(this, child);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        return this.directory.equals(((WorldFormat) o).directory);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.directory.hashCode();
     }
 
     @Override

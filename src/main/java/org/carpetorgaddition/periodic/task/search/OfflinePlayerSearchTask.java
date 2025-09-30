@@ -23,16 +23,19 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -40,6 +43,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -65,6 +69,19 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     /**
+     * 因文件损坏等原因暂时无法读取数据的玩家的UUID
+     */
+    private static final Set<UUID> CORRUPTED_PLAYER_DATAS = ConcurrentHashMap.newKeySet();
+    /**
+     * 已经备份过的文件，不再重新备份
+     */
+    private static final Set<UUID> BACKED_UP_FILES = ConcurrentHashMap.newKeySet();
+    /**
+     * 备份失败的文件，跳过查询
+     */
+    public static final Set<UUID> INVALID_PLAYER_DATAS = ConcurrentHashMap.newKeySet();
+    public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
+    /**
      * 线程池中，线程的ID
      */
     private static final AtomicInteger THREAD_ID = new AtomicInteger(0);
@@ -83,6 +100,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private final AtomicBoolean shulkerBox = new AtomicBoolean(false);
     /**
+     * 备份文件夹所在位置
+     */
+    private final WorldFormat worldFormat;
+    private final FabricPlayerAccessManager accessManager;
+    /**
      * 总的玩家数量
      */
     private int total = 0;
@@ -97,7 +119,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 备份文件夹的目录
      */
     private volatile WorldFormat backupFileDirectory;
-    private final Object backupFileDirectoryInitLock = new Object();
+    private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
 
     public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player, File[] files) {
@@ -106,27 +128,17 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
         this.files = files;
+        this.worldFormat = new WorldFormat(this.server, "backups", "playerdata");
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
+        this.accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
     }
 
     @Override
     protected void tick() {
         switch (this.taksState) {
             case START -> {
-                for (File file : files) {
-                    if (file.getName().endsWith(".dat")) {
-                        UUID uuid;
-                        try {
-                            uuid = UUID.fromString(file.getName().split("\\.")[0]);
-                        } catch (IllegalArgumentException e) {
-                            // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
-                            continue;
-                        }
-                        this.submit(file, uuid);
-                        this.total++;
-                    }
-                }
+                this.start();
                 this.taksState = State.RUNTIME;
             }
             case RUNTIME -> {
@@ -143,23 +155,43 @@ public class OfflinePlayerSearchTask extends ServerTask {
         }
     }
 
-    // 提交任务
+    /**
+     * 开始搜索物品
+     */
+    private void start() {
+        for (File file : files) {
+            if (file.getName().endsWith(".dat")) {
+                UUID uuid;
+                try {
+                    uuid = UUID.fromString(file.getName().split("\\.")[0]);
+                } catch (IllegalArgumentException e) {
+                    // 游戏在保存玩家数据时可能产生<玩家UUID>-<随机字符串>.dat文件
+                    continue;
+                }
+                this.submit(file, uuid);
+                this.total++;
+            }
+        }
+    }
+
+    /**
+     * 提交任务
+     */
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
         EXECUTOR.submit(() -> {
             try {
-                NbtCompound nbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
-                int version = NbtHelper.getDataVersion(nbt, -1);
-                // 使用>=而不是==，因为存档可能降级
-                if (version >= GenericUtils.getNbtDataVersion()) {
-                    searchItem(uuid, nbt);
-                } else {
-                    this.backupAndUpdate(unsafe, uuid);
-                    NbtCompound newVersionNbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
-                    searchItem(uuid, newVersionNbt);
+                if (INVALID_PLAYER_DATAS.contains(uuid)) {
+                    return;
                 }
+                NbtCompound nbt = readNbt(unsafe, uuid);
+                if (nbt == null) {
+                    return;
+                }
+                this.searchItem(uuid, nbt);
             } catch (RuntimeException | IOException e) {
-                CarpetOrgAddition.LOGGER.warn("Unable to read player data from file: ", e);
+                CarpetOrgAddition.LOGGER.error("Unable to read player data from file for file {}", unsafe.getName(), e);
+                addCorruptedPlayerUUID(uuid);
             } finally {
                 this.taskCount.getAndDecrement();
             }
@@ -167,24 +199,156 @@ public class OfflinePlayerSearchTask extends ServerTask {
     }
 
     /**
-     * 备份并更新玩家数据文件
+     * 读取玩家NBT数据，如果NBT版本低于当前游戏NBT版本，则先将数据备份再升级
+     *
+     * @param unsafe 玩家数据文件
+     * @param uuid   玩家的UUID
+     * @return 玩家的NBT数据
      */
-    private void backupAndUpdate(File unsafe, UUID uuid) {
+    @Nullable
+    private NbtCompound readNbt(File unsafe, UUID uuid) throws IOException {
+        NbtCompound nbt = NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+        int version = NbtHelper.getDataVersion(nbt, -1);
+        // 使用<而不是==，因为存档可能降级
+        if (this.isCorruptedPlayerData(uuid) || version < GenericUtils.getNbtDataVersion()) {
+            // 升级或修复玩家数据
+            if (this.backupAndUpdate(unsafe, uuid)) {
+                return NbtIo.readCompressed(unsafe.toPath(), NbtSizeTracker.ofUnlimitedBytes());
+            }
+            return null;
+        } else {
+            return nbt;
+        }
+    }
+
+    /**
+     * @return 玩家数据是否已经损坏
+     */
+    private boolean isCorruptedPlayerData(UUID uuid) {
+        return CORRUPTED_PLAYER_DATAS.contains(uuid);
+    }
+
+    /**
+     * 将指定UUID玩家的数据标记为已损坏
+     */
+    public static void addCorruptedPlayerUUID(UUID uuid) {
+        // 无法读取的玩家数据，下次不再读取
+        if (CORRUPTED_PLAYER_DATAS.add(uuid)) {
+            CarpetOrgAddition.LOGGER.warn("Unable to read player data from file for UUID {}", uuid.toString());
+        }
+    }
+
+    public static void removeCorruptedPlayerUUID(UUID uuid) {
+        CORRUPTED_PLAYER_DATAS.remove(uuid);
+    }
+
+    public static void clear() {
+        CORRUPTED_PLAYER_DATAS.clear();
+        BACKED_UP_FILES.clear();
+        INVALID_PLAYER_DATAS.clear();
+    }
+
+    /**
+     * 备份并更新玩家数据文件<br>
+     * 如果NBT数据版本低，直接升级NBT并备份<br>
+     * 如果读取物品数据时出错，则下一次查找物品时修复并备份
+     *
+     * @return 是否备份成功
+     */
+    private boolean backupAndUpdate(File unsafe, UUID uuid) {
         // 模拟玩家登录，更新玩家数据文件
-        Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, this.server).map(entry -> new GameProfile(entry.id(), entry.name()));
-        optional.ifPresent(gameProfile -> {
-            OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
-            inventory.setShowLog(false);
-            inventory.onOpen(this.player);
+        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
+        if (optional.isEmpty()) {
+            return false;
+        }
+        GameProfile gameProfile = optional.get();
+        try {
             // 备份文件
-            File deletableFile = this.getBackupFileDirectory().file(unsafe.getName());
-            IOUtils.copyFile(unsafe, deletableFile);
-            inventory.onClose(this.player);
-        });
+            this.backup(unsafe, uuid);
+        } catch (RuntimeException e) {
+            // 备份失败的文件
+            CarpetOrgAddition.LOGGER.warn("Player data has expired: {}", uuid.toString(), e);
+            INVALID_PLAYER_DATAS.add(uuid);
+            return false;
+        }
+        FabricPlayerAccessor accessor = this.accessManager.getOrCreate(gameProfile);
+        OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
+        inventory.setShowLog(false);
+        inventory.onOpen(this.player);
+        inventory.onClose(this.player);
+        return true;
+    }
+
+    private void backup(File file, UUID uuid) {
+        // 这里只会数据更新时执行一次，多次执行则认为数据已经不可修复
+        if (shouldBackup(file, uuid)) {
+            File backup = this.getBackupFileDirectory().file(file.getName());
+            File parent = backup.getParentFile();
+            if (parent.isDirectory() || parent.mkdirs()) {
+                IOUtils.copyFile(file, backup);
+                BACKED_UP_FILES.add(uuid);
+                removeCorruptedPlayerUUID(uuid);
+            } else {
+                throw new FileOperationException();
+            }
+            return;
+        }
+        throw new IllegalStateException();
+    }
+
+    /**
+     * 如果这名玩家的数据曾经备份过，则无需备份<br>
+     * 如果这么玩家的数据已经存在于备份文件夹了，则无需备份<br>
+     * 其它情况都需要备份
+     *
+     * @return 当前文件是否需要备份
+     */
+    private boolean shouldBackup(File file, UUID uuid) {
+        // 已经有备份了，无需备份
+        if (BACKED_UP_FILES.contains(uuid)) {
+            return false;
+        }
+        // 正常情况下，list元素数量不多于1个
+        List<String> list = this.worldFormat.toImmutableFileList()
+                .stream()
+                .filter(File::isDirectory)
+                .map(File::getName)
+                .filter(this::parseDirectoryName)
+                .sorted()
+                .toList();
+        // 当前数据版本还没有备份
+        if (list.isEmpty()) {
+            return true;
+        }
+        // 获取最新的备份文件夹
+        File directory = this.worldFormat.directory(list.getLast());
+        // 已经有备份了，无需备份
+        if (IOUtils.containsIdenticalFile(directory, file)) {
+            BACKED_UP_FILES.add(uuid);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 检查文件夹名称是否是备份文件夹的名称
+     */
+    private boolean parseDirectoryName(String name) {
+        String end = "_" + GenericUtils.CURRENT_DATA_VERSION;
+        if (name.endsWith(end)) {
+            String dateTimeFormat = name.substring(0, name.length() - end.length());
+            try {
+                FORMATTER.parse(dateTimeFormat);
+                return true;
+            } catch (DateTimeParseException e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     // 查找物品
-    private void searchItem(UUID uuid, NbtCompound nbt) {
+    private void searchItem(UUID uuid, @NotNull NbtCompound nbt) {
         // 获取玩家配置文件
         Optional<PlayerConfigEntry> optional = GameProfileCache.getPlayerConfigEntry(uuid);
         boolean unknownPlayer = false;
@@ -197,9 +361,14 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (this.server.getPlayerManager().getPlayer(entry.name()) != null) {
             return;
         }
-        // 统计物品栏物品
-        statistics(this.getInventory(nbt), entry, unknownPlayer, false);
-        statistics(this.getEnderChest(nbt), entry, unknownPlayer, true);
+        try {
+            CURRENT_UUID.set(uuid);
+            // 统计物品栏物品
+            statistics(this.getInventory(nbt), entry, unknownPlayer, false);
+            statistics(this.getEnderChest(nbt), entry, unknownPlayer, true);
+        } finally {
+            CURRENT_UUID.remove();
+        }
     }
 
     /**
@@ -374,9 +543,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private WorldFormat getBackupFileDirectory() {
         if (this.backupFileDirectory == null) {
-            synchronized (this.backupFileDirectoryInitLock) {
+            synchronized (this.backupInitLock) {
                 String time = LocalDateTime.now().format(FORMATTER) + "_" + GenericUtils.getNbtDataVersion();
-                this.backupFileDirectory = new WorldFormat(this.server, "backups", "playerdata", time);
+                this.backupFileDirectory = this.worldFormat.resolve(time);
             }
         }
         return this.backupFileDirectory;

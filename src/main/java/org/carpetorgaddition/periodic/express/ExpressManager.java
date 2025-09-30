@@ -11,10 +11,7 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.util.CommandUtils;
-import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.IOUtils;
-import org.carpetorgaddition.util.MessageUtils;
+import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
@@ -112,7 +109,7 @@ public class ExpressManager {
 
     private void put(Express express, boolean message) throws IOException {
         if (express.getExpress().isEmpty()) {
-            CarpetOrgAddition.LOGGER.info("尝试发送一个空气物品，已忽略");
+            CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
             return;
         }
         this.expresses.add(express);
@@ -129,7 +126,10 @@ public class ExpressManager {
     }
 
     public int receiveAll(ServerPlayerEntity player) throws IOException, CommandSyntaxException {
-        List<Express> list = this.stream().filter(express -> express.isRecipient(player)).toList();
+        List<Express> list = this.stream()
+                .filter(express -> express.isRecipient(player))
+                .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
+                .toList();
         if (list.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.mail.receive.all.non_existent");
         }
@@ -187,7 +187,10 @@ public class ExpressManager {
     }
 
     public int cancelAll(ServerPlayerEntity player) throws IOException, CommandSyntaxException {
-        List<Express> list = this.stream().filter(express -> express.isSender(player)).toList();
+        List<Express> list = this.stream()
+                .filter(express -> express.isSender(player))
+                .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
+                .toList();
         if (list.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.mail.cancel.all.non_existent");
         }
