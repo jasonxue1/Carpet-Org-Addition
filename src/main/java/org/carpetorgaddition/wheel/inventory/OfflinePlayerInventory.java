@@ -3,6 +3,7 @@ package org.carpetorgaddition.wheel.inventory;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.entity.ContainerUser;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.server.MinecraftServer;
@@ -66,7 +67,8 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
                 return;
             }
             PlayerManager playerManager = server.getPlayerManager();
-            if (playerManager.isWhitelisted(gameProfile) || playerManager.isOperator(gameProfile)) {
+            PlayerConfigEntry entry = new PlayerConfigEntry(gameProfile);
+            if (playerManager.isWhitelisted(entry) || playerManager.isOperator(entry)) {
                 throw CommandUtils.createException("carpet.commands.player.inventory.offline.permission");
             }
         }
@@ -100,24 +102,24 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public void onOpen(PlayerEntity player) {
-        if (player instanceof ServerPlayerEntity) {
-            this.accessor.onOpen((ServerPlayerEntity) player);
+    public void onOpen(ContainerUser user) {
+        if (user instanceof ServerPlayerEntity player) {
+            this.accessor.onOpen(player);
             if (this.showLog) {
                 // 译：{}打开了离线玩家{}的物品栏
                 CarpetOrgAddition.LOGGER.info(
                         "{} opened the inventory of the offline player {}.",
                         FetcherUtils.getPlayerName(player),
-                        this.accessor.getGameProfile().getName()
+                        this.accessor.getPlayerConfigEntry().name()
                 );
             }
         }
     }
 
     @Override
-    public void onClose(PlayerEntity player) {
-        if (player instanceof ServerPlayerEntity) {
-            this.accessor.onClose((ServerPlayerEntity) player);
+    public void onClose(ContainerUser user) {
+        if (user instanceof ServerPlayerEntity player) {
+            this.accessor.onClose(player);
         }
     }
 

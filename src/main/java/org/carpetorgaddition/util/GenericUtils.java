@@ -64,7 +64,7 @@ public class GenericUtils {
     }
 
     public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, GameProfile gameProfile) {
-        return getPlayer(server, gameProfile.getName());
+        return getPlayer(server, gameProfile.name());
     }
 
     /**

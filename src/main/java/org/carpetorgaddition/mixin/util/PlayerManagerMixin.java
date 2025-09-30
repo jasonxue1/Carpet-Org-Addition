@@ -1,9 +1,9 @@
 package org.carpetorgaddition.mixin.util;
 
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -45,8 +45,8 @@ public class PlayerManagerMixin {
         ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
         FabricPlayerAccessManager accessManager = coordinator.getAccessManager();
         if (accessManager.hasViewers()) {
-            GameProfile gameProfile = player.getGameProfile();
-            Set<ServerPlayerEntity> viewers = accessManager.getViewers(gameProfile);
+            PlayerConfigEntry entry = player.getPlayerConfigEntry();
+            Set<ServerPlayerEntity> viewers = accessManager.getViewers(entry);
             if (viewers.isEmpty()) {
                 return;
             }

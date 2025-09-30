@@ -109,7 +109,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             break;
         }
         Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(this.server, this.recipient);
-        Text playerName = optional.map(PlayerEntity::getDisplayName).orElse(TextBuilder.create(this.recipient.getName()));
+        Text playerName = optional.map(PlayerEntity::getDisplayName).orElse(TextBuilder.create(this.recipient.name()));
         Text command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
         int count = inventory.count();
         Object[] args = switch (onlyOneKind) {

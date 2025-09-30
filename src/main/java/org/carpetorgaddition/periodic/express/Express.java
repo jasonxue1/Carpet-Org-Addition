@@ -76,7 +76,7 @@ public class Express implements Comparable<Express> {
     }
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, ItemStack itemStack, int id) {
-        this(server, FetcherUtils.getPlayerName(sender), gameProfile.getName(), gameProfile.getId(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
+        this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
     }
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, int id) throws CommandSyntaxException {

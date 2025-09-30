@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.CarpetSettings;
-import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
@@ -23,12 +22,14 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
+import org.carpetorgaddition.exception.FileOperationException;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.*;
 import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
@@ -42,6 +43,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -257,11 +259,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private boolean backupAndUpdate(File unsafe, UUID uuid) {
         // 模拟玩家登录，更新玩家数据文件
-        Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(uuid, this.server);
+        Optional<PlayerConfigEntry> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, this.server);
         if (optional.isEmpty()) {
             return false;
         }
-        GameProfile gameProfile = optional.get();
+        PlayerConfigEntry entry = optional.get();
         try {
             // 备份文件
             this.backup(unsafe, uuid);
@@ -271,7 +273,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             INVALID_PLAYER_DATAS.add(uuid);
             return false;
         }
-        FabricPlayerAccessor accessor = this.accessManager.getOrCreate(gameProfile);
+        FabricPlayerAccessor accessor = this.accessManager.getOrCreate(entry);
         OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
         inventory.setShowLog(false);
         inventory.onOpen(this.player);

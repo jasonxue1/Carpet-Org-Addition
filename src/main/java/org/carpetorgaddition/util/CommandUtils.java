@@ -10,6 +10,7 @@ import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -73,12 +74,14 @@ public class CommandUtils {
         return (EntityPlayerMPFake) player;
     }
 
-    public static Collection<GameProfile> getGameProfiles(CommandContext<ServerCommandSource> context, String arguments) throws CommandSyntaxException {
+    public static Collection<PlayerConfigEntry> getGameProfiles(CommandContext<ServerCommandSource> context, String arguments) throws CommandSyntaxException {
         return GameProfileArgumentType.getProfileArgument(context, arguments);
     }
 
     public static GameProfile getGameProfile(CommandContext<ServerCommandSource> context, String arguments) throws CommandSyntaxException {
-        Collection<GameProfile> collection = getGameProfiles(context, arguments);
+        Collection<GameProfile> collection = getGameProfiles(context, arguments).stream()
+                .map(entry -> new GameProfile(entry.id(), entry.name()))
+                .toList();
         return switch (collection.size()) {
             case 0 -> throw GameProfileArgumentType.UNKNOWN_PLAYER_EXCEPTION.create();
             case 1 -> collection.iterator().next();
@@ -86,7 +89,7 @@ public class CommandUtils {
                 TextBuilder builder = TextBuilder.of("carpet.command.argument.player.toomany");
                 ArrayList<Text> list = new ArrayList<>();
                 for (GameProfile gameProfile : collection) {
-                    list.add(TextBuilder.translate("%s: %s", EntityType.PLAYER.getName(), gameProfile.getName()));
+                    list.add(TextBuilder.translate("%s: %s", EntityType.PLAYER.getName(), gameProfile.name()));
                 }
                 builder.setHover(TextBuilder.joinList(list));
                 throw createException(builder.build());
