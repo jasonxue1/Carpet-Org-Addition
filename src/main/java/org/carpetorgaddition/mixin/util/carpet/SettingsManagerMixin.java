@@ -27,14 +27,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Mixin(value = SettingsManager.class, remap = false)
 public abstract class SettingsManagerMixin {
@@ -69,7 +65,7 @@ public abstract class SettingsManagerMixin {
                 cir.setReturnValue(0);
                 return;
             }
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             // 保存规则到配置文件
             ruleConfig.put(rule, stringValue);
             TextBuilder builder = TextBuilder.of("carpet.settings.command.default_set", RuleUtils.simpleTranslationName(rule), stringValue);
@@ -86,7 +82,7 @@ public abstract class SettingsManagerMixin {
                 cir.setReturnValue(0);
                 return;
             }
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             ruleConfig.remove(rule);
             // 将规则设置为默认值
             RuleHelper.resetToDefault(rule, source);
@@ -100,7 +96,7 @@ public abstract class SettingsManagerMixin {
     @WrapOperation(method = "loadConfigurationFromConf", at = @At(value = "INVOKE", target = "Ljava/util/Map;keySet()Ljava/util/Set;"))
     private Set<String> migrate(Map<String, String> map, Operation<Set<String>> original) {
         if (thisManager == CarpetOrgAdditionExtension.getSettingManager()) {
-            RuleConfig ruleConfig = ServerComponentCoordinator.getManager(this.server).getRuleConfig();
+            RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             if (ruleConfig.isMigrated()) {
                 ruleConfig.load();
                 return original.call(map);
@@ -149,15 +145,11 @@ public abstract class SettingsManagerMixin {
                     list.add(line);
                 }
             }
-            BufferedWriter writer = IOUtils.toWriter(file);
-            try (writer) {
-                for (int i = 0; i < list.size(); i++) {
-                    writer.write(list.get(i));
-                    if (i < list.size() - 1) {
-                        writer.newLine();
-                    }
-                }
+            StringJoiner joiner = new StringJoiner("\n");
+            for (String rule : list) {
+                joiner.add(rule);
             }
+            IOUtils.write(file, joiner.toString());
         } catch (IOException e) {
             IOUtils.loggerError(e);
         }

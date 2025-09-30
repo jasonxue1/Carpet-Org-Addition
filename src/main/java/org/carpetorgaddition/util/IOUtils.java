@@ -10,6 +10,8 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,10 +69,61 @@ public class IOUtils {
     /**
      * 将一个json对象保存到文件
      */
-    public static void saveJson(File file, JsonObject json) throws IOException {
+    public static void write(File file, JsonObject json) throws IOException {
         String jsonString = GSON.toJson(json, JsonObject.class);
+        write(file, jsonString);
+    }
+
+    /**
+     * 将一段字符串文本保存到文件
+     */
+    public static void write(File file, String content) throws IOException {
+        File parent = file.getParentFile();
+        if (parent == null) {
+            throw new IOException("File parent directory is null: " + file.getAbsolutePath());
+        }
+        // 创建父级目录
+        Files.createDirectories(parent.toPath());
+        File tempFile = Files.createTempFile(parent.toPath(), removeExtension(file) + "-", ".tmp").toFile();
+        boolean hasOriginalFile = file.exists();
+        File backupFile = Paths.get(file.getParent(), file.getName() + ".bak").toFile();
+        try {
+            // 将数据保存到临时文件
+            writeStringToFile(tempFile, content);
+            // 备份旧的文件
+            if (hasOriginalFile) {
+                Files.deleteIfExists(backupFile.toPath());
+                Files.move(file.toPath(), backupFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+            try {
+                Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException e) {
+                // 重命名失败，回退文件
+                if (backupFile.exists()) {
+                    Files.move(backupFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+                throw e;
+            }
+            // 删除备份
+            Files.deleteIfExists(backupFile.toPath());
+        } catch (IOException e) {
+            if (hasOriginalFile && backupFile.exists()) {
+                try {
+                    // 保存失败，恢复文件
+                    Files.move(backupFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException recoveryError) {
+                    e.addSuppressed(recoveryError);
+                }
+            }
+            // 保存失败，回退文件
+            Files.deleteIfExists(tempFile.toPath());
+            throw e;
+        }
+    }
+
+    private static void writeStringToFile(File file, String content) throws IOException {
         try (BufferedWriter writer = toWriter(file)) {
-            writer.write(jsonString);
+            writer.write(content);
         }
     }
 
@@ -115,14 +168,13 @@ public class IOUtils {
      *
      * @param file 要备份的文件
      */
-    public static File backupFile(File file) {
+    public static void backupFile(File file) {
         File backup = new File(file.getParent(), "backup_" + System.currentTimeMillis() + "_" + file.getName());
         if (backup.exists()) {
             // 不太可能出现重名备份文件
             throw new IllegalStateException("The backup file already exists");
         }
         copyFile(file, backup);
-        return backup;
     }
 
     /**
@@ -236,6 +288,10 @@ public class IOUtils {
         return fileName;
     }
 
+    public static String removeExtension(File file) {
+        return removeExtension(file.getName());
+    }
+
     public static String removeExtension(String fileName) {
         int index = fileName.lastIndexOf(".");
         return index == -1 ? fileName : fileName.substring(0, index);
@@ -253,6 +309,7 @@ public class IOUtils {
     /**
      * 删除一个文件
      */
+    @Deprecated(forRemoval = true)
     public static void removeFile(File file) {
         if (file.delete()) {
             return;
@@ -263,6 +320,7 @@ public class IOUtils {
     /**
      * 重命名文件
      */
+    @Deprecated(forRemoval = true)
     public static void renameFile(File file, String name) {
         if (file.renameTo(new File(file.getParent(), name))) {
             return;
@@ -274,7 +332,10 @@ public class IOUtils {
      * 将一个文件标记为弃用
      */
     public static void deprecatedFile(File file) {
-        renameFile(file, "deprecated_" + System.currentTimeMillis() + "_" + file.getName());
+        if (file.renameTo(new File(file.getParent(), "deprecated_" + System.currentTimeMillis() + "_" + file.getName()))) {
+            return;
+        }
+        throw new FileOperationException("Unable to rename file %s".formatted(file.toString()));
     }
 
     /**

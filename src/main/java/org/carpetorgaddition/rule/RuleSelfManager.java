@@ -114,7 +114,7 @@ public class RuleSelfManager {
                 json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
                 JsonObject ruleSelfJson = this.createRuleSelfJson();
                 json.add("ruleself", ruleSelfJson);
-                IOUtils.saveJson(this.file, json);
+                IOUtils.write(this.file, json);
             } catch (IOException e) {
                 IOUtils.loggerError(e);
             }

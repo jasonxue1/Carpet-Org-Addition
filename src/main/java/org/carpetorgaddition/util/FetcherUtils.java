@@ -70,7 +70,7 @@ public class FetcherUtils {
     }
 
     public static RuleSelfManager getRuleSelfManager(MinecraftServer server) {
-        return ServerComponentCoordinator.getManager(server).getRuleSelfManager();
+        return ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
     }
 
     public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
@@ -78,11 +78,11 @@ public class FetcherUtils {
     }
 
     public static PageManager getPageManager(MinecraftServer server) {
-        return ServerComponentCoordinator.getManager(server).getPageManager();
+        return ServerComponentCoordinator.getCoordinator(server).getPageManager();
     }
 
     public static PlayerSerializationManager getFakePlayerSerializationManager(MinecraftServer server) {
-        return ServerComponentCoordinator.getManager(server).getPlayerSerializationManager();
+        return ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
     }
 }
 
