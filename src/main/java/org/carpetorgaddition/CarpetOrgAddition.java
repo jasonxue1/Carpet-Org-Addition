@@ -12,9 +12,7 @@ import org.carpetorgaddition.wheel.Counter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
@@ -22,6 +20,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.StringJoiner;
 
 public class CarpetOrgAddition implements ModInitializer {
     /**
@@ -133,16 +132,11 @@ public class CarpetOrgAddition implements ModInitializer {
             CarpetOrgAddition.LOGGER.info("The game has been launched {} times today", count);
             // 保存启动次数
             List<LocalDate> list = counter.keySet().stream().sorted().toList();
-            // 重新写入前备份文件，写入完毕后删除备份
-            File backup = IOUtils.backupFile(file);
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            try (writer) {
-                for (LocalDate date : list) {
-                    writer.write(date.format(formatter) + "=" + counter.getCount(date));
-                    writer.newLine();
-                }
+            StringJoiner joiner = new StringJoiner("\n");
+            for (LocalDate date : list) {
+                joiner.add(date.format(formatter) + "=" + counter.getCount(date));
             }
-            IOUtils.removeFile(backup);
+            IOUtils.write(file, joiner.toString());
             String earliest = list.getFirst().format(formatter);
             CarpetOrgAddition.LOGGER.info("The game has been launched a total of {} times since {}", total, earliest);
         } catch (IOException e) {

@@ -2,20 +2,22 @@ package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.GameProfileArgumentType;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.io.IOException;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -71,6 +73,27 @@ public class CommandUtils {
         return (EntityPlayerMPFake) player;
     }
 
+    public static Collection<GameProfile> getGameProfiles(CommandContext<ServerCommandSource> context, String arguments) throws CommandSyntaxException {
+        return GameProfileArgumentType.getProfileArgument(context, arguments);
+    }
+
+    public static GameProfile getGameProfile(CommandContext<ServerCommandSource> context, String arguments) throws CommandSyntaxException {
+        Collection<GameProfile> collection = getGameProfiles(context, arguments);
+        return switch (collection.size()) {
+            case 0 -> throw GameProfileArgumentType.UNKNOWN_PLAYER_EXCEPTION.create();
+            case 1 -> collection.iterator().next();
+            default -> {
+                TextBuilder builder = TextBuilder.of("carpet.command.argument.player.toomany");
+                ArrayList<Text> list = new ArrayList<>();
+                for (GameProfile gameProfile : collection) {
+                    list.add(TextBuilder.translate("%s: %s", EntityType.PLAYER.getName(), gameProfile.getName()));
+                }
+                builder.setHover(TextBuilder.joinList(list));
+                throw createException(builder.build());
+            }
+        };
+    }
+
     /**
      * @return 指定玩家是否是命令执行者自己或假玩家
      */
@@ -97,7 +120,7 @@ public class CommandUtils {
      * @return 命令语法参数异常
      */
     public static CommandSyntaxException createException(String key, Object... args) {
-        return new SimpleCommandExceptionType(TextBuilder.translate(key, args)).create();
+        return createException(TextBuilder.translate(key, args));
     }
 
     public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
@@ -105,6 +128,10 @@ public class CommandUtils {
         TextBuilder builder = TextBuilder.of(key, args);
         builder.setHover(message);
         return new SimpleCommandExceptionType(builder.build()).create();
+    }
+
+    public static CommandSyntaxException createException(Text text) {
+        return new SimpleCommandExceptionType(text).create();
     }
 
     /**

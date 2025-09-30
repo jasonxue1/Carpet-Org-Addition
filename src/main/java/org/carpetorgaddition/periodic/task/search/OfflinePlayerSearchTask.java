@@ -23,6 +23,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.FileOperationException;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
@@ -102,6 +103,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 备份文件夹所在位置
      */
     private final WorldFormat worldFormat;
+    private final FabricPlayerAccessManager accessManager;
     /**
      * 总的玩家数量
      */
@@ -129,6 +131,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         this.worldFormat = new WorldFormat(this.server, "backups", "playerdata");
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
+        this.accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
     }
 
     @Override
@@ -186,10 +189,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     return;
                 }
                 this.searchItem(uuid, nbt);
-            } catch (RuntimeException e) {
-                addCorruptedPlayerUUID(uuid);
-            } catch (IOException e) {
+            } catch (RuntimeException | IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to read player data from file for file {}", unsafe.getName(), e);
+                addCorruptedPlayerUUID(uuid);
             } finally {
                 this.taskCount.getAndDecrement();
             }
@@ -240,7 +242,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         CORRUPTED_PLAYER_DATAS.remove(uuid);
     }
 
-    public static void clearCache() {
+    public static void clear() {
         CORRUPTED_PLAYER_DATAS.clear();
         BACKED_UP_FILES.clear();
         INVALID_PLAYER_DATAS.clear();
@@ -269,7 +271,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
             INVALID_PLAYER_DATAS.add(uuid);
             return false;
         }
-        OfflinePlayerInventory inventory = new OfflinePlayerInventory(this.server, gameProfile);
+        FabricPlayerAccessor accessor = this.accessManager.getOrCreate(gameProfile);
+        OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
         inventory.setShowLog(false);
         inventory.onOpen(this.player);
         inventory.onClose(this.player);

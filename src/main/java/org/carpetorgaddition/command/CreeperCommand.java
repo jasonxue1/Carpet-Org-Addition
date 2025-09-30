@@ -32,7 +32,7 @@ public class CreeperCommand extends AbstractServerCommand {
     // 创建苦力怕并爆炸
     private int creeperExplosion(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
-        ServerTaskManager manager = ServerComponentCoordinator.getManager(context).getServerTaskManager();
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         // 添加苦力怕爆炸任务
         manager.addTask(new CreeperExplosionTask(targetPlayer));
         ServerPlayerEntity sourcePlayer = context.getSource().getPlayer();
