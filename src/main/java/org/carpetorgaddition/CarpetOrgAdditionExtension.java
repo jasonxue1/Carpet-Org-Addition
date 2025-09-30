@@ -54,7 +54,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerComponentCoordinator.getManager(FetcherUtils.getServer(player)).getExpressManager();
+        ExpressManager expressManager = ServerComponentCoordinator.getCoordinator(FetcherUtils.getServer(player)).getExpressManager();
         expressManager.promptToReceive(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
@@ -95,7 +95,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         GameProfileCache.save();
         PermissionManager.reset();
         GlobalConfigs.save();
-        OfflinePlayerSearchTask.clearCache();
+        OfflinePlayerSearchTask.clear();
     }
 
     // 设置模组翻译

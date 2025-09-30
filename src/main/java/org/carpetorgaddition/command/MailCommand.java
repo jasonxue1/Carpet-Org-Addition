@@ -1,6 +1,7 @@
 package org.carpetorgaddition.command;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -9,7 +10,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.GameProfileArgumentType;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.MinecraftServer;
@@ -41,7 +42,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-// TODO 需要测试
 public class MailCommand extends AbstractServerCommand {
     public final Predicate<ServerCommandSource> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
 
@@ -54,7 +54,7 @@ public class MailCommand extends AbstractServerCommand {
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandMail))
                 .then(CommandManager.literal("ship")
-                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(CommandManager.argument(CommandUtils.PLAYER, GameProfileArgumentType.gameProfile())
                                 .executes(this::ship)))
                 .then(CommandManager.literal("receive")
                         .executes(this::receiveAll)
@@ -80,7 +80,7 @@ public class MailCommand extends AbstractServerCommand {
                 .then(CommandManager.literal("list")
                         .executes(this::list))
                 .then(CommandManager.literal("multiple")
-                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(CommandManager.argument(CommandUtils.PLAYER, GameProfileArgumentType.gameProfile())
                                 .executes(this::shipMultipleExpress))));
     }
 
@@ -91,7 +91,7 @@ public class MailCommand extends AbstractServerCommand {
             if (player == null) {
                 return CommandSource.suggestMatching(List.of(), builder);
             }
-            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+            ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
             // 获取所有发送给自己的快递（或所有自己发送的快递）
             List<String> list = manager.stream()
                     .filter(express -> recipient ? express.isRecipient(player) : express.isSender(player))
@@ -108,7 +108,7 @@ public class MailCommand extends AbstractServerCommand {
             if (player == null) {
                 return CommandSource.suggestMatching(List.of(), builder);
             }
-            ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+            ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
             // 获取所有发送的快递
             List<String> list = manager.stream()
                     .map(express -> Integer.toString(express.getId()))
@@ -119,15 +119,23 @@ public class MailCommand extends AbstractServerCommand {
 
     // 发送快递
     private int ship(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-        ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
-        // 限制只允许发送给其他真玩家
-        checkPlayer(sourcePlayer, targetPlayer);
         MinecraftServer server = context.getSource().getServer();
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+        GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
+        Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(server, gameProfile);
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
+        Express express;
+        if (optional.isEmpty()) {
+            express = new Express(server, sourcePlayer, gameProfile, manager.generateNumber());
+        } else {
+            ServerPlayerEntity targetPlayer = optional.get();
+            // 限制只允许发送给其他真玩家
+            checkPlayer(sourcePlayer, targetPlayer);
+            express = new Express(server, sourcePlayer, targetPlayer, manager.generateNumber());
+        }
         try {
             // 将快递信息添加到快递管理器
-            manager.put(new Express(server, sourcePlayer, targetPlayer, manager.generateNumber()));
+            manager.put(express);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
@@ -136,12 +144,16 @@ public class MailCommand extends AbstractServerCommand {
 
     // 发送多个快递
     private int shipMultipleExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
         ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
-        ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
-        checkPlayer(sourcePlayer, targetPlayer);
+        GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
+        Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(server, gameProfile);
+        if (optional.isPresent()) {
+            checkPlayer(sourcePlayer, optional.get());
+        }
         SimpleInventory inventory = new SimpleInventory(27);
         SimpleNamedScreenHandlerFactory screen = new SimpleNamedScreenHandlerFactory((i, inv, player)
-                -> new ShipExpressScreenHandler(i, inv, sourcePlayer, targetPlayer, inventory),
+                -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
                 TextBuilder.translate("carpet.commands.mail.multiple.gui"));
         sourcePlayer.openHandledScreen(screen);
         return 1;
@@ -177,7 +189,7 @@ public class MailCommand extends AbstractServerCommand {
     private int receiveAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerComponentCoordinator.getManager(context).getExpressManager().receiveAll(player);
+            return ServerComponentCoordinator.getCoordinator(context).getExpressManager().receiveAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
@@ -211,7 +223,7 @@ public class MailCommand extends AbstractServerCommand {
     private int cancelAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         try {
-            return ServerComponentCoordinator.getManager(context).getExpressManager().cancelAll(player);
+            return ServerComponentCoordinator.getCoordinator(context).getExpressManager().cancelAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
         }
@@ -254,7 +266,7 @@ public class MailCommand extends AbstractServerCommand {
     // 列出快递
     private int list(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         final ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         ServerCommandSource source = context.getSource();
         List<Express> list = manager.stream().toList();
         if (list.isEmpty()) {
@@ -321,7 +333,7 @@ public class MailCommand extends AbstractServerCommand {
 
     // 获取快递
     private Express getExpress(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ExpressManager manager = ServerComponentCoordinator.getManager(context).getExpressManager();
+        ExpressManager manager = ServerComponentCoordinator.getCoordinator(context).getExpressManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");
         // 查找指定单号的快递

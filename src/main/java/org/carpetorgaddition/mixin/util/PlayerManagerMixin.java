@@ -3,19 +3,23 @@ package org.carpetorgaddition.mixin.util;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.ClientConnection;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
-import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
-import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory.PlayerProfile;
+import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import org.slf4j.Logger;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Set;
 
 @Mixin(PlayerManager.class)
 public class PlayerManagerMixin {
@@ -37,14 +41,18 @@ public class PlayerManagerMixin {
      */
     @Inject(method = "onPlayerConnect", at = @At("HEAD"))
     private void closePlayerInventory(ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, CallbackInfo ci) {
-        if (OfflinePlayerInventory.INVENTORY_OPERATOR_PLAYERS.isEmpty()) {
-            return;
-        }
-        GameProfile gameProfile = player.getGameProfile();
-        PlayerProfile profile = new PlayerProfile(gameProfile);
-        ServerPlayerEntity serverPlayerEntity = OfflinePlayerInventory.INVENTORY_OPERATOR_PLAYERS.get(profile);
-        if (serverPlayerEntity != null) {
-            serverPlayerEntity.closeHandledScreen();
+        MinecraftServer server = FetcherUtils.getServer(player);
+        ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+        FabricPlayerAccessManager accessManager = coordinator.getAccessManager();
+        if (accessManager.hasViewers()) {
+            GameProfile gameProfile = player.getGameProfile();
+            Set<ServerPlayerEntity> viewers = accessManager.getViewers(gameProfile);
+            if (viewers.isEmpty()) {
+                return;
+            }
+            for (ServerPlayerEntity viewer : Set.copyOf(viewers)) {
+                viewer.closeHandledScreen();
+            }
         }
     }
 }

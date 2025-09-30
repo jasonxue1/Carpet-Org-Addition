@@ -64,7 +64,7 @@ public class PermissionManager {
         json.add("permission", permission);
         WorldFormat worldFormat = new WorldFormat(server, null);
         File file = worldFormat.file(PERMISSION_JSON);
-        IOUtils.saveJson(file, json);
+        IOUtils.write(file, json);
     }
 
     /**
