@@ -418,7 +418,7 @@ public class Express implements Comparable<Express> {
         int nbtDataVersion = nbt.getInt(NBT_DATA_VERSION).orElse(-1);
         String sender = nbt.getString("sender").orElseThrow();
         String recipient = nbt.getString("recipient").orElseThrow();
-        UUID uuid = nbt.getString("uuid").orElse(null);
+        UUID uuid = GenericUtils.uuidFromString(nbt.getString("uuid").orElse(null)).orElse(null);
         boolean cancel = nbt.getBoolean("cancel").orElseThrow();
         ItemStack stack = ItemStack.fromNbt(server.getRegistryManager(), nbt.getCompound("item").orElseThrow()).orElse(ItemStack.EMPTY);
         int id = nbt.getInt("id").orElseThrow();
