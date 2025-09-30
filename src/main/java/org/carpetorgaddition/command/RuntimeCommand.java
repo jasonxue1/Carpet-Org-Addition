@@ -1,8 +1,10 @@
 package org.carpetorgaddition.command;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -10,11 +12,15 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.WorldFormat;
 import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
 
 public class RuntimeCommand extends AbstractServerCommand {
@@ -34,7 +40,11 @@ public class RuntimeCommand extends AbstractServerCommand {
                                 .executes(this::triggerGc)))
                 .then(CommandManager.literal("server")
                         .then(CommandManager.literal("openfolder")
-                                .executes(this::openFolder))));
+                                .executes(this::openFolder)))
+                .then(CommandManager.literal("test")
+                        .then(CommandManager.literal("io")
+                                .then(CommandManager.argument("content", StringArgumentType.greedyString())
+                                        .executes(this::writeContent)))));
     }
 
     /**
@@ -105,6 +115,19 @@ public class RuntimeCommand extends AbstractServerCommand {
                 .setHover("carpet.command.data.unit.byte", size)
                 .setColor(Formatting.GRAY);
         return builder.build();
+    }
+
+    private int writeContent(CommandContext<ServerCommandSource> context) {
+        MinecraftServer server = context.getSource().getServer();
+        WorldFormat worldFormat = new WorldFormat(server, "debug", "io");
+        File file = worldFormat.file("FileWriteTest.txt");
+        String content = StringArgumentType.getString(context, "content");
+        try {
+            IOUtils.write(file, content);
+        } catch (IOException e) {
+            IOUtils.loggerError(e);
+        }
+        return content.length();
     }
 
     @Override

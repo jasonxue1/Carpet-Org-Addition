@@ -1,72 +1,36 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.storage.ReadView;
-import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.WorldSavePath;
-import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.wheel.GameProfileCache;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.UUID;
 
 public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
-    /**
-     * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家
-     */
-    public static final Map<PlayerProfile, ServerPlayerEntity> INVENTORY_OPERATOR_PLAYERS = new ConcurrentHashMap<>();
-    private final PlayerProfile profile;
+    protected final FabricPlayerAccessor accessor;
     /**
      * 是否在打开物品栏时在日志输出打开物品栏的玩家
      */
     private boolean showLog = true;
-    protected final FakePlayer fabricPlayer;
 
-    public OfflinePlayerInventory(MinecraftServer server, GameProfile gameProfile) {
-        this.fabricPlayer = FakePlayer.get(server.getOverworld(), gameProfile);
-        this.profile = new PlayerProfile(gameProfile);
-    }
-
-    /**
-     * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
-     */
-    private void initFakePlayer(MinecraftServer server) {
-        ErrorReporter.Logging logging = new ErrorReporter.Logging(CarpetOrgAddition.LOGGER);
-        try (logging) {
-            Optional<ReadView> optional = server.getPlayerManager().loadPlayerData(this.fabricPlayer, logging);
-            RegistryKey<World> registryKey = optional.flatMap(nbt -> nbt.read("Dimension", World.CODEC)).orElse(World.OVERWORLD);
-            ServerWorld world = server.getWorld(registryKey);
-            if (world != null) {
-                // 设置玩家所在维度
-                this.fabricPlayer.setServerWorld(world);
-            }
-        }
+    public OfflinePlayerInventory(FabricPlayerAccessor accessor) {
+        this.accessor = accessor;
     }
 
     /**
@@ -100,43 +64,11 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             if (player.hasPermissionLevel(2)) {
                 return;
             }
-            PlayerProfile profile = new PlayerProfile(gameProfile);
-            if (isWhitelistPlayer(server, profile) || isOperatorPlayer(server, profile)) {
+            PlayerManager playerManager = server.getPlayerManager();
+            if (playerManager.isWhitelisted(gameProfile) || playerManager.isOperator(gameProfile)) {
                 throw CommandUtils.createException("carpet.commands.player.inventory.offline.permission");
             }
         }
-    }
-
-    private static boolean isWhitelistPlayer(MinecraftServer server, PlayerProfile profile) {
-        PlayerManager playerManager = server.getPlayerManager();
-        JsonArray array;
-        try {
-            array = IOUtils.loadJson(playerManager.getWhitelist().getFile(), JsonArray.class);
-        } catch (IOException e) {
-            return false;
-        }
-        return contains(profile, array);
-    }
-
-    private static boolean isOperatorPlayer(MinecraftServer server, PlayerProfile profile) {
-        PlayerManager playerManager = server.getPlayerManager();
-        JsonArray array;
-        try {
-            array = IOUtils.loadJson(playerManager.getOpList().getFile(), JsonArray.class);
-        } catch (IOException e) {
-            return false;
-        }
-        return contains(profile, array);
-    }
-
-    private static boolean contains(PlayerProfile profile, JsonArray array) {
-        // 原版方法似乎要求玩家名称和玩家UUID都要匹配
-        Set<PlayerProfile> profiles = array.asList().stream()
-                .map(JsonElement::getAsJsonObject)
-                .map(json -> Map.entry(json.get("uuid").getAsString(), json.get("name").getAsString()))
-                .map(entry -> new PlayerProfile(new GameProfile(UUID.fromString(entry.getKey()), entry.getValue())))
-                .collect(Collectors.toSet());
-        return profiles.contains(profile);
     }
 
     public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
@@ -168,73 +100,32 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     @Override
     public void onOpen(PlayerEntity player) {
-        MinecraftServer server = FetcherUtils.getServer(player);
-        if (server == null) {
-            return;
-        }
-        INVENTORY_OPERATOR_PLAYERS.put(this.profile, (ServerPlayerEntity) player);
-        this.initFakePlayer(server);
-        if (this.showLog) {
-            // 译：{}打开了离线玩家{}的物品栏
-            CarpetOrgAddition.LOGGER.info(
-                    "{} opened the inventory of the offline player {}.",
-                    FetcherUtils.getPlayerName(player),
-                    this.profile.name
-            );
+        if (player instanceof ServerPlayerEntity) {
+            this.accessor.onOpen((ServerPlayerEntity) player);
+            if (this.showLog) {
+                // 译：{}打开了离线玩家{}的物品栏
+                CarpetOrgAddition.LOGGER.info(
+                        "{} opened the inventory of the offline player {}.",
+                        FetcherUtils.getPlayerName(player),
+                        this.accessor.getGameProfile().getName()
+                );
+            }
         }
     }
 
     @Override
     public void onClose(PlayerEntity player) {
-        try {
-            // 保存玩家数据
-            MinecraftServer server = FetcherUtils.getServer(player);
-            if (server != null) {
-                PlayerManager playerManager = server.getPlayerManager();
-                PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;
-                accessor.savePlayerEntityData(this.fabricPlayer);
-            }
-        } finally {
-            INVENTORY_OPERATOR_PLAYERS.remove(this.profile);
+        if (player instanceof ServerPlayerEntity) {
+            this.accessor.onClose((ServerPlayerEntity) player);
         }
     }
 
     @Override
     protected Inventory getInventory() {
-        return this.fabricPlayer.getInventory();
+        return this.accessor.getInventory();
     }
 
     public void setShowLog(boolean showLog) {
         this.showLog = showLog;
-    }
-
-    public static class PlayerProfile {
-        private final String name;
-        private final UUID uuid;
-
-        public PlayerProfile(GameProfile gameProfile) {
-            this.name = gameProfile.getName();
-            this.uuid = gameProfile.getId();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (this.getClass() == obj.getClass()) {
-                PlayerProfile other = (PlayerProfile) obj;
-                // 玩家名称和玩家UUID有一个匹配成功就视为相同
-                String thisLowerCase = this.name.toLowerCase(Locale.ROOT);
-                String otherLowerCase = other.name.toLowerCase(Locale.ROOT);
-                return Objects.equals(thisLowerCase, otherLowerCase) || Objects.equals(this.uuid, other.uuid);
-            }
-            return false;
-        }
-
-        @Override
-        public int hashCode() {
-            return this.uuid.hashCode();
-        }
     }
 }

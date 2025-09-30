@@ -71,7 +71,7 @@ public class Waypoint {
         json.add("another_pos", anotherPos);
         WorldFormat worldFormat = new WorldFormat(this.server, WAYPOINT);
         File file = worldFormat.file(this.name + IOUtils.JSON_EXTENSION);
-        IOUtils.saveJson(file, json);
+        IOUtils.write(file, json);
     }
 
     // 从本地文件加载一个路径点对象

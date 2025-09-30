@@ -1,5 +1,6 @@
 package org.carpetorgaddition.periodic.express;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -34,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 
 /**
@@ -61,6 +63,8 @@ public class Express implements Comparable<Express> {
      * 快递单号
      */
     private final int id;
+    @Nullable
+    private final UUID uuid;
     private final MinecraftServer server;
     private final LocalDateTime time;
     private final WorldFormat worldFormat;
@@ -68,45 +72,40 @@ public class Express implements Comparable<Express> {
     public static final String EXPRESS = "express";
 
     public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, int id) throws CommandSyntaxException {
-        this.server = server;
-        this.sender = FetcherUtils.getPlayerName(sender);
-        this.recipient = FetcherUtils.getPlayerName(recipient);
-        ItemStack mainHandStack = sender.getMainHandStack();
-        if (mainHandStack.isEmpty()) {
-            ItemStack offHandStack = sender.getOffHandStack();
-            if (offHandStack.isEmpty()) {
-                throw CommandUtils.createException("carpet.commands.mail.structure");
-            }
-            this.express = offHandStack.copyAndEmpty();
-        } else {
-            this.express = mainHandStack.copyAndEmpty();
-        }
-        this.id = id;
-        this.time = LocalDateTime.now();
-        this.worldFormat = new WorldFormat(server, EXPRESS);
-        this.nbtDataVersion = GenericUtils.getNbtDataVersion();
+        this(server, sender, recipient.getGameProfile(), getPlayerHandStack(sender), id);
     }
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, ItemStack itemStack, int id) {
-        this.server = server;
-        this.sender = FetcherUtils.getPlayerName(sender);
-        this.recipient = FetcherUtils.getPlayerName(recipient);
-        this.express = itemStack;
-        this.id = id;
-        this.time = LocalDateTime.now();
-        this.worldFormat = new WorldFormat(server, EXPRESS);
-        this.nbtDataVersion = GenericUtils.getNbtDataVersion();
+    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, ItemStack itemStack, int id) {
+        this(server, FetcherUtils.getPlayerName(sender), gameProfile.getName(), gameProfile.getId(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
     }
 
-    private Express(MinecraftServer server, String sender, String recipient, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
+    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
+        this(server, sender, gameProfile, getPlayerHandStack(sender), id);
+    }
+
+    private Express(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
         this.server = server;
         this.sender = sender;
         this.recipient = recipient;
+        this.uuid = uuid;
         this.express = express;
         this.id = id;
         this.time = time;
         this.worldFormat = new WorldFormat(server, EXPRESS);
         this.nbtDataVersion = nbtDataVersion;
+    }
+
+    private static ItemStack getPlayerHandStack(ServerPlayerEntity player) throws CommandSyntaxException {
+        ItemStack mainHandStack = player.getMainHandStack();
+        if (mainHandStack.isEmpty()) {
+            ItemStack offHandStack = player.getOffHandStack();
+            if (offHandStack.isEmpty()) {
+                throw CommandUtils.createException("carpet.commands.mail.structure");
+            }
+            return offHandStack.copyAndEmpty();
+        } else {
+            return mainHandStack.copyAndEmpty();
+        }
     }
 
     /**
@@ -120,20 +119,22 @@ public class Express implements Comparable<Express> {
             CarpetOrgAddition.LOGGER.error("The express delivery is sent by non-existent player");
             return;
         }
-        if (recipientPlayer == null) {
-            CarpetOrgAddition.LOGGER.error("Sending express delivery to non-existent player");
-            return;
-        }
         // 向快递发送者发送发出快递的消息
         Text cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
-        Object[] senderArray = {recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
+        Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextBuilder.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
         Text receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
-        MessageUtils.sendMessage(recipientPlayer, TextBuilder.translate("carpet.commands.mail.sending.recipient", recipientArray));
-        // 在接收者位置播放音效
-        playXpOrbPickupSound(recipientPlayer);
+        if (recipientPlayer == null) {
+            TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.offline_player");
+            builder.setGrayItalic();
+            MessageUtils.sendMessage(senderPlayer, builder.build());
+        } else {
+            MessageUtils.sendMessage(recipientPlayer, TextBuilder.translate("carpet.commands.mail.sending.recipient", recipientArray));
+            // 在接收者位置播放音效
+            playXpOrbPickupSound(recipientPlayer);
+        }
         CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}", this.sender, this.recipient, this.express.getCount(), this.express.getName().getString());
     }
 
@@ -271,15 +272,15 @@ public class Express implements Comparable<Express> {
     /**
      * 播放物品拾取音效
      */
-    public static void playItemPickupSound(ServerPlayerEntity player) {
+    public static void playItemPickupSound(@NotNull ServerPlayerEntity player) {
         WorldUtils.playSound(player, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS);
     }
 
     /**
      * 播放经验球拾取音效
      */
-    public static void playXpOrbPickupSound(ServerPlayerEntity recipientPlayer) {
-        WorldUtils.playSound(recipientPlayer, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS);
+    public static void playXpOrbPickupSound(@NotNull ServerPlayerEntity player) {
+        WorldUtils.playSound(player, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS);
     }
 
     /**
@@ -406,6 +407,9 @@ public class Express implements Comparable<Express> {
             nbt.putInt(NBT_DATA_VERSION, GenericUtils.getNbtDataVersion());
             nbt.putString("sender", this.sender);
             nbt.putString("recipient", this.recipient);
+            if (this.uuid != null) {
+                nbt.putString("uuid", this.uuid.toString());
+            }
             nbt.putBoolean("cancel", this.cancel);
             nbt.putInt("id", this.id);
             int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
@@ -425,12 +429,13 @@ public class Express implements Comparable<Express> {
             int nbtDataVersion = nbt.getInt(NBT_DATA_VERSION).orElse(-1);
             String sender = view.getOptionalString("sender").orElse(OfflinePlayerSearchTask.UNKNOWN);
             String recipient = view.getOptionalString("recipient").orElse(OfflinePlayerSearchTask.UNKNOWN);
+            UUID uuid = GenericUtils.uuidFromString(nbt.getString("uuid").orElse(null)).orElse(null);
             boolean cancel = view.getBoolean("cancel", false);
             ItemStack stack = view.read("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
             int id = view.getOptionalInt("id").orElse(-1);
             int[] times = view.getOptionalIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
             LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-            Express express = new Express(server, sender, recipient, stack, id, localDateTime, nbtDataVersion);
+            Express express = new Express(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
             express.cancel = cancel;
             return express;
         }

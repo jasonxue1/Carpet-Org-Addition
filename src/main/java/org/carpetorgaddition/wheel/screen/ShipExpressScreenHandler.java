@@ -1,5 +1,6 @@
 package org.carpetorgaddition.wheel.screen;
 
+import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -14,6 +15,7 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.express.Express;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
@@ -22,40 +24,34 @@ import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
     private final Inventory inventory;
     private final ExpressManager expressManager;
     private final MinecraftServer server;
     private final ServerPlayerEntity sourcePlayer;
-    private final ServerPlayerEntity targetPlayer;
+    private final GameProfile recipient;
 
     public ShipExpressScreenHandler(
             int syncId,
             PlayerInventory playerInventory,
             ServerPlayerEntity sourcePlayer,
-            ServerPlayerEntity targetPlayer,
+            GameProfile recipient,
             Inventory inventory
     ) {
         super(ScreenHandlerType.GENERIC_9X3, syncId, playerInventory, inventory, 3);
         this.inventory = inventory;
-        this.server = FetcherUtils.getServer(targetPlayer);
-        this.expressManager = ServerComponentCoordinator.getManager(this.server).getExpressManager();
+        this.server = FetcherUtils.getServer(sourcePlayer);
+        this.expressManager = ServerComponentCoordinator.getCoordinator(this.server).getExpressManager();
         this.sourcePlayer = sourcePlayer;
-        this.targetPlayer = targetPlayer;
+        this.recipient = recipient;
     }
 
     @Override
     public void onClosed(PlayerEntity player) {
         super.onClosed(player);
         if (this.inventory.isEmpty()) {
-            return;
-        }
-        // 快递接收者可能在发送者发送快递时退出游戏
-        if (this.targetPlayer.isRemoved()) {
-            MessageUtils.sendErrorMessage(this.sourcePlayer.getCommandSource(), "carpet.commands.mail.multiple.no_player");
-            // 将GUI中的物品放回玩家物品栏
-            this.dropInventory(this.sourcePlayer, this.inventory);
             return;
         }
         AutoGrowInventory autoGrowInventory = new AutoGrowInventory();
@@ -75,7 +71,7 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             if (stack.isEmpty()) {
                 break;
             }
-            Express express = new Express(this.server, this.sourcePlayer, this.targetPlayer, stack, this.expressManager.generateNumber());
+            Express express = new Express(this.server, this.sourcePlayer, this.recipient, stack, this.expressManager.generateNumber());
             try {
                 expressManager.putNoMessage(express);
             } catch (IOException e) {
@@ -112,7 +108,8 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
             onlyOneKind = 2;
             break;
         }
-        Text playerName = this.targetPlayer.getDisplayName();
+        Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(this.server, this.recipient);
+        Text playerName = optional.map(PlayerEntity::getDisplayName).orElse(TextBuilder.create(this.recipient.getName()));
         Text command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
         int count = inventory.count();
         Object[] args = switch (onlyOneKind) {
@@ -136,23 +133,30 @@ public class ShipExpressScreenHandler extends GenericContainerScreenHandler {
         };
         // 向物品发送者发送消息
         MessageUtils.sendMessage(this.sourcePlayer, "carpet.commands.mail.sending.multiple", args);
-        // 向物品接收者发送消息
-        MessageUtils.sendMessage(this.targetPlayer, "carpet.commands.mail.receive.multiple",
-                this.sourcePlayer.getDisplayName(), args[1], args[2],
-                TextProvider.clickRun(CommandProvider.receiveAllExpress())
-        );
-        Express.playXpOrbPickupSound(this.targetPlayer);
-        Express.checkRecipientPermission(this.sourcePlayer, this.targetPlayer);
+        if (optional.isEmpty()) {
+            TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.offline_player");
+            builder.setGrayItalic();
+            MessageUtils.sendMessage(this.sourcePlayer, builder.build());
+        } else {
+            ServerPlayerEntity player = optional.get();
+            // 向物品接收者发送消息
+            MessageUtils.sendMessage(player, "carpet.commands.mail.receive.multiple",
+                    this.sourcePlayer.getDisplayName(), args[1], args[2],
+                    TextProvider.clickRun(CommandProvider.receiveAllExpress())
+            );
+            Express.playXpOrbPickupSound(player);
+            Express.checkRecipientPermission(this.sourcePlayer, player);
+        }
         // 日志输出
         if (onlyOneKind == 2) {
             CarpetOrgAddition.LOGGER.info("{}向{}发送了{}",
                     FetcherUtils.getPlayerName(this.sourcePlayer),
-                    FetcherUtils.getPlayerName(this.targetPlayer),
+                    this.recipient,
                     new ImmutableInventory(inventory));
         } else {
             CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}",
                     FetcherUtils.getPlayerName(this.sourcePlayer),
-                    FetcherUtils.getPlayerName(this.targetPlayer),
+                    this.recipient,
                     ((Text) args[1]).getString(),
                     firstStack.getName().getString());
         }
