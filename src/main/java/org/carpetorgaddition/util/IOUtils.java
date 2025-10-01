@@ -148,18 +148,22 @@ public class IOUtils {
      * @param copy     复制的目标位置
      */
     public static void copyFile(File original, File copy) {
-        try {
-            BufferedInputStream input = new BufferedInputStream(new FileInputStream(original));
-            BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(copy));
-            try (input; output) {
-                byte[] bytes = new byte[1024 * 8]; // 1024 * 8 = 8192;
-                int len;
-                while ((len = input.read(bytes)) != -1) {
-                    output.write(bytes, 0, len);
+        if (original.isFile()) {
+            try {
+                BufferedInputStream input = new BufferedInputStream(new FileInputStream(original));
+                BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(copy));
+                try (input; output) {
+                    byte[] bytes = new byte[1024 * 8]; // 1024 * 8 = 8192;
+                    int len;
+                    while ((len = input.read(bytes)) != -1) {
+                        output.write(bytes, 0, len);
+                    }
                 }
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.warn("Unable to copy file", e);
             }
-        } catch (IOException e) {
-            throw new FileOperationException(e);
+        } else {
+            CarpetOrgAddition.LOGGER.warn("Copy a non-existent file: {}", original.getAbsolutePath());
         }
     }
 
@@ -331,11 +335,11 @@ public class IOUtils {
     /**
      * 将一个文件标记为弃用
      */
-    public static void deprecatedFile(File file) {
+    public static void deprecatedFile(File file) throws IOException {
         if (file.renameTo(new File(file.getParent(), "deprecated_" + System.currentTimeMillis() + "_" + file.getName()))) {
             return;
         }
-        throw new FileOperationException("Unable to rename file %s".formatted(file.toString()));
+        throw new IOException("Unable to rename file %s".formatted(file.toString()));
     }
 
     /**
