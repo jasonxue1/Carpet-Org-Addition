@@ -113,8 +113,11 @@ public abstract class SettingsManagerMixin {
             // 迁移规则
             ruleConfig.migrate(json);
             ruleConfig.load();
-            // 从carpet.conf中删除来自org的规则
-            this.removeRulesFromCarpetConf();
+            File file = this.getFile().toFile();
+            if (file.isFile()) {
+                // 从carpet.conf中删除来自org的规则
+                this.removeRulesFromCarpetConf(file);
+            }
             return set;
         }
         return original.call(map);
@@ -129,8 +132,7 @@ public abstract class SettingsManagerMixin {
     }
 
     @Unique
-    private void removeRulesFromCarpetConf() {
-        File file = this.getFile().toFile();
+    private void removeRulesFromCarpetConf(File file) {
         IOUtils.backupFile(file);
         // 从carpet.conf删除Carpet Org Addition的规则
         ArrayList<String> list = new ArrayList<>();
