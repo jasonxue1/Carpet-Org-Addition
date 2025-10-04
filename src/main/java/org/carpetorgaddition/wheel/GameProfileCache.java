@@ -1,5 +1,7 @@
 package org.carpetorgaddition.wheel;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -93,8 +95,8 @@ public class GameProfileCache {
     public static Optional<GameProfile> getGameProfile(@NotNull String name) {
         try {
             LOCK.readLock().lock();
-            Optional<UUID> optional = TABLE.get(name);
-            return optional.map(value -> new GameProfile(value, name));
+            Optional<Map.Entry<UUID, String>> optional = TABLE.get(name);
+            return optional.map(value -> new GameProfile(value.getKey(), value.getValue()));
         } finally {
             LOCK.readLock().unlock();
         }
@@ -250,39 +252,38 @@ public class GameProfileCache {
 
     public static class Table {
         private final HashMap<String, HashSet<String>> usernames = new HashMap<>();
-        private final HashMap<UUID, String> uuidToName = new HashMap<>();
-        private final HashMap<String, UUID> nameToUuid = new HashMap<>();
+        private final BiMap<UUID, String> map = HashBiMap.create();
 
         /**
-         * 根据玩家名称获取玩家UUID，如果缓存中有玩家名大小写完全匹配的，返回完全匹配玩家名的UUID，如果没有，返回一个大小写不完全匹配的，如果还是没有，返回空
+         * 根据玩家名称获取玩家UUID，如果缓存中存在大小写变体，返回名称最接近。
          */
         @VisibleForTesting
-        public Optional<UUID> get(String name) {
+        public Optional<Map.Entry<UUID, String>> get(String name) {
             if (name == null) {
                 throw new IllegalArgumentException("Null as a parameter");
             }
-            HashSet<String> set = this.usernames.get(name.toLowerCase(Locale.ROOT));
+            Set<String> set = this.usernames.get(name.toLowerCase(Locale.ROOT));
             if (set == null || set.isEmpty()) {
                 return Optional.empty();
             }
-            // 优先获取正确大小写的
-            for (String playerName : set) {
-                if (name.equals(playerName)) {
-                    return Optional.of(this.nameToUuid.get(playerName));
-                }
+            // 优先获取大小写最接近的
+            String actualName = set.stream().min(createComparator(name)).orElseThrow();
+            UUID uuid = this.map.inverse().get(actualName);
+            if (uuid == null) {
+                return Optional.empty();
             }
-            return Optional.of(this.nameToUuid.get(set.iterator().next()));
+            return Optional.of(Map.entry(uuid, actualName));
         }
 
         @VisibleForTesting
         public Optional<String> get(UUID uuid) {
-            return Optional.ofNullable(this.uuidToName.get(uuid));
+            return Optional.ofNullable(this.map.get(uuid));
         }
 
         @VisibleForTesting
         public void put(UUID uuid, String name) {
             String lowerCase = name.toLowerCase(Locale.ROOT);
-            HashSet<String> set = this.usernames.get(lowerCase);
+            Set<String> set = this.usernames.get(lowerCase);
             if (set == null) {
                 HashSet<String> names = new HashSet<>();
                 names.add(name);
@@ -290,14 +291,36 @@ public class GameProfileCache {
             } else {
                 set.add(name);
             }
-            this.nameToUuid.put(name, uuid);
-            this.uuidToName.put(uuid, name);
+            this.map.forcePut(uuid, name);
+        }
+
+        /**
+         * 更接近目标名称书写形式的字符串排在前面
+         */
+        private Comparator<String> createComparator(String name) {
+            return (o1, o2) -> {
+                if (o1.equals(o2)) {
+                    return 0;
+                }
+                if (o1.equalsIgnoreCase(o2)) {
+                    for (int i = 0; i < name.length(); i++) {
+                        if (o1.charAt(i) == o2.charAt(i)) {
+                            continue;
+                        }
+                        if (o1.charAt(i) == name.charAt(i)) {
+                            return -1;
+                        }
+                        return 1;
+                    }
+                }
+                throw new IllegalArgumentException();
+            };
         }
 
         @VisibleForTesting
         public void remove(String name) {
             String lowerCase = name.toLowerCase(Locale.ROOT);
-            HashSet<String> set = this.usernames.get(lowerCase);
+            Set<String> set = this.usernames.get(lowerCase);
             if (set == null) {
                 return;
             }
@@ -305,15 +328,13 @@ public class GameProfileCache {
                 if (set.isEmpty()) {
                     this.usernames.remove(lowerCase);
                 }
-                UUID uuid = this.nameToUuid.get(name);
-                this.nameToUuid.remove(name);
-                this.uuidToName.remove(uuid);
+                this.map.inverse().remove(name);
             }
         }
 
         @VisibleForTesting
         public void remove(UUID uuid) {
-            String name = this.uuidToName.get(uuid);
+            String name = this.map.get(uuid);
             if (name == null) {
                 return;
             }
@@ -321,7 +342,7 @@ public class GameProfileCache {
         }
 
         private Set<Map.Entry<UUID, String>> entrySet() {
-            return this.uuidToName.entrySet();
+            return this.map.entrySet();
         }
     }
 }
