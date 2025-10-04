@@ -89,7 +89,9 @@ public class IOUtils {
         File backupFile = Paths.get(file.getParent(), file.getName() + ".bak").toFile();
         try {
             // 将数据保存到临时文件
-            writeStringToFile(tempFile, content);
+            try (BufferedWriter writer = toWriter(tempFile)) {
+                writer.write(content);
+            }
             // 备份旧的文件
             if (hasOriginalFile) {
                 Files.deleteIfExists(backupFile.toPath());
@@ -118,12 +120,6 @@ public class IOUtils {
             // 保存失败，回退文件
             Files.deleteIfExists(tempFile.toPath());
             throw e;
-        }
-    }
-
-    private static void writeStringToFile(File file, String content) throws IOException {
-        try (BufferedWriter writer = toWriter(file)) {
-            writer.write(content);
         }
     }
 

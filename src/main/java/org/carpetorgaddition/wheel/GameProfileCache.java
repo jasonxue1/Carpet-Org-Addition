@@ -120,7 +120,7 @@ public class GameProfileCache {
     }
 
     /**
-     * 将usercache.json合并到profile.json
+     * 将{@code usercache.json}合并到{@code profile.json}
      */
     private static void mergeUsercache() {
         try {
@@ -153,7 +153,7 @@ public class GameProfileCache {
                         migration(reader);
                         changed = true;
                     }
-                    // 在启用文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
+                    // 在弃用旧文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
                     save();
                     // 弃用旧的文件
                     IOUtils.deprecatedFile(file);
@@ -317,8 +317,7 @@ public class GameProfileCache {
             };
         }
 
-        @VisibleForTesting
-        public void remove(String name) {
+        private void remove(String name) {
             String lowerCase = name.toLowerCase(Locale.ROOT);
             Set<String> set = this.usernames.get(lowerCase);
             if (set == null) {
@@ -332,8 +331,8 @@ public class GameProfileCache {
             }
         }
 
-        @VisibleForTesting
-        public void remove(UUID uuid) {
+        @SuppressWarnings("unused")
+        private void remove(UUID uuid) {
             String name = this.map.get(uuid);
             if (name == null) {
                 return;
