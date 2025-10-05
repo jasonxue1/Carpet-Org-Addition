@@ -13,12 +13,12 @@ import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.BoxRenderer;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockRegion;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 
-public class SelectionAreaCommand {
+public class BlockRegionCommand {
     private static final ArrayList<SelectionAreaDebugRenderer> RENDERERS = new ArrayList<>();
 
     public static void register() {
@@ -27,17 +27,17 @@ public class SelectionAreaCommand {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> RENDERERS.clear());
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, commandRegistryAccess) ->
                 dispatcher.register(
-                        ClientCommandManager.literal("blockIterator")
+                        ClientCommandManager.literal("blockRegion")
                                 .then(ClientCommandManager.argument("from", ClientBlockPosArgumentType.blockPos())
                                         .then(ClientCommandManager.argument("to", ClientBlockPosArgumentType.blockPos())
-                                                .executes(SelectionAreaCommand::render)))));
+                                                .executes(BlockRegionCommand::render)))));
     }
 
     private static int render(CommandContext<FabricClientCommandSource> context) {
         ProductionEnvironmentError.assertDevelopmentEnvironment();
         BlockPos from = ClientBlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = ClientBlockPosArgumentType.getBlockPos(context, "to");
-        RENDERERS.add(new SelectionAreaDebugRenderer(new BlockIterator(from, to)));
+        RENDERERS.add(new SelectionAreaDebugRenderer(new BlockRegion(from, to)));
         return 0;
     }
 
@@ -45,7 +45,7 @@ public class SelectionAreaCommand {
         private final ArrayDeque<Box> deque = new ArrayDeque<>();
         private long previousTick = getGameTime();
 
-        public SelectionAreaDebugRenderer(BlockIterator area) {
+        public SelectionAreaDebugRenderer(BlockRegion area) {
             super(area.toBox());
             for (BlockPos blockPos : area) {
                 deque.push(new Box(blockPos));

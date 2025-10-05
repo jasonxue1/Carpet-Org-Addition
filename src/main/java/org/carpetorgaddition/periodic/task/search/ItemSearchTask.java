@@ -30,7 +30,7 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockEntityIterator;
+import org.carpetorgaddition.wheel.BlockEntityRegion;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -47,7 +47,7 @@ import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
     private final World world;
-    private final BlockEntityIterator blockEntities;
+    private final BlockEntityRegion blockEntities;
     private final CommandContext<ServerCommandSource> context;
     private Iterator<Entity> entitySearchIterator;
     private Iterator<BlockEntity> blockEntitySearchIterator;
@@ -66,7 +66,7 @@ public class ItemSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityIterator blockEntities, CommandContext<ServerCommandSource> context) {
+    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityRegion blockEntities, CommandContext<ServerCommandSource> context) {
         this.world = world;
         this.blockEntities = blockEntities;
         this.findState = FindState.BLOCK;

@@ -15,7 +15,7 @@ import org.carpetorgaddition.client.renderer.villagerpoi.VillagerPoiRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.carpetorgaddition.client.util.ClientUtils;
-import org.carpetorgaddition.debug.client.command.SelectionAreaCommand;
+import org.carpetorgaddition.debug.client.command.BlockRegionCommand;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
@@ -153,7 +153,7 @@ public class CarpetOrgAdditionClientRegister {
     private static void developed() {
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             HudDebugRendererRegister.register();
-            SelectionAreaCommand.register();
+            BlockRegionCommand.register();
         }
     }
 }

@@ -14,7 +14,7 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
-    private final BlockIterator blockIterator;
+    private final BlockRegion blockRegion;
     protected final CommandContext<ServerCommandSource> context;
     private final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
@@ -44,10 +44,10 @@ public class BlockSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockIterator blockIterator, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
         this.world = world;
         this.sourcePos = sourcePos;
-        this.blockIterator = blockIterator;
+        this.blockRegion = blockRegion;
         this.context = context;
         this.blockPredicate = blockPredicate;
         this.findState = FindState.SEARCH;
@@ -90,7 +90,7 @@ public class BlockSearchTask extends ServerTask {
     // 查找方块
     private void searchBlock() {
         if (this.iterator == null) {
-            this.iterator = this.blockIterator.iterator();
+            this.iterator = this.blockRegion.iterator();
         }
         while (this.iterator.hasNext()) {
             if (this.timeout()) {

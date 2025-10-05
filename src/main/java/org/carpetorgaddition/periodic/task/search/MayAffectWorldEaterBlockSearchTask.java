@@ -8,13 +8,13 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 public class MayAffectWorldEaterBlockSearchTask extends BlockSearchTask {
-    public MayAffectWorldEaterBlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockIterator blockIterator, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
-        super(world, sourcePos, blockIterator, context, blockPredicate);
+    public MayAffectWorldEaterBlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
+        super(world, sourcePos, blockRegion, context, blockPredicate);
     }
 
     @Override
