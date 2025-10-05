@@ -3,6 +3,7 @@ package org.carpetorgaddition.dataupdate.player;
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.fakeplayer.action.FillTheContainerAction;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
 
 public class FillTheContainerActionDataUpdater implements DataUpdater {
@@ -21,7 +22,7 @@ public class FillTheContainerActionDataUpdater implements DataUpdater {
             } else if (json.has(FillTheContainerAction.ITEM)) {
                 // 匹配指定物品
                 String itemId = json.get(FillTheContainerAction.ITEM).getAsString();
-                predicate = new ItemStackPredicate(ItemStackPredicate.stringAsItem(itemId));
+                predicate = new ItemStackPredicate(GenericUtils.getItemFromStringId(itemId));
             } else {
                 predicate = ItemStackPredicate.WILDCARD;
             }

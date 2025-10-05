@@ -4,10 +4,13 @@ import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.Item;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
@@ -65,6 +68,21 @@ public class GenericUtils {
 
     public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, GameProfile gameProfile) {
         return getPlayer(server, gameProfile.getName());
+    }
+
+    public static Identifier getId(Item item) {
+        return Registries.ITEM.getId(item);
+    }
+
+    public static String getIdAsString(Item item) {
+        return getId(item).toString();
+    }
+
+    /**
+     * 将字符串ID转换为物品
+     */
+    public static Item getItemFromStringId(String id) {
+        return Registries.ITEM.get(Identifier.of(id));
     }
 
     /**

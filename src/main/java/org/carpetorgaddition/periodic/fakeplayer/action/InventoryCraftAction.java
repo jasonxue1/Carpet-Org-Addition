@@ -142,7 +142,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         // 获取假玩家的显示名称
         Text playerName = this.getFakePlayer().getDisplayName();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
-        ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 2, this.getFakePlayer());
+        ItemStack craftOutput = CraftingTableCraftAction.getCraftOutput(this.predicates, 2, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
         Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", playerName, itemText));

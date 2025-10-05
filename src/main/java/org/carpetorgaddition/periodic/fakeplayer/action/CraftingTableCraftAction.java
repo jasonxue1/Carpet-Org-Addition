@@ -2,11 +2,17 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.recipe.CraftingRecipe;
+import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.input.CraftingRecipeInput;
 import net.minecraft.screen.CraftingScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
+import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
@@ -18,6 +24,7 @@ import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class CraftingTableCraftAction extends AbstractPlayerAction {
     /**
@@ -31,6 +38,30 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             throw new IllegalArgumentException();
         }
         System.arraycopy(predicates, 0, this.predicates, 0, this.predicates.length);
+    }
+
+    /**
+     * 获取指定配方的输出物品
+     *
+     * @param predicates  合成配方
+     * @param widthHeight 合成方格的宽高，工作台是3，物品栏是2
+     * @param fakePlayer  合成该物品的假玩家
+     * @return 如果能够合成物品，返回合成输出物品，否则返回空物品，如果配方中包含不能转换为物品的元素，也返回空物品
+     */
+    public static ItemStack getCraftOutput(ItemStackPredicate[] predicates, int widthHeight, EntityPlayerMPFake fakePlayer) {
+        ArrayList<ItemStack> list = new ArrayList<>();
+        for (ItemStackPredicate predicate : predicates) {
+            Optional<Item> optional = predicate.getConvert();
+            if (optional.isEmpty()) {
+                // 存在非物品谓词，无法推断输出物品
+                return ItemStack.EMPTY;
+            }
+            list.add(optional.get().getDefaultStack());
+        }
+        CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
+        World world = FetcherUtils.getWorld(fakePlayer);
+        Optional<RecipeEntry<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
+        return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
     }
 
     @Override
@@ -145,7 +176,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
         ArrayList<Text> list = new ArrayList<>();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
-        ItemStack craftOutput = ItemStackPredicate.getCraftOutput(this.predicates, 3, this.getFakePlayer());
+        ItemStack craftOutput = getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
         Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.craft.result", this.getFakePlayer().getDisplayName(), itemText));

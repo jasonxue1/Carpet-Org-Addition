@@ -14,6 +14,7 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.VehicleInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -41,6 +42,7 @@ import org.carpetorgaddition.wheel.provider.TextProvider;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
@@ -229,10 +231,10 @@ public class ItemSearchTask extends ServerTask {
     // 发送命令反馈
     private void feedback() {
         Text itemCount;
-        boolean canConvert = predicate.isConvertible();
-        if (canConvert) {
+        Optional<Item> optional = predicate.getConvert();
+        if (optional.isPresent()) {
             // 为数量添加鼠标悬停效果
-            itemCount = FinderCommand.showCount(predicate.asItem().getDefaultStack(), this.count, this.shulkerBox);
+            itemCount = FinderCommand.showCount(optional.get().getDefaultStack(), this.count, this.shulkerBox);
         } else {
             TextBuilder builder = new TextBuilder(this.count);
             if (this.shulkerBox) {

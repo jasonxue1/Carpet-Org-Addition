@@ -1,7 +1,6 @@
 package org.carpetorgaddition.wheel;
 
 import carpet.CarpetServer;
-import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
@@ -14,29 +13,25 @@ import net.minecraft.command.argument.ItemPredicateArgumentType.ItemStackPredica
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.input.CraftingRecipeInput;
 import net.minecraft.registry.Registries;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
-import net.minecraft.world.World;
-import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.GenericUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public class ItemStackPredicate implements Predicate<ItemStack> {
     private final Predicate<ItemStack> predicate;
     private final String input;
     private final boolean isWildcard;
+    @Nullable
+    private final Item convert;
     public static final ItemStackPredicate EMPTY = new ItemStackPredicate(Items.AIR);
     /**
      * 匹配任何非空气物品
@@ -50,6 +45,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         this.predicate = itemStack -> !itemStack.isEmpty();
         this.input = "*";
         this.isWildcard = true;
+        this.convert = null;
     }
 
     public ItemStackPredicate(CommandContext<ServerCommandSource> context, String arguments) {
@@ -60,22 +56,69 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 ItemStackPredicateArgument predicate = ItemPredicateArgumentType.getItemStackPredicate(context, arguments);
                 this.isWildcard = this.isWildcard();
                 this.predicate = this.isWildcard ? itemStack -> !itemStack.isEmpty() && predicate.test(itemStack) : predicate;
+                this.convert = tryConvert(this.input);
                 return;
             }
         }
         throw new IllegalArgumentException();
     }
 
-    public ItemStackPredicate(Item item) {
+    public ItemStackPredicate(@NotNull Item item) {
         this.predicate = itemStack -> itemStack.isOf(item);
-        this.input = Registries.ITEM.getId(item).toString();
+        this.input = GenericUtils.getIdAsString(item);
         this.isWildcard = false;
+        this.convert = item;
+    }
+
+    public ItemStackPredicate(Collection<Item> collection) {
+        Set<Item> set = new LinkedHashSet<>(collection);
+        switch (set.size()) {
+            case 0 -> throw new IllegalArgumentException();
+            case 1 -> {
+                ItemStackPredicate stackPredicate = new ItemStackPredicate(set.iterator().next());
+                this.predicate = stackPredicate.predicate;
+                this.input = stackPredicate.input;
+                this.isWildcard = stackPredicate.isWildcard;
+                this.convert = stackPredicate.convert;
+            }
+            default -> {
+                this.predicate = itemStack -> {
+                    for (Item item : set) {
+                        if (itemStack.isOf(item)) {
+                            return true;
+                        }
+                    }
+                    return false;
+                };
+                StringJoiner joiner = new StringJoiner("|", "[", "]");
+                for (Item item : set) {
+                    joiner.add(GenericUtils.getIdAsString(item));
+                }
+                this.input = joiner.toString();
+                this.isWildcard = false;
+                this.convert = null;
+            }
+        }
+
     }
 
     private ItemStackPredicate(Predicate<ItemStack> predicate, String input) {
         this.input = input;
         this.isWildcard = this.isWildcard();
         this.predicate = this.isWildcard ? itemStack -> !itemStack.isEmpty() && predicate.test(itemStack) : predicate;
+        this.convert = tryConvert(input);
+    }
+
+    @Nullable
+    private static Item tryConvert(String input) {
+        if (input.startsWith("#") || input.startsWith("*") || input.matches(".*\\[.*]")) {
+            return null;
+        }
+        try {
+            return Registries.ITEM.get(Identifier.of(input));
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     /**
@@ -157,9 +200,8 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         if (this.isWildcard) {
             return TextBuilder.translate("carpet.command.item.predicate.wildcard");
         }
-        if (isConvertible()) {
-            Identifier identifier = Identifier.of(this.input);
-            return Registries.ITEM.get(identifier).getName();
+        if (this.convert != null) {
+            return this.convert.getName();
         }
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);
@@ -174,6 +216,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     /**
      * 将命令参数转换为对应物品
      */
+    @Deprecated(forRemoval = true)
     public Item asItem() {
         if (this.isEmpty()) {
             return Items.AIR;
@@ -185,43 +228,16 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     }
 
     /**
-     * 获取指定配方的输出物品
-     *
-     * @param predicates  合成配方
-     * @param widthHeight 合成方格的宽高，工作台是3，物品栏是2
-     * @param fakePlayer  合成该物品的假玩家
-     * @return 如果能够合成物品，返回合成输出物品，否则返回空物品，如果配方中包含不能转换为物品的元素，也返回空物品
+     * 获取input转换而来的物品
      */
-    public static ItemStack getCraftOutput(ItemStackPredicate[] predicates, int widthHeight, EntityPlayerMPFake fakePlayer) {
-        for (ItemStackPredicate predicate : predicates) {
-            if (predicate.isConvertible()) {
-                continue;
-            }
-            return ItemStack.EMPTY;
-        }
-        // 前面的循环中已经判断了字符串是否能转换成物品，所以这里不需要再判断
-        List<ItemStack> list = Arrays.stream(predicates)
-                .map(ItemStackPredicate::getInput)
-                .map(Identifier::of)
-                .map(Registries.ITEM::get)
-                .map(Item::getDefaultStack)
-                .toList();
-        CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
-        World world = FetcherUtils.getWorld(fakePlayer);
-        Optional<RecipeEntry<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
-        return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
-    }
-
-    /**
-     * 将字符串ID转换为物品
-     */
-    public static Item stringAsItem(String id) {
-        return Registries.ITEM.get(Identifier.of(id));
+    public Optional<Item> getConvert() {
+        return Optional.ofNullable(this.convert);
     }
 
     /**
      * @return {@code input}字符串是否可以转换为物品
      */
+    @Deprecated(forRemoval = true)
     public boolean isConvertible() {
         return !(this.input.startsWith("#") || this.input.startsWith("*") || this.input.matches(".*\\[.*]"));
     }

@@ -5,6 +5,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -382,7 +383,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 获取玩家物品栏
     private Inventory getInventory(NbtCompound nbt) {
-        return SimulatePlayerInventory.of(nbt, FetcherUtils.getServer(this.player));
+        return SimulatePlayerInventory.of(nbt, this.server);
     }
 
     /**
@@ -394,7 +395,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     protected Inventory getEnderChest(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
         if (nbt.contains("EnderItems", NbtElement.LIST_TYPE)) {
-            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.player.getRegistryManager());
+            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.server.getRegistryManager());
             return inventory;
         } else {
             return ImmutableInventory.EMPTY;
@@ -440,8 +441,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 获取物品数量文本
      */
     private Text getItemCount() {
-        if (this.predicate.isConvertible()) {
-            return FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
+        Optional<Item> optional = this.predicate.getConvert();
+        if (optional.isPresent()) {
+            return FinderCommand.showCount(optional.get().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
         } else {
             TextBuilder builder = new TextBuilder(this.itemCount);
             return this.shulkerBox.get() ? builder.setItalic().build() : builder.build();
