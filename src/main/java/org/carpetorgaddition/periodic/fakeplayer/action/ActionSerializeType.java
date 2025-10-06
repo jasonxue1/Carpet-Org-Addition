@@ -82,7 +82,7 @@ public enum ActionSerializeType {
      * 自动重命名物品
      */
     RENAME(json -> {
-        Item item = GenericUtils.getItemFromStringId(json.get(RenameAction.ITEM).getAsString());
+        Item item = GenericUtils.getItem(json.get(RenameAction.ITEM).getAsString());
         String newName = json.get(RenameAction.NEW_NAME).getAsString();
         return new RenameAction(null, item, newName);
     }),
@@ -90,7 +90,7 @@ public enum ActionSerializeType {
      * 自动使用切石机
      */
     STONECUTTING(json -> {
-        Item item = GenericUtils.getItemFromStringId(json.get(StonecuttingAction.ITEM).getAsString());
+        Item item = GenericUtils.getItem(json.get(StonecuttingAction.ITEM).getAsString());
         int index = json.get(StonecuttingAction.BUTTON).getAsInt();
         return new StonecuttingAction(null, item, index);
     }),

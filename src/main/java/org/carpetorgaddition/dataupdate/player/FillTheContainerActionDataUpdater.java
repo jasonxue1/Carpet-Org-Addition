@@ -22,7 +22,7 @@ public class FillTheContainerActionDataUpdater implements DataUpdater {
             } else if (json.has(FillTheContainerAction.ITEM)) {
                 // 匹配指定物品
                 String itemId = json.get(FillTheContainerAction.ITEM).getAsString();
-                predicate = new ItemStackPredicate(GenericUtils.getItemFromStringId(itemId));
+                predicate = new ItemStackPredicate(GenericUtils.getItem(itemId));
             } else {
                 predicate = ItemStackPredicate.WILDCARD;
             }

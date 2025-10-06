@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -22,8 +21,8 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final Text treadName;
 
-    public TradeItemSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
-        super(world, blockRegion, sourcePos, context);
+    public TradeItemSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ItemStackPredicate predicate, ServerCommandSource source) {
+        super(world, blockRegion, sourcePos, source);
         this.predicate = predicate;
         this.treadName = predicate.toText();
     }
@@ -75,7 +74,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(context.getSource(),
+        MessageUtils.sendMessage(this.source,
                 "carpet.commands.finder.trade.find.not_trade",
                 this.getTradeName(), FinderCommand.VILLAGER);
     }

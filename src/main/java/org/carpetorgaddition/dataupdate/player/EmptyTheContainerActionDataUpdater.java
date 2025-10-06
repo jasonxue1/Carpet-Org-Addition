@@ -26,7 +26,7 @@ public class EmptyTheContainerActionDataUpdater implements DataUpdater {
                 ItemStackPredicate predicate;
                 if (json.has(EmptyTheContainerAction.ITEM)) {
                     String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
-                    predicate = new ItemStackPredicate(GenericUtils.getItemFromStringId(item));
+                    predicate = new ItemStackPredicate(GenericUtils.getItem(item));
                 } else {
                     predicate = ItemStackPredicate.WILDCARD;
                 }

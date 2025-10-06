@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
@@ -28,7 +27,7 @@ import java.util.function.Supplier;
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
     private final BlockRegion blockRegion;
-    protected final CommandContext<ServerCommandSource> context;
+    protected final ServerCommandSource source;
     private final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
     private FindState findState;
@@ -44,16 +43,16 @@ public class BlockSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, CommandContext<ServerCommandSource> context, FinderCommand.BlockPredicate blockPredicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, ServerCommandSource source, FinderCommand.BlockPredicate blockPredicate) {
         this.world = world;
         this.sourcePos = sourcePos;
         this.blockRegion = blockRegion;
-        this.context = context;
+        this.source = source;
         this.blockPredicate = blockPredicate;
         this.findState = FindState.SEARCH;
         this.tickCount = 0;
-        PageManager pageManager = FetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
+        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class BlockSearchTask extends ServerTask {
         this.tickCount++;
         if (this.tickCount > FinderCommand.MAX_TICK_COUNT) {
             // 任务超时
-            MessageUtils.sendErrorMessage(context, FinderCommand.TIME_OUT);
+            MessageUtils.sendErrorMessage(this.source, FinderCommand.TIME_OUT);
             this.findState = FindState.END;
             return;
         }
@@ -108,7 +107,7 @@ public class BlockSearchTask extends ServerTask {
                 if (this.results.size() > FinderCommand.MAXIMUM_STATISTICAL_COUNT) {
                     // 方块过多，无法统计
                     Runnable function = () -> MessageUtils.sendErrorMessage(
-                            this.context,
+                            this.source,
                             "carpet.commands.finder.block.too_much_blocks",
                             this.blockPredicate.getName()
                     );
@@ -124,7 +123,7 @@ public class BlockSearchTask extends ServerTask {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
             Text name = this.blockPredicate.getName();
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.not_found_block", name);
+            MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.not_found_block", name);
             this.findState = FindState.END;
             return;
         }
@@ -136,10 +135,10 @@ public class BlockSearchTask extends ServerTask {
     protected void sendFeedback() {
         int count = this.results.size();
         Text name = this.blockPredicate.getName();
-        MessageUtils.sendEmptyMessage(this.context);
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.block.find", count, name);
+        MessageUtils.sendEmptyMessage(this.source);
+        MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", count, name);
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(this.pagedCollection::print, this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
 
@@ -181,14 +180,14 @@ public class BlockSearchTask extends ServerTask {
     @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
-            return Objects.equals(this.context.getSource().getPlayer(), ((BlockSearchTask) obj).context.getSource().getPlayer());
+            return Objects.equals(this.source.getPlayer(), ((BlockSearchTask) obj).source.getPlayer());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.context.getSource().getPlayer());
+        return Objects.hashCode(this.source.getPlayer());
     }
 
     public enum FindState {

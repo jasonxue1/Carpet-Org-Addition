@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.item.ItemStack;
@@ -27,8 +26,8 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final Text treadName;
     private final Enchantment enchantment;
 
-    public TradeEnchantedBookSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, CommandContext<ServerCommandSource> context, Enchantment enchantment) {
-        super(world, blockRegion, sourcePos, context);
+    public TradeEnchantedBookSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source, Enchantment enchantment) {
+        super(world, blockRegion, sourcePos, source);
         // 获取附魔名称，不带等级
         Text text = EnchantmentUtils.getName(enchantment);
         this.treadName = TextBuilder.combineAll(text, Items.ENCHANTED_BOOK.getName());
@@ -81,7 +80,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(context.getSource(),
+        MessageUtils.sendMessage(this.source,
                 "carpet.commands.finder.trade.find.not_trade",
                 this.getTradeName(), FinderCommand.VILLAGER);
     }

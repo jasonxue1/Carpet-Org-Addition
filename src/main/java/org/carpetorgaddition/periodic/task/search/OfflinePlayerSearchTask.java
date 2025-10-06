@@ -13,6 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
@@ -115,12 +116,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
 
-    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player, File[] files) {
+    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player) {
         this.source = source;
         this.predicate = predicate;
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
-        this.files = files;
+        this.files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
+        if (this.files == null) {
+            throw new IllegalStateException("Unable to read \"playerdata\" folder");
+        }
         this.worldFormat = new WorldFormat(this.server, "backups", "playerdata");
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);

@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.command.CommandRegistryAccess;
+import org.carpetorgaddition.CarpetOrgAddition;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,6 +21,9 @@ public class ClientCommandRegister {
         register(new DictionaryCommand(dispatcher, access));
         // 高亮路径点命令
         register(new HighlightCommand(dispatcher, access));
+        if (CarpetOrgAddition.isDebugDevelopment()) {
+            register(new ClientFinderCommand(dispatcher, access));
+        }
     }
 
     private static <T extends AbstractClientCommand> void register(T command) {

@@ -99,7 +99,6 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 this.convert = null;
             }
         }
-
     }
 
     private ItemStackPredicate(Predicate<ItemStack> predicate, String input) {

@@ -3,10 +3,13 @@ package org.carpetorgaddition.util;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
+import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -74,15 +77,36 @@ public class GenericUtils {
         return Registries.ITEM.getId(item);
     }
 
+    public static Identifier getId(Block block) {
+        return Registries.BLOCK.getId(block);
+    }
+
+    public static Optional<Identifier> getId(Enchantment enchantment) {
+        RegistryEntry<Enchantment> entry = RegistryEntry.of(enchantment);
+        return entry.getKey().map(RegistryKey::getValue);
+    }
+
     public static String getIdAsString(Item item) {
         return getId(item).toString();
+    }
+
+
+    public static String getIdAsString(Block block) {
+        return getId(block).toString();
     }
 
     /**
      * 将字符串ID转换为物品
      */
-    public static Item getItemFromStringId(String id) {
+    public static Item getItem(String id) {
         return Registries.ITEM.get(Identifier.of(id));
+    }
+
+    /**
+     * 将字符串ID转换为方块
+     */
+    public static Block getBlock(String id) {
+        return Registries.BLOCK.get(Identifier.of(id));
     }
 
     /**

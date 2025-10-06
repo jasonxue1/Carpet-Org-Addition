@@ -2,6 +2,7 @@ package org.carpetorgaddition.util;
 
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.FileOperationException;
 import org.jetbrains.annotations.Contract;
@@ -135,6 +136,29 @@ public class IOUtils {
         try (reader) {
             return GSON.fromJson(reader, type);
         }
+    }
+
+    public static JsonObject stringAsJson(String jsonString) {
+        return GSON.fromJson(jsonString, JsonObject.class);
+    }
+
+    public static String jsonAsString(JsonObject json) {
+        return GSON.toJson(json, JsonObject.class);
+    }
+
+    public static BlockPos toBlockPos(JsonObject json) {
+        int x = json.get("x").getAsInt();
+        int y = json.get("y").getAsInt();
+        int z = json.get("z").getAsInt();
+        return new BlockPos(x, y, z);
+    }
+
+    public static JsonObject toJson(BlockPos blockPos) {
+        JsonObject json = new JsonObject();
+        json.addProperty("x", blockPos.getX());
+        json.addProperty("y", blockPos.getY());
+        json.addProperty("z", blockPos.getZ());
+        return json;
     }
 
     /**

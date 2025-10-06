@@ -1,7 +1,6 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.LockableContainerBlockEntity;
 import net.minecraft.entity.Entity;
@@ -48,7 +47,7 @@ import java.util.function.Supplier;
 public class ItemSearchTask extends ServerTask {
     private final World world;
     private final BlockEntityRegion blockEntities;
-    private final CommandContext<ServerCommandSource> context;
+    private final ServerCommandSource source;
     private Iterator<Entity> entitySearchIterator;
     private Iterator<BlockEntity> blockEntitySearchIterator;
     private FindState findState;
@@ -66,15 +65,15 @@ public class ItemSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityRegion blockEntities, CommandContext<ServerCommandSource> context) {
+    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityRegion blockEntities, ServerCommandSource source) {
         this.world = world;
         this.blockEntities = blockEntities;
         this.findState = FindState.BLOCK;
         this.tickCount = 0;
         this.predicate = predicate;
-        this.context = context;
-        PageManager pageManager = FetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
+        this.source = source;
+        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
@@ -83,7 +82,7 @@ public class ItemSearchTask extends ServerTask {
         this.tickCount++;
         if (tickCount > FinderCommand.MAX_TICK_COUNT) {
             // 任务超时
-            MessageUtils.sendErrorMessage(context, FinderCommand.TIME_OUT);
+            MessageUtils.sendErrorMessage(source, FinderCommand.TIME_OUT);
             this.findState = FindState.END;
             return;
         }
@@ -208,7 +207,7 @@ public class ItemSearchTask extends ServerTask {
         if (this.results.size() > FinderCommand.MAXIMUM_STATISTICAL_COUNT) {
             // 容器太多，无法统计
             Runnable function = () -> MessageUtils.sendErrorMessage(
-                    context,
+                    source,
                     "carpet.commands.finder.item.too_much_container",
                     this.predicate.toText()
             );
@@ -220,7 +219,7 @@ public class ItemSearchTask extends ServerTask {
     private void sort() {
         if (this.results.isEmpty()) {
             // 在周围的容器中找不到指定物品，直接将状态设置为结束，然后结束方法
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find.not_item", predicate.toText());
+            MessageUtils.sendMessage(this.source, "carpet.commands.finder.item.find.not_item", predicate.toText());
             this.findState = FindState.END;
             return;
         }
@@ -243,10 +242,10 @@ public class ItemSearchTask extends ServerTask {
             itemCount = builder.build();
         }
         int size = this.results.size();
-        MessageUtils.sendEmptyMessage(this.context);
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
+        MessageUtils.sendEmptyMessage(this.source);
+        MessageUtils.sendMessage(this.source, "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(this.pagedCollection::print, this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
 
@@ -262,13 +261,13 @@ public class ItemSearchTask extends ServerTask {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(context.getSource().getPlayer());
+        return Objects.hashCode(this.source.getPlayer());
     }
 
     @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
-            return Objects.equals(this.context.getSource().getPlayer(), ((ItemSearchTask) obj).context.getSource().getPlayer());
+            return Objects.equals(this.source.getPlayer(), ((ItemSearchTask) obj).source.getPlayer());
         }
         return false;
     }

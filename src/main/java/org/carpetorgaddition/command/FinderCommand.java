@@ -16,13 +16,11 @@ import net.minecraft.command.argument.*;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -40,7 +38,6 @@ import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
-import java.io.File;
 import java.util.function.Predicate;
 
 public class FinderCommand extends AbstractServerCommand {
@@ -135,7 +132,8 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourceBlockPos = player.getBlockPos();
         // 查找周围容器中的物品
         World world = FetcherUtils.getWorld(player);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, new BlockEntityRegion(world, sourceBlockPos, range), context);
+        BlockEntityRegion region = new BlockEntityRegion(world, sourceBlockPos, range);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, region, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -150,7 +148,7 @@ public class FinderCommand extends AbstractServerCommand {
         // 计算要查找的区域
         World world = FetcherUtils.getWorld(player);
         BlockEntityRegion blockEntityRegion = new BlockEntityRegion(world, from, to);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityRegion, context);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityRegion, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -158,13 +156,8 @@ public class FinderCommand extends AbstractServerCommand {
     // 从离线玩家身上查找物品
     private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MinecraftServer server = FetcherUtils.getServer(player);
-        File[] files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
-        if (files == null) {
-            throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
-        }
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player, files);
+        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -180,7 +173,7 @@ public class FinderCommand extends AbstractServerCommand {
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(world, sourceBlockPos, range);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context, predicate);
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -196,7 +189,7 @@ public class FinderCommand extends AbstractServerCommand {
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(from, to);
         BlockBlockPredicate predicate = new BlockBlockPredicate();
-        MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, blockRegion, context, predicate);
+        MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 0;
     }
@@ -212,7 +205,7 @@ public class FinderCommand extends AbstractServerCommand {
         BlockRegion blockRegion = new BlockRegion(from, to);
         ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context, predicate);
+        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -228,7 +221,7 @@ public class FinderCommand extends AbstractServerCommand {
         World world = FetcherUtils.getWorld(player);
         // 查找范围
         BlockRegion area = new BlockRegion(world, sourcePos, range);
-        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context);
+        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context.getSource());
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -245,7 +238,7 @@ public class FinderCommand extends AbstractServerCommand {
         World world = FetcherUtils.getWorld(player);
         // 查找范围
         BlockRegion area = new BlockRegion(world, sourcePos, range);
-        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context, enchantment);
+        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context.getSource(), enchantment);
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
