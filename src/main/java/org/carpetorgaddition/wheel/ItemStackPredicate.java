@@ -70,35 +70,31 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         this.convert = item;
     }
 
-    public ItemStackPredicate(Collection<Item> collection) {
-        Set<Item> set = new LinkedHashSet<>(collection);
-        switch (set.size()) {
-            case 0 -> throw new IllegalArgumentException();
-            case 1 -> {
-                ItemStackPredicate stackPredicate = new ItemStackPredicate(set.iterator().next());
-                this.predicate = stackPredicate.predicate;
-                this.input = stackPredicate.input;
-                this.isWildcard = stackPredicate.isWildcard;
-                this.convert = stackPredicate.convert;
-            }
-            default -> {
-                this.predicate = itemStack -> {
-                    for (Item item : set) {
-                        if (itemStack.isOf(item)) {
-                            return true;
-                        }
-                    }
-                    return false;
-                };
-                StringJoiner joiner = new StringJoiner("|", "[", "]");
-                for (Item item : set) {
-                    joiner.add(GenericUtils.getIdAsString(item));
+    public static ItemStackPredicate of(Collection<Item> collection) {
+        LinkedHashSet<Item> set = new LinkedHashSet<>(collection);
+        return switch (set.size()) {
+            case 0 -> EMPTY;
+            case 1 -> new ItemStackPredicate(set.getFirst());
+            default -> new MatchAnyItemPredicate(set);
+        };
+    }
+
+    private ItemStackPredicate(LinkedHashSet<Item> set) {
+        this.predicate = itemStack -> {
+            for (Item item : set) {
+                if (itemStack.isOf(item)) {
+                    return true;
                 }
-                this.input = joiner.toString();
-                this.isWildcard = false;
-                this.convert = null;
             }
+            return false;
+        };
+        StringJoiner joiner = new StringJoiner(", ", "[", "]");
+        for (Item item : set) {
+            joiner.add(GenericUtils.getIdAsString(item));
         }
+        this.input = joiner.toString();
+        this.isWildcard = false;
+        this.convert = null;
     }
 
     private ItemStackPredicate(Predicate<ItemStack> predicate, String input) {
@@ -248,5 +244,29 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     @Override
     public String toString() {
         return this.input;
+    }
+
+    public static class MatchAnyItemPredicate extends ItemStackPredicate {
+        private final LinkedHashSet<Item> items;
+
+        private MatchAnyItemPredicate(LinkedHashSet<Item> items) {
+            super(items);
+            this.items = items;
+        }
+
+        @Override
+        public Text toText() throws InvalidIdentifierException {
+            if (this.getInput().length() > 30) {
+                String substring = this.getInput().substring(0, 30);
+                Text ellipsis = TextBuilder.create("...");
+                Text result = TextBuilder.combineAll(substring, ellipsis);
+                StringJoiner joiner = new StringJoiner(",\n");
+                for (Item item : this.items) {
+                    joiner.add(GenericUtils.getIdAsString(item));
+                }
+                return new TextBuilder(result).setGrayItalic().setStringHover(joiner.toString()).build();
+            }
+            return super.toText();
+        }
     }
 }

@@ -39,13 +39,13 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
         ServerTask serverTask = switch (packet.type()) {
             case ITEM -> {
                 ObjectSearchTaskCodecs.ItemSearchContext decode = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.decode(packet.json());
-                ItemStackPredicate predicate = new ItemStackPredicate(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
                 BlockEntityRegion region = new BlockEntityRegion(world, blockPos, decode.range());
                 yield new ItemSearchTask(world, predicate, region, source);
             }
             case OFFLINE_PLAYER_ITEM -> {
                 ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext decode = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH__CODEC.decode(packet.json());
-                ItemStackPredicate predicate = new ItemStackPredicate(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
                 yield new OfflinePlayerSearchTask(source, predicate, player);
             }
             case BLOCK -> {
@@ -57,7 +57,7 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             case TRADE_ITEM -> {
                 ObjectSearchTaskCodecs.TradeItemSearchContext decode = ObjectSearchTaskCodecs.TRADE_ITEM_SEARCH_CODEC.decode(packet.json());
                 BlockRegion region = new BlockRegion(world, blockPos, decode.range());
-                ItemStackPredicate predicate = new ItemStackPredicate(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
                 yield new TradeItemSearchTask(world, region, blockPos, predicate, source);
             }
             default -> null;

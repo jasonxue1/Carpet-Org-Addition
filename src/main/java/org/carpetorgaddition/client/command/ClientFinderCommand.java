@@ -84,7 +84,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
         return list.size();
     }
 
-    private List<Item> getItemList(CommandContext<FabricClientCommandSource> context) throws CommandSyntaxException {
+    private List<Item> getItemList(CommandContext<FabricClientCommandSource> context) {
         return ClientObjectArgumentType.getType(context, "item").stream()
                 .filter(t -> t instanceof Item)
                 .map(t -> (Item) t)
