@@ -5,14 +5,12 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.*;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.BlockStateArgumentType;
+import net.minecraft.command.argument.ItemPredicateArgumentType;
+import net.minecraft.command.argument.RegistryEntryReferenceArgumentType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
@@ -30,10 +28,7 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockEntityRegion;
-import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
-import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.*;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -166,13 +161,11 @@ public class FinderCommand extends AbstractServerCommand {
     private int blockFinder(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        // 获取要匹配的方块状态
-        BlockStateArgument argument = BlockStateArgumentType.getBlockState(context, "blockState");
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(world, sourceBlockPos, range);
-        ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
+        BlockStatePredicate predicate = BlockStatePredicate.ofState(context, "blockState");
         BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -188,7 +181,7 @@ public class FinderCommand extends AbstractServerCommand {
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(from, to);
-        BlockBlockPredicate predicate = new BlockBlockPredicate();
+        BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
         MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 0;
@@ -199,11 +192,9 @@ public class FinderCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
-        // 获取要匹配的方块状态
-        BlockStateArgument argument = BlockStateArgumentType.getBlockState(context, "blockState");
         // 计算要查找的区域
         BlockRegion blockRegion = new BlockRegion(from, to);
-        ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
+        BlockStatePredicate predicate = BlockStatePredicate.ofState(context, "blockState");
         // 添加查找任务
         BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
@@ -262,64 +253,4 @@ public class FinderCommand extends AbstractServerCommand {
         Text getName();
     }
 
-    public record ArgumentBlockPredicate(BlockStateArgument argument) implements BlockPredicate {
-        @Override
-        public boolean test(ServerWorld world, BlockPos pos) {
-            return argument.test(world, pos);
-        }
-
-        @Override
-        public Text getName() {
-            return argument.getBlockState().getBlock().getName();
-        }
-    }
-
-    public static class BlockBlockPredicate implements BlockPredicate {
-        @Override
-        public boolean test(ServerWorld world, BlockPos pos) {
-            BlockState blockState = world.getBlockState(pos);
-            // 排除基岩，空气和流体
-            if (blockState.isOf(Blocks.BEDROCK) || blockState.isAir() || blockState.getBlock() instanceof FluidBlock) {
-                return false;
-            }
-            // 被活塞推动时会被破坏
-            if (blockState.getPistonBehavior() == PistonBehavior.DESTROY) {
-                return false;
-            }
-            // 高爆炸抗性
-            if (blockState.getBlock().getBlastResistance() > 17) {
-                return true;
-            }
-            // 不能推动（实体方块不能被推动）且含水
-            boolean blockPiston = blockState.getBlock() instanceof BlockWithEntity || blockState.getPistonBehavior() == PistonBehavior.BLOCK;
-            boolean hasWater = !blockState.getFluidState().isEmpty();
-            if (blockPiston && hasWater) {
-                return true;
-            }
-            // 含水，可以被推动，但下方8格全都有方块
-            return hasWater && canPush(world, pos);
-        }
-
-        private boolean canPush(ServerWorld world, BlockPos pos) {
-            for (int i = 1; i <= 8; i++) {
-                BlockState blockState = world.getBlockState(pos.down(i));
-                // 不可被推动的方块
-                PistonBehavior pistonBehavior = blockState.getPistonBehavior();
-                if (pistonBehavior == PistonBehavior.BLOCK) {
-                    return true;
-                }
-                // 下方方块可以被推动
-                if (pistonBehavior == PistonBehavior.DESTROY) {
-                    return false;
-                }
-            }
-            // 下方8格内都有方块
-            return true;
-        }
-
-        @Override
-        public Text getName() {
-            return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
-        }
-    }
 }

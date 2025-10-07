@@ -1,14 +1,11 @@
 package org.carpetorgaddition.network.handler;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.Block;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket;
 import org.carpetorgaddition.network.codec.ObjectSearchTaskCodecs;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -22,10 +19,8 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BlockEntityRegion;
 import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.BlockStatePredicate;
 import org.carpetorgaddition.wheel.ItemStackPredicate;
-import org.carpetorgaddition.wheel.TextBuilder;
-
-import java.util.List;
 
 public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayPayloadHandler<ObjectSearchTaskC2SPacket> {
     @Override
@@ -51,7 +46,7 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             case BLOCK -> {
                 ObjectSearchTaskCodecs.BlockSearchContext decode = ObjectSearchTaskCodecs.BLOCK_SEARCH_CODEC.decode(packet.json());
                 BlockRegion region = new BlockRegion(world, blockPos, decode.range());
-                FinderCommand.BlockPredicate predicate = createBlockPredicate(decode);
+                BlockStatePredicate predicate = BlockStatePredicate.ofBlocks(decode.list());
                 yield new BlockSearchTask(world, blockPos, region, source, predicate);
             }
             case TRADE_ITEM -> {
@@ -66,27 +61,5 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             return;
         }
         CommandUtils.handlingException(() -> taskManager.addTask(serverTask), source);
-    }
-
-    private FinderCommand.BlockPredicate createBlockPredicate(ObjectSearchTaskCodecs.BlockSearchContext decode) {
-        return new FinderCommand.BlockPredicate() {
-            private final List<Block> list = decode.list();
-
-            @Override
-            public boolean test(ServerWorld world, BlockPos pos) {
-                Block block = world.getBlockState(pos).getBlock();
-                return list.contains(block);
-            }
-
-            @Override
-            public Text getName() {
-                if (list.size() == 1) {
-                    return list.getFirst().getName();
-                }
-                TextBuilder builder = new TextBuilder(list.getFirst().getName());
-                builder.append("*").setItalic();
-                return builder.build();
-            }
-        };
     }
 }

@@ -80,14 +80,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     }
 
     private ItemStackPredicate(LinkedHashSet<Item> set) {
-        this.predicate = itemStack -> {
-            for (Item item : set) {
-                if (itemStack.isOf(item)) {
-                    return true;
-                }
-            }
-            return false;
-        };
+        this.predicate = itemStack -> set.contains(itemStack.getItem());
         StringJoiner joiner = new StringJoiner(", ", "[", "]");
         for (Item item : set) {
             joiner.add(GenericUtils.getIdAsString(item));

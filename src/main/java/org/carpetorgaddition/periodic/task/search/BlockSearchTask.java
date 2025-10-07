@@ -14,6 +14,7 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.BlockStatePredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -39,16 +40,16 @@ public class BlockSearchTask extends ServerTask {
      * 任务被执行的总游戏刻数
      */
     private int tickCount;
-    private final FinderCommand.BlockPredicate blockPredicate;
+    private final BlockStatePredicate predicate;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, ServerCommandSource source, FinderCommand.BlockPredicate blockPredicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, ServerCommandSource source, BlockStatePredicate predicate) {
         this.world = world;
         this.sourcePos = sourcePos;
         this.blockRegion = blockRegion;
         this.source = source;
-        this.blockPredicate = blockPredicate;
+        this.predicate = predicate;
         this.findState = FindState.SEARCH;
         this.tickCount = 0;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
@@ -101,7 +102,7 @@ public class BlockSearchTask extends ServerTask {
             int chunkZ = ChunkSectionPos.getSectionCoord(blockPos.getZ());
             // 判断区块是否已加载
             if (this.world.isChunkLoaded(chunkX, chunkZ)) {
-                if (this.blockPredicate.test(world, blockPos)) {
+                if (this.predicate.test(world, blockPos)) {
                     this.results.add(new Result(this.sourcePos, blockPos));
                 }
                 if (this.results.size() > FinderCommand.MAXIMUM_STATISTICAL_COUNT) {
@@ -109,7 +110,7 @@ public class BlockSearchTask extends ServerTask {
                     Runnable function = () -> MessageUtils.sendErrorMessage(
                             this.source,
                             "carpet.commands.finder.block.too_much_blocks",
-                            this.blockPredicate.getName()
+                            this.predicate.getDisplayName()
                     );
                     throw new TaskExecutionException(function);
                 }
@@ -122,7 +123,7 @@ public class BlockSearchTask extends ServerTask {
     private void sort() {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
-            Text name = this.blockPredicate.getName();
+            Text name = this.predicate.getDisplayName();
             MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.not_found_block", name);
             this.findState = FindState.END;
             return;
@@ -134,7 +135,7 @@ public class BlockSearchTask extends ServerTask {
     // 发送反馈
     protected void sendFeedback() {
         int count = this.results.size();
-        Text name = this.blockPredicate.getName();
+        Text name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", count, name);
         this.pagedCollection.addContent(this.results);
