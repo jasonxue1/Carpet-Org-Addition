@@ -6,6 +6,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class MathUtils {
     /**
@@ -330,5 +331,18 @@ public class MathUtils {
                 yield center;
             }
         };
+    }
+
+    /**
+     * 遍历上下左右前后，以及棱和角对着的方块
+     */
+    public static void allDirection(BlockPos blockPos, Consumer<BlockPos> consumer) {
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    consumer.accept(blockPos.add(x, y, z));
+                }
+            }
+        }
     }
 }

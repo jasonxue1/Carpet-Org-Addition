@@ -5,7 +5,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
@@ -111,13 +110,9 @@ public class BlockSearchTask extends ServerTask {
 
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
-        BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, (pos, consumer) -> {
-            for (Direction direction : Direction.values()) {
-                consumer.accept(pos.offset(direction));
-            }
-        }, blockPos -> {
+        BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
+            // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
             if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.blockRegion.contains(blockPos)) {
-                // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
                 Block block = world.getBlockState(blockPos).getBlock();
                 Set<BlockPos> set = group.computeIfAbsent(block, ignore -> new HashSet<>());
                 // 如果软引用blockPosCache集合中的内容被回收，则此处可能重复执行
