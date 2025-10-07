@@ -5,9 +5,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class MathUtils {
     /**
@@ -292,5 +290,45 @@ public class MathUtils {
 
     public static double sumOfArithmeticProgression(double start, double end, int number) {
         return ((start + end) * number) / 2;
+    }
+
+    /**
+     * 获取最接近中心位置的方块坐标
+     */
+    public static BlockPos calculateTheGeometricCenter(Set<BlockPos> set) {
+        return switch (set.size()) {
+            case 0 -> throw new IllegalArgumentException();
+            case 1, 2 -> set.iterator().next();
+            default -> {
+                Iterator<BlockPos> iterator = set.iterator();
+                BlockPos center = iterator.next();
+                double minDistance = Double.MAX_VALUE;
+                int minX = center.getX();
+                int minY = center.getY();
+                int minZ = center.getZ();
+                int maxX = center.getX();
+                int maxY = center.getY();
+                int maxZ = center.getZ();
+                while (iterator.hasNext()) {
+                    BlockPos blockPos = iterator.next();
+                    minX = Math.min(blockPos.getX(), minX);
+                    minY = Math.min(blockPos.getY(), minY);
+                    minZ = Math.min(blockPos.getZ(), minZ);
+                    maxX = Math.max(blockPos.getX(), maxX);
+                    maxY = Math.max(blockPos.getY(), maxY);
+                    maxZ = Math.max(blockPos.getZ(), maxZ);
+                }
+                // 坐标的最中心方块位置
+                BlockPos absoluteCenter = new BlockPos((minX + maxX) / 2, (minY + maxY) / 2, (minZ + maxZ) / 2);
+                for (BlockPos blockPos : set) {
+                    double currentDistance = getBlockDistance(absoluteCenter, blockPos);
+                    if (currentDistance < minDistance) {
+                        center = blockPos;
+                        minDistance = currentDistance;
+                    }
+                }
+                yield center;
+            }
+        };
     }
 }

@@ -281,7 +281,7 @@
   "carpet.commands.finder.block.too_much_blocks": "周围%s过多，无法统计",
   "carpet.commands.finder.block.not_found_block": "在指定范围内找不到%s",
   "carpet.commands.finder.block.find": "在指定范围内找到%s个%s",
-  "carpet.commands.finder.block.feedback": "距离：%s格 %s",
+  "carpet.commands.finder.block.feedback": "在%s找到了%s个%s",
   "carpet.commands.finder.may_affect_world_eater_block.name": "可能会影响世吞运行的方块",
   "carpet.commands.finder.may_affect_world_eater_block.feedback": "距离：%s格 %s （%s）",
   "carpet.commands.finder.item.drops": "掉落物",

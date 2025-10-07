@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
@@ -30,6 +29,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
         super(dispatcher, access);
     }
 
+    // TODO 同步命令权限
     @Override
     public void register(String name) {
         this.dispatcher.register(ClientCommandManager.literal(name)
@@ -54,7 +54,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
         return (context, builder) -> CommandSource.suggestMatching(new String[]{"64", "128", "256"}, builder);
     }
 
-    private int searchItem(CommandContext<FabricClientCommandSource> context, int range) throws CommandSyntaxException {
+    private int searchItem(CommandContext<FabricClientCommandSource> context, int range) {
         List<Item> list = getItemList(context);
         ItemSearchContext itemSearchContext = new ItemSearchContext(range, list);
         JsonObject json = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.encode(itemSearchContext);
@@ -63,7 +63,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
         return list.size();
     }
 
-    private int searchItem(CommandContext<FabricClientCommandSource> context) throws CommandSyntaxException {
+    private int searchItem(CommandContext<FabricClientCommandSource> context) {
         List<Item> list = getItemList(context);
         OfflinePlayerItemSearchContext searchContext = new OfflinePlayerItemSearchContext(list);
         JsonObject json = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH__CODEC.encode(searchContext);

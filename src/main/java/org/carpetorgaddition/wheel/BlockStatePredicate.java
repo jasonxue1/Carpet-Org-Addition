@@ -15,7 +15,8 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.state.property.Property;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.accessor.StateAccessor;
 import org.carpetorgaddition.util.GenericUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,16 +26,16 @@ import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
-public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
+public class BlockStatePredicate implements BiPredicate<World, BlockPos> {
     protected final String content;
-    private final BiPredicate<WorldView, BlockPos> biPredicate;
+    private final BiPredicate<World, BlockPos> biPredicate;
     @Nullable
     private final Block block;
     public static final BlockStatePredicate EMPTY = new BlockStatePredicate();
 
     public BlockStatePredicate(@NotNull Block block) {
         this.content = GenericUtils.getIdAsString(block);
-        this.biPredicate = (worldView, blockPos) -> worldView.getBlockState(blockPos).isOf(block);
+        this.biPredicate = (world, blockPos) -> world.getBlockState(blockPos).isOf(block);
         this.block = block;
     }
 
@@ -61,16 +62,16 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
             builder.append("]");
         }
         this.content = builder.toString();
-        this.biPredicate = (worldView, blockPos) -> worldView.getBlockState(blockPos).equals(blockState);
+        this.biPredicate = (world, blockPos) -> world.getBlockState(blockPos).equals(blockState);
     }
 
     private BlockStatePredicate() {
         this.content = GenericUtils.getIdAsString(Blocks.AIR);
-        this.biPredicate = (worldView, blockPos) -> false;
+        this.biPredicate = (world, blockPos) -> false;
         this.block = Blocks.AIR;
     }
 
-    private BlockStatePredicate(String content, BiPredicate<WorldView, BlockPos> biPredicate, @Nullable Block block) {
+    private BlockStatePredicate(String content, BiPredicate<World, BlockPos> biPredicate, @Nullable Block block) {
         this.content = content;
         this.biPredicate = biPredicate;
         this.block = block;
@@ -89,7 +90,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
             joiner.add(GenericUtils.getIdAsString(block));
         }
         this.content = joiner.toString();
-        this.biPredicate = (worldView, blockPos) -> blocks.contains(worldView.getBlockState(blockPos).getBlock());
+        this.biPredicate = (world, blockPos) -> blocks.contains(world.getBlockState(blockPos).getBlock());
         this.block = null;
     }
 
@@ -117,7 +118,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
                 } catch (CommandSyntaxException e) {
                     throw new IllegalArgumentException(e);
                 }
-                BiPredicate<WorldView, BlockPos> biPredicate = (world, blockPos) -> argument.test(new CachedBlockPosition(world, blockPos, false));
+                BiPredicate<World, BlockPos> biPredicate = (world, blockPos) -> argument.test(new CachedBlockPosition(world, blockPos, false));
                 Block block = tryConvert(content);
                 return new BlockStatePredicate(content, biPredicate, block);
             }
@@ -155,8 +156,15 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
     }
 
     @Override
-    public boolean test(WorldView worldView, BlockPos blockPos) {
-        return this.biPredicate.test(worldView, blockPos);
+    public boolean test(World world, BlockPos blockPos) {
+        // 获取区块XZ坐标
+        int chunkX = ChunkSectionPos.getSectionCoord(blockPos.getX());
+        int chunkZ = ChunkSectionPos.getSectionCoord(blockPos.getZ());
+        // 判断区块是否已加载
+        if (world.isChunkLoaded(chunkX, chunkZ)) {
+            return this.biPredicate.test(world, blockPos);
+        }
+        return false;
     }
 
     public Text getDisplayName() {
@@ -182,7 +190,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
         }
 
         @Override
-        public boolean test(WorldView world, BlockPos pos) {
+        public boolean test(World world, BlockPos pos) {
             BlockState blockState = world.getBlockState(pos);
             // 排除基岩，空气和流体
             if (blockState.isOf(Blocks.BEDROCK) || blockState.isAir() || blockState.getBlock() instanceof FluidBlock) {
@@ -206,7 +214,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
             return hasWater && canPush(world, pos);
         }
 
-        private boolean canPush(WorldView world, BlockPos pos) {
+        private boolean canPush(World world, BlockPos pos) {
             for (int i = 1; i <= 8; i++) {
                 BlockState blockState = world.getBlockState(pos.down(i));
                 // 不可被推动的方块

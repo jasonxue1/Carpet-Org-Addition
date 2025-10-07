@@ -99,7 +99,10 @@ loom {
     runs {
         client {
             programArgs(["--username", "Player789"])
-            vmArgs("-XX:+EnableDynamicAgentLoading")
+            vmArgs(
+                    "-XX:+EnableDynamicAgentLoading",
+                    "-Dorg.slf4j.simpleLogger.defaultLogLevel=DEBUG"
+            )
         }
     }
 }

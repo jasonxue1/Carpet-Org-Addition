@@ -182,9 +182,9 @@ public class FinderCommand extends AbstractServerCommand {
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(from, to);
         BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
-        MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
-        return 0;
+        return 1;
     }
 
     // 区域方块查找
