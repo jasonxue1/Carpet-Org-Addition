@@ -38,6 +38,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
         this.block = block;
     }
 
+    @SuppressWarnings("unused")
     public BlockStatePredicate(BlockState blockState) {
         StringBuilder builder = new StringBuilder();
         Block block = blockState.getBlock();
@@ -46,6 +47,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
         List<String> list = new HashMap<>(blockState.getEntries())
                 .entrySet()
                 .stream()
+                // 过滤默认方块状态
                 .filter(entry -> !entry.getValue().equals(defaultEntries.get(entry.getKey())))
                 .filter(Objects::nonNull)
                 .map(StateAccessor.getPropertyMapPrinter())
@@ -123,6 +125,7 @@ public class BlockStatePredicate implements BiPredicate<WorldView, BlockPos> {
         throw new IllegalArgumentException();
     }
 
+    @SuppressWarnings("unused")
     public static BlockStatePredicate ofState(CommandContext<ServerCommandSource> context, String arguments) {
         for (ParsedCommandNode<ServerCommandSource> commandNode : context.getNodes()) {
             if (commandNode.getNode() instanceof ArgumentCommandNode<?, ?> node && Objects.equals(node.getName(), arguments)) {

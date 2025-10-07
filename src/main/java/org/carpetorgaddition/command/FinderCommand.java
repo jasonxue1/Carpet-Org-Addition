@@ -8,7 +8,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.BlockPosArgumentType;
-import net.minecraft.command.argument.BlockStateArgumentType;
+import net.minecraft.command.argument.BlockPredicateArgumentType;
 import net.minecraft.command.argument.ItemPredicateArgumentType;
 import net.minecraft.command.argument.RegistryEntryReferenceArgumentType;
 import net.minecraft.enchantment.Enchantment;
@@ -67,7 +67,7 @@ public class FinderCommand extends AbstractServerCommand {
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
                         .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
-                        .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(this.access))
+                        .then(CommandManager.argument("blockState", BlockPredicateArgumentType.blockPredicate(this.access))
                                 .executes(context -> blockFinder(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
@@ -165,7 +165,7 @@ public class FinderCommand extends AbstractServerCommand {
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
         BlockRegion blockRegion = new BlockRegion(world, sourceBlockPos, range);
-        BlockStatePredicate predicate = BlockStatePredicate.ofState(context, "blockState");
+        BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -194,7 +194,7 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
         // 计算要查找的区域
         BlockRegion blockRegion = new BlockRegion(from, to);
-        BlockStatePredicate predicate = BlockStatePredicate.ofState(context, "blockState");
+        BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
         BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
@@ -246,11 +246,4 @@ public class FinderCommand extends AbstractServerCommand {
     public String getDefaultName() {
         return "finder";
     }
-
-    public interface BlockPredicate {
-        boolean test(ServerWorld world, BlockPos pos);
-
-        Text getName();
-    }
-
 }
