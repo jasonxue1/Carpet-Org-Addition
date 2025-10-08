@@ -6,6 +6,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.command.FinderCommand;
+import org.carpetorgaddition.exception.ForceReturnException;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
@@ -102,7 +103,11 @@ public class BlockSearchTask extends ServerTask {
             if (this.blockPosCache.contains(blockPos)) {
                 continue;
             }
-            this.iterate(blockPos);
+            try {
+                this.iterate(blockPos);
+            } catch (ForceReturnException e) {
+                return;
+            }
         }
         this.findState = FindState.SORT;
     }
@@ -110,6 +115,9 @@ public class BlockSearchTask extends ServerTask {
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
         BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
+            if (timeout()) {
+                throw ForceReturnException.INSTANCE;
+            }
             // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
             if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.blockRegion.contains(blockPos)) {
                 Block block = world.getBlockState(blockPos).getBlock();
