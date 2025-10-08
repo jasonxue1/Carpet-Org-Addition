@@ -579,7 +579,11 @@ public class CarpetOrgAdditionSettings {
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );
-
+    public static final Supplier<Boolean> fakePlayerConditionalKeepInventory = register(
+            RuleFactory.create(Boolean.class, "fakePlayerConditionalKeepInventory", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
     /**
      * 苦力怕命令
      */
