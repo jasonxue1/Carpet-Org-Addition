@@ -38,30 +38,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
-    /**
-     * 任务的线程池，逻辑上只能同时执行一个离线玩家物品查找任务
-     */
-    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors() + 1,
-            Runtime.getRuntime().availableProcessors() + 1,
-            5,
-            TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(),
-            OfflinePlayerSearchTask::createNewThread
-    );
-
-    static {
-        EXECUTOR.allowCoreThreadTimeOut(true);
-    }
-
     /**
      * 因文件损坏等原因暂时无法读取数据的玩家的UUID
      */
@@ -75,10 +56,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     public static final Set<UUID> INVALID_PLAYER_DATAS = ConcurrentHashMap.newKeySet();
     public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
-    /**
-     * 线程池中，线程的ID
-     */
-    private static final AtomicInteger THREAD_ID = new AtomicInteger(0);
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatters.create();
     /**
@@ -176,7 +153,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
-        EXECUTOR.submit(() -> {
+        this.submit(() -> {
             try {
                 if (INVALID_PLAYER_DATAS.contains(uuid)) {
                     return;
@@ -550,14 +527,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
             }
         }
         return this.backupFileDirectory;
-    }
-
-    private static Thread createNewThread(Runnable runnable) {
-        Thread thread = new Thread(runnable);
-        thread.setDaemon(true);
-        thread.setName(OfflinePlayerSearchTask.class.getSimpleName() + "-Thread-" + THREAD_ID.incrementAndGet());
-        thread.setUncaughtExceptionHandler((t, e) -> CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e));
-        return thread;
     }
 
     /**

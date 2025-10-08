@@ -5,7 +5,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
-import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
@@ -127,8 +126,6 @@ public class BlockSearchTask extends ServerTask {
                         );
                         throw new TaskExecutionException(function);
                     }
-                } else {
-                    CarpetOrgAddition.LOGGER.debug("Repeatedly adding iterated block position: {}", blockPos);
                 }
                 return true;
             }
