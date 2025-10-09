@@ -43,6 +43,9 @@ public class BlockSearchTask extends ServerTask {
      * 已经迭代过的坐标集合
      */
     private final Set<BlockPos> blockPosCache = Collections.newSetFromMap(new WeakHashMap<>());
+    /**
+     * 找到的方块数量
+     */
     private int count = 0;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
@@ -165,10 +168,9 @@ public class BlockSearchTask extends ServerTask {
 
     // 发送反馈
     protected void sendFeedback() {
-        int count = this.results.size();
         Text name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
-        MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", count, name);
+        MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", this.count, name);
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
