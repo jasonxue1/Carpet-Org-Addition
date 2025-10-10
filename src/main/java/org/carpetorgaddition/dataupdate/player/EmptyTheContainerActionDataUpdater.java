@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.fakeplayer.action.EmptyTheContainerAction;
 import org.carpetorgaddition.util.GenericUtils;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 /**
  * 清空容器动作数据更新器

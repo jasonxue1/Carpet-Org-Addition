@@ -1,4 +1,4 @@
-package org.carpetorgaddition.wheel;
+package org.carpetorgaddition.wheel.predicate;
 
 import carpet.CarpetServer;
 import com.mojang.brigadier.StringReader;
@@ -20,6 +20,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.InvalidIdentifierException;
 import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.wheel.CommandRegistryAccessor;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

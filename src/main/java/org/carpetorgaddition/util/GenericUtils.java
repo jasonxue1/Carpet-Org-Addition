@@ -7,8 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.*;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -81,10 +80,21 @@ public class GenericUtils {
         return Registries.BLOCK.getId(block);
     }
 
-    public static Optional<Identifier> getId(Enchantment enchantment) {
+    public static Optional<Identifier> getId(World world, Enchantment enchantment) {
         RegistryEntry<Enchantment> entry = RegistryEntry.of(enchantment);
-        return entry.getKey().map(RegistryKey::getValue);
+        entry.getKey().map(RegistryKey::getValue);
+        return getId(world.getRegistryManager(), enchantment);
     }
+
+    public static Optional<Identifier> getId(MinecraftServer server, Enchantment enchantment) {
+        return getId(server.getRegistryManager(), enchantment);
+    }
+
+    public static Optional<Identifier> getId(DynamicRegistryManager registryManager, Enchantment enchantment) {
+        Registry<Enchantment> enchantments = registryManager.get(RegistryKeys.ENCHANTMENT);
+        return Optional.ofNullable(enchantments.getId(enchantment));
+    }
+
 
     public static String getIdAsString(Item item) {
         return getId(item).toString();

@@ -19,8 +19,8 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BlockEntityRegion;
 import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.BlockStatePredicate;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayPayloadHandler<ObjectSearchTaskC2SPacket> {
     @Override

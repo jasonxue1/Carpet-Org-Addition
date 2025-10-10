@@ -26,6 +26,7 @@ import org.carpetorgaddition.wheel.*;
 import org.carpetorgaddition.wheel.inventory.*;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;

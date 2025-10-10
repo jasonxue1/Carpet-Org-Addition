@@ -14,7 +14,7 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.BlockStatePredicate;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;

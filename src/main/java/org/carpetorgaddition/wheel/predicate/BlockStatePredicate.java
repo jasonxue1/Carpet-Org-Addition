@@ -1,4 +1,4 @@
-package org.carpetorgaddition.wheel;
+package org.carpetorgaddition.wheel.predicate;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
@@ -19,6 +19,7 @@ import net.minecraft.util.math.ChunkSectionPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.mixin.accessor.StateAccessor;
 import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

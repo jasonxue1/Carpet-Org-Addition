@@ -7,7 +7,7 @@ import net.minecraft.item.Item;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.JsonUtils;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 import java.util.Locale;
 import java.util.Optional;

@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -11,11 +10,11 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.village.TradeOfferList;
 import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
-import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.ArrayList;
@@ -23,15 +22,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
-    private final Text treadName;
-    private final Enchantment enchantment;
+    private final EnchantedBookPredicate predicate;
 
-    public TradeEnchantedBookSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source, Enchantment enchantment) {
+    public TradeEnchantedBookSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source, EnchantedBookPredicate predicate) {
         super(world, blockRegion, sourcePos, source);
-        // 获取附魔名称，不带等级
-        Text text = EnchantmentUtils.getName(enchantment);
-        this.treadName = TextBuilder.combineAll(text, Items.ENCHANTED_BOOK.getName());
-        this.enchantment = enchantment;
+        this.predicate = predicate;
     }
 
     @Override
@@ -68,12 +63,9 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
         this.villagerCount++;
     }
 
-    private int getBookEnchantment(ItemStack enchantedBook) {
-        if (enchantedBook.isOf(Items.ENCHANTED_BOOK)) {
-            int level = EnchantmentUtils.getLevel(world, enchantment, enchantedBook);
-            if (level > 0) {
-                return level;
-            }
+    private int getBookEnchantment(ItemStack book) {
+        if (book.isOf(Items.ENCHANTED_BOOK)) {
+            return this.predicate.getLevel(book);
         }
         return -1;
     }
@@ -87,7 +79,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected Text getTradeName() {
-        return this.treadName;
+        return this.predicate.getDisplayName();
     }
 
     public class EnchantedBookFindResult implements Result {
@@ -103,12 +95,14 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
         @Override
         public Text get() {
+            String key = "carpet.commands.finder.trade.enchanted_book.each";
+            Text pos = TextProvider.blockPos(this.villagerPos(), Formatting.GREEN);
             // 村民或流浪商人的名称
             Text villagerName = merchant.getName();
+            String indices = getIndexArray(this.list);
             // 获取交易名称
-            Text enchantmentName = EnchantmentUtils.getName(enchantment, level);
-            return TextBuilder.translate("carpet.commands.finder.trade.enchanted_book.each",
-                    TextProvider.blockPos(this.villagerPos(), Formatting.GREEN), villagerName, getIndexArray(this.list), enchantmentName);
+            Text enchantName = predicate.getWithLevel(level);
+            return TextBuilder.translate(key, pos, villagerName, indices, enchantName);
         }
 
         @Override
@@ -127,5 +121,4 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
             return -compare;
         }
     }
-
 }

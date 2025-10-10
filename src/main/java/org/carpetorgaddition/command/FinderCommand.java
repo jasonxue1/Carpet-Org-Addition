@@ -14,6 +14,7 @@ import net.minecraft.command.argument.RegistryEntryReferenceArgumentType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -28,9 +29,14 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.BlockEntityRegion;
+import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
+import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.function.Predicate;
@@ -224,12 +230,15 @@ public class FinderCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取需要查找的附魔
         Enchantment enchantment = RegistryEntryReferenceArgumentType.getEnchantment(context, "enchantment").value();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        EnchantedBookPredicate predicate = new EnchantedBookPredicate(server, enchantment);
         // 获取玩家所在的位置
         BlockPos sourcePos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
         // 查找范围
-        BlockRegion area = new BlockRegion(world, sourcePos, range);
-        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context.getSource(), enchantment);
+        BlockRegion region = new BlockRegion(world, sourcePos, range);
+        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, region, sourcePos, source, predicate);
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;

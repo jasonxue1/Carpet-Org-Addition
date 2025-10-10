@@ -11,7 +11,7 @@ import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
@@ -32,7 +32,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
         TradeOfferList offers = merchant.getOffers();
         ArrayList<Integer> list = new ArrayList<>();
         for (int index = 0; index < offers.size(); index++) {
-            // 检查每个出售的物品是否与匹配器匹配
+            // 检查每个出售的物品是否与谓词匹配
             if (this.predicate.test(offers.get(index).getSellItem())) {
                 list.add(index + 1);
                 this.tradeCount++;
