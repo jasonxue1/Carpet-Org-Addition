@@ -29,10 +29,10 @@ public class ClientFinderCommand extends AbstractClientCommand {
         super(dispatcher, access);
     }
 
-    // TODO 同步命令权限
     @Override
     public void register(String name) {
         this.dispatcher.register(ClientCommandManager.literal(name)
+                // TODO 命令开关
                 .then(ClientCommandManager.literal("item")
                         .then(ClientCommandManager.argument("item", new ClientItemArgumentType())
                                 .executes(context -> searchItem(context, 64))

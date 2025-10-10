@@ -281,6 +281,7 @@
   "carpet.command.page.next": "下一页",
   "carpet.command.page.invalid": "试图访问第%s页，但总页数为%s",
   "carpet.command.page.non_existent": "页面不存在或已被回收",
+  "carpet.command.permission.insufficient": "权限不足！",
   "carpet.commands.finder.timeout": "任务超时",
   "carpet.commands.finder.block.too_much_blocks": "周围%s过多，无法统计",
   "carpet.commands.finder.block.not_found_block": "在指定范围内找不到%s",

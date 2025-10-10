@@ -62,6 +62,9 @@ public class FinderCommand extends AbstractServerCommand {
      * 查找超时时抛出异常的反馈消息
      */
     public static final String TIME_OUT = "carpet.commands.finder.timeout";
+    public static final String FINDER_BLOCK = "finder.block";
+    public static final String FINDER_ITEM = "finder.item";
+    public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
 
     public FinderCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
@@ -72,7 +75,7 @@ public class FinderCommand extends AbstractServerCommand {
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
-                        .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
+                        .requires(PermissionManager.register(FINDER_BLOCK, PermissionLevel.PASS))
                         .then(CommandManager.argument("blockState", BlockPredicateArgumentType.blockPredicate(this.access))
                                 .executes(context -> blockFinder(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
@@ -84,7 +87,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(this::areaBlockSearch)))))))
                 .then(CommandManager.literal("item")
-                        .requires(PermissionManager.register("finder.item", PermissionLevel.PASS))
+                        .requires(PermissionManager.register(FINDER_ITEM, PermissionLevel.PASS))
                         .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(this.access))
                                 .executes(context -> searchItem(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
@@ -96,7 +99,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(this::areaItemFinder))))
                                         .then(CommandManager.literal("offline_player")
-                                                .requires(PermissionManager.register("finder.item.from.offline_player", PermissionLevel.PASS))
+                                                .requires(PermissionManager.register(FINDER_ITEM_FROM_OFFLINE_PLAYER, PermissionLevel.PASS))
                                                 .executes(this::searchItemFromOfflinePlayer)))))
                 .then(CommandManager.literal("trade")
                         .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
