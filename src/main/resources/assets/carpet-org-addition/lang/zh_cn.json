@@ -573,6 +573,8 @@
   "carpet.logger.fishing.break_free": "距离鱼挣脱还有%s刻",
   "carpet.logger.obsidian.generate": "在%s处生成了一块黑曜石",
   "carpet.inventory.item.placeholder": "占位",
+  "carpet.client.command.matching_pattern.invalid": "无效的匹配模式",
+  "carpet.client.command.string.broad": "字符串过于宽泛",
   "carpet.client.commands.highlight": "点击以高亮路径点",
   "carpet.client.commands.dictionary.not_matched": "字符串与任何对象都不匹配",
   "carpet.client.commands.dictionary.id": "%s的ID是：%s",

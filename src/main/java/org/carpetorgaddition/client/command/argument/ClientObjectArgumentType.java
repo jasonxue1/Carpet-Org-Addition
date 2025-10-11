@@ -26,15 +26,23 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T>> {
+    private static final List<String> PATTERNS = Arrays.stream(MatchPattern.values()).map(MatchPattern::toString).toList();
+    /**
+     * 字符串是否使用匹配模式
+     */
+    private final boolean patternMatching;
+
     private ClientObjectArgumentType() {
+        this(false);
+    }
+
+    private ClientObjectArgumentType(boolean patternMatching) {
+        this.patternMatching = patternMatching;
     }
 
     public static List<?> getType(CommandContext<FabricClientCommandSource> context, String name) {
@@ -44,13 +52,16 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     @Override
     public List<T> parse(StringReader reader) throws CommandSyntaxException {
         int cursor = reader.getCursor();
-        String itemName = ClientCommandUtils.readWord(reader);
+        String name = ClientCommandUtils.readWord(reader);
+        MatchPattern pattern = this.patternMatching ? readParameters(reader) : MatchPattern.EQUAL;
         // 由于可以使用资源包更改对象名称，因此一个名称可能对应多个对象
         ArrayList<T> list = new ArrayList<>();
-        for (T t : getRegistry().toList()) {
-            // 获取所有与字符串对应的对象
-            if (Objects.equals(itemName, objectToString(t))) {
-                list.add(t);
+        if (!name.isEmpty()) {
+            for (T t : getRegistry().toList()) {
+                // 获取所有与字符串对应的对象
+                if (pattern.match(name.toLowerCase(Locale.ROOT), objectToString(t).toLowerCase(Locale.ROOT))) {
+                    list.add(t);
+                }
             }
         }
         // 没有对象与字符串对应
@@ -58,7 +69,29 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
             reader.setCursor(cursor);
             throw CommandUtils.createException("carpet.client.commands.dictionary.not_matched");
         }
+        // 字符串过于宽泛
+        if (this.patternMatching && list.size() > 40 && pattern != MatchPattern.EQUAL) {
+            reader.setCursor(cursor);
+            throw CommandUtils.createException("carpet.client.command.string.broad");
+        }
         return list;
+    }
+
+    private MatchPattern readParameters(StringReader reader) throws CommandSyntaxException {
+        int cursor = reader.getCursor();
+        reader.skipWhitespace();
+        String mode = reader.readUnquotedString().toLowerCase(Locale.ROOT);
+        if (mode.startsWith("-")) {
+            return switch (mode) {
+                case "-equal" -> MatchPattern.EQUAL;
+                case "-contain" -> MatchPattern.CONTAIN;
+                case "-regex" -> MatchPattern.REGEX;
+                default -> throw CommandUtils.createException("carpet.client.command.matching_pattern.invalid");
+            };
+        } else {
+            reader.setCursor(cursor);
+            return MatchPattern.EQUAL;
+        }
     }
 
     /**
@@ -77,16 +110,31 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
                     .map(s -> s.contains(" ") ? "\"" + s + "\"" : s)
                     .toArray(String[]::new);
             String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-            for (String candidate : array) {
-                // 列出所有名称中包含输入字符串的对象
-                if (candidate.toLowerCase(Locale.ROOT).contains(remaining)) {
-                    builder.suggest(candidate);
+            String[] split = remaining.split(" ");
+            if (this.patternMatching && (split.length > 1 || remaining.endsWith(" "))) {
+                // 补全匹配模式
+                StringReader reader = new StringReader(builder.getInput());
+                // 跳过名称字符串和空格
+                reader.setCursor(builder.getStart() + split[0].length());
+                reader.skipWhitespace();
+                SuggestionsBuilder offset = builder.createOffset(reader.getCursor());
+                for (String pattern : PATTERNS) {
+                    if (!reader.canRead() || pattern.startsWith(split[1].toLowerCase(Locale.ROOT))) {
+                        offset.suggest(pattern);
+                    }
                 }
+                return offset.buildFuture();
+            } else {
+                for (String candidate : array) {
+                    // 列出所有名称中包含输入字符串的对象
+                    if (candidate.toLowerCase(Locale.ROOT).contains(remaining)) {
+                        builder.suggest(candidate);
+                    }
+                }
+                return builder.buildFuture();
             }
-            return builder.buildFuture();
-        } else {
-            return Suggestions.empty();
         }
+        return Suggestions.empty();
     }
 
     /**
@@ -98,6 +146,9 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 物品参数
      */
     public static class ClientItemArgumentType extends ClientObjectArgumentType<Item> {
+        public ClientItemArgumentType(boolean patternMatching) {
+            super(patternMatching);
+        }
 
         @Override
         protected String objectToString(Item item) {
@@ -114,6 +165,10 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      * 方块参数
      */
     public static class ClientBlockArgumentType extends ClientObjectArgumentType<Block> {
+        public ClientBlockArgumentType(boolean patternMatching) {
+            super(patternMatching);
+        }
+
         @Override
         protected String objectToString(Block block) {
             return block.getName().getString();
@@ -221,6 +276,38 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
                 }
             });
             return list.stream();
+        }
+    }
+
+    public enum MatchPattern {
+        /**
+         * 完全匹配
+         */
+        EQUAL,
+        /**
+         * 包含
+         */
+        CONTAIN,
+        /**
+         * 正则表达式
+         */
+        REGEX;
+
+        private boolean match(String arguments, String str) {
+            return switch (this) {
+                case EQUAL -> Objects.equals(str, arguments);
+                case CONTAIN -> str.contains(arguments);
+                case REGEX -> str.matches(arguments);
+            };
+        }
+
+        @Override
+        public String toString() {
+            return switch (this) {
+                case EQUAL -> "-equal";
+                case CONTAIN -> "-contain";
+                case REGEX -> "-regex";
+            };
         }
     }
 }

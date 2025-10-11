@@ -34,7 +34,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
         this.dispatcher.register(ClientCommandManager.literal(name)
                 // TODO 命令开关
                 .then(ClientCommandManager.literal("item")
-                        .then(ClientCommandManager.argument("item", new ClientItemArgumentType())
+                        .then(ClientCommandManager.argument("item", new ClientItemArgumentType(true))
                                 .executes(context -> searchItem(context, 64))
                                 .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
@@ -43,7 +43,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
                                         .then(ClientCommandManager.literal("offline_player")
                                                 .executes(this::searchItem)))))
                 .then(ClientCommandManager.literal("block")
-                        .then(ClientCommandManager.argument("block", new ClientBlockArgumentType())
+                        .then(ClientCommandManager.argument("block", new ClientBlockArgumentType(true))
                                 .executes(context -> searchBlock(context, 64))
                                 .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
