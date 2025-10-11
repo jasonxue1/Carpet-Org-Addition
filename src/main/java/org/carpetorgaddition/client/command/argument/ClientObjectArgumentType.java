@@ -110,16 +110,18 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
                     .map(s -> s.contains(" ") ? "\"" + s + "\"" : s)
                     .toArray(String[]::new);
             String remaining = builder.getRemaining().toLowerCase(Locale.ROOT);
-            String[] split = remaining.split(" ");
+            String[] split = this.splitArguments(remaining);
             if (this.patternMatching && (split.length > 1 || remaining.endsWith(" "))) {
                 // 补全匹配模式
                 StringReader reader = new StringReader(builder.getInput());
                 // 跳过名称字符串和空格
-                reader.setCursor(builder.getStart() + split[0].length());
+                if (split.length > 0) {
+                    reader.setCursor(builder.getStart() + split[0].length());
+                }
                 reader.skipWhitespace();
                 SuggestionsBuilder offset = builder.createOffset(reader.getCursor());
                 for (String pattern : PATTERNS) {
-                    if (!reader.canRead() || pattern.startsWith(split[1].toLowerCase(Locale.ROOT))) {
+                    if (!reader.canRead() || (split.length > 1 && pattern.startsWith(split[1].toLowerCase(Locale.ROOT)))) {
                         offset.suggest(pattern);
                     }
                 }
@@ -135,6 +137,25 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
             }
         }
         return Suggestions.empty();
+    }
+
+    /**
+     * 将参数切割为数组，允许被引号包裹的字符串中出现空格
+     */
+    private String[] splitArguments(String remaining) {
+        ArrayList<String> list = new ArrayList<>();
+        StringReader reader = new StringReader(remaining);
+        while (reader.canRead()) {
+            int cursor = reader.getCursor();
+            try {
+                ClientCommandUtils.readWord(reader);
+                list.add(remaining.substring(cursor, reader.getCursor()));
+                reader.skipWhitespace();
+            } catch (CommandSyntaxException e) {
+                break;
+            }
+        }
+        return list.toArray(String[]::new);
     }
 
     /**
