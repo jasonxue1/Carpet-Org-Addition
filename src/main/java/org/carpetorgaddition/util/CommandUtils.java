@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.GameProfileArgumentType;
+import net.minecraft.command.permission.*;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.PlayerConfigEntry;
@@ -213,7 +214,7 @@ public class CommandUtils {
 
     public static void execute(ServerCommandSource source, String command) {
         CommandManager commandManager = source.getServer().getCommandManager();
-        commandManager.executeWithPrefix(source, command);
+        commandManager.parseAndExecute(source, command);
     }
 
     public static void handlingException(ThrowingRunnable runnable, CommandContext<ServerCommandSource> context) {
@@ -248,6 +249,43 @@ public class CommandUtils {
             case null -> false;
             default -> canUseCommand(level, value.toString());
         };
+    }
+
+    /**
+     * @return 玩家是否有执行某一命令的权限
+     */
+    public static boolean canUseCommand(PermissionCheck permissionCheck, Object value) {
+        return switch (value) {
+            case Boolean bool -> bool;
+            case String str -> switch (str.toLowerCase(Locale.ROOT)) {
+                case "ops", "2" -> permissionCheck.allows(parsePermissionPredicate(2));
+                case "1", "3", "4" -> permissionCheck.allows(parsePermissionPredicate(Integer.parseInt(str)));
+                case "0", "true" -> true;
+                default -> false;
+            };
+            case null, default -> false;
+        };
+    }
+
+    public static boolean canUseCommand(PermissionPredicate predicate, Object value) {
+        return switch (value) {
+            case Boolean bool -> bool;
+            case String str -> switch (str.toLowerCase(Locale.ROOT)) {
+                case "ops", "2" -> predicate.hasPermission(parsePermission(2));
+                case "1", "3", "4" -> predicate.hasPermission(parsePermission(Integer.parseInt(str)));
+                case "0", "true" -> true;
+                default -> false;
+            };
+            case null, default -> false;
+        };
+    }
+
+    private static LeveledPermissionPredicate parsePermissionPredicate(int level) {
+        return LeveledPermissionPredicate.fromLevel(PermissionLevel.fromLevel(level));
+    }
+
+    public static Permission parsePermission(int level) {
+        return new Permission.Level(PermissionLevel.fromLevel(level));
     }
 
     /**

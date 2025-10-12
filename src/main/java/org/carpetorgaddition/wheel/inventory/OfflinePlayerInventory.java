@@ -3,12 +3,15 @@ package org.carpetorgaddition.wheel.inventory;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.command.permission.Permission;
+import net.minecraft.command.permission.PermissionLevel;
 import net.minecraft.entity.ContainerUser;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.WorldSavePath;
@@ -63,7 +66,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      */
     public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayerEntity player) throws CommandSyntaxException {
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().permissionRequired()) {
-            if (player.hasPermissionLevel(2)) {
+            if (player.method_75004().hasPermission(new Permission.Level(PermissionLevel.GAMEMASTERS))) {
                 return;
             }
             PlayerManager playerManager = server.getPlayerManager();

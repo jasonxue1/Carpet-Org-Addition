@@ -8,8 +8,8 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 @SuppressWarnings("UnusedReturnValue")
 @Mixin(RenderLayer.MultiPhaseParameters.Builder.class)
 public interface MultiPhaseParametersBuilderAccessor {
-    @Invoker("lineWidth")
-    RenderLayer.MultiPhaseParameters.Builder setLineWidth(RenderPhase.LineWidth lineWidth);
+/*    @Invoker("lineWidth")
+    RenderLayer.MultiPhaseParameters.Builder setLineWidth(RenderPhase.LineWidth lineWidth);*/
 
     @Invoker("layering")
     RenderLayer.MultiPhaseParameters.Builder setLayering(RenderPhase.Layering layering);

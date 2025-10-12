@@ -41,7 +41,7 @@ public class LineRenderer implements WorldRenderer {
         MatrixStack.Entry peek = matrixStack.peek();
         Matrix4f matrix4f = peek.getPositionMatrix();
         Camera camera = ClientUtils.getCamera();
-        Vec3d cameraPos = camera.getPos();
+        Vec3d cameraPos = camera.getCameraPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
         BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);

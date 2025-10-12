@@ -1,6 +1,7 @@
 package org.carpetorgaddition.wheel.permission;
 
 import net.minecraft.server.command.ServerCommandSource;
+import org.carpetorgaddition.util.CommandUtils;
 
 import java.util.function.Predicate;
 
@@ -34,10 +35,8 @@ public enum PermissionLevel implements Predicate<ServerCommandSource> {
     public boolean test(ServerCommandSource source) {
         return switch (this) {
             case REJECT -> false;
-            case MODERATORS -> source.hasPermissionLevel(1);
-            case OPS -> source.hasPermissionLevel(2);
-            case ADMINS -> source.hasPermissionLevel(3);
-            case OWNERS -> source.hasPermissionLevel(4);
+            case MODERATORS, OPS, ADMINS, OWNERS ->
+                    source.getPermissions().hasPermission(CommandUtils.parsePermission(this.ordinal()));
             case PASS -> true;
         };
     }

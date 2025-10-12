@@ -22,7 +22,7 @@ public class ClientRenderUtils {
     static {
         RenderLayer.MultiPhaseParameters.Builder builder = RenderLayer.MultiPhaseParameters.builder();
         MultiPhaseParametersBuilderAccessor accessor = (MultiPhaseParametersBuilderAccessor) builder;
-        accessor.setLineWidth(new RenderPhase.LineWidth(OptionalDouble.empty()));
+//        accessor.setLineWidth(new RenderPhase.LineWidth(OptionalDouble.empty()));
         accessor.setLayering(RenderPhase.VIEW_OFFSET_Z_LAYERING);
         accessor.setTarget(RenderPhase.ITEM_ENTITY_TARGET);
         SEE_THROUGH_LINE = RenderLayer.of(

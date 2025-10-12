@@ -36,7 +36,7 @@ public class BlockOutlineRender {
         }
         BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
         Camera camera = ClientUtils.getCamera();
-        Vec3d cameraPos = camera.getPos();
+        Vec3d cameraPos = camera.getCameraPos();
         matrixStack.push();
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
         matrixStack.translate(this.blockPos.getX(), this.blockPos.getY(), this.blockPos.getZ());

@@ -10,7 +10,6 @@
     "accessor.FishingBobberEntityAccessor",
     "accessor.HorseScreenHandlerAccessor",
     "accessor.MerchantScreenHandlerAccessor",
-    "accessor.PlayerEntityAccessor",
     "accessor.PlayerManagerAccessor",
     "accessor.SpawnHelperInfoAccessor",
     "accessor.carpet.EntityPlayerActionPackAccessor",

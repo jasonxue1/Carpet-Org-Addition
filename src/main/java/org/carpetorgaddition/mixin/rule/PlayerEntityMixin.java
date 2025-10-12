@@ -4,6 +4,7 @@ import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.block.BlockState;
+import net.minecraft.command.permission.PermissionPredicate;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.HungerManager;
@@ -11,12 +12,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -94,14 +93,8 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 获取打开GUI所需要的命令
     @Unique
     private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
-        boolean canUseCommand;
-        if (thisPlayer instanceof ServerPlayerEntity player) {
-            ServerCommandSource source = player.getCommandSource();
-            canUseCommand = CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.commandPlayerAction);
-        } else {
-            int level = ((PlayerEntityAccessor) thisPlayer).permissionLevel();
-            canUseCommand = CommandUtils.canUseCommand(level, CarpetOrgAdditionSettings.commandPlayerAction.get());
-        }
+        PermissionPredicate predicate = thisPlayer.method_75004();
+        boolean canUseCommand = CommandUtils.canUseCommand(predicate, CarpetOrgAdditionSettings.commandPlayerAction.get());
         if (canUseCommand) {
             if (itemStack.isEmpty()) {
                 return Optional.empty();

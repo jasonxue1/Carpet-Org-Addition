@@ -94,11 +94,11 @@ public class WaypointRenderer implements WorldRenderer {
         Camera camera = ClientUtils.getCamera();
         // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
         if (WorldUtils.isOverworld(playerWorldId) && WorldUtils.isTheNether(this.worldId)) {
-            return new Vec3d(this.target.getX() * 8, camera.getPos().getY(), this.target.getZ() * 8);
+            return new Vec3d(this.target.getX() * 8, camera.getCameraPos().getY(), this.target.getZ() * 8);
         }
         // 玩家在下界，路径点在主世界，将路径点坐标换算成下界坐标
         if (WorldUtils.isTheNether(playerWorldId) && WorldUtils.isOverworld(this.worldId)) {
-            return new Vec3d(this.target.getX() / 8, camera.getPos().getY(), this.target.getZ() / 8);
+            return new Vec3d(this.target.getX() / 8, camera.getCameraPos().getY(), this.target.getZ() / 8);
         }
         return null;
     }
@@ -108,7 +108,7 @@ public class WaypointRenderer implements WorldRenderer {
      */
     private void drawIcon(WorldRenderContext context, MatrixStack matrixStack, Vec3d target, Camera camera) {
         // 获取摄像机位置
-        Vec3d cameraPos = camera.getPos();
+        Vec3d cameraPos = camera.getCameraPos();
         // 玩家距离目标的位置
         Vec3d offset = target.subtract(cameraPos);
         // 获取客户端渲染距离
@@ -184,7 +184,7 @@ public class WaypointRenderer implements WorldRenderer {
         float j = MathHelper.cos(f);
         float k = MathHelper.sin(f);
         Vec3d vec3d = new Vec3d(i * j, -k, h * j).normalize();
-        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getPos().getX(), target.getY() - camera.getPos().getY(), target.getZ() - camera.getPos().getZ());
+        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getCameraPos().getX(), target.getY() - camera.getCameraPos().getY(), target.getZ() - camera.getCameraPos().getZ());
         double d = vec3d2.length();
         vec3d2 = vec3d2.normalize();
         double e = vec3d.dotProduct(vec3d2);

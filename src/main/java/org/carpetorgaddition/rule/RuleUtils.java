@@ -4,8 +4,11 @@ import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
-import net.minecraft.command.PermissionLevelPredicate;
-import net.minecraft.server.command.ServerCommandSource;
+import com.mojang.serialization.MapCodec;
+import net.minecraft.command.permission.PermissionCheck;
+import net.minecraft.command.permission.PermissionPredicate;
+import net.minecraft.command.permission.PermissionSource;
+import net.minecraft.command.permission.PermissionSourcePredicate;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -92,21 +95,24 @@ public class RuleUtils {
      * @param supplier  命令权限对应规则的开关
      * @param predicate 原版的权限谓词
      */
-    public static PermissionLevelPredicate<ServerCommandSource> requireOrOpenPermissionLevel(
+    public static <T extends PermissionSource> PermissionSourcePredicate<T> requireOrOpenPermissionLevel(
             Supplier<Boolean> supplier,
-            PermissionLevelPredicate<ServerCommandSource> predicate
+            PermissionSourcePredicate<T> predicate
     ) {
-        return new PermissionLevelPredicate<>() {
+        return new PermissionSourcePredicate<>(new PermissionCheck() {
             @Override
-            public int requiredLevel() {
-                return supplier.get() ? 0 : predicate.requiredLevel();
+            public boolean allows(PermissionPredicate permissions) {
+                if (supplier.get()) {
+                    return true;
+                }
+                return predicate.test().allows(permissions);
             }
 
             @Override
-            public boolean test(ServerCommandSource source) {
-                return supplier.get() || predicate.test(source);
+            public MapCodec<? extends PermissionCheck> getCodec() {
+                return predicate.test().getCodec();
             }
-        };
+        });
     }
 
     /**

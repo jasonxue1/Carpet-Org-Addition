@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
@@ -69,18 +68,19 @@ public class BoxRenderer implements WorldRenderer {
         MatrixStack.Entry entry = matrixStack.peek();
         Matrix4f matrix4f = entry.getPositionMatrix();
         Camera camera = ClientUtils.getCamera();
-        Vec3d cameraPos = camera.getPos();
+        Vec3d cameraPos = camera.getCameraPos();
         // 平移渲染框
         matrixStack.translate(-cameraPos.getX(), -cameraPos.getY(), -cameraPos.getZ());
         // 渲染填充框
         BufferBuilder bufferBuilder = this.tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         this.drawFillBox(bufferBuilder, matrix4f, minX, minY, minZ, maxX, maxY, maxZ);
-        ClientRenderUtils.draw(RenderLayer.getDebugStructureQuads(), bufferBuilder.end());
+        // TODO 渲染器损坏
+        ClientRenderUtils.draw(RenderLayer.getDebugFilledBox(), bufferBuilder.end());
         // 渲染框线
         BufferBuilder builder = Tessellator.getInstance().begin(VertexFormat.DrawMode.LINES, VertexFormats.POSITION_COLOR_NORMAL);
         this.drawLineBox(builder, entry, minX, minY, minZ, maxX, maxY, maxZ);
         // 加粗框线
-        RenderSystem.lineWidth(2F);
+//        RenderSystem.lineWidth(2F);
         RenderLayer renderLayer = this.seeThroughLine ? ClientRenderUtils.SEE_THROUGH_LINE : RenderLayer.getLines();
         ClientRenderUtils.draw(renderLayer, builder.end());
         matrixStack.pop();

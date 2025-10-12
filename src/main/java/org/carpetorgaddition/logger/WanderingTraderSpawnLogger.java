@@ -13,7 +13,7 @@ public class WanderingTraderSpawnLogger {
 
     // 更新HUD
     public static void updateHud(MinecraftServer server) {
-        if (server.getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING)) {
+        if (server.getOverworld().getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING)) {
             if (LoggerRegister.wanderingTrader && spawnCountdown != null) {
                 // 计算流浪商人生成概率的百分比
                 double chance = spawnCountdown.spawnChance / 10.0;

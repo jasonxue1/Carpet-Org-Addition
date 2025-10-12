@@ -135,7 +135,7 @@ public class VillagerPoiRenderer implements WorldRenderer {
             return true;
         }
         // 相机距离村民过远时停止渲染
-        if (ClientUtils.getCamera().getPos().distanceTo(FetcherUtils.getFootPos(this.villagerEntity)) > 96) {
+        if (ClientUtils.getCamera().getCameraPos().distanceTo(FetcherUtils.getFootPos(this.villagerEntity)) > 96) {
             return true;
         }
         return this.villagerEntity.isRemoved();
