@@ -2,14 +2,11 @@ package org.carpetorgaddition.client.renderer.waypoint;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.*;
+import net.minecraft.client.render.Camera;
+import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.mob.EndermanEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.Colors;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -20,34 +17,22 @@ import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.WorldUtils;
-import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class WaypointRenderer implements WorldRenderer {
-    private final WaypointRendererType renderType;
+    private final WaypointIcon waypoint;
     private final Vec3d target;
     private final String worldId;
-    private final long startTime = System.currentTimeMillis();
-    private boolean fade = false;
-    private long fadeTime = -1L;
-    private boolean stop = false;
-    private final long durationTime;
 
-    public WaypointRenderer(WaypointRendererType renderType, Vec3d target, String worldId, long durationTime) {
-        this.renderType = renderType;
+    public WaypointRenderer(WaypointIcon waypoint, Vec3d target, World world) {
+        this(waypoint, target, WorldUtils.getDimensionId(world));
+    }
+
+    public WaypointRenderer(WaypointIcon waypoint, Vec3d target, String worldId) {
+        this.waypoint = waypoint;
         this.target = target;
         this.worldId = worldId;
-        this.durationTime = durationTime;
-    }
-
-    public WaypointRenderer(WaypointRendererType renderType, Vec3d target, String worldId) {
-        this(renderType, target, worldId, renderType.getDefaultDurationTime());
-    }
-
-    public WaypointRenderer(WaypointRendererType renderType, Vec3d target, World world, long durationTime) {
-        this(renderType, target, WorldUtils.getDimensionId(world), durationTime);
     }
 
     /**
@@ -57,8 +42,8 @@ public class WaypointRenderer implements WorldRenderer {
     public void render(WorldRenderContext renderContext) {
         if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
             && ClientUtils.getCurrentScreen() == null
-            && this.renderType == WaypointRendererType.HIGHLIGHT) {
-            this.setFade();
+            && WaypointIcon.HIGHLIGHT.equals(this.waypoint.getIcon())) {
+            this.waypoint.stop();
         }
         MatrixStack matrixStack = renderContext.matrixStack();
         Camera camera = ClientUtils.getCamera();
@@ -77,8 +62,8 @@ public class WaypointRenderer implements WorldRenderer {
         } catch (RuntimeException e) {
             // 发送错误消息，然后停止渲染
             ClientMessageUtils.sendErrorMessage(e, "carpet.client.render.waypoint.error");
-            CarpetOrgAddition.LOGGER.error("渲染{}路径点时遇到意外错误", this.renderType.getLogName(), e);
-            this.renderType.clear();
+            CarpetOrgAddition.LOGGER.error("渲染{}路径点时遇到意外错误", this.waypoint.getName(), e);
+            this.waypoint.clear();
         }
     }
 
@@ -110,113 +95,13 @@ public class WaypointRenderer implements WorldRenderer {
      * 绘制路径点图标
      */
     private void drawIcon(WorldRenderContext context, MatrixStack matrixStack, Vec3d target, Camera camera) {
-        // 获取摄像机位置
-        Vec3d cameraPos = camera.getPos();
-        // 玩家距离目标的位置
-        Vec3d offset = target.subtract(cameraPos);
-        // 获取客户端渲染距离
-        int renderDistance = ClientUtils.getGameOptions().getViewDistance().getValue() * 16;
-        // 修正路径点渲染位置
-        Vec3d correctionVec3d = new Vec3d(offset.getX(), offset.getY(), offset.getZ());
-        if (correctionVec3d.length() > renderDistance) {
-            // 将路径点位置限制在渲染距离内
-            correctionVec3d = correctionVec3d.normalize().multiply(renderDistance);
-        }
-        matrixStack.push();
-        // 将路径点平移到方块位置
-        matrixStack.translate(correctionVec3d.getX(), correctionVec3d.getY(), correctionVec3d.getZ());
-        // 固定路径点大小，防止因距离的改变而改变（远小近大）
-        float scale = this.renderType.getScale(correctionVec3d.length(), this.startTime, this.durationTime, this.fade, this.fadeTime);
-        if (scale <= 0F) {
-            this.stop = true;
-            return;
-        }
-        matrixStack.scale(scale, scale, scale);
-        // 翻转路径点
-        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
-        // 让路径点始终对准玩家
-        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
-        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
-        MatrixStack.Entry entry = matrixStack.peek();
-        Matrix4f matrix4f = entry.getPositionMatrix();
-        Tessellator tessellator = Tessellator.getInstance();
-        // 绘制图标纹理
-        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, -1F, -1F, 0F).texture(0, 0);
-        bufferBuilder.vertex(matrix4f, -1F, 1F, 0F).texture(0, 1);
-        bufferBuilder.vertex(matrix4f, 1F, 1F, 0F).texture(1, 1);
-        bufferBuilder.vertex(matrix4f, 1F, -1F, 0F).texture(1, 0);
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
-        RenderSystem.setShaderTexture(0, renderType.getIcon());
-        // 将缓冲区绘制到屏幕上。
-        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-        tessellator.clear();
-        // 如果准星正在指向路径点，显示文本
-        if (pointerPointing(camera, target)) {
-            drawDistance(context, matrixStack, offset, tessellator);
-        }
-        matrixStack.pop();
-    }
-
-    /**
-     * 绘制距离文本
-     */
-    private void drawDistance(WorldRenderContext context, MatrixStack matrixStack, Vec3d offset, Tessellator tessellator) {
-        TextRenderer textRenderer = ClientUtils.getTextRenderer();
-        // 计算距离
-        double distance = offset.length();
-        String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
-        TextBuilder builder = new TextBuilder(formatted);
-        // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (WorldUtils.isDifferentWorld(this.worldId, WorldUtils.getDimensionId(context.world()))) {
-            builder.setItalic();
-        }
-        // 获取文本宽度
-        int width = textRenderer.getWidth(formatted);
-        // 获取背景不透明度
-        float backgroundOpacity = ClientUtils.getGameOptions().getTextBackgroundOpacity(0.25F);
-        int opacity = (int) (backgroundOpacity * 255.0F) << 24;
-        matrixStack.push();
-        // 缩小文字
-        matrixStack.scale(0.15F, 0.15F, 0.15F);
-        // 渲染文字
-        textRenderer.draw(builder.build(), -width / 2F, 8, Colors.WHITE, false,
-                matrixStack.peek().getPositionMatrix(), context.consumers(),
-                TextRenderer.TextLayerType.SEE_THROUGH, opacity, 1);
-        tessellator.clear();
-        matrixStack.pop();
-    }
-
-    /**
-     * @return 光标是否指向路径点
-     * @see EndermanEntity#isPlayerStaring(PlayerEntity)
-     */
-    @SuppressWarnings("JavadocReference")
-    private boolean pointerPointing(Camera camera, Vec3d target) {
-        float f = camera.getPitch() * (float) (Math.PI / 180.0);
-        float g = -camera.getYaw() * (float) (Math.PI / 180.0);
-        float h = MathHelper.cos(g);
-        float i = MathHelper.sin(g);
-        float j = MathHelper.cos(f);
-        float k = MathHelper.sin(f);
-        Vec3d vec3d = new Vec3d(i * j, -k, h * j).normalize();
-        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getPos().getX(), target.getY() - camera.getPos().getY(), target.getZ() - camera.getPos().getZ());
-        double d = vec3d2.length();
-        vec3d2 = vec3d2.normalize();
-        double e = vec3d.dotProduct(vec3d2);
-        return e > 0.999 - (0.025 / d);
+        VertexConsumerProvider consumers = context.consumers();
+        RenderTickCounter tickCounter = context.tickCounter();
+        this.waypoint.render(matrixStack, consumers, target, camera, tickCounter);
     }
 
     public boolean equalsTarget(WaypointRenderer renderer) {
         return this.target.equals(renderer.target) && WorldUtils.equalsWorld(this.worldId, renderer.worldId);
-    }
-
-    public Vec3d getPos() {
-        return target;
-    }
-
-    public WaypointRendererType getRenderType() {
-        return this.renderType;
     }
 
     /**
@@ -224,18 +109,22 @@ public class WaypointRenderer implements WorldRenderer {
      */
     @Override
     public boolean shouldStop() {
-        return this.stop;
+        return this.waypoint.isDone();
     }
 
     /**
      * 设置该路径点消失
      */
-    public void setFade() {
-        if (this.fade) {
-            return;
-        }
-        this.fade = true;
-        this.fadeTime = System.currentTimeMillis();
+    public void stop() {
+        this.waypoint.stop();
+    }
+
+    public boolean isHighlight() {
+        return WaypointIcon.HIGHLIGHT.equals(this.waypoint.getIcon());
+    }
+
+    public boolean isNavigator() {
+        return WaypointIcon.NAVIGATOR.equals(this.waypoint.getIcon());
     }
 
     @Override
@@ -243,11 +132,11 @@ public class WaypointRenderer implements WorldRenderer {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return renderType == ((WaypointRenderer) o).renderType;
+        return waypoint == ((WaypointRenderer) o).waypoint;
     }
 
     @Override
     public int hashCode() {
-        return renderType.hashCode();
+        return waypoint.hashCode();
     }
 }

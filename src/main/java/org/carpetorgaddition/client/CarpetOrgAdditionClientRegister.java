@@ -12,8 +12,8 @@ import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
 import org.carpetorgaddition.client.renderer.path.PathRenderer;
 import org.carpetorgaddition.client.renderer.villagerpoi.VillagerPoiRenderer;
+import org.carpetorgaddition.client.renderer.waypoint.WaypointIcon;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
-import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.debug.client.command.BlockRegionCommand;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
@@ -56,7 +56,7 @@ public class CarpetOrgAdditionClientRegister {
                 WaypointUpdateS2CPacket.ID,
                 (payload, context) -> WorldRendererManager.addOrUpdate(
                         new WaypointRenderer(
-                                WaypointRendererType.NAVIGATOR,
+                                WaypointIcon.ofNavigator(ClientUtils.getWorld()),
                                 payload.target(),
                                 payload.worldId()
                         )
@@ -68,8 +68,9 @@ public class CarpetOrgAdditionClientRegister {
                 ((payload, context) -> Optional.ofNullable(
                         WorldRendererManager.getOnlyRenderer(
                                 WaypointRenderer.class,
-                                renderer -> renderer.getRenderType() == WaypointRendererType.NAVIGATOR)
-                ).ifPresent(WaypointRenderer::setFade))
+                                WaypointRenderer::isNavigator
+                        )
+                ).ifPresent(WaypointRenderer::stop))
         );
         // 容器不可用槽位同步数据包
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {

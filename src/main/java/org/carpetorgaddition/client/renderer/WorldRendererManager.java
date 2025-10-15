@@ -21,6 +21,7 @@ public class WorldRendererManager {
         WorldRenderEvents.START.register(context -> renders.forEach((clazz, renderers) -> renderers.removeIf(WorldRenderer::shouldStop)));
     }
 
+    // TODO
     public static void addOrUpdate(WorldRenderer render) {
         Set<WorldRenderer> set = renders.computeIfAbsent(render.getClass(), k -> new HashSet<>());
         set.remove(render);
