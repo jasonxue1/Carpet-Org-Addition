@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
+import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
@@ -39,13 +40,13 @@ public class WaypointRenderer implements WorldRenderer {
      * 绘制路径点
      */
     @Override
-    public void render(WorldRenderContext renderContext) {
+    public void render(WorldRenderContext context) {
         if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
             && ClientUtils.getCurrentScreen() == null
             && WaypointIcon.HIGHLIGHT.equals(this.waypoint.getIcon())) {
             this.waypoint.stop();
         }
-        MatrixStack matrixStack = renderContext.matrixStack();
+        MatrixStack matrixStack = context.matrixStack();
         Camera camera = ClientUtils.getCamera();
         if (camera == null) {
             return;
@@ -58,12 +59,12 @@ public class WaypointRenderer implements WorldRenderer {
             // 允许路径点透过方块渲染
             RenderSystem.disableDepthTest();
             // 绘制图标
-            drawIcon(renderContext, matrixStack, vec3d, camera);
+            drawIcon(context, matrixStack, vec3d, camera);
         } catch (RuntimeException e) {
             // 发送错误消息，然后停止渲染
             ClientMessageUtils.sendErrorMessage(e, "carpet.client.render.waypoint.error");
-            CarpetOrgAddition.LOGGER.error("渲染{}路径点时遇到意外错误", this.waypoint.getName(), e);
-            this.waypoint.clear();
+            CarpetOrgAddition.LOGGER.error("An unexpected error occurred while rendering waypoint '{}'", this.waypoint.getName(), e);
+            this.clear();
         }
     }
 
@@ -137,7 +138,12 @@ public class WaypointRenderer implements WorldRenderer {
     }
 
     @Override
-    public Object getIdentityValue() {
+    public Object getKey() {
         return this.waypoint.getIcon();
+    }
+
+    private void clear() {
+        WorldRendererManager.remove(WaypointRenderer.class, renderer -> this.waypoint.getIcon().equals(renderer.waypoint.getIcon()));
+        this.waypoint.onClear();
     }
 }

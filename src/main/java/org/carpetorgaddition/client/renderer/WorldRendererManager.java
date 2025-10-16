@@ -20,10 +20,9 @@ public class WorldRendererManager {
         WorldRenderEvents.START.register(context -> renders.forEach((clazz, renderers) -> renderers.values().removeIf(WorldRenderer::shouldStop)));
     }
 
-    // TODO
     public static void addOrUpdate(WorldRenderer renderer) {
         Map<Object, WorldRenderer> map = renders.computeIfAbsent(renderer.getClass(), k -> new HashMap<>());
-        WorldRenderer oldRenderer = map.put(renderer.getIdentityValue(), renderer);
+        WorldRenderer oldRenderer = map.put(renderer.getKey(), renderer);
         if (oldRenderer != null && oldRenderer.onUpdate(renderer)) {
             map.put(new Object(), oldRenderer);
         }

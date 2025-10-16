@@ -12,8 +12,10 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
@@ -221,28 +223,14 @@ public abstract class WaypointIcon {
         return this.icon;
     }
 
-    public abstract void clear();
+    public void onClear() {
+    }
 
     public abstract String getName();
 
     public static class Highlight extends WaypointIcon {
         protected Highlight(Identifier icon, long duration, World world, boolean persistent) {
             super(world, icon, duration, persistent);
-        }
-
-        @Override
-        public void clear() {
-/*            WorldRendererManager.remove(WaypointRenderer.class, );
-            Consumer<Identifier> consumer = type -> WorldRendererManager.remove(WaypointRenderer.class, renderer -> renderer.getRenderType() == type);
-            switch (this) {
-                case HIGHLIGHT -> consumer.accept(HIGHLIGHT);
-                // 请求服务器停止发送路径点更新数据包
-                case NAVIGATOR -> {
-                    ClientCommandUtils.sendCommand(CommandProvider.stopNavigate());
-                    consumer.accept(NAVIGATOR);
-                }
-            }*/
-            // TODO
         }
 
         @Override
@@ -257,8 +245,8 @@ public abstract class WaypointIcon {
         }
 
         @Override
-        public void clear() {
-            // TODO
+        public void onClear() {
+            ClientCommandUtils.sendCommand(CommandProvider.stopNavigate());
         }
 
         @Override
