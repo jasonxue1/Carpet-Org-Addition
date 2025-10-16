@@ -93,7 +93,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 获取打开GUI所需要的命令
     @Unique
     private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
-        PermissionPredicate predicate = thisPlayer.method_75004();
+        PermissionPredicate predicate = thisPlayer.getPermissions();
         boolean canUseCommand = CommandUtils.canUseCommand(predicate, CarpetOrgAdditionSettings.commandPlayerAction.get());
         if (canUseCommand) {
             if (itemStack.isEmpty()) {
