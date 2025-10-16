@@ -1,15 +1,11 @@
 package org.carpetorgaddition.client.logger;
 
 
-import org.carpetorgaddition.client.renderer.WorldRendererManager;
-import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
-import org.carpetorgaddition.client.renderer.path.PathRenderer;
-import org.carpetorgaddition.client.renderer.villagerpoi.VillagerPoiRenderer;
-import org.carpetorgaddition.logger.LoggerNames;
 import org.carpetorgaddition.network.s2c.LoggerUpdateS2CPacket;
 
 import java.util.HashMap;
 
+@SuppressWarnings("unused")
 public class ClientLogger {
     @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private static final HashMap<String, String> subscriptions = new HashMap<>();
@@ -32,12 +28,5 @@ public class ClientLogger {
     }
 
     private static void onRemove(String logger) {
-        switch (logger) {
-            case LoggerNames.BEACON_RANGE -> WorldRendererManager.remove(BeaconBoxRenderer.class);
-            case LoggerNames.VILLAGER -> WorldRendererManager.remove(VillagerPoiRenderer.class);
-            case LoggerNames.FAKE_PLAYER_PATH -> WorldRendererManager.remove(PathRenderer.class);
-            default -> {
-            }
-        }
     }
 }

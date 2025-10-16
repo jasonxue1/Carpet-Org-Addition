@@ -18,8 +18,8 @@ import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointIcon;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class HighlightCommand extends AbstractClientCommand {
@@ -42,7 +42,7 @@ public class HighlightCommand extends AbstractClientCommand {
     public void register(String name) {
         this.dispatcher.register(ClientCommandManager.literal(name)
                 .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
-                        .executes(context -> highlight(context, 1200L, CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
+                        .executes(context -> highlight(context, 1200L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
                         .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
                                 .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
                                 .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L, false)))
@@ -56,15 +56,17 @@ public class HighlightCommand extends AbstractClientCommand {
     private int highlight(CommandContext<FabricClientCommandSource> context, long duration, boolean persistent) {
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
-        // 获取旧路径点
-        WaypointRenderer oldRender = getWaypointRenderer();
+        List<WaypointRenderer> list = WorldRendererManager.getRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
         WaypointIcon waypoint = WaypointIcon.ofHighlight(world, duration, persistent);
         // 创建新路径点
         WaypointRenderer newRender = new WaypointRenderer(waypoint, vec3d, world);
-        // 如果两个路径点指向同一个位置，就让玩家看向该路径点
-        if (oldRender != null && oldRender.equalsTarget(newRender)) {
-            // if语句结束后仍要设置新路径点，因为要重置持续时间
-            context.getSource().getEntity().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec3d);
+        for (WaypointRenderer renderer : list) {
+            // 如果两个路径点指向同一个位置，就让玩家看向该路径点
+            if (renderer.equalsTarget(newRender)) {
+                // if语句结束后仍要设置新路径点，因为要重置持续时间
+                context.getSource().getEntity().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec3d);
+                break;
+            }
         }
         // 设置新的路径点
         WorldRendererManager.addOrUpdate(newRender);
@@ -73,17 +75,10 @@ public class HighlightCommand extends AbstractClientCommand {
 
     // 取消高亮路径点
     private int clear() {
-        WaypointRenderer render = getWaypointRenderer();
-        if (render == null) {
-            return 0;
-        }
-        render.stop();
-        return 1;
-    }
-
-    @Nullable
-    private WaypointRenderer getWaypointRenderer() {
-        return WorldRendererManager.getOnlyRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
+        List<WaypointRenderer> list = WorldRendererManager.getRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
+        int result = list.size();
+        list.forEach(WaypointRenderer::stop);
+        return result;
     }
 
     @Override

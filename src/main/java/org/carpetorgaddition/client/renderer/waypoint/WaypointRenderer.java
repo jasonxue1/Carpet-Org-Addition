@@ -112,6 +112,15 @@ public class WaypointRenderer implements WorldRenderer {
         return this.waypoint.isDone();
     }
 
+    @Override
+    public boolean onUpdate(WorldRenderer renderer) {
+        this.stop();
+        if (this.isHighlight() && renderer instanceof WaypointRenderer) {
+            return !this.equalsTarget((WaypointRenderer) renderer);
+        }
+        return false;
+    }
+
     /**
      * 设置该路径点消失
      */
@@ -128,15 +137,7 @@ public class WaypointRenderer implements WorldRenderer {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        return waypoint == ((WaypointRenderer) o).waypoint;
-    }
-
-    @Override
-    public int hashCode() {
-        return waypoint.hashCode();
+    public Object getIdentityValue() {
+        return this.waypoint.getIcon();
     }
 }

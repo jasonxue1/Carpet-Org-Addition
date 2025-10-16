@@ -32,7 +32,6 @@
     "logger.FishingBobberEntityMixin",
     "logger.FluidBlockMixin",
     "logger.HUDControllerMixin",
-    "logger.VillagerEntityMixin",
     "logger.WanderingTraderManagerMixin",
     "rule.AbstractBlockStateMixin",
     "rule.AbstractFurnaceBlockEntityMixin",
