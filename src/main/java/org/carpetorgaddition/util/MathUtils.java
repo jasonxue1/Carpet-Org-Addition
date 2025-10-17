@@ -232,6 +232,14 @@ public class MathUtils {
         return start + (target - start) * factor;
     }
 
+    @SuppressWarnings("unused")
+    public static Vec3d approach(Vec3d from, Vec3d to, float delta) {
+        double x = approach(from.getX(), to.getX(), delta);
+        double y = approach(from.getY(), to.getY(), delta);
+        double z = approach(from.getZ(), to.getZ(), delta);
+        return new Vec3d(x, y, z);
+    }
+
     /**
      * 让一个数逐渐趋近于另一个数
      */

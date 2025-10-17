@@ -12,14 +12,16 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
+import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.provider.CommandProvider;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-public abstract class WaypointIcon {
+import java.util.Objects;
+
+public abstract class Waypoint {
     /**
      * 路径点图标
      */
@@ -28,15 +30,16 @@ public abstract class WaypointIcon {
      * 路径点剩余持续时间
      */
     private long remaining;
+    private final Vec3d target;
     /**
      * 路径点所在时间的注册表项
      */
-    private final RegistryKey<World> worldKey;
+    protected final RegistryKey<World> registryKey;
     /**
      * 该路径点是否永久显示
      */
     private final boolean persistent;
-    private float tickDelta = 0F;
+    protected float tickDelta = 0F;
     private float lastTickDelta = 0F;
     /**
      * 路径点消失时间
@@ -45,37 +48,34 @@ public abstract class WaypointIcon {
     public static final Identifier HIGHLIGHT = Identifier.ofVanilla("textures/map/decorations/red_x.png");
     public static final Identifier NAVIGATOR = Identifier.ofVanilla("textures/map/decorations/target_x.png");
 
-    protected WaypointIcon(World world, Identifier icon, long duration, boolean persistent) {
-        this.worldKey = world.getRegistryKey();
+    public Waypoint(World world, Vec3d target, Identifier icon, long duration, boolean persistent) {
+        this.registryKey = world.getRegistryKey();
+        this.target = target;
         this.icon = icon;
         this.remaining = duration;
         this.persistent = persistent;
     }
 
-    public static WaypointIcon ofHighlight(World world, long duration, boolean persistent) {
-        return new Highlight(WaypointIcon.HIGHLIGHT, duration, world, persistent);
-    }
-
-    public static WaypointIcon ofNavigator(World world) {
-        return new Navigator(WaypointIcon.NAVIGATOR, 1, world, true);
-    }
-
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, Vec3d target, Camera camera, RenderTickCounter tickCounter) {
+    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, Camera camera, RenderTickCounter tickCounter) {
         if (this.isDone()) {
             return;
         }
-        if (!this.persistent || this.remaining <= 0) {
-            float tickDelta = tickCounter.getTickDelta(false);
-            if (this.lastTickDelta > tickDelta) {
+        Vec3d revised = this.getRevisedPos();
+        if (revised == null) {
+            return;
+        }
+        float tickDelta = tickCounter.getTickDelta(false);
+        this.tickDelta = tickDelta;
+        if (this.lastTickDelta > tickDelta) {
+            if (!this.persistent || this.remaining <= 0) {
                 this.remaining--;
             }
-            this.tickDelta = tickDelta;
-            this.lastTickDelta = tickDelta;
         }
+        this.lastTickDelta = tickDelta;
         // 获取摄像机位置
         Vec3d cameraPos = camera.getPos();
         // 玩家距离目标的位置
-        Vec3d offset = target.subtract(cameraPos);
+        Vec3d offset = revised.subtract(cameraPos);
         // 获取客户端渲染距离
         int renderDistance = ClientUtils.getGameOptions().getViewDistance().getValue() * 16;
         // 修正路径点渲染位置
@@ -110,12 +110,36 @@ public abstract class WaypointIcon {
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         tessellator.clear();
         // 如果准星正在指向路径点，显示文本
-        if (isWatching(camera, target)) {
+        if (isWatching(camera, revised)) {
             drawDistance(matrixStack, consumers, offset, tessellator);
         }
         matrixStack.pop();
     }
 
+    @Nullable
+    protected Vec3d getRevisedPos() {
+        // 获取玩家所在维度ID
+        RegistryKey<World> key = ClientUtils.getWorld().getRegistryKey();
+        // 玩家和路径点在同一维度
+        Vec3d interpolation = getInterpolationVec3d();
+        if (this.registryKey.equals(key)) {
+            return interpolation;
+        }
+        Camera camera = ClientUtils.getCamera();
+        // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
+        if (WorldUtils.isOverworld(key) && WorldUtils.isTheNether(this.registryKey)) {
+            return new Vec3d(interpolation.getX() * 8, camera.getPos().getY(), interpolation.getZ() * 8);
+        }
+        // 玩家在下界，路径点在主世界，将路径点坐标换算成下界坐标
+        if (WorldUtils.isTheNether(key) && WorldUtils.isOverworld(this.registryKey)) {
+            return new Vec3d(interpolation.getX() / 8, camera.getPos().getY(), interpolation.getZ() / 8);
+        }
+        return null;
+    }
+
+    protected Vec3d getInterpolationVec3d() {
+        return this.target;
+    }
 
     /**
      * 获取路径点大小
@@ -184,7 +208,7 @@ public abstract class WaypointIcon {
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
         TextBuilder builder = new TextBuilder(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (!this.worldKey.equals(ClientUtils.getWorld().getRegistryKey())) {
+        if (!this.registryKey.equals(ClientUtils.getWorld().getRegistryKey())) {
             builder.setItalic();
         }
         // 获取文本宽度
@@ -223,35 +247,30 @@ public abstract class WaypointIcon {
         return this.icon;
     }
 
+    public Vec3d getTarget() {
+        return this.target;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Waypoint that = (Waypoint) o;
+        return Objects.equals(icon, that.icon) && Objects.equals(registryKey, that.registryKey) && Objects.equals(target, that.target);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(icon, target);
+    }
+
     public void onClear() {
     }
 
+    public boolean onUpdate(Waypoint waypoint) {
+        return !this.equals(waypoint);
+    }
+
     public abstract String getName();
-
-    public static class Highlight extends WaypointIcon {
-        protected Highlight(Identifier icon, long duration, World world, boolean persistent) {
-            super(world, icon, duration, persistent);
-        }
-
-        @Override
-        public String getName() {
-            return "Highlight";
-        }
-    }
-
-    public static class Navigator extends WaypointIcon {
-        protected Navigator(Identifier icon, long duration, World world, boolean persistent) {
-            super(world, icon, duration, persistent);
-        }
-
-        @Override
-        public void onClear() {
-            ClientCommandUtils.sendCommand(CommandProvider.stopNavigate());
-        }
-
-        @Override
-        public String getName() {
-            return "Navigator";
-        }
-    }
 }

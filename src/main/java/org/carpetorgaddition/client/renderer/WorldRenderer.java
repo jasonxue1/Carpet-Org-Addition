@@ -8,9 +8,9 @@ public interface WorldRenderer {
     Object getKey();
 
     /**
-     * 当前路径点被新路径点替换时调用
+     * 当前渲染器被新渲染器替换时调用
      *
-     * @return 旧路径点是否可以自救
+     * @return 旧渲染器是否可以自救
      */
     default boolean onUpdate(WorldRenderer renderer) {
         return false;

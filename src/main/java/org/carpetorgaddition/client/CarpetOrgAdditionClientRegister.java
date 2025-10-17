@@ -8,7 +8,7 @@ import net.minecraft.screen.ScreenHandler;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
-import org.carpetorgaddition.client.renderer.waypoint.WaypointIcon;
+import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
@@ -47,13 +47,27 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点更新数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointUpdateS2CPacket.ID,
-                (payload, context) -> WorldRendererManager.addOrUpdate(
-                        new WaypointRenderer(
-                                WaypointIcon.ofNavigator(ClientUtils.getWorld()),
-                                payload.target(),
-                                payload.worldId()
-                        )
-                )
+                (payload, context) -> {
+                    if (NavigatorWaypoint.V2_PACKET) {
+                        return;
+                    }
+                    WorldRendererManager.addOrUpdate(
+                            new WaypointRenderer(
+                                    new NavigatorWaypoint(ClientUtils.getWorld(), payload.target(), -1)
+                            )
+                    );
+                }
+        );
+        ClientPlayNetworking.registerGlobalReceiver(
+                WaypointUpdateS2CV2Packet.ID,
+                (payload, context) -> {
+                    NavigatorWaypoint.V2_PACKET = true;
+                    WorldRendererManager.addOrUpdate(
+                            new WaypointRenderer(
+                                    new NavigatorWaypoint(ClientUtils.getWorld(), payload.target(), payload.id())
+                            )
+                    );
+                }
         );
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(

@@ -232,4 +232,12 @@ public class WorldUtils {
     public static boolean isTheEnd(World world) {
         return world.getRegistryKey() == World.END;
     }
+
+    public static boolean isOverworld(RegistryKey<World> key) {
+        return World.OVERWORLD.equals(key);
+    }
+
+    public static boolean isTheNether(RegistryKey<World> key) {
+        return World.NETHER.equals(key);
+    }
 }

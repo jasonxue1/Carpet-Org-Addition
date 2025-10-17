@@ -16,7 +16,8 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
-import org.carpetorgaddition.client.renderer.waypoint.WaypointIcon;
+import org.carpetorgaddition.client.renderer.waypoint.HighlightWaypoint;
+import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 
 import java.util.List;
@@ -57,12 +58,12 @@ public class HighlightCommand extends AbstractClientCommand {
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
         List<WaypointRenderer> list = WorldRendererManager.getRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
-        WaypointIcon waypoint = WaypointIcon.ofHighlight(world, duration, persistent);
+        Waypoint waypoint = new HighlightWaypoint(world, vec3d, duration, persistent);
         // 创建新路径点
-        WaypointRenderer newRender = new WaypointRenderer(waypoint, vec3d, world);
+        WaypointRenderer newRender = new WaypointRenderer(waypoint);
         for (WaypointRenderer renderer : list) {
             // 如果两个路径点指向同一个位置，就让玩家看向该路径点
-            if (renderer.equalsTarget(newRender)) {
+            if (renderer.equals(newRender)) {
                 // if语句结束后仍要设置新路径点，因为要重置持续时间
                 context.getSource().getEntity().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec3d);
                 break;

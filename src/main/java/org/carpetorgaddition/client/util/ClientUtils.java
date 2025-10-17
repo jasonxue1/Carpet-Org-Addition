@@ -9,11 +9,14 @@ import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.Entity;
 import net.minecraft.server.integrated.IntegratedServer;
 import net.minecraft.util.hit.HitResult;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class ClientUtils {
     private ClientUtils() {
@@ -46,6 +49,13 @@ public class ClientUtils {
             throw new IllegalStateException("Attempted to get client player while not in a game");
         }
         return player;
+    }
+
+    public static Optional<Entity> getEntity(int id) {
+        if (id == -1) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(getWorld().getEntityById(id));
     }
 
     /**
