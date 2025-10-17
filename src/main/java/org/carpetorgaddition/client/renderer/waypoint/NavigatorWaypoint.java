@@ -1,6 +1,9 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
@@ -15,8 +18,12 @@ public class NavigatorWaypoint extends Waypoint {
     // TODO 新的网络包
     public static volatile boolean V2_PACKET = false;
 
-    public NavigatorWaypoint(World world, Vec3d vec3d, int id) {
-        super(world, vec3d, Waypoint.NAVIGATOR, 1, true);
+    public NavigatorWaypoint(String worldId, Vec3d vec3d, int id) {
+        this(RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId)), vec3d, id);
+    }
+
+    public NavigatorWaypoint(RegistryKey<World> registryKey, Vec3d vec3d, int id) {
+        super(registryKey, vec3d, Waypoint.NAVIGATOR, 1, true);
         this.id = id;
     }
 

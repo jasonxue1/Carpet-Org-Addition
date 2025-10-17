@@ -10,7 +10,6 @@ import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
-import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
@@ -53,7 +52,7 @@ public class CarpetOrgAdditionClientRegister {
                     }
                     WorldRendererManager.addOrUpdate(
                             new WaypointRenderer(
-                                    new NavigatorWaypoint(ClientUtils.getWorld(), payload.target(), -1)
+                                    new NavigatorWaypoint(payload.worldId(), payload.target(), -1)
                             )
                     );
                 }
@@ -64,7 +63,7 @@ public class CarpetOrgAdditionClientRegister {
                     NavigatorWaypoint.V2_PACKET = true;
                     WorldRendererManager.addOrUpdate(
                             new WaypointRenderer(
-                                    new NavigatorWaypoint(ClientUtils.getWorld(), payload.target(), payload.id())
+                                    new NavigatorWaypoint(payload.registryKey(), payload.target(), payload.id())
                             )
                     );
                 }

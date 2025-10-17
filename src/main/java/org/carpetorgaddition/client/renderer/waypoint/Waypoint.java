@@ -48,12 +48,16 @@ public abstract class Waypoint {
     public static final Identifier HIGHLIGHT = Identifier.ofVanilla("textures/map/decorations/red_x.png");
     public static final Identifier NAVIGATOR = Identifier.ofVanilla("textures/map/decorations/target_x.png");
 
-    public Waypoint(World world, Vec3d target, Identifier icon, long duration, boolean persistent) {
-        this.registryKey = world.getRegistryKey();
+    public Waypoint(RegistryKey<World> registryKey, Vec3d target, Identifier icon, long duration, boolean persistent) {
+        this.registryKey = registryKey;
         this.target = target;
         this.icon = icon;
         this.remaining = duration;
         this.persistent = persistent;
+    }
+
+    public Waypoint(World world, Vec3d target, Identifier icon, long duration, boolean persistent) {
+        this(world.getRegistryKey(), target, icon, duration, persistent);
     }
 
     public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, Camera camera, RenderTickCounter tickCounter) {
