@@ -7,8 +7,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.screen.ScreenHandler;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
-import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
+import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
@@ -21,7 +21,7 @@ public class CarpetOrgAdditionClientRegister {
         registerCommand();
         registerC2SNetworkPack();
         registerNetworkPackReceiver();
-        registerRender();
+        registerRenderer();
         registerKeyBinding();
         developed();
     }
@@ -47,34 +47,18 @@ public class CarpetOrgAdditionClientRegister {
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointUpdateS2CPacket.ID,
                 (payload, context) -> {
-                    if (NavigatorWaypoint.V2_PACKET) {
-                        return;
-                    }
-                    WorldRendererManager.addOrUpdate(
-                            new WaypointRenderer(
-                                    new NavigatorWaypoint(payload.worldId(), payload.target(), -1)
-                            )
-                    );
-                }
-        );
-        ClientPlayNetworking.registerGlobalReceiver(
-                WaypointUpdateS2CV2Packet.ID,
-                (payload, context) -> {
-                    NavigatorWaypoint.V2_PACKET = true;
-                    WorldRendererManager.addOrUpdate(
-                            new WaypointRenderer(
-                                    new NavigatorWaypoint(payload.registryKey(), payload.target(), payload.id())
-                            )
-                    );
+                    WaypointRenderer instance = WaypointRenderer.getInstance();
+                    instance.addOrUpdate(new NavigatorWaypoint(payload.worldId(), payload.target()));
                 }
         );
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
-                ((payload, context) -> WorldRendererManager.getRenderer(WaypointRenderer.class)
-                        .stream()
-                        .filter(WaypointRenderer::isNavigator)
-                        .forEach(WaypointRenderer::stop))
+                (payload, context) -> {
+                    WaypointRenderer instance = WaypointRenderer.getInstance();
+                    instance.listRenderers(Waypoint.NAVIGATOR)
+                            .forEach(renderer -> instance.addOrModify(renderer).ifPresent(Waypoint::stop));
+                }
         );
         // 容器不可用槽位同步数据包
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {
@@ -97,13 +81,9 @@ public class CarpetOrgAdditionClientRegister {
     /**
      * 注册渲染器
      */
-    private static void registerRender() {
+    private static void registerRenderer() {
         // 注册路径点渲染器
-        WorldRenderEvents.LAST.register(
-                context -> WorldRendererManager
-                        .getRenderer(WaypointRenderer.class)
-                        .forEach(renderer -> renderer.render(context))
-        );
+        WorldRenderEvents.LAST.register(context -> WaypointRenderer.getInstance().render(context));
     }
 
     /**

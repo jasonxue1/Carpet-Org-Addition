@@ -67,13 +67,14 @@ public class NavigatorManager {
     }
 
     private void setNavigator(@Nullable AbstractNavigator navigator) {
+        ServerPlayNetworking.send(this.player, WaypointClearS2CPacket.INSTANCE);
         this.navigator = navigator;
         this.isUpdated = true;
     }
 
     public void clearNavigator() {
         this.setNavigator((AbstractNavigator) null);
-        ServerPlayNetworking.send(this.player, new WaypointClearS2CPacket());
+        ServerPlayNetworking.send(this.player, WaypointClearS2CPacket.INSTANCE);
     }
 
     public void setNavigatorFromOldPlayer(ServerPlayerEntity oldPlayer) {

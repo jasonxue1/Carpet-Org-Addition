@@ -1,113 +1,94 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.client.renderer.WorldRenderer;
-import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-@SuppressWarnings("ClassCanBeRecord")
-public class WaypointRenderer implements WorldRenderer {
-    private final Waypoint waypoint;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-    public WaypointRenderer(Waypoint waypoint) {
-        this.waypoint = waypoint;
+public class WaypointRenderer {
+    private final Map<Object, Waypoint> waypoints = new HashMap<>();
+    private final Camera camera;
+    private static WaypointRenderer INSTANCE;
+
+    static {
+        // 断开连接时清除路径点
+        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> destroy());
+        // 清除不再需要的渲染器
+        WorldRenderEvents.START.register(context -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
+    }
+
+    private WaypointRenderer() {
+        this.camera = ClientUtils.getCamera();
+    }
+
+    @NotNull
+    public static WaypointRenderer getInstance() {
+        if (INSTANCE == null) {
+            INSTANCE = new WaypointRenderer();
+        }
+        return INSTANCE;
+    }
+
+    private static void destroy() {
+        INSTANCE = null;
     }
 
     /**
      * 绘制路径点
      */
-    @Override
     public void render(WorldRenderContext context) {
         MatrixStack matrixStack = context.matrixStack();
-        Camera camera = ClientUtils.getCamera();
-        if (camera == null) {
-            return;
-        }
-        try {
-            // 允许路径点透过方块渲染
-            RenderSystem.disableDepthTest();
-            // 绘制图标
-            drawIcon(context, matrixStack, camera);
-        } catch (RuntimeException e) {
-            // 发送错误消息，然后停止渲染
-            ClientMessageUtils.sendErrorMessage(e, "carpet.client.render.waypoint.error");
-            CarpetOrgAddition.LOGGER.error("An unexpected error occurred while rendering waypoint '{}'", this.waypoint.getName(), e);
-            this.clear();
-        }
-    }
-
-    /**
-     * 绘制路径点图标
-     */
-    private void drawIcon(WorldRenderContext context, MatrixStack matrixStack, Camera camera) {
-        VertexConsumerProvider consumers = context.consumers();
-        RenderTickCounter tickCounter = context.tickCounter();
-        this.waypoint.render(matrixStack, consumers, camera, tickCounter);
-    }
-
-    /**
-     * @return 是否应该停止渲染
-     */
-    @Override
-    public boolean shouldStop() {
-        return this.waypoint.isDone();
-    }
-
-    @Override
-    public boolean onUpdate(WorldRenderer renderer) {
-        if (renderer instanceof WaypointRenderer waypointRenderer) {
-            if (this.waypoint.onUpdate(waypointRenderer.waypoint)) {
-                this.stop();
-                return true;
+        for (Waypoint waypoint : waypoints.values()) {
+            try {
+                // 允许路径点透过方块渲染
+                RenderSystem.disableDepthTest();
+                // 绘制图标
+                VertexConsumerProvider consumers = context.consumers();
+                RenderTickCounter tickCounter = context.tickCounter();
+                waypoint.render(matrixStack, consumers, this.camera, tickCounter);
+            } catch (RuntimeException e) {
+                // 发送错误消息，然后停止渲染
+                ClientMessageUtils.sendErrorMessage(e, "carpet.client.render.waypoint.error");
+                CarpetOrgAddition.LOGGER.error("An unexpected error occurred while rendering waypoint '{}'", waypoint.getName(), e);
+                waypoint.discard();
+                waypoint.requestServerToStop();
             }
-            return false;
         }
-        throw new IllegalArgumentException();
+    }
+
+    public void addOrUpdate(Waypoint waypoint) {
+        this.waypoints.put(waypoint.getIcon(), waypoint);
+    }
+
+    public Optional<Waypoint> addOrModify(Waypoint waypoint) {
+        Waypoint oldWaypoint = this.waypoints.put(waypoint.getIcon(), waypoint);
+        if (oldWaypoint == null) {
+            return Optional.empty();
+        }
+        this.waypoints.put(new Object(), oldWaypoint);
+        return Optional.of(oldWaypoint);
     }
 
     /**
-     * 设置该路径点消失
+     * 获取所有匹配的渲染器
      */
-    public void stop() {
-        this.waypoint.stop();
-    }
-
-    public boolean isHighlight() {
-        return Waypoint.HIGHLIGHT.equals(this.waypoint.getIcon());
-    }
-
-    public boolean isNavigator() {
-        return Waypoint.NAVIGATOR.equals(this.waypoint.getIcon());
-    }
-
-    @Override
-    public Object getKey() {
-        return this.waypoint.getIcon();
-    }
-
-    private void clear() {
-        WorldRendererManager.remove(WaypointRenderer.class, renderer -> this.waypoint.getIcon().equals(renderer.waypoint.getIcon()));
-        this.waypoint.onClear();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        WaypointRenderer that = (WaypointRenderer) o;
-        return this.waypoint.equals(that.waypoint);
-    }
-
-    @Override
-    public int hashCode() {
-        return this.waypoint.hashCode();
+    @Unmodifiable
+    public List<Waypoint> listRenderers(Identifier icon) {
+        return this.waypoints.values().stream().filter(waypoint -> waypoint.getIcon().equals(icon)).toList();
     }
 }

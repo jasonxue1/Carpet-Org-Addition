@@ -15,12 +15,12 @@ import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
-import org.carpetorgaddition.client.renderer.WorldRendererManager;
 import org.carpetorgaddition.client.renderer.waypoint.HighlightWaypoint;
 import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 public class HighlightCommand extends AbstractClientCommand {
@@ -57,28 +57,36 @@ public class HighlightCommand extends AbstractClientCommand {
     private int highlight(CommandContext<FabricClientCommandSource> context, long duration, boolean persistent) {
         Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
         ClientWorld world = context.getSource().getWorld();
-        List<WaypointRenderer> list = WorldRendererManager.getRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
-        Waypoint waypoint = new HighlightWaypoint(world, vec3d, duration, persistent);
+        WaypointRenderer instance = WaypointRenderer.getInstance();
+        List<Waypoint> list = instance.listRenderers(Waypoint.HIGHLIGHT);
+        Waypoint newWaypoint = new HighlightWaypoint(world, vec3d, duration, persistent);
         // 创建新路径点
-        WaypointRenderer newRender = new WaypointRenderer(waypoint);
-        for (WaypointRenderer renderer : list) {
+        boolean update = false;
+        for (Waypoint waypoint : list) {
             // 如果两个路径点指向同一个位置，就让玩家看向该路径点
-            if (renderer.equals(newRender)) {
+            if (waypoint.equals(newWaypoint)) {
+                update = true;
                 // if语句结束后仍要设置新路径点，因为要重置持续时间
                 context.getSource().getEntity().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec3d);
                 break;
             }
         }
         // 设置新的路径点
-        WorldRendererManager.addOrUpdate(newRender);
+        if (update) {
+            instance.addOrUpdate(newWaypoint);
+        } else {
+            Optional<Waypoint> optional = instance.addOrModify(newWaypoint);
+            optional.ifPresent(Waypoint::stop);
+        }
         return 1;
     }
 
     // 取消高亮路径点
     private int clear() {
-        List<WaypointRenderer> list = WorldRendererManager.getRenderer(WaypointRenderer.class, WaypointRenderer::isHighlight);
+        WaypointRenderer instance = WaypointRenderer.getInstance();
+        List<Waypoint> list = instance.listRenderers(Waypoint.HIGHLIGHT);
         int result = list.size();
-        list.forEach(WaypointRenderer::stop);
+        list.forEach(Waypoint::stop);
         return result;
     }
 

@@ -241,6 +241,16 @@ public abstract class Waypoint {
     }
 
     /**
+     * 停止渲染但不播放消失动画
+     */
+    public void discard() {
+        if (this.isDone()) {
+            return;
+        }
+        this.remaining = -Integer.MAX_VALUE;
+    }
+
+    /**
      * @return 是否已经渲染完成，包括消失动画
      */
     public boolean isDone() {
@@ -269,11 +279,7 @@ public abstract class Waypoint {
         return Objects.hash(icon, target);
     }
 
-    public void onClear() {
-    }
-
-    public boolean onUpdate(Waypoint waypoint) {
-        return !this.equals(waypoint);
+    public void requestServerToStop() {
     }
 
     public abstract String getName();

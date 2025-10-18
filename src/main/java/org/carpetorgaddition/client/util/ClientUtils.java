@@ -51,6 +51,7 @@ public class ClientUtils {
         return player;
     }
 
+    @SuppressWarnings("unused")
     public static Optional<Entity> getEntity(int id) {
         if (id == -1) {
             return Optional.empty();
