@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 public class NavigatorManager {
     @Nullable
     private AbstractNavigator navigator;
+    private boolean isUpdated = false;
     private final ServerPlayerEntity player;
 
     public NavigatorManager(ServerPlayerEntity player) {
@@ -27,9 +28,13 @@ public class NavigatorManager {
             return;
         }
         try {
-            if (this.navigator.shouldTerminate()) {
+            if (this.navigator.isArrive()) {
                 this.clearNavigator();
             } else {
+                if (this.isUpdated) {
+                    this.isUpdated = false;
+                    this.navigator.onStart();
+                }
                 this.navigator.tick();
             }
         } catch (RuntimeException e) {
@@ -46,23 +51,28 @@ public class NavigatorManager {
     }
 
     public void setNavigator(Entity entity, boolean isContinue) {
-        this.navigator = new EntityNavigator(this.player, entity, isContinue);
+        this.setNavigator(new EntityNavigator(this.player, entity, isContinue));
     }
 
     public void setNavigator(Waypoint waypoint) {
-        this.navigator = new WaypointNavigator(this.player, waypoint);
+        this.setNavigator(new WaypointNavigator(this.player, waypoint));
     }
 
     public void setNavigator(BlockPos blockPos, World world) {
-        this.navigator = new BlockPosNavigator(this.player, blockPos, world);
+        this.setNavigator(new BlockPosNavigator(this.player, blockPos, world));
     }
 
     public void setNavigator(BlockPos blockPos, World world, Text name) {
-        this.navigator = new HasNamePosNavigator(this.player, blockPos, world, name);
+        this.setNavigator(new HasNamePosNavigator(this.player, blockPos, world, name));
+    }
+
+    private void setNavigator(@Nullable AbstractNavigator navigator) {
+        this.navigator = navigator;
+        this.isUpdated = true;
     }
 
     public void clearNavigator() {
-        this.navigator = null;
+        this.setNavigator((AbstractNavigator) null);
         ServerPlayNetworking.send(this.player, new WaypointClearS2CPacket());
     }
 

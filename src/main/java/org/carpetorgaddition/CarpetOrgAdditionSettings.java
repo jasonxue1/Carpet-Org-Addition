@@ -773,7 +773,7 @@ public class CarpetOrgAdditionSettings {
                                 .toList();
                         // 设置玩家路径点
                         if (value) {
-                            list.forEach(AbstractNavigator::sendWaypointUpdate);
+                            list.forEach(navigator -> navigator.syncWaypoint(true));
                         } else {
                             list.forEach(AbstractNavigator::clear);
                         }

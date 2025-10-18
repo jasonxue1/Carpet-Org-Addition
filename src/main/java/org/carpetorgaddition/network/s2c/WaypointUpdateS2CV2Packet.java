@@ -10,6 +10,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.network.PacketUtils;
+import org.carpetorgaddition.util.FetcherUtils;
 
 /**
  * 导航点更新数据包
@@ -40,8 +41,8 @@ public record WaypointUpdateS2CV2Packet(Vec3d target, int id, RegistryKey<World>
         this(target, id, world.getRegistryKey());
     }
 
-    public WaypointUpdateS2CV2Packet(Entity entity, World world) {
-        this(entity.getEyePos(), entity.getId(), world.getRegistryKey());
+    public WaypointUpdateS2CV2Packet(Entity entity) {
+        this(entity.getEyePos(), entity.getId(), FetcherUtils.getWorld(entity).getRegistryKey());
     }
 
     public WaypointUpdateS2CV2Packet(BlockPos blockPos, World world) {

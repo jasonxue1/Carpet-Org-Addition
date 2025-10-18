@@ -1,5 +1,6 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.entity.Entity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
@@ -16,7 +17,11 @@ import java.util.Optional;
 public class NavigatorWaypoint extends Waypoint {
     private final int id;
     // TODO 新的网络包
-    public static volatile boolean V2_PACKET = false;
+    public static boolean V2_PACKET = false;
+
+    static {
+        ClientPlayConnectionEvents.DISCONNECT.register((clientPlayNetworkHandler, minecraftClient) -> V2_PACKET = false);
+    }
 
     public NavigatorWaypoint(String worldId, Vec3d vec3d, int id) {
         this(RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId)), vec3d, id);

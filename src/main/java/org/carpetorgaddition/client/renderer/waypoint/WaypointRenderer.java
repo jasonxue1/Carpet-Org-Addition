@@ -7,10 +7,8 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.renderer.WorldRenderer;
 import org.carpetorgaddition.client.renderer.WorldRendererManager;
-import org.carpetorgaddition.client.util.ClientKeyBindingUtils;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 
@@ -27,11 +25,6 @@ public class WaypointRenderer implements WorldRenderer {
      */
     @Override
     public void render(WorldRenderContext context) {
-        if (ClientKeyBindingUtils.isPressed(CarpetOrgAdditionClient.CLEAR_WAYPOINT)
-            && ClientUtils.getCurrentScreen() == null
-            && Waypoint.HIGHLIGHT.equals(this.waypoint.getIcon())) {
-            this.waypoint.stop();
-        }
         MatrixStack matrixStack = context.matrixStack();
         Camera camera = ClientUtils.getCamera();
         if (camera == null) {

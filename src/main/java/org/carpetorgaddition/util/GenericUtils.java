@@ -43,15 +43,14 @@ public class GenericUtils {
     /**
      * 根据UUID获取实体
      */
-    @Nullable
-    public static Entity getEntity(MinecraftServer server, UUID uuid) {
+    public static Optional<Entity> getEntity(MinecraftServer server, UUID uuid) {
         for (ServerWorld world : server.getWorlds()) {
             Entity entity = world.getEntity(uuid);
             if (entity != null) {
-                return entity;
+                return Optional.of(entity);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**

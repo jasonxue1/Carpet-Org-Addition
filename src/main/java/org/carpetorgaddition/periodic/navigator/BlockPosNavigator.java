@@ -20,8 +20,6 @@ public class BlockPosNavigator extends AbstractNavigator {
         super(player);
         this.blockPos = blockPos;
         this.world = world;
-        // 同步导航点
-        this.syncWaypoint(new WaypointUpdateS2CPacket(blockPos.toCenterPos(), world));
     }
 
     @Override
@@ -38,12 +36,22 @@ public class BlockPosNavigator extends AbstractNavigator {
     }
 
     @Override
+    protected WaypointUpdateS2CPacket createPacket() {
+        return new WaypointUpdateS2CPacket(this.blockPos, this.world);
+    }
+
+    @Override
+    protected boolean updateRequired() {
+        return false;
+    }
+
+    @Override
     public BlockPosNavigator copy(ServerPlayerEntity player) {
         return new BlockPosNavigator(player, this.blockPos, this.world);
     }
 
     @Override
-    protected boolean shouldTerminate() {
+    protected boolean isArrive() {
         // 玩家与目的地在同一维度
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos) <= 8) {
