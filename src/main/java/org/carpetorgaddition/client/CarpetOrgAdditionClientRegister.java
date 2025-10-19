@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
@@ -48,13 +49,17 @@ public class CarpetOrgAdditionClientRegister {
                 WaypointUpdateS2CPacket.ID,
                 (payload, context) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
-                    instance.addOrUpdate(new NavigatorWaypoint(payload.worldId(), payload.target()));
+                    Vec3d target = payload.target();
+                    String worldId = payload.worldId();
+                    Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(worldId, target));
+                    waypoint.setTarget(target);
                 }
         );
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
                 (payload, context) -> {
+                    // TODO 消失动画不正确
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     instance.listRenderers(Waypoint.NAVIGATOR)
                             .forEach(renderer -> instance.addOrModify(renderer).ifPresent(Waypoint::stop));

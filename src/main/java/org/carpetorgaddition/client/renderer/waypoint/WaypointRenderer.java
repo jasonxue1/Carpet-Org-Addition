@@ -71,8 +71,8 @@ public class WaypointRenderer {
         }
     }
 
-    public void addOrUpdate(Waypoint waypoint) {
-        this.waypoints.put(waypoint.getIcon(), waypoint);
+    public Waypoint addOrUpdate(Waypoint waypoint) {
+        return this.waypoints.computeIfAbsent(waypoint.getIcon(), key -> waypoint);
     }
 
     public Optional<Waypoint> addOrModify(Waypoint waypoint) {

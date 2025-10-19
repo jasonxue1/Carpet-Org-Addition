@@ -232,11 +232,10 @@ public class MathUtils {
         return start + (target - start) * factor;
     }
 
-    @SuppressWarnings("unused")
-    public static Vec3d approach(Vec3d from, Vec3d to, float delta) {
-        double x = approach(from.getX(), to.getX(), delta);
-        double y = approach(from.getY(), to.getY(), delta);
-        double z = approach(from.getZ(), to.getZ(), delta);
+    public static Vec3d approach(Vec3d from, Vec3d to, double factor) {
+        double x = approach(from.getX(), to.getX(), factor);
+        double y = approach(from.getY(), to.getY(), factor);
+        double z = approach(from.getZ(), to.getZ(), factor);
         return new Vec3d(x, y, z);
     }
 

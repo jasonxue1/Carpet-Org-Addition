@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -30,7 +31,9 @@ public abstract class Waypoint {
      * 路径点剩余持续时间
      */
     private long remaining;
-    private final Vec3d target;
+    private Vec3d target;
+    @NotNull
+    protected Vec3d lastTarget;
     /**
      * 路径点所在时间的注册表项
      */
@@ -39,8 +42,8 @@ public abstract class Waypoint {
      * 该路径点是否永久显示
      */
     private final boolean persistent;
-    protected float tickDelta = 0F;
-    private float lastTickDelta = 0F;
+    protected float tickDelta = 1F;
+    protected float lastTickDelta = 1F;
     /**
      * 路径点消失时间
      */
@@ -48,9 +51,10 @@ public abstract class Waypoint {
     public static final Identifier HIGHLIGHT = Identifier.ofVanilla("textures/map/decorations/red_x.png");
     public static final Identifier NAVIGATOR = Identifier.ofVanilla("textures/map/decorations/target_x.png");
 
-    public Waypoint(RegistryKey<World> registryKey, Vec3d target, Identifier icon, long duration, boolean persistent) {
+    public Waypoint(RegistryKey<World> registryKey, @NotNull Vec3d target, Identifier icon, long duration, boolean persistent) {
         this.registryKey = registryKey;
         this.target = target;
+        this.lastTarget = target;
         this.icon = icon;
         this.remaining = duration;
         this.persistent = persistent;
@@ -69,13 +73,11 @@ public abstract class Waypoint {
             return;
         }
         float tickDelta = tickCounter.getTickDelta(false);
-        this.tickDelta = tickDelta;
-        if (this.lastTickDelta > tickDelta) {
-            if (!this.persistent || this.remaining <= 0) {
-                this.remaining--;
-            }
+        if (this.tickDelta > tickDelta) {
+            this.tick();
         }
-        this.lastTickDelta = tickDelta;
+        this.lastTickDelta = this.tickDelta;
+        this.tickDelta = tickDelta;
         // 获取摄像机位置
         Vec3d cameraPos = camera.getPos();
         // 玩家距离目标的位置
@@ -120,12 +122,18 @@ public abstract class Waypoint {
         matrixStack.pop();
     }
 
+    protected void tick() {
+        if (!this.persistent || this.remaining <= 0) {
+            this.remaining--;
+        }
+    }
+
     @Nullable
     protected Vec3d getRevisedPos() {
         // 获取玩家所在维度ID
         RegistryKey<World> key = ClientUtils.getWorld().getRegistryKey();
         // 玩家和路径点在同一维度
-        Vec3d interpolation = getInterpolationVec3d();
+        Vec3d interpolation = getInterpolation();
         if (this.registryKey.equals(key)) {
             return interpolation;
         }
@@ -141,7 +149,7 @@ public abstract class Waypoint {
         return null;
     }
 
-    protected Vec3d getInterpolationVec3d() {
+    protected Vec3d getInterpolation() {
         return this.target;
     }
 
@@ -261,8 +269,12 @@ public abstract class Waypoint {
         return this.icon;
     }
 
-    public Vec3d getTarget() {
+    public final Vec3d getTarget() {
         return this.target;
+    }
+
+    public void setTarget(Vec3d vec3d) {
+        this.target = vec3d;
     }
 
     @Override
