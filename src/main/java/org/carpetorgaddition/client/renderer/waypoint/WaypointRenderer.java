@@ -84,6 +84,15 @@ public class WaypointRenderer {
         return Optional.of(oldWaypoint);
     }
 
+    public void stop(Waypoint waypoint) {
+        Waypoint oldWaypoint = this.waypoints.remove(waypoint.getIcon());
+        if (oldWaypoint == null) {
+            return;
+        }
+        this.waypoints.put(new Object(), oldWaypoint);
+        oldWaypoint.stop();
+    }
+
     /**
      * 获取所有匹配的渲染器
      */

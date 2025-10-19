@@ -59,10 +59,8 @@ public class CarpetOrgAdditionClientRegister {
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
                 (payload, context) -> {
-                    // TODO 消失动画不正确
                     WaypointRenderer instance = WaypointRenderer.getInstance();
-                    instance.listRenderers(Waypoint.NAVIGATOR)
-                            .forEach(renderer -> instance.addOrModify(renderer).ifPresent(Waypoint::stop));
+                    instance.listRenderers(Waypoint.NAVIGATOR).forEach(instance::stop);
                 }
         );
         // 容器不可用槽位同步数据包
