@@ -118,6 +118,10 @@ public class GenericUtils {
         return Registries.BLOCK.get(Identifier.of(id));
     }
 
+    public static RegistryKey<World> getWorld(String worldId) {
+        return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId));
+    }
+
     /**
      * 创建一个假玩家
      */

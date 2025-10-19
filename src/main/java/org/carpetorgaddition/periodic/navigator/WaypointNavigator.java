@@ -58,7 +58,9 @@ public class WaypointNavigator extends AbstractNavigator {
         // 玩家所在维度
         if (this.world.equals(this.playerWorld)) {
             // 玩家和路径点在相同的维度
-            Text text = this.getHUDText(this.target.toCenterPos(), getIn(this.target), getDistance(playerPos, this.target));
+            Text display = TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(this.target));
+            int distance = MathUtils.getBlockIntegerDistance(playerPos, this.target);
+            Text text = this.getHUDText(this.target.toCenterPos(), display, distance);
             MessageUtils.sendMessageToHud(this.player, text);
         } else {
             if (this.canMapping(this.secondTarget)) {
@@ -67,7 +69,8 @@ public class WaypointNavigator extends AbstractNavigator {
                 // 将坐标设置为斜体
                 builder.setItalic();
                 Text in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
-                Text text = this.getHUDText(this.secondTarget.toCenterPos(), in, getDistance(playerPos, this.secondTarget));
+                int distance = MathUtils.getBlockIntegerDistance(playerPos, this.secondTarget);
+                Text text = this.getHUDText(this.secondTarget.toCenterPos(), in, distance);
                 MessageUtils.sendMessageToHud(this.player, text);
             } else {
                 // 玩家和路径点在不同维度
@@ -118,15 +121,5 @@ public class WaypointNavigator extends AbstractNavigator {
             return null;
         }
         return new WaypointNavigator(player, this.waypoint);
-    }
-
-    @NotNull
-    private Text getIn(BlockPos blockPos) {
-        return TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(blockPos));
-    }
-
-    @NotNull
-    private static Text getDistance(BlockPos playerBlockPos, BlockPos blockPos) {
-        return TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(playerBlockPos, blockPos));
     }
 }

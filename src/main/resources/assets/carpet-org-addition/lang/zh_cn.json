@@ -249,6 +249,7 @@
   "carpet.command.dimension.overworld": "主世界",
   "carpet.command.dimension.the_nether": "下界",
   "carpet.command.dimension.the_end": "末地",
+  "carpet.command.block_pos.dimension": "%s[%s]",
   "carpet.command.boolean.true": "是",
   "carpet.command.boolean.false": "否",
   "carpet.command.time.tick": "%s游戏刻",

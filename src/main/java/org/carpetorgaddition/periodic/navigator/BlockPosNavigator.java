@@ -27,7 +27,7 @@ public class BlockPosNavigator extends AbstractNavigator {
         Text text;
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             Text in = TextProvider.simpleBlockPos(this.blockPos);
-            Text distance = TextBuilder.translate(DISTANCE, MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos));
+            int distance = MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos);
             text = getHUDText(this.blockPos.toCenterPos(), in, distance);
         } else {
             text = TextBuilder.combineAll(TextProvider.dimension(this.world), TextProvider.simpleBlockPos(this.blockPos));

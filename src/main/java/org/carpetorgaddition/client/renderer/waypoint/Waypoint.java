@@ -37,7 +37,8 @@ public abstract class Waypoint {
     /**
      * 路径点所在时间的注册表项
      */
-    protected final RegistryKey<World> registryKey;
+    @NotNull
+    protected RegistryKey<World> registryKey;
     /**
      * 该路径点是否永久显示
      */
@@ -51,7 +52,7 @@ public abstract class Waypoint {
     public static final Identifier HIGHLIGHT = Identifier.ofVanilla("textures/map/decorations/red_x.png");
     public static final Identifier NAVIGATOR = Identifier.ofVanilla("textures/map/decorations/target_x.png");
 
-    public Waypoint(RegistryKey<World> registryKey, @NotNull Vec3d target, Identifier icon, long duration, boolean persistent) {
+    public Waypoint(@NotNull RegistryKey<World> registryKey, @NotNull Vec3d target, Identifier icon, long duration, boolean persistent) {
         this.registryKey = registryKey;
         this.target = target;
         this.lastTarget = target;
@@ -273,8 +274,9 @@ public abstract class Waypoint {
         return this.target;
     }
 
-    public void setTarget(Vec3d vec3d) {
+    public void setTarget(RegistryKey<World> registryKey, Vec3d vec3d) {
         this.target = vec3d;
+        this.registryKey = registryKey;
     }
 
     @Override

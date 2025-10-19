@@ -61,8 +61,7 @@ public class EntityNavigator extends AbstractNavigator {
         if (FetcherUtils.getWorld(this.player).equals(world)) {
             // 获取翻译后的文本信息
             Text in = TextBuilder.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.getBlockPos()));
-            Text distance = TextBuilder.translate(DISTANCE,
-                    MathUtils.getBlockIntegerDistance(player.getBlockPos(), entity.getBlockPos()));
+            int distance = MathUtils.getBlockIntegerDistance(player.getBlockPos(), entity.getBlockPos());
             // 添加上下箭头
             Vec3d eyePos = this.entity.getEyePos();
             text = getHUDText(eyePos, in, distance);

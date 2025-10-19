@@ -5,8 +5,6 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
@@ -18,10 +16,6 @@ public class NavigatorWaypoint extends Waypoint {
      * 插值动画进度，上次设置目标后到现在经过的时间
      */
     private double progress = 0d;
-
-    public NavigatorWaypoint(String worldId, Vec3d vec3d) {
-        this(RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId)), vec3d);
-    }
 
     public NavigatorWaypoint(RegistryKey<World> registryKey, Vec3d vec3d) {
         super(registryKey, vec3d, Waypoint.NAVIGATOR, 1, true);
@@ -48,10 +42,12 @@ public class NavigatorWaypoint extends Waypoint {
     }
 
     @Override
-    public void setTarget(Vec3d vec3d) {
-        this.lastTarget = this.getTarget();
-        this.progress = 0d;
-        super.setTarget(vec3d);
+    public void setTarget(RegistryKey<World> registryKey, Vec3d vec3d) {
+        if (registryKey.equals(this.registryKey)) {
+            this.lastTarget = this.getTarget();
+            this.progress = 0d;
+        }
+        super.setTarget(registryKey , vec3d);
     }
 
     @Override

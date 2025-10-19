@@ -15,9 +15,10 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+
 public abstract class AbstractNavigator {
     protected static final String IN = "carpet.commands.navigate.hud.in";
-    protected static final String DISTANCE = "carpet.commands.navigate.hud.distance";
     protected static final String REACH = "carpet.commands.navigate.hud.reach";
     protected final ServerPlayerEntity player;
     protected final MinecraftServer server;
@@ -54,25 +55,29 @@ public abstract class AbstractNavigator {
     public abstract AbstractNavigator copy(ServerPlayerEntity player);
 
     @NotNull
-    protected Text getHUDText(Vec3d vec3d, Text in, Text distance) {
-        Text text;
-        // 添加上下箭头
-        text = switch (verticalAngle(this.player, vec3d)) {
-            case 1 -> TextBuilder.combineAll(in, " ↑ ", distance);
-            case -1 -> TextBuilder.combineAll(in, " ↓ ", distance);
-            default -> TextBuilder.combineAll(in, "   ", distance);
-        };
+    protected Text getHUDText(Vec3d vec3d, Text displayName, int distance) {
         // 添加左右箭头
-        text = switch (forwardAngle(this.player, vec3d)) {
-            case -3 -> TextBuilder.combineAll("    ", text, " >>>");
-            case -2 -> TextBuilder.combineAll("    ", text, "  >>");
-            case -1 -> TextBuilder.combineAll("    ", text, "   >");
-            case 1 -> TextBuilder.combineAll("<   ", text, "    ");
-            case 2 -> TextBuilder.combineAll("<<  ", text, "    ");
-            case 3 -> TextBuilder.combineAll("<<< ", text, "    ");
-            default -> TextBuilder.combineAll("    ", text, "    ");
+        Map.Entry<String, String> entry = switch (forwardAngle(this.player, vec3d)) {
+            case -3 -> Map.entry("    ", " >>>");
+            case -2 -> Map.entry("    ", "  >>");
+            case -1 -> Map.entry("    ", "   >");
+            case 1 -> Map.entry("<   ", "    ");
+            case 2 -> Map.entry("<<  ", "    ");
+            case 3 -> Map.entry("<<< ", "    ");
+            default -> Map.entry("    ", "    ");
         };
-        return text;
+        TextBuilder builder = new TextBuilder();
+        builder.append(entry.getKey());
+        builder.append(displayName);
+        // 添加上下箭头
+        builder.append(switch (verticalAngle(this.player, vec3d)) {
+            case 1 -> " ↑ ";
+            case -1 -> " ↓ ";
+            default -> "   ";
+        });
+        builder.append(TextBuilder.of("carpet.commands.navigate.hud.distance", distance));
+        builder.append(entry.getValue());
+        return builder.build();
     }
 
     /**

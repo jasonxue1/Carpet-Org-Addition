@@ -4,8 +4,10 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
 import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
@@ -13,6 +15,7 @@ import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 
@@ -50,9 +53,9 @@ public class CarpetOrgAdditionClientRegister {
                 (payload, context) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     Vec3d target = payload.target();
-                    String worldId = payload.worldId();
-                    Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(worldId, target));
-                    waypoint.setTarget(target);
+                    RegistryKey<World> registryKey = GenericUtils.getWorld(payload.worldId());
+                    Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(registryKey, target));
+                    waypoint.setTarget(registryKey, target);
                 }
         );
         // 注册路径点清除数据包

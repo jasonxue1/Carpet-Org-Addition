@@ -154,6 +154,7 @@
   "carpet.command.dimension.overworld": "Overworld",
   "carpet.command.dimension.the_nether": "Nether",
   "carpet.command.dimension.the_end": "End",
+  "carpet.command.block_pos.dimension": "%s [%s]",
   "carpet.command.boolean.true": "True",
   "carpet.command.boolean.false": "False",
   "carpet.command.time.tick": "%s game tick",
