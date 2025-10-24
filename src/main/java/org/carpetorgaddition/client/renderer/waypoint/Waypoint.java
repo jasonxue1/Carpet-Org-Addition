@@ -79,7 +79,7 @@ public abstract class Waypoint {
         this.lastTickDelta = this.tickDelta;
         this.tickDelta = tickDelta;
         // 获取摄像机位置
-        Vec3d cameraPos = camera.getPos();
+        Vec3d cameraPos = camera.getCameraPos();
         // 玩家距离目标的位置
         Vec3d offset = revised.subtract(cameraPos);
         // 获取客户端渲染距离
@@ -138,11 +138,11 @@ public abstract class Waypoint {
         Camera camera = ClientUtils.getCamera();
         // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
         if (WorldUtils.isOverworld(key) && WorldUtils.isTheNether(this.registryKey)) {
-            return new Vec3d(interpolation.getX() * 8, camera.getPos().getY(), interpolation.getZ() * 8);
+            return new Vec3d(interpolation.getX() * 8, camera.getCameraPos().getY(), interpolation.getZ() * 8);
         }
         // 玩家在下界，路径点在主世界，将路径点坐标换算成下界坐标
         if (WorldUtils.isTheNether(key) && WorldUtils.isOverworld(this.registryKey)) {
-            return new Vec3d(interpolation.getX() / 8, camera.getPos().getY(), interpolation.getZ() / 8);
+            return new Vec3d(interpolation.getX() / 8, camera.getCameraPos().getY(), interpolation.getZ() / 8);
         }
         return null;
     }
@@ -201,7 +201,7 @@ public abstract class Waypoint {
         float j = MathHelper.cos(f);
         float k = MathHelper.sin(f);
         Vec3d vec3d = new Vec3d(i * j, -k, h * j).normalize();
-        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getPos().getX(), target.getY() - camera.getPos().getY(), target.getZ() - camera.getPos().getZ());
+        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getCameraPos().getX(), target.getY() - camera.getCameraPos().getY(), target.getZ() - camera.getCameraPos().getZ());
         double d = vec3d2.length();
         vec3d2 = vec3d2.normalize();
         double e = vec3d.dotProduct(vec3d2);
