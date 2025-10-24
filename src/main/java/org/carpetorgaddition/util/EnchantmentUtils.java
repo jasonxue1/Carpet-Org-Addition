@@ -10,6 +10,7 @@ import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
@@ -80,7 +81,11 @@ public class EnchantmentUtils {
      * @return 获取指定物品上指定附魔的等级
      */
     private static int getLevel(Enchantment enchantment, ItemStack itemStack, DynamicRegistryManager registryManager) {
-        RegistryEntry<Enchantment> entry = registryManager.get(RegistryKeys.ENCHANTMENT).getEntry(enchantment);
+        Optional<Registry<Enchantment>> optional = registryManager.getOptional(RegistryKeys.ENCHANTMENT);
+        if (optional.isEmpty()) {
+            return 0;
+        }
+        RegistryEntry<Enchantment> entry = optional.get().getEntry(enchantment);
         if (itemStack.isOf(Items.ENCHANTED_BOOK)) {
             ItemEnchantmentsComponent component = itemStack.getOrDefault(DataComponentTypes.STORED_ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
             return component.getLevel(entry);

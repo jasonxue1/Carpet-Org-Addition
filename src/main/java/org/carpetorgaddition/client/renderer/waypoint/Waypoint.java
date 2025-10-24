@@ -2,6 +2,7 @@ package org.carpetorgaddition.client.renderer.waypoint;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.mob.EndermanEntity;
@@ -111,7 +112,8 @@ public abstract class Waypoint {
         bufferBuilder.vertex(matrix4f, -1F, 1F, 0F).texture(0, 1);
         bufferBuilder.vertex(matrix4f, 1F, 1F, 0F).texture(1, 1);
         bufferBuilder.vertex(matrix4f, 1F, -1F, 0F).texture(1, 0);
-        RenderSystem.setShader(GameRenderer::getPositionTexProgram);
+        //noinspection resource
+        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
         RenderSystem.setShaderTexture(0, this.icon);
         // 将缓冲区绘制到屏幕上。
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());

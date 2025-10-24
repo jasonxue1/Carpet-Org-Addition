@@ -90,7 +90,11 @@ public class GenericUtils {
     }
 
     public static Optional<Identifier> getId(DynamicRegistryManager registryManager, Enchantment enchantment) {
-        Registry<Enchantment> enchantments = registryManager.get(RegistryKeys.ENCHANTMENT);
+        Optional<Registry<Enchantment>> optional = registryManager.getOptional(RegistryKeys.ENCHANTMENT);
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+        Registry<Enchantment> enchantments = optional.get();
         return Optional.ofNullable(enchantments.getId(enchantment));
     }
 
