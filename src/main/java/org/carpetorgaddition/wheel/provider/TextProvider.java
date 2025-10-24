@@ -97,6 +97,11 @@ public class TextProvider {
         return Texts.bracketed(Text.translatable("chat.coordinates", blockPos.getX(), blockPos.getY(), blockPos.getZ()));
     }
 
+    @SuppressWarnings("unused")
+    public static Text dimensionBlockPos(World world, BlockPos blockPos) {
+        return TextBuilder.translate("carpet.command.block_pos.dimension", dimension(world), simpleBlockPos(blockPos));
+    }
+
     /**
      * 单击输入命令
      */

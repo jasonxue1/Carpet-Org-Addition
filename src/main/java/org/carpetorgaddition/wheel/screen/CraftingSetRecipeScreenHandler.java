@@ -12,7 +12,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implements UnavailableSlotSyncInterface {
     /**

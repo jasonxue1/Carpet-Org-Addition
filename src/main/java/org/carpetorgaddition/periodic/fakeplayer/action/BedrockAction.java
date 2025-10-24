@@ -35,8 +35,8 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.*;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.BlockEntityIterator;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockEntityRegion;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
@@ -51,7 +51,7 @@ import java.util.function.Predicate;
 public class BedrockAction extends AbstractPlayerAction {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final HashSet<BlockPos> lavas = new HashSet<>();
-    private final BlockIterator blockIterator;
+    private final BlockRegion blockRegion;
     private final BedrockRegionType regionType;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
@@ -107,20 +107,20 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private static final int MATERIAL_RECYCLING_TIME = 3600;
 
-    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockIterator blockIterator, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
+    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockRegion blockRegion, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
         super(fakePlayer);
-        this.blockIterator = blockIterator;
+        this.blockRegion = blockRegion;
         this.regionType = regionType;
         this.ai = ai;
         this.recycleTimer = timedMaterialRecycling ? MATERIAL_RECYCLING_TIME : -1;
     }
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai, boolean timedMaterialRecycling) {
-        this(fakePlayer, new BlockIterator(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
+        this(fakePlayer, new BlockRegion(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
     }
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai, boolean timedMaterialRecycling) {
-        this(fakePlayer, new CylinderBlockIterator(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
+        this(fakePlayer, new CylinderBlockRegion(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
     }
 
     @Override
@@ -129,7 +129,7 @@ public class BedrockAction extends AbstractPlayerAction {
             this.pathfinder.tick();
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             // 周围有下落的方块，暂停寻路，防止被砸死
-            if (BlockEntityIterator.ofAbove(fakePlayer, 3).contains(FallingBlockEntity.class)) {
+            if (BlockEntityRegion.ofAbove(fakePlayer, 3).contains(FallingBlockEntity.class)) {
                 this.pathfinder.pause(3);
             }
             this.itemEntities.removeIf(Entity::isRemoved);
@@ -187,7 +187,7 @@ public class BedrockAction extends AbstractPlayerAction {
         double range = this.getFakePlayer().getBlockInteractionRange();
         // 如果this.selectionArea过大，遍历时可能会造成大量卡顿
         Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
-        BlockIterator area = new BlockIterator(box);
+        BlockRegion area = new BlockRegion(box);
         for (BlockPos blockPos : area) {
             if (canInteract(blockPos) && this.inSelectionArea(blockPos)) {
                 BlockState blockState = world.getBlockState(blockPos);
@@ -247,7 +247,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private void selectRandomBedrock(World world) {
         if (this.pathfinder.isInvalid()) {
             for (int i = 0; i < 100; i++) {
-                BlockPos blockPos = this.blockIterator.randomBlockPos();
+                BlockPos blockPos = this.blockRegion.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
                     this.bedrockTarget = blockPos;
                     return;
@@ -743,7 +743,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 如果玩家有火把，返回上方是否有下落的方块，否则返回{@code false}
      */
     private boolean aboveHasFallingBlockEntity(World world, BlockPos blockPos) {
-        return this.hasTorch() && BlockEntityIterator.ofAbove(world, blockPos, 0).contains(FallingBlockEntity.class);
+        return this.hasTorch() && BlockEntityRegion.ofAbove(world, blockPos, 0).contains(FallingBlockEntity.class);
     }
 
     /**
@@ -933,7 +933,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         if (this.itemEntities.isEmpty()) {
-            Box box = this.blockIterator.toBox().expand(10.0);
+            Box box = this.blockRegion.toBox().expand(10.0);
             List<ItemEntity> list = FetcherUtils.getWorld(this.getFakePlayer()).getNonSpectatingEntities(ItemEntity.class, box)
                     .stream()
                     .filter(itemEntity -> isMaterial(itemEntity.getStack()))
@@ -1087,7 +1087,7 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     public boolean inSelectionArea(BlockPos blockPos) {
-        return this.blockIterator.contains(blockPos);
+        return this.blockRegion.contains(blockPos);
     }
 
     @Override
@@ -1096,12 +1096,12 @@ public class BedrockAction extends AbstractPlayerAction {
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
         switch (this.regionType) {
             case CUBOID -> {
-                Text from = TextProvider.blockPos(this.blockIterator.getMinBlockPos(), Formatting.GREEN);
-                Text to = TextProvider.blockPos(this.blockIterator.getMaxBlockPos(), Formatting.GREEN);
+                Text from = TextProvider.blockPos(this.blockRegion.getMinBlockPos(), Formatting.GREEN);
+                Text to = TextProvider.blockPos(this.blockRegion.getMaxBlockPos(), Formatting.GREEN);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
             }
             case CYLINDER -> {
-                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                CylinderBlockRegion iterator = (CylinderBlockRegion) this.blockRegion;
                 Text center = TextProvider.blockPos(iterator.center);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.radius));
@@ -1120,13 +1120,13 @@ public class BedrockAction extends AbstractPlayerAction {
         json.addProperty("region_type", this.regionType.name().toLowerCase());
         switch (this.regionType) {
             case CUBOID -> {
-                BlockPos minBlockPos = this.blockIterator.getMinBlockPos();
+                BlockPos minBlockPos = this.blockRegion.getMinBlockPos();
                 json.add("from", JsonUtils.toJson(minBlockPos));
-                BlockPos maxBlockPos = this.blockIterator.getMaxBlockPos();
+                BlockPos maxBlockPos = this.blockRegion.getMaxBlockPos();
                 json.add("to", JsonUtils.toJson(maxBlockPos));
             }
             case CYLINDER -> {
-                CylinderBlockIterator iterator = (CylinderBlockIterator) this.blockIterator;
+                CylinderBlockRegion iterator = (CylinderBlockRegion) this.blockRegion;
                 json.add("center", JsonUtils.toJson(iterator.center));
                 json.addProperty("radius", iterator.radius);
                 json.addProperty("height", iterator.height);
@@ -1210,12 +1210,12 @@ public class BedrockAction extends AbstractPlayerAction {
         }
     }
 
-    public static class CylinderBlockIterator extends BlockIterator {
+    public static class CylinderBlockRegion extends BlockRegion {
         private final BlockPos center;
         private final int radius;
         private final int height;
 
-        public CylinderBlockIterator(BlockPos center, int radius, int height) {
+        public CylinderBlockRegion(BlockPos center, int radius, int height) {
             super(
                     new BlockPos(center.getX() - radius, center.getY(), center.getZ() - radius),
                     new BlockPos(center.getX() + radius, center.getY() + height, center.getZ() + radius)
@@ -1244,7 +1244,7 @@ public class BedrockAction extends AbstractPlayerAction {
         @NotNull
         public Iterator<BlockPos> iterator() {
             return new Iterator<>() {
-                private final Iterator<BlockPos> iterator = CylinderBlockIterator.super.iterator();
+                private final Iterator<BlockPos> iterator = CylinderBlockRegion.super.iterator();
                 private BlockPos blockPos;
 
                 @Override
