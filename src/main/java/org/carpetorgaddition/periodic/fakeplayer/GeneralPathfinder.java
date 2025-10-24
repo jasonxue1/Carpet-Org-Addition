@@ -17,11 +17,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.ChunkCache;
-import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.logger.LoggerRegister;
-import org.carpetorgaddition.logger.Loggers;
-import org.carpetorgaddition.logger.NetworkPacketLogger;
-import org.carpetorgaddition.network.s2c.FakePlayerPathS2CPacket;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -279,18 +274,10 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
 
     @Override
     public void onStart() {
-        if (LoggerRegister.fakePlayerPath && CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
-            NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
-            logger.sendPacket(() -> new FakePlayerPathS2CPacket(this));
-        }
     }
 
     @Override
     public void onStop() {
-        if (LoggerRegister.fakePlayerPath && CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
-            NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
-            logger.sendPacket(() -> new FakePlayerPathS2CPacket(getFakePlayer().getId(), List.of()));
-        }
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) getFakePlayer()).getActionPack();
         actionPack.setForward(0F);
         actionPack.setSneaking(false);

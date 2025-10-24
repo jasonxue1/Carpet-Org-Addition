@@ -3,11 +3,16 @@ package org.carpetorgaddition.util;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
+import net.minecraft.block.Block;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
+import net.minecraft.item.Item;
+import net.minecraft.registry.*;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
@@ -38,15 +43,14 @@ public class GenericUtils {
     /**
      * 根据UUID获取实体
      */
-    @Nullable
-    public static Entity getEntity(MinecraftServer server, UUID uuid) {
+    public static Optional<Entity> getEntity(MinecraftServer server, UUID uuid) {
         for (ServerWorld world : server.getWorlds()) {
             Entity entity = world.getEntity(uuid);
             if (entity != null) {
-                return entity;
+                return Optional.of(entity);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     /**
@@ -65,6 +69,61 @@ public class GenericUtils {
 
     public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, GameProfile gameProfile) {
         return getPlayer(server, gameProfile.getName());
+    }
+
+    public static Identifier getId(Item item) {
+        return Registries.ITEM.getId(item);
+    }
+
+    public static Identifier getId(Block block) {
+        return Registries.BLOCK.getId(block);
+    }
+
+    public static Optional<Identifier> getId(World world, Enchantment enchantment) {
+        RegistryEntry<Enchantment> entry = RegistryEntry.of(enchantment);
+        entry.getKey().map(RegistryKey::getValue);
+        return getId(world.getRegistryManager(), enchantment);
+    }
+
+    public static Optional<Identifier> getId(MinecraftServer server, Enchantment enchantment) {
+        return getId(server.getRegistryManager(), enchantment);
+    }
+
+    public static Optional<Identifier> getId(DynamicRegistryManager registryManager, Enchantment enchantment) {
+        Optional<Registry<Enchantment>> optional = registryManager.getOptional(RegistryKeys.ENCHANTMENT);
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+        Registry<Enchantment> enchantments = optional.get();
+        return Optional.ofNullable(enchantments.getId(enchantment));
+    }
+
+
+    public static String getIdAsString(Item item) {
+        return getId(item).toString();
+    }
+
+
+    public static String getIdAsString(Block block) {
+        return getId(block).toString();
+    }
+
+    /**
+     * 将字符串ID转换为物品
+     */
+    public static Item getItem(String id) {
+        return Registries.ITEM.get(Identifier.of(id));
+    }
+
+    /**
+     * 将字符串ID转换为方块
+     */
+    public static Block getBlock(String id) {
+        return Registries.BLOCK.get(Identifier.of(id));
+    }
+
+    public static RegistryKey<World> getWorld(String worldId) {
+        return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId));
     }
 
     /**

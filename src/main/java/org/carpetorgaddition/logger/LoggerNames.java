@@ -13,21 +13,9 @@ public class LoggerNames {
      */
     public static final String FISHING = "fishing";
     /**
-     * 信标范围记录器
-     */
-    public static final String BEACON_RANGE = "beaconRange";
-    /**
-     * 村民兴趣点记录器
-     */
-    public static final String VILLAGER = "villager";
-    /**
      * 黑曜石生成记录器
      */
     public static final String OBSIDIAN = "obsidian";
-    /**
-     * 假玩家寻路记录器
-     */
-    public static final String FAKE_PLAYER_PATH = "fakePlayerPath";
 
     /**
      * @return 指定名称的记录器
