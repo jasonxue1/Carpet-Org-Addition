@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -12,7 +11,7 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 
@@ -21,9 +20,9 @@ import java.util.function.Supplier;
 
 public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final World world;
-    protected final BlockIterator blockIterator;
+    protected final BlockRegion blockRegion;
     protected final BlockPos sourcePos;
-    protected final CommandContext<ServerCommandSource> context;
+    protected final ServerCommandSource source;
     protected Iterator<MerchantEntity> iterator;
     private final PagedCollection pagedCollection;
     private FindState findState;
@@ -45,14 +44,14 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      */
     protected int tradeCount;
 
-    public AbstractTradeSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, CommandContext<ServerCommandSource> context) {
+    public AbstractTradeSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source) {
         this.world = world;
-        this.blockIterator = blockIterator;
+        this.blockRegion = blockRegion;
         this.sourcePos = sourcePos;
-        this.context = context;
+        this.source = source;
         this.findState = FindState.SEARCH;
-        PageManager pageManager = FetcherUtils.getPageManager(context.getSource().getServer());
-        this.pagedCollection = pageManager.newPagedCollection(this.context.getSource());
+        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
@@ -61,7 +60,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.tickCount++;
         if (tickCount > FinderCommand.MAX_TICK_COUNT) {
             // 任务超时
-            MessageUtils.sendErrorMessage(context, FinderCommand.TIME_OUT);
+            MessageUtils.sendErrorMessage(source, FinderCommand.TIME_OUT);
             this.findState = FindState.END;
             return;
         }
@@ -89,7 +88,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     // 查找周围的村民
     private void searchVillager() {
         if (this.iterator == null) {
-            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockIterator.toBox()).iterator();
+            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockRegion.toBox()).iterator();
         }
         while (this.iterator.hasNext()) {
             if (timeout()) {
@@ -129,11 +128,11 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         list.add(this.tradeCount);
         // 消息的翻译键
         String key = "carpet.commands.finder.trade.result";
-        MessageUtils.sendEmptyMessage(this.context);
+        MessageUtils.sendEmptyMessage(this.source);
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
-        MessageUtils.sendMessage(context.getSource(), key, list.toArray(Object[]::new));
+        MessageUtils.sendMessage(this.source, key, list.toArray(Object[]::new));
         this.pagedCollection.addContent(this.results);
-        CommandUtils.handlingException(this.pagedCollection::print, this.context);
+        CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
 
@@ -181,14 +180,14 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     @Override
     public boolean equals(Object o) {
         if (o instanceof AbstractTradeSearchTask that) {
-            return Objects.equals(context, that.context);
+            return Objects.equals(source, that.source);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.context.getSource().getPlayer());
+        return Objects.hashCode(this.source.getPlayer());
     }
 
     public enum FindState {
