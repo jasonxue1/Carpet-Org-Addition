@@ -30,7 +30,7 @@ import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionTyp
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
