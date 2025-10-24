@@ -581,6 +581,15 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
+     * 假玩家死亡不掉落条件
+     */
+    public static final Supplier<FakePlayerKeepInventoryCondition> fakePlayerKeepInventoryCondition = register(
+            RuleFactory.create(FakePlayerKeepInventoryCondition.class, "fakePlayerKeepInventoryCondition", FakePlayerKeepInventoryCondition.UNCONDITIONAL)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
      * 苦力怕命令
      */
     public static final Supplier<String> commandCreeper = register(
@@ -764,7 +773,7 @@ public class CarpetOrgAdditionSettings {
                                 .toList();
                         // 设置玩家路径点
                         if (value) {
-                            list.forEach(AbstractNavigator::sendWaypointUpdate);
+                            list.forEach(navigator -> navigator.syncWaypoint(true));
                         } else {
                             list.forEach(AbstractNavigator::clear);
                         }

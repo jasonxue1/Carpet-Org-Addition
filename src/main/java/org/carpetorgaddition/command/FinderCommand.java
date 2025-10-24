@@ -5,14 +5,12 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.block.piston.PistonBehavior;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.*;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.BlockPredicateArgumentType;
+import net.minecraft.command.argument.ItemPredicateArgumentType;
+import net.minecraft.command.argument.RegistryEntryReferenceArgumentType;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.RegistryKeys;
@@ -22,7 +20,6 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.WorldSavePath;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -32,15 +29,16 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockEntityIterator;
-import org.carpetorgaddition.wheel.BlockIterator;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.BlockEntityRegion;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
+import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
-import java.io.File;
 import java.util.function.Predicate;
 
 public class FinderCommand extends AbstractServerCommand {
@@ -64,6 +62,9 @@ public class FinderCommand extends AbstractServerCommand {
      * 查找超时时抛出异常的反馈消息
      */
     public static final String TIME_OUT = "carpet.commands.finder.timeout";
+    public static final String FINDER_BLOCK = "finder.block";
+    public static final String FINDER_ITEM = "finder.item";
+    public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
 
     public FinderCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
@@ -74,8 +75,8 @@ public class FinderCommand extends AbstractServerCommand {
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandFinder))
                 .then(CommandManager.literal("block")
-                        .requires(PermissionManager.register("finder.block", PermissionLevel.PASS))
-                        .then(CommandManager.argument("blockState", BlockStateArgumentType.blockState(this.access))
+                        .requires(PermissionManager.register(FINDER_BLOCK, PermissionLevel.PASS))
+                        .then(CommandManager.argument("blockState", BlockPredicateArgumentType.blockPredicate(this.access))
                                 .executes(context -> blockFinder(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
                                         .suggests(suggestionDefaultDistance())
@@ -86,7 +87,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(this::areaBlockSearch)))))))
                 .then(CommandManager.literal("item")
-                        .requires(PermissionManager.register("finder.item", PermissionLevel.PASS))
+                        .requires(PermissionManager.register(FINDER_ITEM, PermissionLevel.PASS))
                         .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(this.access))
                                 .executes(context -> searchItem(context, 64))
                                 .then(CommandManager.argument("range", IntegerArgumentType.integer(0, 256))
@@ -98,7 +99,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                         .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
                                                                 .executes(this::areaItemFinder))))
                                         .then(CommandManager.literal("offline_player")
-                                                .requires(PermissionManager.register("finder.item.from.offline_player", PermissionLevel.PASS))
+                                                .requires(PermissionManager.register(FINDER_ITEM_FROM_OFFLINE_PLAYER, PermissionLevel.PASS))
                                                 .executes(this::searchItemFromOfflinePlayer)))))
                 .then(CommandManager.literal("trade")
                         .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
@@ -135,7 +136,8 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourceBlockPos = player.getBlockPos();
         // 查找周围容器中的物品
         World world = FetcherUtils.getWorld(player);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, new BlockEntityIterator(world, sourceBlockPos, range), context);
+        BlockEntityRegion region = new BlockEntityRegion(world, sourceBlockPos, range);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, region, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -149,8 +151,8 @@ public class FinderCommand extends AbstractServerCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
         World world = FetcherUtils.getWorld(player);
-        BlockEntityIterator blockEntityIterator = new BlockEntityIterator(world, from, to);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityIterator, context);
+        BlockEntityRegion blockEntityRegion = new BlockEntityRegion(world, from, to);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityRegion, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -158,13 +160,8 @@ public class FinderCommand extends AbstractServerCommand {
     // 从离线玩家身上查找物品
     private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MinecraftServer server = FetcherUtils.getServer(player);
-        File[] files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
-        if (files == null) {
-            throw CommandUtils.createException("carpet.commands.finder.item.offline_player.unable_read_files");
-        }
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player, files);
+        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -173,14 +170,12 @@ public class FinderCommand extends AbstractServerCommand {
     private int blockFinder(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        // 获取要匹配的方块状态
-        BlockStateArgument argument = BlockStateArgumentType.getBlockState(context, "blockState");
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
-        BlockIterator blockIterator = new BlockIterator(world, sourceBlockPos, range);
-        ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockIterator, context, predicate);
+        BlockRegion blockRegion = new BlockRegion(world, sourceBlockPos, range);
+        BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -194,11 +189,11 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
-        BlockIterator blockIterator = new BlockIterator(from, to);
-        BlockBlockPredicate predicate = new BlockBlockPredicate();
-        MayAffectWorldEaterBlockSearchTask task = new MayAffectWorldEaterBlockSearchTask(world, sourceBlockPos, blockIterator, context, predicate);
+        BlockRegion blockRegion = new BlockRegion(from, to);
+        BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
-        return 0;
+        return 1;
     }
 
     // 区域方块查找
@@ -206,13 +201,11 @@ public class FinderCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
-        // 获取要匹配的方块状态
-        BlockStateArgument argument = BlockStateArgumentType.getBlockState(context, "blockState");
         // 计算要查找的区域
-        BlockIterator blockIterator = new BlockIterator(from, to);
-        ArgumentBlockPredicate predicate = new ArgumentBlockPredicate(argument);
+        BlockRegion blockRegion = new BlockRegion(from, to);
+        BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockIterator, context, predicate);
+        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -227,8 +220,8 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourcePos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
         // 查找范围
-        BlockIterator area = new BlockIterator(world, sourcePos, range);
-        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context);
+        BlockRegion area = new BlockRegion(world, sourcePos, range);
+        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context.getSource());
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -240,12 +233,15 @@ public class FinderCommand extends AbstractServerCommand {
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         // 获取需要查找的附魔
         Enchantment enchantment = RegistryEntryReferenceArgumentType.getEnchantment(context, "enchantment").value();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
+        EnchantedBookPredicate predicate = new EnchantedBookPredicate(server, enchantment);
         // 获取玩家所在的位置
         BlockPos sourcePos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
         // 查找范围
-        BlockIterator area = new BlockIterator(world, sourcePos, range);
-        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, area, sourcePos, context, enchantment);
+        BlockRegion region = new BlockRegion(world, sourcePos, range);
+        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, region, sourcePos, source, predicate);
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -261,72 +257,5 @@ public class FinderCommand extends AbstractServerCommand {
     @Override
     public String getDefaultName() {
         return "finder";
-    }
-
-    public interface BlockPredicate {
-        boolean test(ServerWorld world, BlockPos pos);
-
-        Text getName();
-    }
-
-    public record ArgumentBlockPredicate(BlockStateArgument argument) implements BlockPredicate {
-        @Override
-        public boolean test(ServerWorld world, BlockPos pos) {
-            return argument.test(world, pos);
-        }
-
-        @Override
-        public Text getName() {
-            return argument.getBlockState().getBlock().getName();
-        }
-    }
-
-    public static class BlockBlockPredicate implements BlockPredicate {
-        @Override
-        public boolean test(ServerWorld world, BlockPos pos) {
-            BlockState blockState = world.getBlockState(pos);
-            // 排除基岩，空气和流体
-            if (blockState.isOf(Blocks.BEDROCK) || blockState.isAir() || blockState.getBlock() instanceof FluidBlock) {
-                return false;
-            }
-            // 被活塞推动时会被破坏
-            if (blockState.getPistonBehavior() == PistonBehavior.DESTROY) {
-                return false;
-            }
-            // 高爆炸抗性
-            if (blockState.getBlock().getBlastResistance() > 17) {
-                return true;
-            }
-            // 不能推动（实体方块不能被推动）且含水
-            boolean blockPiston = blockState.getBlock() instanceof BlockWithEntity || blockState.getPistonBehavior() == PistonBehavior.BLOCK;
-            boolean hasWater = !blockState.getFluidState().isEmpty();
-            if (blockPiston && hasWater) {
-                return true;
-            }
-            // 含水，可以被推动，但下方8格全都有方块
-            return hasWater && canPush(world, pos);
-        }
-
-        private boolean canPush(ServerWorld world, BlockPos pos) {
-            for (int i = 1; i <= 8; i++) {
-                BlockState blockState = world.getBlockState(pos.down(i));
-                // 不可被推动的方块
-                PistonBehavior pistonBehavior = blockState.getPistonBehavior();
-                if (pistonBehavior == PistonBehavior.BLOCK) {
-                    return true;
-                }
-                // 下方方块可以被推动
-                if (pistonBehavior == PistonBehavior.DESTROY) {
-                    return false;
-                }
-            }
-            // 下方8格内都有方块
-            return true;
-        }
-
-        @Override
-        public Text getName() {
-            return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
-        }
     }
 }

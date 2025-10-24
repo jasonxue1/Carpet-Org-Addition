@@ -18,13 +18,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class BlockEntityIterator implements Iterable<BlockEntity> {
+public class BlockEntityRegion implements Iterable<BlockEntity> {
     private final World world;
-    private final BlockIterator blockIterator;
+    private final BlockRegion blockRegion;
     private final BlockPos from;
     private final BlockPos to;
 
-    public BlockEntityIterator(World world, BlockPos sourcePos, int range) {
+    public BlockEntityRegion(World world, BlockPos sourcePos, int range) {
         this.world = world;
         int minX = sourcePos.getX() - Math.abs(range);
         int minY = world.getBottomY();
@@ -34,26 +34,26 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
         int maxZ = sourcePos.getZ() + Math.abs(range);
         this.from = new BlockPos(minX, minY, minZ);
         this.to = new BlockPos(maxX, maxY, maxZ);
-        this.blockIterator = new BlockIterator(this.from, this.to);
+        this.blockRegion = new BlockRegion(this.from, this.to);
     }
 
-    public BlockEntityIterator(World world, BlockPos from, BlockPos to) {
+    public BlockEntityRegion(World world, BlockPos from, BlockPos to) {
         this.world = world;
         this.from = MathUtils.toMinBlockPos(from, to);
         this.to = MathUtils.toMaxBlockPos(from, to);
-        this.blockIterator = new BlockIterator(from, to);
+        this.blockRegion = new BlockRegion(from, to);
     }
 
-    public static BlockEntityIterator ofAbove(EntityPlayerMPFake fakePlayer, int range) {
+    public static BlockEntityRegion ofAbove(EntityPlayerMPFake fakePlayer, int range) {
         World world = FetcherUtils.getWorld(fakePlayer);
         BlockPos blockPos = fakePlayer.getBlockPos();
         return ofAbove(world, blockPos, range);
     }
 
-    public static BlockEntityIterator ofAbove(World world, BlockPos blockPos, int range) {
+    public static BlockEntityRegion ofAbove(World world, BlockPos blockPos, int range) {
         BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
         BlockPos to = new BlockPos(blockPos.getX() + range, world.getBottomY() + world.getHeight(), blockPos.getZ() + range);
-        return new BlockEntityIterator(world, from, to);
+        return new BlockEntityRegion(world, from, to);
     }
 
     public <T extends Entity> boolean contains(Class<T> type) {
@@ -66,7 +66,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
     }
 
     public Box toBox() {
-        return this.blockIterator.toBox();
+        return this.blockRegion.toBox();
     }
 
     private class Itr implements Iterator<BlockEntity> {
@@ -129,7 +129,7 @@ public class BlockEntityIterator implements Iterable<BlockEntity> {
                 }
                 while (this.current.hasNext()) {
                     BlockEntity blockEntity = this.current.next();
-                    if (blockIterator.contains(blockEntity.getPos())) {
+                    if (blockRegion.contains(blockEntity.getPos())) {
                         this.next = blockEntity;
                         return true;
                     }

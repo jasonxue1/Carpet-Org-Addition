@@ -4,7 +4,24 @@ import net.minecraft.server.ServerTickManager;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.TaskExecutionException;
 
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 public abstract class ServerTask {
+    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() + 1,
+            Runtime.getRuntime().availableProcessors() + 1,
+            5,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(),
+            this::ofPlatformThread
+    );
+
+    public ServerTask() {
+        this.executor.allowCoreThreadTimeOut(true);
+    }
+
     /**
      * 该任务是否应该被删除
      */
@@ -67,5 +84,20 @@ public abstract class ServerTask {
      */
     public void markRemove() {
         this.remove = true;
+    }
+
+    protected void submit(Runnable task) {
+        this.executor.submit(task);
+    }
+
+    /**
+     * 为线程池创建线程
+     */
+    private Thread ofPlatformThread(Runnable runnable) {
+        return Thread.ofPlatform()
+                .daemon()
+                .name(this.getClass().getSimpleName() + "-Thread")
+                .uncaughtExceptionHandler((t, e) -> CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e))
+                .unstarted(runnable);
     }
 }
