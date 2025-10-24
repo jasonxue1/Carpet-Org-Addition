@@ -122,7 +122,6 @@
     "rule.client.carpet.SettingsManagerMixin",
     "rule.disableanvilexpensive.client.AnvilScreenMixin",
     "rule.quickshulker.CreativeScreenHandlerMixin",
-    "util.MultiPhaseParametersBuilderAccessor",
     "util.ShaderProgramLayersAccessor"
   ],
   "injectors": {
