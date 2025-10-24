@@ -3,7 +3,8 @@ package org.carpetorgaddition.dataupdate.player;
 import com.google.gson.JsonObject;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.periodic.fakeplayer.action.EmptyTheContainerAction;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.util.GenericUtils;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 /**
  * 清空容器动作数据更新器
@@ -25,7 +26,7 @@ public class EmptyTheContainerActionDataUpdater implements DataUpdater {
                 ItemStackPredicate predicate;
                 if (json.has(EmptyTheContainerAction.ITEM)) {
                     String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
-                    predicate = new ItemStackPredicate(ItemStackPredicate.stringAsItem(item));
+                    predicate = new ItemStackPredicate(GenericUtils.getItem(item));
                 } else {
                     predicate = ItemStackPredicate.WILDCARD;
                 }

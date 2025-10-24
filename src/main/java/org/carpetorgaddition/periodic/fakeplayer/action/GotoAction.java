@@ -199,10 +199,8 @@ public class GotoAction extends AbstractPlayerAction {
                             return Optional.empty();
                         }
                         // 实体被可逆的删除，例如区块卸载，跨越维度
-                        Entity entity = GenericUtils.getEntity(server, this.entityUuid);
-                        if (entity != null) {
-                            this.entity = entity;
-                        }
+                        Optional<Entity> optional = GenericUtils.getEntity(server, this.entityUuid);
+                        optional.ifPresent(value -> this.entity = value);
                     }
                     default -> {
                         this.isEntityDestroy = true;

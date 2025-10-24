@@ -2,6 +2,7 @@ package org.carpetorgaddition.util;
 
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.FileOperationException;
 import org.jetbrains.annotations.Contract;
@@ -89,7 +90,9 @@ public class IOUtils {
         File backupFile = Paths.get(file.getParent(), file.getName() + ".bak").toFile();
         try {
             // 将数据保存到临时文件
-            writeStringToFile(tempFile, content);
+            try (BufferedWriter writer = toWriter(tempFile)) {
+                writer.write(content);
+            }
             // 备份旧的文件
             if (hasOriginalFile) {
                 Files.deleteIfExists(backupFile.toPath());
@@ -121,12 +124,6 @@ public class IOUtils {
         }
     }
 
-    private static void writeStringToFile(File file, String content) throws IOException {
-        try (BufferedWriter writer = toWriter(file)) {
-            writer.write(content);
-        }
-    }
-
     /**
      * 从文件加载一个json对象
      */
@@ -139,6 +136,29 @@ public class IOUtils {
         try (reader) {
             return GSON.fromJson(reader, type);
         }
+    }
+
+    public static JsonObject stringAsJson(String jsonString) {
+        return GSON.fromJson(jsonString, JsonObject.class);
+    }
+
+    public static String jsonAsString(JsonObject json) {
+        return GSON.toJson(json, JsonObject.class);
+    }
+
+    public static BlockPos toBlockPos(JsonObject json) {
+        int x = json.get("x").getAsInt();
+        int y = json.get("y").getAsInt();
+        int z = json.get("z").getAsInt();
+        return new BlockPos(x, y, z);
+    }
+
+    public static JsonObject toJson(BlockPos blockPos) {
+        JsonObject json = new JsonObject();
+        json.addProperty("x", blockPos.getX());
+        json.addProperty("y", blockPos.getY());
+        json.addProperty("z", blockPos.getZ());
+        return json;
     }
 
     /**

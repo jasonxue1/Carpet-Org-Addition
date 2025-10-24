@@ -19,16 +19,16 @@ public class TextBuilder {
     @NotNull
     private MutableText text;
 
+    private TextBuilder(@NotNull MutableText text) {
+        this.text = text;
+    }
+
     public TextBuilder() {
         this(empty());
     }
 
     public TextBuilder(Text text) {
         this(text.copy());
-    }
-
-    public TextBuilder(@NotNull MutableText text) {
-        this.text = text;
     }
 
     public TextBuilder(String str) {

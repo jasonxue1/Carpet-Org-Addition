@@ -216,6 +216,7 @@ public class CommandUtils {
         commandManager.executeWithPrefix(source, command);
     }
 
+    @SuppressWarnings("unused")
     public static void handlingException(ThrowingRunnable runnable, CommandContext<ServerCommandSource> context) {
         handlingException(runnable, context.getSource());
     }
