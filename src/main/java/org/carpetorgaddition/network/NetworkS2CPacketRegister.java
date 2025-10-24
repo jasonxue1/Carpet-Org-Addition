@@ -1,6 +1,9 @@
 package org.carpetorgaddition.network;
 
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket;
+import org.carpetorgaddition.network.handler.ObjectSearchTaskPacketHandler;
 import org.carpetorgaddition.network.s2c.*;
 
 public class NetworkS2CPacketRegister {
@@ -16,13 +19,9 @@ public class NetworkS2CPacketRegister {
         PayloadTypeRegistry.playS2C().register(UnavailableSlotSyncS2CPacket.ID, UnavailableSlotSyncS2CPacket.CODEC);
         // 背景精灵同步数据包
         PayloadTypeRegistry.playS2C().register(BackgroundSpriteSyncS2CPacket.ID, BackgroundSpriteSyncS2CPacket.CODEC);
-        // 信标范围更新数据包
-        PayloadTypeRegistry.playS2C().register(BeaconBoxUpdateS2CPacket.ID, BeaconBoxUpdateS2CPacket.CODEC);
-        // 村民信息同步数据包
-        PayloadTypeRegistry.playS2C().register(VillagerPoiSyncS2CPacket.ID, VillagerPoiSyncS2CPacket.CODEC);
         // 记录器更新数据包
         PayloadTypeRegistry.playS2C().register(LoggerUpdateS2CPacket.ID, LoggerUpdateS2CPacket.CODEC);
-        // 假玩家路径数据包
-        PayloadTypeRegistry.playS2C().register(FakePlayerPathS2CPacket.ID, FakePlayerPathS2CPacket.CODEC);
+        PayloadTypeRegistry.playC2S().register(ObjectSearchTaskC2SPacket.ID, ObjectSearchTaskC2SPacket.CODEC);
+        ServerPlayNetworking.registerGlobalReceiver(ObjectSearchTaskC2SPacket.ID, new ObjectSearchTaskPacketHandler());
     }
 }

@@ -13,7 +13,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
+import org.carpetorgaddition.wheel.BlockRegion;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -54,8 +54,8 @@ public abstract class ServerPlayerEntityMixin {
             FetcherUtils.getServer(thisPlayer).getPlayerManager().sendPlayerStatus(thisPlayer);
             BlockPos blockPos = thisPlayer.getBlockPos();
             int range = (int) Math.min(thisPlayer.getBlockInteractionRange() + 1, 8);
-            BlockIterator blockIterator = new BlockIterator(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));
-            for (BlockPos pos : blockIterator) {
+            BlockRegion blockRegion = new BlockRegion(blockPos.add(-range, -range, -range), blockPos.add(range, range, range));
+            for (BlockPos pos : blockRegion) {
                 if (blockPos.toCenterPos().distanceTo(pos.toCenterPos()) > range) {
                     continue;
                 }
