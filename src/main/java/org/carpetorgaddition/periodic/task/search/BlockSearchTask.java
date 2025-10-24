@@ -14,10 +14,10 @@ import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
 import java.util.*;
@@ -138,9 +138,9 @@ public class BlockSearchTask extends ServerTask {
                         throw new TaskExecutionException(function);
                     }
                 }
-                return true;
+                return BlockPos.IterationState.ACCEPT;
             }
-            return false;
+            return BlockPos.IterationState.STOP;
         });
         for (Map.Entry<Block, Set<BlockPos>> entry : group.entrySet()) {
             this.results.add(new Result(entry.getKey(), entry.getValue()));
