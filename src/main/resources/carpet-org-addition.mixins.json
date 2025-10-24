@@ -124,7 +124,6 @@
     "rule.disableanvilexpensive.client.AnvilScreenMixin",
     "rule.quickshulker.CreativeScreenHandlerMixin",
     "substitute.WorldRendererMixin",
-    "util.MultiPhaseParametersBuilderAccessor",
     "util.ShaderProgramLayersAccessor"
   ],
   "injectors": {
