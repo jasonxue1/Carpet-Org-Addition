@@ -19,27 +19,9 @@ public class Loggers {
     }
 
     /**
-     * 信标范围记录器
-     */
-    public static NetworkPacketLogger getBeaconRangeLogger() {
-        return (NetworkPacketLogger) LoggerRegistry.getLogger(LoggerNames.BEACON_RANGE);
-    }
-
-    /**
-     * 村民兴趣点记录器
-     */
-    public static NetworkPacketLogger getVillagerLogger() {
-        return (NetworkPacketLogger) LoggerRegistry.getLogger(LoggerNames.VILLAGER);
-    }
-
-    /**
      * 黑曜石生成记录器
      */
     public static FunctionLogger getObsidianLogger() {
         return (FunctionLogger) LoggerRegistry.getLogger(LoggerNames.OBSIDIAN);
-    }
-
-    public static NetworkPacketLogger getFakePlayerPathLogger() {
-        return (NetworkPacketLogger) LoggerRegistry.getLogger(LoggerNames.FAKE_PLAYER_PATH);
     }
 }

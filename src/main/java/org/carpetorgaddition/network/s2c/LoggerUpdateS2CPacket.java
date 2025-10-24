@@ -8,11 +8,7 @@ import org.carpetorgaddition.network.PacketUtils;
 import org.jetbrains.annotations.Nullable;
 
 // 记录器更新数据包
-public record LoggerUpdateS2CPacket(
-        String logName,
-        @Nullable String option,
-        boolean isRemove
-) implements CustomPayload {
+public record LoggerUpdateS2CPacket(String logName, @Nullable String option, boolean isRemove) implements CustomPayload {
     public static final Id<LoggerUpdateS2CPacket> ID = PacketUtils.createId("logger_update");
     public static final PacketCodec<RegistryByteBuf, LoggerUpdateS2CPacket> CODEC = new PacketCodec<>() {
         @Override
