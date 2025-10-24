@@ -8,7 +8,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
 

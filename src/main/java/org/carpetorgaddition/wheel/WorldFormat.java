@@ -22,7 +22,9 @@ public class WorldFormat {
      * 文件是否为{@code json}扩展名
      */
     public static final Predicate<File> JSON_EXTENSIONS = file -> file.getName().endsWith(IOUtils.JSON_EXTENSION);
-
+    /**
+     * 文件所在文件夹
+     */
     private final File directory;
 
     /**

@@ -2,13 +2,19 @@ package org.carpetorgaddition.rule;
 
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
+import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
+import net.minecraft.entity.damage.DamageRecord;
+import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.entity.damage.DamageTracker;
+import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
@@ -126,5 +132,35 @@ public class RuleUtils {
                 .map(builder -> builder.setColor(Formatting.GRAY))
                 .map(TextBuilder::build)
                 .toList();
+    }
+
+    /**
+     * 如果{@code 假玩家死亡不掉落条件}启用，则是否应该保留物品栏
+     */
+    public static boolean shouldKeepInventory(EntityPlayerMPFake fakePlayer) {
+        return switch (CarpetOrgAdditionSettings.fakePlayerKeepInventoryCondition.get()) {
+            // 无条件保留物品栏
+            case UNCONDITIONAL -> true;
+            // 被玩家杀死或落入虚空时保留物品栏
+            case KILLED_BY_PLAYER_OR_THE_VOID -> {
+                DamageTracker damageTracker = fakePlayer.getDamageTracker();
+                List<DamageRecord> records = ((DamageTrackerAccessor) damageTracker).getRecentDamage();
+                DamageSource directCause = records.getLast().damageSource();
+                // 伤害的源发实体为玩家时不掉落（例如玩家射出的箭）
+                if (directCause.getSource() instanceof ServerPlayerEntity) {
+                    yield true;
+                }
+                // 伤害的直接实体为玩家时不掉落
+                if (directCause.getAttacker() instanceof ServerPlayerEntity) {
+                    yield true;
+                }
+                // 假玩家最近一段时间曾受到来自玩家的伤害
+                if (fakePlayer.getPrimeAdversary() instanceof ServerPlayerEntity) {
+                    yield true;
+                }
+                // 假玩家落入虚空时不掉落
+                yield directCause.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY);
+            }
+        };
     }
 }

@@ -5,6 +5,7 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.command.ServerCommandSource;
@@ -12,6 +13,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.DateTimeFormatters;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.WorldSavePath;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
@@ -24,6 +26,7 @@ import org.carpetorgaddition.wheel.*;
 import org.carpetorgaddition.wheel.inventory.*;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -36,30 +39,11 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 public class OfflinePlayerSearchTask extends ServerTask {
-    /**
-     * 任务的线程池，逻辑上只能同时执行一个离线玩家物品查找任务
-     */
-    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors() + 1,
-            Runtime.getRuntime().availableProcessors() + 1,
-            5,
-            TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(),
-            OfflinePlayerSearchTask::createNewThread
-    );
-
-    static {
-        EXECUTOR.allowCoreThreadTimeOut(true);
-    }
-
     /**
      * 因文件损坏等原因暂时无法读取数据的玩家的UUID
      */
@@ -73,10 +57,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     public static final Set<UUID> INVALID_PLAYER_DATAS = ConcurrentHashMap.newKeySet();
     public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
-    /**
-     * 线程池中，线程的ID
-     */
-    private static final AtomicInteger THREAD_ID = new AtomicInteger(0);
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatters.create();
     /**
@@ -114,12 +94,15 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
 
-    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player, File[] files) {
+    public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player) {
         this.source = source;
         this.predicate = predicate;
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
-        this.files = files;
+        this.files = server.getSavePath(WorldSavePath.PLAYERDATA).toFile().listFiles();
+        if (this.files == null) {
+            throw new IllegalStateException("Unable to read \"playerdata\" folder");
+        }
         this.worldFormat = new WorldFormat(this.server, "backups", "playerdata");
         PageManager manager = FetcherUtils.getPageManager(server);
         this.pagedCollection = manager.newPagedCollection(this.source);
@@ -171,7 +154,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
-        EXECUTOR.submit(() -> {
+        this.submit(() -> {
             try {
                 if (INVALID_PLAYER_DATAS.contains(uuid)) {
                     return;
@@ -382,7 +365,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     // 获取玩家物品栏
     private Inventory getInventory(NbtCompound nbt) {
-        return SimulatePlayerInventory.of(nbt, FetcherUtils.getServer(this.player));
+        return SimulatePlayerInventory.of(nbt, this.server);
     }
 
     /**
@@ -394,7 +377,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     protected Inventory getEnderChest(NbtCompound nbt) {
         EnderChestInventory inventory = new EnderChestInventory();
         if (nbt.contains("EnderItems", NbtElement.LIST_TYPE)) {
-            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.player.getRegistryManager());
+            inventory.readNbtList(nbt.getList("EnderItems", NbtElement.COMPOUND_TYPE), this.server.getRegistryManager());
             return inventory;
         } else {
             return ImmutableInventory.EMPTY;
@@ -440,8 +423,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 获取物品数量文本
      */
     private Text getItemCount() {
-        if (this.predicate.isConvertible()) {
-            return FinderCommand.showCount(this.predicate.asItem().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
+        Optional<Item> optional = this.predicate.getConvert();
+        if (optional.isPresent()) {
+            return FinderCommand.showCount(optional.get().getDefaultStack(), this.itemCount.get(), this.shulkerBox.get());
         } else {
             TextBuilder builder = new TextBuilder(this.itemCount);
             return this.shulkerBox.get() ? builder.setItalic().build() : builder.build();
@@ -544,14 +528,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
             }
         }
         return this.backupFileDirectory;
-    }
-
-    private static Thread createNewThread(Runnable runnable) {
-        Thread thread = new Thread(runnable);
-        thread.setDaemon(true);
-        thread.setName(OfflinePlayerSearchTask.class.getSimpleName() + "-Thread-" + THREAD_ID.incrementAndGet());
-        thread.setUncaughtExceptionHandler((t, e) -> CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e));
-        return thread;
     }
 
     /**
