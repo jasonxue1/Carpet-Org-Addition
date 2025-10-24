@@ -1,14 +1,14 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.Camera;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +28,7 @@ public class WaypointRenderer {
         // 断开连接时清除路径点
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> destroy());
         // 清除不再需要的渲染器
-        WorldRenderEvents.START.register(context -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
+        WorldRenderEvents.START.register(() -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
     }
 
     private WaypointRenderer() {
