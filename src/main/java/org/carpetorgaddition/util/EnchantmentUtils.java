@@ -9,12 +9,13 @@ import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.registry.Registry;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.EnchantmentTags;
 import net.minecraft.screen.ScreenTexts;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.world.World;
@@ -65,15 +66,21 @@ public class EnchantmentUtils {
         return key == Enchantments.SHARPNESS || key == Enchantments.SMITE || key == Enchantments.BANE_OF_ARTHROPODS || key == Enchantments.IMPALING || key == Enchantments.DENSITY || key == Enchantments.BREACH;
     }
 
+    public static int getLevel(World world, Enchantment enchantment, ItemStack itemStack) {
+        DynamicRegistryManager registryManager = world.getRegistryManager();
+        return getLevel(enchantment, itemStack, registryManager);
+    }
+
+    public static int getLevel(MinecraftServer server, Enchantment enchantment, ItemStack itemStack) {
+        DynamicRegistryManager.Immutable registryManager = server.getRegistryManager();
+        return getLevel(enchantment, itemStack, registryManager);
+    }
+
     /**
      * @return 获取指定物品上指定附魔的等级
      */
-    public static int getLevel(World world, Enchantment enchantment, ItemStack itemStack) {
-        Optional<Registry<Enchantment>> optional = world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT);
-        if (optional.isEmpty()) {
-            return 0;
-        }
-        RegistryEntry<Enchantment> entry = optional.get().getEntry(enchantment);
+    private static int getLevel(Enchantment enchantment, ItemStack itemStack, DynamicRegistryManager registryManager) {
+        RegistryEntry<Enchantment> entry = registryManager.get(RegistryKeys.ENCHANTMENT).getEntry(enchantment);
         if (itemStack.isOf(Items.ENCHANTED_BOOK)) {
             ItemEnchantmentsComponent component = itemStack.getOrDefault(DataComponentTypes.STORED_ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
             return component.getLevel(entry);

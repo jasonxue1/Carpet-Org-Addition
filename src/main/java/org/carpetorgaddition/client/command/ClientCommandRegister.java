@@ -20,6 +20,7 @@ public class ClientCommandRegister {
         register(new DictionaryCommand(dispatcher, access));
         // 高亮路径点命令
         register(new HighlightCommand(dispatcher, access));
+        register(new ClientFinderCommand(dispatcher, access));
     }
 
     private static <T extends AbstractClientCommand> void register(T command) {

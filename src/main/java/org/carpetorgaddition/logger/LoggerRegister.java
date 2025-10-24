@@ -17,22 +17,8 @@ public class LoggerRegister {
     @LoggerConfig(name = LoggerNames.FISHING, type = LoggerType.FUNCTION)
     public static boolean fishing = false;
 
-    @LoggerConfig(name = LoggerNames.BEACON_RANGE, type = LoggerType.NETWORK)
-    public static boolean beaconRange = false;
-
-    @LoggerConfig(
-            name = LoggerNames.VILLAGER,
-            type = LoggerType.NETWORK,
-            options = {"bed", "jobSitePos", "potentialJobSite", "\"bed,jobSitePos\"", "\"jobSitePos,potentialJobSite\"", "all"}
-    )
-    public static boolean villager = false;
-
     @LoggerConfig(name = LoggerNames.OBSIDIAN, type = LoggerType.FUNCTION)
     public static boolean obsidian = false;
-
-    @Hidden
-    @LoggerConfig(name = LoggerNames.FAKE_PLAYER_PATH, type = LoggerType.NETWORK)
-    public static boolean fakePlayerPath = false;
 
     /**
      * 注册记录器

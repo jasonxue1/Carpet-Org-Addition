@@ -7,7 +7,6 @@ import org.carpetorgaddition.client.util.ClientUtils;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
 public class Tooltip {
     private Tooltip() {
     }

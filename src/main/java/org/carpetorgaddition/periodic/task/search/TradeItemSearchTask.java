@@ -1,6 +1,5 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
@@ -11,8 +10,8 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockIterator;
-import org.carpetorgaddition.wheel.ItemStackPredicate;
+import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 
@@ -22,8 +21,8 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final Text treadName;
 
-    public TradeItemSearchTask(World world, BlockIterator blockIterator, BlockPos sourcePos, ItemStackPredicate predicate, CommandContext<ServerCommandSource> context) {
-        super(world, blockIterator, sourcePos, context);
+    public TradeItemSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ItemStackPredicate predicate, ServerCommandSource source) {
+        super(world, blockRegion, sourcePos, source);
         this.predicate = predicate;
         this.treadName = predicate.toText();
     }
@@ -33,7 +32,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
         TradeOfferList offers = merchant.getOffers();
         ArrayList<Integer> list = new ArrayList<>();
         for (int index = 0; index < offers.size(); index++) {
-            // 检查每个出售的物品是否与匹配器匹配
+            // 检查每个出售的物品是否与谓词匹配
             if (this.predicate.test(offers.get(index).getSellItem())) {
                 list.add(index + 1);
                 this.tradeCount++;
@@ -75,7 +74,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(context.getSource(),
+        MessageUtils.sendMessage(this.source,
                 "carpet.commands.finder.trade.find.not_trade",
                 this.getTradeName(), FinderCommand.VILLAGER);
     }

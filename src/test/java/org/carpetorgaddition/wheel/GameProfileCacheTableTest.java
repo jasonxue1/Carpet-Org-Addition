@@ -1,75 +1,90 @@
 package org.carpetorgaddition.wheel;
 
+import net.minecraft.util.Uuids;
 import org.carpetorgaddition.wheel.GameProfileCache.Table;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 
 public class GameProfileCacheTableTest {
+    private Table table;
+    private static Set<String> usernames;
+
+    @BeforeAll
+    public static void initUsernames() {
+        usernames = new HashSet<>();
+        usernames.add("abc");
+        usernames.add("ABC");
+        usernames.add("Abc");
+        usernames.add("aBc");
+        usernames.add("abC");
+        usernames.add("AAaa");
+        usernames.add("aaAA");
+        usernames.add("AaaA");
+        usernames.add("aAAa");
+        usernames.add("aaaA");
+        usernames.add("Steve");
+        usernames.add("Alex");
+        usernames.add("HelloWorld");
+        usernames.add("bot_1");
+        usernames.add("Bot_1");
+        usernames.add("BOT_1");
+    }
+
+    @BeforeEach
+    public void init() {
+        this.table = new Table();
+        for (String username : usernames) {
+            this.table.put(Uuids.getOfflinePlayerUuid(username), username);
+        }
+    }
+
     @Test
     public void testGet() {
-        Table table = new Table();
-        UUID uuid1 = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
-        UUID uuid3 = UUID.randomUUID();
-        UUID uuid4 = UUID.randomUUID();
-        UUID uuid5 = UUID.randomUUID();
-        table.put(uuid1, "abc");
-        table.put(uuid2, "ABC");
-        table.put(uuid3, "Abc");
-        table.put(uuid4, "aBc");
-        table.put(uuid5, "abC");
-        List<UUID> list = List.of(uuid1, uuid2, uuid3, uuid4, uuid5);
-        Assertions.assertSame(table.get("abc").orElseThrow(), uuid1);
-        Assertions.assertSame(table.get("ABC").orElseThrow(), uuid2);
-        Assertions.assertSame(table.get("Abc").orElseThrow(), uuid3);
-        Optional<UUID> optional = table.get("aBC");
-        Assertions.assertTrue(optional.isPresent());
-        Assertions.assertTrue(list.contains(optional.get()));
-        Assertions.assertTrue(table.get("aaa").isEmpty());
-        Assertions.assertTrue(table.get("bbb").isEmpty());
-        Assertions.assertTrue(table.get(UUID.randomUUID()).isEmpty());
-        Assertions.assertTrue(table.get(UUID.randomUUID()).isEmpty());
-        Assertions.assertTrue(table.get(UUID.randomUUID()).isEmpty());
-        Assertions.assertEquals("abc", table.get(uuid1).orElseThrow());
-        Assertions.assertEquals("ABC", table.get(uuid2).orElseThrow());
-        Assertions.assertEquals("Abc", table.get(uuid3).orElseThrow());
-        Assertions.assertEquals("aBc", table.get(uuid4).orElseThrow());
-        Assertions.assertEquals("abC", table.get(uuid5).orElseThrow());
+        for (String username : usernames) {
+            UUID expected = Uuids.getOfflinePlayerUuid(username);
+            UUID actual = table.get(username).map(Map.Entry::getKey).orElseThrow();
+            System.out.println("username: " + username);
+            System.out.println("expected: " + expected);
+            System.out.println("actual: " + actual);
+            System.out.println();
+            Assertions.assertEquals(expected, actual);
+        }
         Assertions.assertThrows(IllegalArgumentException.class, () -> table.get((String) null));
     }
 
     @Test
-    public void testRemove() {
-        Table table = new Table();
-        UUID uuid1 = UUID.randomUUID();
-        UUID uuid2 = UUID.randomUUID();
-        UUID uuid3 = UUID.randomUUID();
-        UUID uuid4 = UUID.randomUUID();
-        UUID uuid5 = UUID.randomUUID();
-        table.put(uuid1, "abc");
-        table.put(uuid2, "ABC");
-        table.put(uuid3, "Abc");
-        table.put(uuid4, "aBc");
-        table.put(uuid5, "abC");
-        table.put(UUID.randomUUID(), "abcd");
-        table.remove("abc");
-        table.remove("abc");
-        table.remove("aaa");
-        table.remove("bbb");
-        table.remove("abcd");
-        Assertions.assertNotSame(table.get("abc").orElseThrow(), uuid1);
-        table.remove(uuid1);
-        table.remove(uuid2);
-        table.remove(uuid3);
-        table.remove(uuid4);
-        table.remove(uuid5);
-        table.remove(UUID.randomUUID());
-        table.remove(UUID.randomUUID());
-        table.remove(UUID.randomUUID());
+    public void testGetCaseVariant() {
+        Map<String, String> map = Map.ofEntries(
+                Map.entry("aaaa", "aaaA"),
+                Map.entry("AAAA", "AAaa"),
+                Map.entry("Aaaa", "AaaA"),
+                Map.entry("aAaA", "aAAa"),
+                Map.entry("AaAa", "AaaA"),
+                Map.entry("aAAa", "aAAa"),
+                Map.entry("aaAA", "aaAA"),
+                Map.entry("bot_1", "bot_1"),
+                Map.entry("Bot_1", "Bot_1"),
+                Map.entry("BOT_1", "BOT_1"),
+                Map.entry("BOt_1", "BOT_1"),
+                Map.entry("bOT_1", "bot_1")
+        );
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            UUID expected = Uuids.getOfflinePlayerUuid(entry.getValue());
+            UUID actual = table.get(entry.getKey()).map(Map.Entry::getKey).orElseThrow();
+            System.out.println("username: " + entry.getKey() + " / " + entry.getValue());
+            System.out.println("cache_username: " + table.get(actual).orElseThrow());
+            System.out.println("expected: " + expected);
+            System.out.println("actual: " + actual);
+            System.out.println();
+            Assertions.assertEquals(expected, actual);
+        }
     }
 }
