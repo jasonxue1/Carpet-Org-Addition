@@ -1,6 +1,5 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
@@ -12,7 +11,6 @@ import net.minecraft.util.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
-import org.carpetorgaddition.wheel.Waypoint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -56,8 +54,6 @@ public class WaypointRenderer {
         MatrixStack matrixStack = context.matrixStack();
         for (Waypoint waypoint : waypoints.values()) {
             try {
-                // 允许路径点透过方块渲染
-                RenderSystem.disableDepthTest();
                 // 绘制图标
                 VertexConsumerProvider consumers = context.consumers();
                 RenderTickCounter tickCounter = context.tickCounter();

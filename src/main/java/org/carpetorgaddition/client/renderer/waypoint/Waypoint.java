@@ -1,8 +1,6 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gl.ShaderProgramKeys;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.mob.EndermanEntity;
@@ -74,7 +72,7 @@ public abstract class Waypoint {
         if (revised == null) {
             return;
         }
-        float tickDelta = tickCounter.getTickDelta(false);
+        float tickDelta = tickCounter.getTickProgress(false);
         if (this.tickDelta > tickDelta) {
             this.tick();
         }
@@ -103,26 +101,23 @@ public abstract class Waypoint {
         // 让路径点始终对准玩家
         matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
         matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
-        MatrixStack.Entry entry = matrixStack.peek();
-        Matrix4f matrix4f = entry.getPositionMatrix();
-        Tessellator tessellator = Tessellator.getInstance();
-        // 绘制图标纹理
-        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, -1F, -1F, 0F).texture(0, 0);
-        bufferBuilder.vertex(matrix4f, -1F, 1F, 0F).texture(0, 1);
-        bufferBuilder.vertex(matrix4f, 1F, 1F, 0F).texture(1, 1);
-        bufferBuilder.vertex(matrix4f, 1F, -1F, 0F).texture(1, 0);
-        //noinspection resource
-        RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX);
-        RenderSystem.setShaderTexture(0, this.icon);
-        // 将缓冲区绘制到屏幕上。
-        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-        tessellator.clear();
+        // 绘制路径点纹理
+        this.render(matrixStack, consumers);
         // 如果准星正在指向路径点，显示文本
         if (isWatching(camera, revised)) {
-            drawDistance(matrixStack, consumers, offset, tessellator);
+            drawDistance(matrixStack, consumers, offset);
         }
         matrixStack.pop();
+    }
+
+    private void render(MatrixStack matrixStack, VertexConsumerProvider consumers) {
+        RenderLayer renderLayer = RenderLayer.getGuiTexturedOverlay(this.icon);
+        Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
+        VertexConsumer vertexConsumer = consumers.getBuffer(renderLayer);
+        vertexConsumer.vertex(matrix4f, -1F, -1F, 0F).texture(0F, 0F).color(-1);
+        vertexConsumer.vertex(matrix4f, -1F, 1F, 0F).texture(0F, 1F).color(-1);
+        vertexConsumer.vertex(matrix4f, 1F, 1F, 0F).texture(1F, 1F).color(-1);
+        vertexConsumer.vertex(matrix4f, 1F, -1F, 0F).texture(1F, 0F).color(-1);
     }
 
     protected void tick() {
@@ -216,7 +211,7 @@ public abstract class Waypoint {
     /**
      * 绘制距离文本
      */
-    private void drawDistance(MatrixStack matrixStack, VertexConsumerProvider consumers, Vec3d offset, Tessellator tessellator) {
+    private void drawDistance(MatrixStack matrixStack, VertexConsumerProvider consumers, Vec3d offset) {
         TextRenderer textRenderer = ClientUtils.getTextRenderer();
         // 计算距离
         double distance = offset.length();
@@ -238,7 +233,6 @@ public abstract class Waypoint {
         textRenderer.draw(builder.build(), -width / 2F, 8, Colors.WHITE, false,
                 matrixStack.peek().getPositionMatrix(), consumers,
                 TextRenderer.TextLayerType.SEE_THROUGH, opacity, 1);
-        tessellator.clear();
         matrixStack.pop();
     }
 
