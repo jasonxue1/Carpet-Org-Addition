@@ -7,9 +7,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.carpetorgaddition.logger.Loggers;
-import org.carpetorgaddition.logger.NetworkPacketLogger;
-import org.carpetorgaddition.network.s2c.FakePlayerPathS2CPacket;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -68,8 +65,6 @@ public class AStarPathfinder implements FakePlayerPathfinder {
             }
             if (first.blockPos.equals(target)) {
                 this.fillNodes(first);
-                NetworkPacketLogger logger = Loggers.getFakePlayerPathLogger();
-                logger.sendPacket(() -> new FakePlayerPathS2CPacket(this));
                 return;
             }
             opens.remove(first);

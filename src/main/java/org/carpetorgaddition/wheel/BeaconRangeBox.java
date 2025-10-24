@@ -44,7 +44,7 @@ public class BeaconRangeBox extends Box {
      * @param player 执行命令的玩家
      * @author 文心一言
      */
-    @SuppressWarnings("unused")
+    @Deprecated(forRemoval = true)
     public void show(ServerPlayerEntity player) {
         // 定义顶点
         double[] vertices = {

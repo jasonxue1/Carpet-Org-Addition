@@ -4,24 +4,20 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.passive.VillagerEntity;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
-import org.carpetorgaddition.client.renderer.WorldRendererManager;
-import org.carpetorgaddition.client.renderer.beaconbox.BeaconBoxRenderer;
-import org.carpetorgaddition.client.renderer.path.PathRenderer;
-import org.carpetorgaddition.client.renderer.villagerpoi.VillagerPoiRenderer;
+import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
+import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
-import org.carpetorgaddition.client.renderer.waypoint.WaypointRendererType;
-import org.carpetorgaddition.client.util.ClientUtils;
-import org.carpetorgaddition.debug.client.command.SelectionAreaCommand;
 import org.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import org.carpetorgaddition.network.s2c.*;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
-
-import java.util.Optional;
 
 public class CarpetOrgAdditionClientRegister {
 
@@ -29,7 +25,7 @@ public class CarpetOrgAdditionClientRegister {
         registerCommand();
         registerC2SNetworkPack();
         registerNetworkPackReceiver();
-        registerRender();
+        registerRenderer();
         registerKeyBinding();
         developed();
     }
@@ -54,22 +50,21 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点更新数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointUpdateS2CPacket.ID,
-                (payload, context) -> WorldRendererManager.addOrUpdate(
-                        new WaypointRenderer(
-                                WaypointRendererType.NAVIGATOR,
-                                payload.target(),
-                                payload.worldId()
-                        )
-                )
+                (payload, context) -> {
+                    WaypointRenderer instance = WaypointRenderer.getInstance();
+                    Vec3d target = payload.target();
+                    RegistryKey<World> registryKey = GenericUtils.getWorld(payload.worldId());
+                    Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(registryKey, target));
+                    waypoint.setTarget(registryKey, target);
+                }
         );
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
-                ((payload, context) -> Optional.ofNullable(
-                        WorldRendererManager.getOnlyRenderer(
-                                WaypointRenderer.class,
-                                renderer -> renderer.getRenderType() == WaypointRendererType.NAVIGATOR)
-                ).ifPresent(WaypointRenderer::setFade))
+                (payload, context) -> {
+                    WaypointRenderer instance = WaypointRenderer.getInstance();
+                    instance.listRenderers(Waypoint.NAVIGATOR).forEach(instance::stop);
+                }
         );
         // 容器不可用槽位同步数据包
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {
@@ -85,58 +80,16 @@ public class CarpetOrgAdditionClientRegister {
                 slot.carpet_Org_Addition$setIdentifier(payload.identifier());
             }
         });
-        // 信标范围更新数据包
-        ClientPlayNetworking.registerGlobalReceiver(BeaconBoxUpdateS2CPacket.ID, (payload, context) -> {
-            // 清除单个信标渲染
-            if (BeaconBoxUpdateS2CPacket.ZERO.equals(payload.box())) {
-                WorldRendererManager.remove(BeaconBoxRenderer.class, renderer -> renderer.getBlockPos().equals(payload.blockPos()));
-                return;
-            }
-            // 添加或更新信标范围
-            BeaconBoxRenderer beaconBoxRenderer = WorldRendererManager.getOrCreate(
-                    BeaconBoxRenderer.class,
-                    renderer -> renderer.getBlockPos().equals(payload.blockPos()),
-                    () -> new BeaconBoxRenderer(payload.blockPos(), payload.box())
-            );
-            beaconBoxRenderer.setSizeModifier(payload.box());
-        });
-        // 村民信息同步数据包
-        ClientPlayNetworking.registerGlobalReceiver(VillagerPoiSyncS2CPacket.ID, (payload, context) -> {
-            if (ClientUtils.getWorld().getEntityById(payload.info().geVillagerId()) instanceof VillagerEntity villager) {
-                VillagerPoiSyncS2CPacket.VillagerInfo villagerInfo = payload.info();
-                VillagerPoiRenderer render = new VillagerPoiRenderer(
-                        villager,
-                        villagerInfo.getBedPos(),
-                        villagerInfo.getJobSitePos(),
-                        villagerInfo.getPotentialJobSite()
-                );
-                WorldRendererManager.addOrUpdate(render);
-            }
-        });
         // 记录器更新数据包
         ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, context) -> ClientLogger.onPacketReceive(packet));
-        // 假玩家路径
-        ClientPlayNetworking.registerGlobalReceiver(FakePlayerPathS2CPacket.ID, (packet, context) -> WorldRendererManager.addOrUpdate(new PathRenderer(packet.id(), packet.list())));
     }
 
     /**
      * 注册渲染器
      */
-    private static void registerRender() {
+    private static void registerRenderer() {
         // 注册路径点渲染器
-        WorldRenderEvents.LAST.register(
-                context -> WorldRendererManager
-                        .getRenderer(WaypointRenderer.class)
-                        .forEach(renderer -> renderer.render(context))
-        );
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> {
-                    // 信标范围渲染器
-                    WorldRendererManager.getRenderer(BeaconBoxRenderer.class).forEach(renderer -> renderer.render(context));
-                    // 村民信息渲染器
-                    WorldRendererManager.getRenderer(VillagerPoiRenderer.class).forEach(renderer -> renderer.render(context));
-                    WorldRendererManager.getRenderer(PathRenderer.class).forEach(renderer -> renderer.render(context));
-                }
-        );
+        WorldRenderEvents.LAST.register(context -> WaypointRenderer.getInstance().render(context));
     }
 
     /**
@@ -153,7 +106,6 @@ public class CarpetOrgAdditionClientRegister {
     private static void developed() {
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             HudDebugRendererRegister.register();
-            SelectionAreaCommand.register();
         }
     }
 }

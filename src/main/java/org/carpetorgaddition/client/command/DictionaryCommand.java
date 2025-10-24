@@ -189,8 +189,8 @@ public class DictionaryCommand extends AbstractClientCommand {
         // 获取参数类型
         private ArgumentType<?> getArgumentType() {
             return switch (this) {
-                case ITEM -> new ClientObjectArgumentType.ClientItemArgumentType();
-                case BLOCK -> new ClientObjectArgumentType.ClientBlockArgumentType();
+                case ITEM -> new ClientObjectArgumentType.ClientItemArgumentType(false);
+                case BLOCK -> new ClientObjectArgumentType.ClientBlockArgumentType(false);
                 case ENTITY -> new ClientObjectArgumentType.ClientEntityArgumentType();
                 case ENCHANTMENT -> new ClientObjectArgumentType.ClientEnchantmentArgumentType();
                 case STATUS_EFFECT -> new ClientObjectArgumentType.ClientStatusEffectArgumentType();
