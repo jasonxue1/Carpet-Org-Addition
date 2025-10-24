@@ -111,7 +111,7 @@ public abstract class Waypoint {
     }
 
     private void render(MatrixStack matrixStack, VertexConsumerProvider consumers) {
-        RenderLayer renderLayer = RenderLayer.getFireScreenEffect(this.icon);
+        RenderLayer renderLayer = RenderLayers.fireScreenEffect(this.icon);
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
         VertexConsumer vertexConsumer = consumers.getBuffer(renderLayer);
         vertexConsumer.vertex(matrix4f, -1F, -1F, 0F).texture(0F, 0F).color(-1);
