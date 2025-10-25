@@ -28,6 +28,10 @@ public abstract class Waypoint {
      */
     private final Identifier icon;
     /**
+     * 路径点已经显示的时间
+     */
+    private long age;
+    /**
      * 路径点剩余持续时间
      */
     private long remaining;
@@ -124,6 +128,7 @@ public abstract class Waypoint {
     }
 
     protected void tick() {
+        this.age++;
         if (!this.persistent || this.remaining <= 0) {
             this.remaining--;
         }
@@ -167,11 +172,15 @@ public abstract class Waypoint {
         float scale = (float) distance / 30F;
         // 再次修正路径点大小，使随着距离的拉远路径点尺寸略微减小
         scale = Math.max(scale * (1F - (((float) distance / 40F) * 0.1F)), scale * 0.75F);
-        if (this.remaining >= 0) {
-            return scale;
+        // 播放出场动画
+        if (this.remaining < 0) {
+            return this.fade(VANISHING_TIME + (this.remaining - this.tickDelta) + 1, scale);
         }
-        // 播放消失动画
-        return this.fade(VANISHING_TIME + (this.remaining - this.tickDelta) + 1, scale);
+        // 播放入场动画
+        if (this.age < VANISHING_TIME) {
+            return this.fade(this.age + this.tickDelta, scale);
+        }
+        return scale;
     }
 
     /**
