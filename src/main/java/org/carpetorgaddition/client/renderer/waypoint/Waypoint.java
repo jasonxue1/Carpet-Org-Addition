@@ -96,16 +96,7 @@ public abstract class Waypoint {
             correction = correction.normalize().multiply(renderDistance);
         }
         matrixStack.push();
-        // 将路径点平移到方块位置
-        matrixStack.translate(correction.getX(), correction.getY(), correction.getZ());
-        float scale = this.getScale(correction.length());
-        // 路径点大小
-        matrixStack.scale(scale, scale, scale);
-        // 翻转路径点
-        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
-        // 让路径点始终对准玩家
-        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
-        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
+        this.transform(matrixStack, camera, correction);
         MatrixStack.Entry entry = matrixStack.peek();
         Matrix4f matrix4f = entry.getPositionMatrix();
         Tessellator tessellator = Tessellator.getInstance();
@@ -125,6 +116,22 @@ public abstract class Waypoint {
             drawDistance(matrixStack, consumers, offset, tessellator);
         }
         matrixStack.pop();
+    }
+
+    /**
+     * 变换矩阵
+     */
+    protected void transform(MatrixStack matrixStack, Camera camera, Vec3d correction) {
+        // 将路径点平移到方块位置
+        matrixStack.translate(correction.getX(), correction.getY(), correction.getZ());
+        float scale = this.getScale(correction.length());
+        // 路径点大小
+        matrixStack.scale(scale, scale, scale);
+        // 翻转路径点
+        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
+        // 让路径点始终对准玩家
+        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
+        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
     }
 
     protected void tick() {
