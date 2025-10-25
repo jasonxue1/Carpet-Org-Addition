@@ -33,7 +33,7 @@ public class ObjectSearchTaskCodecs {
         }
     };
 
-    public static final JsonObjectCodec<OfflinePlayerItemSearchContext> OFFLINE_PLAYER_SEARCH__CODEC = new JsonObjectCodec<>() {
+    public static final JsonObjectCodec<OfflinePlayerItemSearchContext> OFFLINE_PLAYER_SEARCH_CODEC = new JsonObjectCodec<>() {
         @Override
         public JsonObject encode(OfflinePlayerItemSearchContext value) {
             JsonObject json = new JsonObject();
