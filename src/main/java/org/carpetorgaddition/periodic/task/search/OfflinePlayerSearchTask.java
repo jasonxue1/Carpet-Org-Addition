@@ -71,7 +71,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     public static final Set<UUID> INVALID_PLAYER_DATAS = ConcurrentHashMap.newKeySet();
     public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
     public static final String UNKNOWN = "[Unknown]";
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatters.field_63964;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatters.MINUTES;
     /**
      * 当前任务的数量
      */

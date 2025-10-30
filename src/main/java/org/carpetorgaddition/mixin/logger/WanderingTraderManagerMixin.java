@@ -10,8 +10,8 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.WanderingTraderManager;
+import net.minecraft.world.rule.GameRules;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
@@ -47,7 +47,7 @@ public class WanderingTraderManagerMixin {
 
     @Inject(method = "spawn", at = @At("HEAD"))
     private void updataLogger(ServerWorld world, boolean spawnMonsters, CallbackInfo ci) {
-        if (world.getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING)) {
+        if (world.getGameRules().getValue(GameRules.SPAWN_WANDERING_TRADERS)) {
             // 获取流浪商人生成的倒计时，并换算成秒
             int countdown = ((this.spawnDelay == 0 ? 1200 : this.spawnDelay) - (1200 - this.spawnTimer)) / 20;
             WanderingTraderSpawnLogger.setSpawnCountdown(new SpawnCountdown(countdown, this.spawnChance));

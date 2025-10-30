@@ -20,8 +20,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.rule.GameRule;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
@@ -160,7 +160,11 @@ public class DictionaryCommand extends AbstractClientCommand {
                     yield Objects.requireNonNull(id, "Unable to obtain biome id").toString();
                 }
                 case GAME_MODE -> ((GameMode) obj).asString();
-                case GAME_RULE -> ((GameRules.Key<?>) obj).getName();
+                // TODO /gamerule命令中的参数是不带命名空间的
+                case GAME_RULE -> registry.getOptional(RegistryKeys.GAME_RULE)
+                        .map(rules -> rules.getId((GameRule<?>) obj))
+                        .map(Identifier::toString)
+                        .orElse("[<unregistered>]");
             };
         }
 
@@ -182,7 +186,7 @@ public class DictionaryCommand extends AbstractClientCommand {
                     yield TextBuilder.translate(key);
                 }
                 case GAME_MODE -> ((GameMode) obj).getTranslatableName();
-                case GAME_RULE -> TextBuilder.translate(((GameRules.Key<?>) obj).getTranslationKey());
+                case GAME_RULE -> TextBuilder.translate(((GameRule<?>) obj).getTranslationKey());
             };
         }
 

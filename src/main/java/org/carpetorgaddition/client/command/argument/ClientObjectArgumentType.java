@@ -17,11 +17,9 @@ import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKeys;
-import net.minecraft.resource.featuretoggle.FeatureFlags;
-import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.GameRules;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.rule.GameRule;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.CommandUtils;
@@ -284,22 +282,21 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     /**
      * 游戏规则参数
      */
-    public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRules.Key<?>> {
+    public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRule<?>> {
         @Override
-        protected String objectToString(GameRules.Key<?> key) {
-            return TextBuilder.translate(key.getTranslationKey()).getString();
+        protected String objectToString(GameRule<?> gameRule) {
+            return TextBuilder.translate(gameRule.getTranslationKey()).getString();
         }
 
         @Override
-        protected Stream<GameRules.Key<?>> getRegistry() {
-            ArrayList<GameRules.Key<?>> list = new ArrayList<>();
-            new GameRules(FeatureSet.of(FeatureFlags.MINECART_IMPROVEMENTS)).accept(new GameRules.Visitor() {
-                @Override
-                public <T extends GameRules.Rule<T>> void visit(GameRules.Key<T> key, GameRules.Type<T> type) {
-                    list.add(key);
-                }
-            });
-            return list.stream();
+        protected Stream<GameRule<?>> getRegistry() {
+            ClientPlayerEntity player = ClientUtils.getPlayer();
+            Optional<Registry<GameRule<?>>> optional = player.networkHandler.getRegistryManager().getOptional(RegistryKeys.GAME_RULE);
+            if (optional.isEmpty()) {
+                return Stream.empty();
+            }
+            Registry<GameRule<?>> gameRules = optional.get();
+            return gameRules.stream();
         }
     }
 
