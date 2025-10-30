@@ -31,10 +31,11 @@ import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 
 public class DictionaryCommand extends AbstractClientCommand {
     public static final String DEFAULT_COMMAND_NAME = "dictionary";
+    private static final String UNREGISTERED = "[<unregistered>]";
 
     public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
@@ -147,18 +148,16 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ITEM -> Registries.ITEM.getId((Item) obj).toString();
                 case BLOCK -> Registries.BLOCK.getId((Block) obj).toString();
                 case ENTITY -> Registries.ENTITY_TYPE.getId((EntityType<?>) obj).toString();
-                case ENCHANTMENT -> {
-                    Identifier id = registry.get(RegistryKeys.ENCHANTMENT).getId((Enchantment) obj);
-                    yield Objects.requireNonNull(id, "Unable to obtain enchantment id").toString();
-                }
-                case STATUS_EFFECT -> {
-                    Identifier id = registry.get(RegistryKeys.STATUS_EFFECT).getId((StatusEffect) obj);
-                    yield Objects.requireNonNull(id, "Unable to obtain status effect id").toString();
-                }
-                case BIOME -> {
-                    Identifier id = registry.get(RegistryKeys.BIOME).getId((Biome) obj);
-                    yield Objects.requireNonNull(id, "Unable to obtain biome id").toString();
-                }
+                case ENCHANTMENT -> Optional.ofNullable(registry.get(RegistryKeys.ENCHANTMENT).getId((Enchantment) obj))
+                        .map(Identifier::toString)
+                        .orElse(UNREGISTERED);
+                case STATUS_EFFECT ->
+                        Optional.ofNullable(registry.get(RegistryKeys.STATUS_EFFECT).getId((StatusEffect) obj))
+                                .map(Identifier::toString)
+                                .orElse(UNREGISTERED);
+                case BIOME -> Optional.ofNullable(registry.get(RegistryKeys.BIOME).getId((Biome) obj))
+                        .map(Identifier::toString)
+                        .orElse(UNREGISTERED);
                 case GAME_MODE -> ((GameMode) obj).asString();
                 case GAME_RULE -> ((GameRules.Key<?>) obj).getName();
             };
@@ -176,11 +175,10 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENTITY -> ((EntityType<?>) obj).getName();
                 case ENCHANTMENT -> EnchantmentUtils.getName((Enchantment) obj);
                 case STATUS_EFFECT -> ((StatusEffect) obj).getName();
-                case BIOME -> {
-                    Identifier id = Objects.requireNonNull(registry.get(RegistryKeys.BIOME).getId((Biome) obj), "Unable to obtain biome id");
-                    String key = id.toTranslationKey("biome");
-                    yield TextBuilder.translate(key);
-                }
+                case BIOME -> Optional.ofNullable(registry.get(RegistryKeys.BIOME).getId((Biome) obj))
+                        .map(identifier -> identifier.toTranslationKey("biome"))
+                        .map(TextBuilder::translate)
+                        .orElse(TextBuilder.create(UNREGISTERED));
                 case GAME_MODE -> ((GameMode) obj).getTranslatableName();
                 case GAME_RULE -> TextBuilder.translate(((GameRules.Key<?>) obj).getTranslationKey());
             };
