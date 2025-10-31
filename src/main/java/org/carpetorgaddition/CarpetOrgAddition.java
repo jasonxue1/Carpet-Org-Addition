@@ -86,8 +86,6 @@ public class CarpetOrgAddition implements ModInitializer {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
         }
-        // 初始化全局配置文件
-        GlobalConfigs.init();
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             this.runs();
         }
