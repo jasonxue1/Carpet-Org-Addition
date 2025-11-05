@@ -147,13 +147,16 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ITEM -> Registries.ITEM.getId((Item) obj).toString();
                 case BLOCK -> Registries.BLOCK.getId((Block) obj).toString();
                 case ENTITY -> Registries.ENTITY_TYPE.getId((EntityType<?>) obj).toString();
-                case ENCHANTMENT -> registry.get(RegistryKeys.ENCHANTMENT).getId((Enchantment) obj)
+                case ENCHANTMENT -> registry.getOptional(RegistryKeys.ENCHANTMENT)
+                        .map(enchantment -> enchantment.getId((Enchantment) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
-                case STATUS_EFFECT -> registry.get(RegistryKeys.STATUS_EFFECT).getId((StatusEffect) obj)
+                case STATUS_EFFECT -> registry.getOptional(RegistryKeys.STATUS_EFFECT)
+                        .map(effect -> effect.getId((StatusEffect) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
-                case BIOME -> registry.get(RegistryKeys.BIOME).getId((Biome) obj)
+                case BIOME -> registry.getOptional(RegistryKeys.BIOME)
+                        .map(biome -> biome.getId((Biome) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
                 case GAME_MODE -> ((GameMode) obj).asString();
@@ -173,7 +176,8 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case ENTITY -> ((EntityType<?>) obj).getName();
                 case ENCHANTMENT -> EnchantmentUtils.getName((Enchantment) obj);
                 case STATUS_EFFECT -> ((StatusEffect) obj).getName();
-                case BIOME -> registry.get(RegistryKeys.BIOME).getId((Biome) obj)
+                case BIOME -> registry.getOptional(RegistryKeys.BIOME)
+                        .map(biome -> biome.getId((Biome) obj))
                         .map(identifier -> identifier.toTranslationKey("biome"))
                         .map(TextBuilder::translate)
                         .orElse(TextBuilder.create(UNREGISTERED));
