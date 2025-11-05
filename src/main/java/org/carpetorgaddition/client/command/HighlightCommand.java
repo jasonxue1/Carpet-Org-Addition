@@ -43,10 +43,10 @@ public class HighlightCommand extends AbstractClientCommand {
     public void register(String name) {
         this.dispatcher.register(ClientCommandManager.literal(name)
                 .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
-                        .executes(context -> highlight(context, 1200L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
+                        .executes(context -> highlight(context, 60 * 20L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
                         .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
                                 .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
-                                .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 1000L, false)))
+                                .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 20L, false)))
                         .then(ClientCommandManager.literal("continue")
                                 .executes(context -> highlight(context, 1L, true))))
                 .then(ClientCommandManager.literal("clear")

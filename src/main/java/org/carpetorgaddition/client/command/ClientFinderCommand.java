@@ -32,7 +32,6 @@ public class ClientFinderCommand extends AbstractClientCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(ClientCommandManager.literal(name)
-                // TODO 命令开关
                 .then(ClientCommandManager.literal("item")
                         .then(ClientCommandManager.argument("item", new ClientItemArgumentType(true))
                                 .executes(context -> searchItem(context, 64))
@@ -66,7 +65,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
     private int searchItem(CommandContext<FabricClientCommandSource> context) {
         List<Item> list = getItemList(context);
         OfflinePlayerItemSearchContext searchContext = new OfflinePlayerItemSearchContext(list);
-        JsonObject json = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH__CODEC.encode(searchContext);
+        JsonObject json = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH_CODEC.encode(searchContext);
         ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.OFFLINE_PLAYER_ITEM, json);
         ClientPlayNetworking.send(packet);
         return list.size();
