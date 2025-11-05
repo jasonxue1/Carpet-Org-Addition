@@ -10,10 +10,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-//该Mixin类仅在客户端加载
+// 该Mixin类仅在客户端加载
 @Mixin(SettingsManager.class)
 public class SettingsManagerMixin {
-    //开放/carpet命令权限，仅单人游戏
+    // 开放/carpet命令权限，仅单人游戏
     @Inject(method = "lambda$registerCommand$11", at = @At("HEAD"), cancellable = true)
     private void carpet(ServerCommandSource player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.openCarpetPermission.get()) {
