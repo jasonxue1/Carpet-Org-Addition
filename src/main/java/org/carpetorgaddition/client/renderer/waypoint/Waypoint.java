@@ -27,6 +27,10 @@ public abstract class Waypoint {
      */
     private final Identifier icon;
     /**
+     * 路径点已经显示的时间
+     */
+    private long age;
+    /**
      * 路径点剩余持续时间
      */
     private long remaining;
@@ -91,17 +95,7 @@ public abstract class Waypoint {
             correction = correction.normalize().multiply(renderDistance);
         }
         matrixStack.push();
-        // 将路径点平移到方块位置
-        matrixStack.translate(correction.getX(), correction.getY(), correction.getZ());
-        float scale = this.getScale(correction.length());
-        // 路径点大小
-        matrixStack.scale(scale, scale, scale);
-        // 翻转路径点
-        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
-        // 让路径点始终对准玩家
-        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
-        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
-        // 绘制路径点纹理
+        this.transform(matrixStack, camera, correction);
         this.render(matrixStack, consumers);
         // 如果准星正在指向路径点，显示文本
         if (isWatching(camera, revised)) {
@@ -120,7 +114,24 @@ public abstract class Waypoint {
         vertexConsumer.vertex(matrix4f, 1F, -1F, 0F).texture(1F, 0F).color(-1);
     }
 
+    /**
+     * 变换矩阵
+     */
+    protected void transform(MatrixStack matrixStack, Camera camera, Vec3d correction) {
+        // 将路径点平移到方块位置
+        matrixStack.translate(correction.getX(), correction.getY(), correction.getZ());
+        float scale = this.getScale(correction.length());
+        // 路径点大小
+        matrixStack.scale(scale, scale, scale);
+        // 翻转路径点
+        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
+        // 让路径点始终对准玩家
+        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
+        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
+    }
+
     protected void tick() {
+        this.age++;
         if (!this.persistent || this.remaining <= 0) {
             this.remaining--;
         }
@@ -164,11 +175,15 @@ public abstract class Waypoint {
         float scale = (float) distance / 30F;
         // 再次修正路径点大小，使随着距离的拉远路径点尺寸略微减小
         scale = Math.max(scale * (1F - (((float) distance / 40F) * 0.1F)), scale * 0.75F);
-        if (this.remaining >= 0) {
-            return scale;
+        // 播放出场动画
+        if (this.remaining < 0) {
+            return this.fade(VANISHING_TIME + (this.remaining - this.tickDelta) + 1, scale);
         }
-        // 播放消失动画
-        return this.fade(VANISHING_TIME + (this.remaining - this.tickDelta) + 1, scale);
+        // 播放入场动画
+        if (this.age < VANISHING_TIME) {
+            return this.fade(this.age + this.tickDelta, scale);
+        }
+        return scale;
     }
 
     /**

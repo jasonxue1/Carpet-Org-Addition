@@ -50,16 +50,17 @@ import java.util.stream.Collectors;
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
 public class GameProfileCache {
+    private static final LazyValue<File> CONFIG = new LazyValue<>(IOUtils.configFile("profile.json"), GameProfileCache::init);
     private static final Table TABLE = new Table();
     /**
      * 集合可能被多个线程同时访问
      */
     private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
-    private static final File CONFIG = IOUtils.configFile("profile.json");
     /**
      * 自上次保存以来，数据是否发生了变化
      */
     private static boolean changed = false;
+
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API
      */
@@ -151,8 +152,8 @@ public class GameProfileCache {
     /**
      * 从文件加载玩家UUID与名称映射
      */
-    public static void init() {
-        if (!CONFIG.isFile()) {
+    private static void init(File config) {
+        if (!config.isFile()) {
             // 迁移配置文件
             File file = IOUtils.configFile("uuid_name_mapping.txt");
             if (file.isFile()) {
@@ -172,10 +173,12 @@ public class GameProfileCache {
                 }
             }
         }
-        try {
-            load();
-        } catch (NullPointerException | JsonParseException | IOException e) {
-            CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
+        if (config.isFile()) {
+            try {
+                load();
+            } catch (NullPointerException | JsonParseException | IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
+            }
         }
         mergeUsercache();
     }
@@ -207,7 +210,7 @@ public class GameProfileCache {
     }
 
     private static void load() throws IOException {
-        JsonObject json = IOUtils.loadJson(CONFIG);
+        JsonObject json = IOUtils.loadJson(CONFIG.get());
         JsonArray array = json.getAsJsonArray("usercache");
         for (JsonElement element : array) {
             UUID uuid;
@@ -251,7 +254,7 @@ public class GameProfileCache {
             json.addProperty("count", array.size());
             json.add("usercache", array);
             try {
-                IOUtils.write(CONFIG, json);
+                IOUtils.write(CONFIG.get(), json);
                 changed = false;
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
