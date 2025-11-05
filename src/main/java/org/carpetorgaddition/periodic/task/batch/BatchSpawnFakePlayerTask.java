@@ -17,6 +17,7 @@ import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.CreateFakePlayerContext;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.Optional;
@@ -72,7 +73,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private long startSpawnTime = -1L;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Consumer<EntityPlayerMPFake> consumer) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, @NotNull Consumer<EntityPlayerMPFake> consumer) {
         this.server = server;
         this.prefix = prefix;
         this.start = start;
