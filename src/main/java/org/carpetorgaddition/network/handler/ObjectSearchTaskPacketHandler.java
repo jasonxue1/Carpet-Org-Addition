@@ -49,7 +49,7 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
                 yield new ItemSearchTask(world, predicate, region, source);
             }
             case OFFLINE_PLAYER_ITEM -> {
-                ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext decode = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH__CODEC.decode(packet.json());
+                ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext decode = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH_CODEC.decode(packet.json());
                 ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
                 yield new OfflinePlayerSearchTask(source, predicate, player);
             }

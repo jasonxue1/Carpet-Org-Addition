@@ -37,7 +37,6 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 解析Carpet设置
         CarpetOrgAdditionSettings.register();
         settingsLoaded = true;
-        GameProfileCache.init();
     }
 
     public static SettingsManager getSettingManager() {
