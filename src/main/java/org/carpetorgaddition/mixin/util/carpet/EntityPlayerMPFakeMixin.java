@@ -1,6 +1,7 @@
 package org.carpetorgaddition.mixin.util.carpet;
 
 import carpet.patches.EntityPlayerMPFake;
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -110,5 +111,10 @@ public class EntityPlayerMPFakeMixin {
             return false;
         }
         return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
+    }
+
+    @WrapWithCondition(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;stopRiding()V"))
+    private static boolean stopRiding(EntityPlayerMPFake instance) {
+        return !ReLoginTask.INTERNAL_HOME_POSITION.get();
     }
 }
