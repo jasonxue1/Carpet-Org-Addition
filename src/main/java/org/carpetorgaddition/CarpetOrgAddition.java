@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -85,8 +86,6 @@ public class CarpetOrgAddition implements ModInitializer {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
         }
-        // 初始化全局配置文件
-        GlobalConfigs.init();
         if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
             this.runs();
         }
@@ -101,7 +100,7 @@ public class CarpetOrgAddition implements ModInitializer {
      * 记录游戏的启动次数
      */
     private void runs() {
-        File file = new File("../startlog.txt");
+        File file = Path.of("startlog.txt").toAbsolutePath().toFile();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         try {
             // 自有记录以来的启动次数
