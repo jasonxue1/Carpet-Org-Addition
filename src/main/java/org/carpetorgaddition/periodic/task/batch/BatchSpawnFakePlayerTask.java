@@ -124,8 +124,8 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         if (this.startSpawnTime == -1L) {
             this.startSpawnTime = System.currentTimeMillis();
         }
-        // 如果召唤未能在两秒内完成，强行停止
-        if (System.currentTimeMillis() - this.startSpawnTime > 2000) {
+        // 如果召唤未能在5秒内完成，强行停止
+        if (System.currentTimeMillis() - this.startSpawnTime > 5000) {
             this.timeout();
         }
         try {
