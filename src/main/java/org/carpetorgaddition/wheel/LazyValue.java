@@ -22,8 +22,8 @@ public class LazyValue<T> implements Supplier<T> {
             if (this.initialized) {
                 return this.file;
             }
-            this.task.accept(this.file);
             this.initialized = true;
+            this.task.accept(this.file);
         }
         return this.file;
     }
