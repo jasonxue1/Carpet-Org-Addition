@@ -610,6 +610,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         PlayerSerializationManager manager = getSerializationManager(server);
         // 玩家数据是否已存在
         String name = FetcherUtils.getPlayerName(fakePlayer);
+        if (IOUtils.isValidFileName(name)) {
+            throw CommandUtils.createException("carpet.command.file.name.valid");
+        }
         Optional<FakePlayerSerializer> optional = manager.get(name);
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
