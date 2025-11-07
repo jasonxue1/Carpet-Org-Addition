@@ -77,34 +77,9 @@ public class GameProfileCache {
     }
 
     private GameProfileCache() {
-        if (!this.config.isFile()) {
-            // 迁移配置文件
-            File file = IOUtils.configFile("uuid_name_mapping.txt");
-            if (file.isFile()) {
-                try {
-                    BufferedReader reader = IOUtils.toReader(file);
-                    try (reader) {
-                        migration(reader);
-                        changed = true;
-                    }
-                    // 在弃用旧文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
-                    save();
-                    // 弃用旧的文件
-                    IOUtils.deprecatedFile(file);
-                    return;
-                } catch (IOException e) {
-                    CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
-                }
-            }
-        }
-        if (this.config.isFile()) {
-            try {
-                load();
-            } catch (NullPointerException | JsonParseException | IOException e) {
-                CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
-            }
-        }
-        mergeUsercache();
+        this.migration();
+        this.load();
+        this.mergeUsercache();
     }
 
     /**
@@ -179,6 +154,29 @@ public class GameProfileCache {
         }
     }
 
+    private void migration() {
+        if (this.config.isFile()) {
+            return;
+        }
+        // 迁移配置文件
+        File file = IOUtils.configFile("uuid_name_mapping.txt");
+        if (file.isFile()) {
+            try {
+                BufferedReader reader = IOUtils.toReader(file);
+                try (reader) {
+                    migration(reader);
+                    changed = true;
+                }
+                // 在弃用旧文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
+                save();
+                // 弃用旧的文件
+                IOUtils.deprecatedFile(file);
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
+            }
+        }
+    }
+
     private void migration(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
@@ -205,24 +203,30 @@ public class GameProfileCache {
         }
     }
 
-    private void load() throws IOException {
-        JsonObject json = IOUtils.loadJson(this.config);
-        JsonArray array = json.getAsJsonArray("usercache");
-        for (JsonElement element : array) {
-            UUID uuid;
-            String name;
+    private void load() {
+        if (this.config.isFile()) {
             try {
-                JsonObject entry = element.getAsJsonObject();
-                uuid = UUID.fromString(entry.get("uuid").getAsString());
-                name = entry.get("name").getAsString();
-            } catch (RuntimeException e) {
-                continue;
-            }
-            try {
-                this.lock.writeLock().lock();
-                this.table.put(uuid, name);
-            } finally {
-                this.lock.writeLock().unlock();
+                JsonObject json = IOUtils.loadJson(this.config);
+                JsonArray array = json.getAsJsonArray("usercache");
+                for (JsonElement element : array) {
+                    UUID uuid;
+                    String name;
+                    try {
+                        JsonObject entry = element.getAsJsonObject();
+                        uuid = UUID.fromString(entry.get("uuid").getAsString());
+                        name = entry.get("name").getAsString();
+                    } catch (RuntimeException e) {
+                        continue;
+                    }
+                    try {
+                        this.lock.writeLock().lock();
+                        this.table.put(uuid, name);
+                    } finally {
+                        this.lock.writeLock().unlock();
+                    }
+                }
+            } catch (NullPointerException | JsonParseException | IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
             }
         }
     }
