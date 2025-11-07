@@ -1,6 +1,7 @@
 package org.carpetorgaddition.command;
 
 import org.carpetorgaddition.CarpetOrgAddition;
+import org.carpetorgaddition.config.CustomCommandConfig;
 import org.carpetorgaddition.config.GlobalConfigs;
 
 public abstract class AbstractCommand {
@@ -37,7 +38,9 @@ public abstract class AbstractCommand {
      * 命令的名称，可以有多个，表示使用不同的名称多次注册，如果为0个，则在注册时会自动使用默认名称
      */
     public String[] getCustomNames() {
-        return GlobalConfigs.CUSTOM_COMMAND_NAMES.getCommand(this.getDefaultName());
+        GlobalConfigs configs = GlobalConfigs.getInstance();
+        CustomCommandConfig config = configs.getCustomCommandNames();
+        return config.getCommand(this.getDefaultName());
     }
 
     public String getAvailableName() {

@@ -15,11 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class CustomCommandConfig extends AbstractConfig<JsonObject> {
+    public static final String CUSTOM_COMMAND_NAME = "custom_command_name";
     private final Map<String, Set<String>> commands = new ConcurrentHashMap<>();
 
     @Override
     public String getKey() {
-        return "custom_command_name";
+        return CUSTOM_COMMAND_NAME;
     }
 
     @Override
@@ -74,7 +75,7 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
         if (json == null) {
             return;
         }
-        GlobalConfigs.markUpdateRequired();
+        GlobalConfigs.getInstance().markUpdateRequired();
         try {
             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
                 String key = entry.getKey();

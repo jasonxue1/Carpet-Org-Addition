@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class UserCacheMixin {
     @Inject(method = "add(Lcom/mojang/authlib/GameProfile;)V", at = @At("HEAD"))
     private void add(GameProfile profile, CallbackInfo ci) {
-        GameProfileCache.put(profile);
+        GameProfileCache.getInstance().put(profile);
     }
 }

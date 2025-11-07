@@ -167,7 +167,8 @@ public class OrangeCommand extends AbstractServerCommand {
     private int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         try {
             UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-            Optional<String> optional = GameProfileCache.get(uuid);
+            GameProfileCache cache = GameProfileCache.getInstance();
+            Optional<String> optional = cache.get(uuid);
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerUuid = uuid.toString();
@@ -196,7 +197,8 @@ public class OrangeCommand extends AbstractServerCommand {
             context.getSource().handleException(e, false, null);
             return;
         }
-        GameProfileCache.put(uuid, name);
+        GameProfileCache cache = GameProfileCache.getInstance();
+        cache.put(uuid, name);
         MinecraftServer server = context.getSource().getServer();
         // 在服务器线程发送命令反馈
         server.execute(() -> sendFeekback(context, uuid.toString(), name));
