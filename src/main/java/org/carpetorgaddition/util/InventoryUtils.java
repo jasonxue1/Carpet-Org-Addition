@@ -1,15 +1,18 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.PlayerScreenHandler;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
@@ -26,6 +29,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class InventoryUtils {
+    /**
+     * 模组{@code gugle-carpet-addition}是否已加载
+     */
+    private static final boolean GCA_LOADED = FabricLoader.getInstance().isModLoaded("gca");
+
     /**
      * 物品栏工具类，私有化构造方法
      */
@@ -191,7 +199,7 @@ public class InventoryUtils {
     /**
      * @return 潜影盒中是否有指定物品
      */
-    public static boolean hasItemStack(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
+    public static boolean contains(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
         if (isOperableSulkerBox(shulkerBox)) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             for (ItemStack itemStack : inventory) {
@@ -295,6 +303,22 @@ public class InventoryUtils {
 
     public static boolean canMerge(ItemStack stack, ItemStack otherStack) {
         return ItemStack.areItemsAndComponentsEqual(stack, otherStack);
+    }
+
+    /**
+     * 合并两个相同的物品
+     */
+    public static void mergeStack(ItemStack sacrifice, ItemStack retain) {
+        if (canMerge(sacrifice, retain)) {
+            if (isItemStackFull(retain)) {
+                return;
+            }
+            int shortage = Math.min(retain.getMaxCount() - retain.getCount(), sacrifice.getCount());
+            retain.increment(shortage);
+            sacrifice.decrement(shortage);
+        } else {
+            throw new IllegalArgumentException("Attempting to merge two items that are not completely identical");
+        }
     }
 
     /**
@@ -427,6 +451,20 @@ public class InventoryUtils {
 
     public static boolean isToolItem(ItemStack itemStack) {
         return itemStack.contains(DataComponentTypes.TOOL);
+    }
+
+    /**
+     * 指定物品是否为{@code GCA}（假人背包）物品
+     */
+    public static boolean isGcaItem(ItemStack itemStack) {
+        if (GCA_LOADED || CarpetOrgAddition.isDebugDevelopment()) {
+            NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+            if (component == null) {
+                return false;
+            }
+            return component.copyNbt().get("GcaClear") != null;
+        }
+        return false;
     }
 
     public static class ItemStackWrapper extends Counter.Wrapper<ItemStack> {

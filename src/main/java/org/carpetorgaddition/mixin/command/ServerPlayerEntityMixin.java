@@ -125,7 +125,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
                 PlayerInventory inventory = thisPlayer.getInventory();
                 for (int i = 0; i < inventory.size(); i++) {
                     ItemStack itemStack = inventory.getStack(i);
-                    if (InventoryUtils.hasItemStack(itemStack, stack -> stack.isOf(Items.TOTEM_OF_UNDYING))) {
+                    if (InventoryUtils.contains(itemStack, stack -> stack.isOf(Items.TOTEM_OF_UNDYING))) {
                         return true;
                     }
                 }

@@ -3,10 +3,8 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -20,21 +18,17 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Direction;
-import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.inventory.AbstractCustomSizeInventory;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
-import org.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
+import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class FakePlayerUtils {
@@ -63,16 +57,14 @@ public class FakePlayerUtils {
      */
     public static final int MAX_LOOP_COUNT = 1200;
     /**
-     * 模组{@code gugle-carpet-addition}是否已加载
-     */
-    private static final boolean GCA_LOADED = FabricLoader.getInstance().isModLoaded("gca");
-    /**
      * 玩家生存模式物品栏的起始索引
      */
+    @Deprecated(forRemoval = true)
     public static final int PLAYER_INVENTORY_START = 9;
     /**
      * 玩家生存模式物品栏的结束索引
      */
+    @Deprecated(forRemoval = true)
     public static final int PLAYER_INVENTORY_END = 44;
 
     private FakePlayerUtils() {
@@ -120,126 +112,8 @@ public class FakePlayerUtils {
      * 整理物品栏
      */
     public static void sorting(EntityPlayerMPFake fakePlayer) {
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        // 记录所有未被锁定的槽位
-        ArrayList<Integer> list = new ArrayList<>();
-        // 合并相同的物品
-        for (int i = PLAYER_INVENTORY_END; i >= PLAYER_INVENTORY_START; i--) {
-            if (canClick(fakePlayer, screenHandler, i)) {
-                list.add(i);
-                ItemStack itemStack = screenHandler.getSlot(i).getStack();
-                // 物品不可堆叠或堆叠已满
-                if (InventoryUtils.isItemStackFull(itemStack)) {
-                    continue;
-                }
-                // 向前检查并尝试合并可以合并的物品，不需要检查光标上是否有物品
-                pickupCursorStack(screenHandler, i, fakePlayer);
-                mergeItemStack(fakePlayer, screenHandler, i - 1, PLAYER_INVENTORY_END);
-                pickupCursorStack(screenHandler, i, fakePlayer);
-            }
-        }
-        // 整理物品
-        sorting(fakePlayer, screenHandler, list.reversed());
-    }
-
-    private static void sorting(EntityPlayerMPFake fakePlayer, ScreenHandler screenHandler, List<Integer> list) {
-        if (list.isEmpty()) {
-            return;
-        }
-        int start = 0;
-        int end = list.size() - 1;
-        // 基准物品
-        ItemStack pivot = screenHandler.getSlot(list.getFirst()).getStack();
-        while (start < end) {
-            // 程序是否陷入了死循环
-            boolean infiniteLoop = true;
-            while (end > start && InventoryUtils.compare(pivot, screenHandler.getSlot(list.get(end)).getStack()) <= 0) {
-                end--;
-                infiniteLoop = false;
-            }
-            while (end > start && InventoryUtils.compare(pivot, screenHandler.getSlot(list.get(start)).getStack()) >= 0) {
-                start++;
-                infiniteLoop = false;
-            }
-            if (infiniteLoop) {
-                throw new InfiniteLoopException("Stuck in an infinite loop while sorting items on the %s".formatted(screenHandler.getClass().getName()));
-            }
-            swapSlotItem(screenHandler, list.get(start), list.get(end), fakePlayer);
-        }
-        // 基准物品归位
-        swapSlotItem(screenHandler, list.getFirst(), list.get(start), fakePlayer);
-        sorting(fakePlayer, screenHandler, list.subList(0, start));
-        sorting(fakePlayer, screenHandler, list.subList(start + 1, list.size()));
-    }
-
-    @SuppressWarnings("unused")
-    private static void sorting(EntityPlayerMPFake fakePlayer, ScreenHandler screenHandler, final int left, final int right) {
-        if (left >= right) {
-            return;
-        }
-        int start = left;
-        int end = right;
-        // 基准物品
-        ItemStack pivot = screenHandler.getSlot(left).getStack();
-        while (start < end) {
-            while (end > start && InventoryUtils.compare(pivot, screenHandler.getSlot(end).getStack()) <= 0) {
-                end--;
-            }
-            while (end > start && InventoryUtils.compare(pivot, screenHandler.getSlot(start).getStack()) >= 0) {
-                start++;
-            }
-            swapSlotItem(screenHandler, start, end, fakePlayer);
-        }
-        // 基准物品归位
-        swapSlotItem(screenHandler, left, start, fakePlayer);
-        sorting(fakePlayer, screenHandler, left, start - 1);
-        sorting(fakePlayer, screenHandler, start + 1, right);
-    }
-
-    /**
-     * 合并物品栏栏中相同的物品
-     */
-    @SuppressWarnings("SameParameterValue")
-    private static void mergeItemStack(EntityPlayerMPFake fakePlayer, ScreenHandler screenHandler, int start, int end) {
-        for (int i = end; i > start; i--) {
-            ItemStack itemStack = screenHandler.getSlot(i).getStack();
-            if (itemStack.isEmpty()) {
-                continue;
-            }
-            // 指定槽位是否可以单击
-            if (canClick(fakePlayer, screenHandler, i)) {
-                ItemStack cursorStack = screenHandler.getCursorStack();
-                // 指定物品与光标物品是否可以合并
-                if (InventoryUtils.canMergeTo(cursorStack, itemStack)) {
-                    // 合并物品
-                    FakePlayerUtils.pickupCursorStack(screenHandler, i, fakePlayer);
-                    if (screenHandler.getCursorStack().isEmpty()) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @return 指定槽位是否可以被单击
-     */
-    private static boolean canClick(EntityPlayerMPFake fakePlayer, ScreenHandler screenHandler, int index) {
-        Slot slot = screenHandler.getSlot(index);
-        if (slot.canTakePartial(fakePlayer)) {
-            ItemStack itemStack = slot.getStack();
-            if (itemStack == AbstractCustomSizeInventory.PLACEHOLDER) {
-                return false;
-            }
-            if (isGcaItem(itemStack)) {
-                return false;
-            }
-            if (fakePlayer.currentScreenHandler instanceof QuickShulkerScreenHandler quickShulkerScreenHandler) {
-                return itemStack != quickShulkerScreenHandler.getShulkerBox();
-            }
-            return true;
-        }
-        return false;
+        PlayerMainInventory inventory = new PlayerMainInventory(fakePlayer);
+        inventory.sort();
     }
 
     /**
@@ -498,20 +372,6 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 指定物品是否为{@code GCA}（假人背包）物品
-     */
-    public static boolean isGcaItem(ItemStack itemStack) {
-        if (GCA_LOADED || CarpetOrgAddition.isDebugDevelopment()) {
-            NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
-            if (component == null) {
-                return false;
-            }
-            return component.copyNbt().get("GcaClear") != null;
-        }
-        return false;
-    }
-
-    /**
      * 将合适的物品移动到主手
      *
      * @return 是否移动成功
@@ -589,13 +449,21 @@ public class FakePlayerUtils {
     }
 
     public static boolean hasItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
-        PlayerInventory inventory = fakePlayer.getInventory();
+        Inventory inventory = new PlayerMainInventory(fakePlayer);
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
         for (int i = 0; i < inventory.size(); i++) {
-            if (predicate.test(inventory.getStack(i))) {
+            ItemStack itemStack = inventory.getStack(i);
+            if (itemStack.isEmpty()) {
+                continue;
+            }
+            if (predicate.test(itemStack)) {
+                return true;
+            }
+            if (pickItemFromShulker && InventoryUtils.contains(itemStack, predicate)) {
                 return true;
             }
         }
-        return predicate.test(fakePlayer.getOffHandStack());
+        return false;
     }
 
     /**

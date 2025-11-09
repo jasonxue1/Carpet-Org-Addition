@@ -836,6 +836,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 是否需要进食
      */
     private boolean shouldEat() {
+        // TODO 检查潜影盒
         if (FakePlayerUtils.hasItem(this.getFakePlayer(), InventoryUtils::isFoodItem)) {
             if (this.getFakePlayer().getAbilities().invulnerable) {
                 return false;

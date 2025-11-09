@@ -22,6 +22,7 @@ public class GlobalConfigs {
     /**
      * 是否启用隐藏功能
      */
+    // TODO 被数据更新忽略
     private static final String ENABLE_HIDDEN_FUNCTION = "enableHiddenFunction";
     private static volatile GlobalConfigs INSTANCE;
 
