@@ -376,6 +376,7 @@ public class FakePlayerUtils {
      *
      * @return 是否移动成功
      */
+    @Deprecated(forRemoval = true)
     public static boolean replenishment(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
         return replenishment(fakePlayer, Hand.MAIN_HAND, predicate);
     }
@@ -384,7 +385,9 @@ public class FakePlayerUtils {
      * 将合适的物品移动到指定手，玩家不会从盔甲槽拿取物品
      *
      * @return 是否移动成功
+     * @see PlayerMainInventory#replenishment(Hand, Predicate)
      */
+    @Deprecated(forRemoval = true)
     public static boolean replenishment(EntityPlayerMPFake fakePlayer, Hand hand, Predicate<ItemStack> predicate) {
         ItemStack stackInHand = fakePlayer.getStackInHand(hand);
         if (predicate.test(stackInHand)) {
@@ -430,7 +433,10 @@ public class FakePlayerUtils {
 
     /**
      * 将物品放入玩家空槽位，如果没有空槽位，则插入到可以接收物品的潜影盒中，如果依然没有空槽位，则丢弃物品。
+     *
+     * @see PlayerMainInventory#insertOrDropStack(ItemStack)
      */
+    @Deprecated(forRemoval = true)
     public static void putToEmptySlotOrDrop(EntityPlayerMPFake fakePlayer, ItemStack itemStack) {
         if (itemStack.isEmpty()) {
             return;

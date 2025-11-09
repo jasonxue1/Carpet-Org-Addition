@@ -5,7 +5,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
+import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
@@ -13,6 +15,7 @@ import org.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * 一个不包括盔甲槽的玩家物品栏
@@ -59,6 +62,13 @@ public class PlayerMainInventory implements Inventory {
     @Override
     public ItemStack getStack(int slot) {
         return this.playerInventory.getStack(this.map(slot));
+    }
+
+    public ItemStack getStack(Hand hand) {
+        return switch (hand) {
+            case MAIN_HAND -> this.fakePlayer.getMainHandStack();
+            case OFF_HAND -> this.fakePlayer.getOffHandStack();
+        };
     }
 
     @Override
@@ -113,6 +123,9 @@ public class PlayerMainInventory implements Inventory {
         this.fakePlayer.dropItem(itemStack, false, false);
     }
 
+    /**
+     * 整理物品栏
+     */
     public void sort() {
         // 记录所有未被锁定的槽位
         ArrayList<Integer> list = new ArrayList<>();
@@ -194,6 +207,60 @@ public class PlayerMainInventory implements Inventory {
             return itemStack != quickShulkerScreenHandler.getShulkerBox();
         }
         return true;
+    }
+
+    public boolean replenishment(Predicate<ItemStack> predicate) {
+        return this.replenishment(Hand.MAIN_HAND, predicate);
+    }
+
+    // TODO 需要测试
+    public boolean replenishment(Hand hand, Predicate<ItemStack> predicate) {
+        ItemStack stackInHand = this.getStack(hand);
+        if (predicate.test(stackInHand)) {
+            return true;
+        }
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
+        ArrayList<Integer> shulkers = new ArrayList<>();
+        // 当前手槽位
+        int headSlot = this.getHandSlotIndex(hand);
+        for (int i = 0; i < this.size(); i++) {
+            if (i == headSlot) {
+                continue;
+            }
+            if (predicate.test(this.getStack(i))) {
+                swap(i, headSlot);
+                return true;
+            } else if (pickItemFromShulker) {
+                ItemStack shulker = this.getStack(i);
+                if (shulker.isEmpty()) {
+                    continue;
+                }
+                if (InventoryUtils.isShulkerBoxItem(shulker)) {
+                    shulkers.add(i);
+                }
+            }
+        }
+        // 从潜影盒获取物品
+        if (pickItemFromShulker) {
+            for (Integer index : shulkers) {
+                ItemStack shulker = this.getStack(index);
+                ItemStack picked = InventoryUtils.pickItemFromShulkerBox(shulker, predicate);
+                if (picked.isEmpty()) {
+                    continue;
+                }
+                this.fakePlayer.setStackInHand(hand, picked);
+                this.insertOrDropStack(stackInHand);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int getHandSlotIndex(Hand hand) {
+        return switch (hand) {
+            case MAIN_HAND -> this.playerInventory.selectedSlot;
+            case OFF_HAND -> 36;
+        };
     }
 
     /**

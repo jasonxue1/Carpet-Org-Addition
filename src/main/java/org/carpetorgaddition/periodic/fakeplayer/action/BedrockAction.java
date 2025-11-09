@@ -40,6 +40,7 @@ import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,6 +54,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private final HashSet<BlockPos> lavas = new HashSet<>();
     private final BlockRegion blockRegion;
     private final BedrockRegionType regionType;
+    private PlayerMainInventory inventory;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -543,7 +545,7 @@ public class BedrockAction extends AbstractPlayerAction {
             // 当前位置下方是移动的活塞
             return StepResult.COMPLETION;
         }
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
+        this.inventory.replenishment(Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
         BlockHitResult hitResult = new BlockHitResult(bedrockPos.toCenterPos(), direction, bedrockPos, false);
         // 放置拉杆
@@ -722,7 +724,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             boolean broken = breakBlock(blockExcavator, blockPos, true);
             if (broken && hasTorch) {
-                FakePlayerUtils.replenishment(player, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.TORCH));
+                this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.TORCH));
                 placeBlock(blockPos);
                 return StepResult.COMPLETION;
             } else {
@@ -764,7 +766,7 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     private void switchTool(BlockState blockState, World world, BlockPos blockPos) {
-        boolean replenishment = FakePlayerUtils.replenishment(this.getFakePlayer(), itemStack -> {
+        boolean replenishment = this.inventory.replenishment(itemStack -> {
             if (this.getFakePlayer().isCreative()) {
                 return itemStack.getItem().canMine(blockState, world, blockPos, this.getFakePlayer());
             }
@@ -781,7 +783,7 @@ public class BedrockAction extends AbstractPlayerAction {
             return;
         }
         // 工具没有切换成功，使用其他物品替换手上工具以避免工具损坏
-        FakePlayerUtils.replenishment(this.getFakePlayer(), itemStack -> !isDamaged(itemStack));
+        this.inventory.replenishment(itemStack -> !isDamaged(itemStack));
     }
 
     /**
@@ -799,7 +801,7 @@ public class BedrockAction extends AbstractPlayerAction {
         ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
         // 看向与活塞相反的方向
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
+        this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
         // 放置活塞
         BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(bedrockPos, 1.0), direction, bedrockPos.up(), false);
         ActionResult result = interactionManager.interactBlock(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
@@ -836,7 +838,6 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 是否需要进食
      */
     private boolean shouldEat() {
-        // TODO 检查潜影盒
         if (FakePlayerUtils.hasItem(this.getFakePlayer(), InventoryUtils::isFoodItem)) {
             if (this.getFakePlayer().getAbilities().invulnerable) {
                 return false;
@@ -862,8 +863,8 @@ public class BedrockAction extends AbstractPlayerAction {
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             World world = FetcherUtils.getWorld(fakePlayer);
             if (this.canInteract(blockPos) &&
-                (FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, canDrainFluid(world, blockPos)) ||
-                 FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON)))) {
+                (this.inventory.replenishment(Hand.OFF_HAND, canDrainFluid(world, blockPos)) ||
+                 this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON)))) {
                 placeBlock(blockPos);
             }
             iterator.remove();
@@ -898,7 +899,7 @@ public class BedrockAction extends AbstractPlayerAction {
         }
         if (this.getFakePlayer().canConsume(false)) {
             if (this.getFakePlayer().getActiveItem().isEmpty()) {
-                if (FakePlayerUtils.replenishment(this.getFakePlayer(), InventoryUtils::isFoodItem)) {
+                if (this.inventory.replenishment(InventoryUtils::isFoodItem)) {
                     ServerPlayerInteractionManager interactionManager = this.getFakePlayer().interactionManager;
                     World world = FetcherUtils.getWorld(this.getFakePlayer());
                     ItemStack food = this.getFakePlayer().getMainHandStack();
@@ -1156,11 +1157,13 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     protected void onAssignPlayer() {
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this::getMovingTarget);
+        this.inventory = new PlayerMainInventory(this.getFakePlayer());
     }
 
     @Override
     protected void onClearPlayer() {
         this.pathfinder = FakePlayerPathfinder.EMPTY;
+        this.inventory = null;
     }
 
     /**
