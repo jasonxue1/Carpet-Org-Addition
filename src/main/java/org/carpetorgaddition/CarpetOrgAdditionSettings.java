@@ -989,6 +989,18 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 物品拾取范围扩展
+     */
+    public static final Supplier<Integer> itemPickupRangeExpand = register(
+            RuleFactory.create(Integer.class, "itemPickupRangeExpand", 0)
+                    .addCategories(RuleCategory.FEATURE)
+                    .setHidden()
+                    // TODO 功能不完善
+                    .setPlayerCustom()
+                    .build()
+    );
+
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);
         return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());

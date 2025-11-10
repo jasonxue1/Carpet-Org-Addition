@@ -4,8 +4,10 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -16,7 +18,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Box;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.carpetorgaddition.rule.RuleSelfConstants;
+import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -26,6 +31,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
@@ -39,6 +45,9 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
     @Shadow
     public abstract boolean isSpectator();
+
+    @Shadow
+    protected abstract void collideWithEntity(Entity entity);
 
     @Unique
     private final PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
@@ -160,6 +169,36 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     private void getBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
         if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.get()) {
             this.onPlayerBreakBlock();
+        }
+    }
+
+    @Inject(method = "tickMovement", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
+    private void pickupItem(CallbackInfo ci, @Local Box box) {
+        int expand = CarpetOrgAdditionSettings.itemPickupRangeExpand.get();
+        if (expand == 0) {
+            return;
+        }
+        if (this.thisPlayer instanceof ServerPlayerEntity player) {
+            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(FetcherUtils.getServer(player));
+            boolean enabled = ruleSelfManager.isEnabled(player, RuleSelfConstants.itemPickupRangeExpand);
+            if (enabled) {
+                double minX = Math.max(box.minX + expand, 0);
+                double minY = Math.max(box.minY + expand, 0);
+                double minZ = Math.max(box.minZ + expand, 0);
+                double maxX = Math.min(box.maxX - expand, 0);
+                double maxY = Math.min(box.maxY - expand, 0);
+                double maxZ = Math.min(box.maxZ - expand, 0);
+                Box expandBox = new Box(minX, minY, minZ, maxX, maxY, maxZ);
+                List<Entity> list = this.thisPlayer.getWorld().getOtherEntities(thisPlayer, expandBox);
+                for (Entity entity : list) {
+                    if (entity.isRemoved()) {
+                        continue;
+                    }
+                    if (entity.getType() == EntityType.ITEM) {
+                        this.collideWithEntity(entity);
+                    }
+                }
+            }
         }
     }
 }

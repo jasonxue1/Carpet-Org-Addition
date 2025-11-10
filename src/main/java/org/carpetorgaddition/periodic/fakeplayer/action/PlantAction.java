@@ -26,7 +26,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
+import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;
@@ -36,7 +36,7 @@ public class PlantAction extends AbstractPlayerAction {
      * 当前正在采集的农作物
      */
     private BlockPos cropPos;
-    private PlayerMainInventory inventory;
+    private PlayerStorageInventory inventory;
 
     public PlantAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
@@ -326,7 +326,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     protected void onAssignPlayer() {
-        this.inventory = new PlayerMainInventory(this.getFakePlayer());
+        this.inventory = new PlayerStorageInventory(this.getFakePlayer());
     }
 
     @Override

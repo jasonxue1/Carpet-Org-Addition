@@ -39,7 +39,7 @@ import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
-import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
+import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -53,7 +53,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private final HashSet<BlockPos> lavas = new HashSet<>();
     private final BlockRegion blockRegion;
     private final BedrockRegionType regionType;
-    private PlayerMainInventory inventory;
+    private PlayerStorageInventory inventory;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -1142,7 +1142,7 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     protected void onAssignPlayer() {
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this::getMovingTarget);
-        this.inventory = new PlayerMainInventory(this.getFakePlayer());
+        this.inventory = new PlayerStorageInventory(this.getFakePlayer());
     }
 
     @Override

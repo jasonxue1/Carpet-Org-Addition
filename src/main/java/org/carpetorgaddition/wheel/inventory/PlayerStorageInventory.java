@@ -23,12 +23,12 @@ import java.util.function.Predicate;
 /**
  * 一个不包括盔甲槽的玩家物品栏
  */
-public class PlayerMainInventory implements Inventory {
+public class PlayerStorageInventory implements Inventory {
     private final PlayerInventory playerInventory;
     private final EntityPlayerMPFake fakePlayer;
     private final List<Map.Entry<Integer, DefaultedList<ItemStack>>> combine;
 
-    public PlayerMainInventory(EntityPlayerMPFake fakePlayer) {
+    public PlayerStorageInventory(EntityPlayerMPFake fakePlayer) {
         this.playerInventory = fakePlayer.getInventory();
         this.fakePlayer = fakePlayer;
         ArrayList<Map.Entry<Integer, DefaultedList<ItemStack>>> list = new ArrayList<>();
@@ -129,7 +129,7 @@ public class PlayerMainInventory implements Inventory {
                 continue;
             }
             if (predicate.test(itemStack)) {
-                FakePlayerUtils.dropItem(fakePlayer, itemStack);
+                this.drop(i);
                 dropped = true;
             }
         }
@@ -187,7 +187,7 @@ public class PlayerMainInventory implements Inventory {
             ArrayList<Integer> shulkers = new ArrayList<>();
             for (int i = 0; i < this.size(); i++) {
                 ItemStack shulker = this.getStack(i);
-                if (InventoryUtils.isOperableSulkerBox(shulker)) {
+                if (InventoryUtils.isShulkerBoxItem(shulker)) {
                     shulkers.add(i);
                     // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
                     if (InventoryUtils.canAcceptAsSingleItemType(shulker, itemStack, false) || InventoryUtils.isJunkBox(shulker)) {
@@ -349,7 +349,6 @@ public class PlayerMainInventory implements Inventory {
         return this.replenishment(Hand.MAIN_HAND, predicate);
     }
 
-    // TODO 需要测试
     public boolean replenishment(Hand hand, Predicate<ItemStack> predicate) {
         ItemStack stackInHand = this.getStack(hand);
         if (predicate.test(stackInHand)) {
