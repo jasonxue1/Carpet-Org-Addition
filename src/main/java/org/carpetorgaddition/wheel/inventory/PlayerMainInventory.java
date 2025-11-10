@@ -9,8 +9,11 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
+import org.jetbrains.annotations.CheckReturnValue;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,6 +89,10 @@ public class PlayerMainInventory implements Inventory {
         this.playerInventory.setStack(this.map(slot), stack);
     }
 
+    public void setStack(Hand hand, ItemStack stack) {
+        this.fakePlayer.setStackInHand(hand, stack);
+    }
+
     @Override
     public void markDirty() {
         this.playerInventory.markDirty();
@@ -103,24 +110,145 @@ public class PlayerMainInventory implements Inventory {
         }
     }
 
+    public void drop(int index) {
+        ItemStack itemStack = this.getStack(index);
+        this.setStack(index, ItemStack.EMPTY);
+        this.fakePlayer.dropItem(itemStack, false, true);
+    }
+
     /**
-     * 将物品放入玩家空槽位，如果没有空槽位，则插入到可以接收物品的潜影盒中，如果依然没有空槽位，则丢弃物品。
+     * 根据条件丢弃物品栏中所有物品
+     *
+     * @return 是否丢弃了物品
      */
-    public void insertOrDropStack(ItemStack itemStack) {
+    public boolean drop(Predicate<ItemStack> predicate) {
+        boolean dropped = false;
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack itemStack = this.getStack(i);
+            if (itemStack.isEmpty()) {
+                continue;
+            }
+            if (predicate.test(itemStack)) {
+                FakePlayerUtils.dropItem(fakePlayer, itemStack);
+                dropped = true;
+            }
+        }
+        return dropped;
+    }
+
+    /**
+     * 向物品栏中插入物品，优先插入到潜影盒物品中
+     *
+     * @return 物品栏是否满了
+     */
+    public boolean insertWithShulkerBoxPriority(ItemStack itemStack) {
+        ItemStack remaining = insertToShulkerBox(itemStack);
+        if (remaining.isEmpty()) {
+            return false;
+        }
+        // 潜影盒没有足够空间，插入到物品栏中
+        this.insert(remaining);
+        if (remaining.isEmpty()) {
+            return false;
+        }
+        // 潜影盒和物品栏都没有足够空间，丢弃物品
+        FakePlayerUtils.dropItem(this.fakePlayer, remaining);
+        return true;
+    }
+
+    /**
+     * 向物品栏中插入物品，优先插入到物品栏中
+     */
+    public void insertWithInventoryPriority(ItemStack itemStack) {
+        this.insert(itemStack);
         if (itemStack.isEmpty()) {
             return;
         }
-        itemStack = itemStack.copyAndEmpty();
-        PlayerInventory inventory = this.fakePlayer.getInventory();
-        inventory.insertStack(itemStack);
+        // 物品栏中没有足够的空间，插入到潜影盒中
+        ItemStack remaining = this.insertToShulkerBox(itemStack);
+        if (remaining.isEmpty()) {
+            return;
+        }
+        // 物品栏和潜影盒都没有足够空间，丢弃物品
+        FakePlayerUtils.dropItem(this.fakePlayer, remaining);
+    }
+
+    /**
+     * 将物品插入到潜影盒
+     *
+     * @return 物品剩余未插入的部分
+     */
+    @NotNull
+    @CheckReturnValue
+    private ItemStack insertToShulkerBox(ItemStack itemStack) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+            itemStack = itemStack.copyAndEmpty();
+            // 所有潜影盒所在的索引
+            ArrayList<Integer> shulkers = new ArrayList<>();
+            for (int i = 0; i < this.size(); i++) {
+                ItemStack shulker = this.getStack(i);
+                if (InventoryUtils.isOperableSulkerBox(shulker)) {
+                    shulkers.add(i);
+                    // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
+                    if (InventoryUtils.canAcceptAsSingleItemType(shulker, itemStack, false) || InventoryUtils.isJunkBox(shulker)) {
+                        itemStack = InventoryUtils.addItemToShulkerBox(shulker, itemStack);
+                        if (itemStack.isEmpty()) {
+                            return ItemStack.EMPTY;
+                        }
+                    }
+                }
+            }
+            // 尝试向空潜影盒装入物品
+            for (Integer index : shulkers) {
+                ItemStack shulker = this.getStack(index);
+                if (InventoryUtils.canAcceptAsSingleItemType(shulker, itemStack, true)) {
+                    itemStack = InventoryUtils.addItemToShulkerBox(shulker, itemStack);
+                    if (itemStack.isEmpty()) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+            }
+            if (!shulkers.isEmpty()) {
+                // 拆分堆叠的空潜影盒
+                int last = shulkers.getLast();
+                if (last < this.size() - 1 && this.getStack(last).getCount() > 1) {
+                    this.splitStackedShulkerBox(last, last + 1);
+                    itemStack = InventoryUtils.addItemToShulkerBox(this.getStack(last + 1), itemStack);
+                }
+            }
+        }
+        return itemStack;
+    }
+
+    /**
+     * 向物品栏中插入物品
+     */
+    public void insert(ItemStack itemStack) {
+        this.playerInventory.insertStack(itemStack);
         if (itemStack.isEmpty()) {
             return;
         }
-        itemStack = InventoryUtils.putItemToInventoryShulkerBox(itemStack, this.fakePlayer);
-        if (itemStack.isEmpty()) {
+        ItemStack offHandStack = this.getStack(Hand.OFF_HAND);
+        if (offHandStack.isEmpty()) {
+            this.setStack(Hand.OFF_HAND, itemStack.copyAndEmpty());
+        } else if (InventoryUtils.canMergeTo(itemStack, offHandStack)) {
+            InventoryUtils.mergeStack(itemStack, offHandStack);
+        }
+    }
+
+    /**
+     * 拆分堆叠的潜影盒
+     */
+    private void splitStackedShulkerBox(int fromIndex, int toIndex) {
+        if (fromIndex == toIndex) {
             return;
         }
-        this.fakePlayer.dropItem(itemStack, false, false);
+        ItemStack from = this.getStack(fromIndex);
+        ItemStack to = this.getStack(toIndex);
+        if (to.isEmpty()) {
+            ItemStack split = from.split(1);
+            this.setStack(toIndex, split);
+        }
     }
 
     /**
@@ -192,6 +320,9 @@ public class PlayerMainInventory implements Inventory {
         }
     }
 
+    /**
+     * @return 指定索引的物品是否可以被操作
+     */
     private boolean isValidSlot(int index) {
         ItemStack itemStack = this.getStack(index);
         if (itemStack.getCount() > itemStack.getMaxCount()) {
@@ -209,6 +340,11 @@ public class PlayerMainInventory implements Inventory {
         return true;
     }
 
+    /**
+     * 将指定物品栏移动到主手
+     *
+     * @return 是否移动成功
+     */
     public boolean replenishment(Predicate<ItemStack> predicate) {
         return this.replenishment(Hand.MAIN_HAND, predicate);
     }
@@ -249,7 +385,7 @@ public class PlayerMainInventory implements Inventory {
                     continue;
                 }
                 this.fakePlayer.setStackInHand(hand, picked);
-                this.insertOrDropStack(stackInHand);
+                this.insertWithInventoryPriority(stackInHand);
                 return true;
             }
         }
@@ -264,9 +400,32 @@ public class PlayerMainInventory implements Inventory {
     }
 
     /**
+     * @return 物品栏中是否包含指定物品
+     */
+    public boolean contains(Predicate<ItemStack> predicate) {
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack itemStack = this.getStack(i);
+            if (itemStack.isEmpty()) {
+                continue;
+            }
+            if (predicate.test(itemStack)) {
+                return true;
+            }
+            if (pickItemFromShulker && InventoryUtils.contains(itemStack, predicate)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 交换两个索引上的物品
      */
     private void swap(int first, int second) {
+        if (first == second) {
+            return;
+        }
         ItemStack firstStack = this.getStack(first);
         ItemStack secondStack = this.getStack(second);
         this.setStack(first, secondStack);

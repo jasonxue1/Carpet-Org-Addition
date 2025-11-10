@@ -3,13 +3,10 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.screen.slot.SlotActionType;
@@ -22,14 +19,9 @@ import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.InventoryUtils;
-import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
-import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
-
-import java.util.ArrayList;
-import java.util.function.Predicate;
 
 public class FakePlayerUtils {
     /**
@@ -56,16 +48,6 @@ public class FakePlayerUtils {
      * 最大循环次数
      */
     public static final int MAX_LOOP_COUNT = 1200;
-    /**
-     * 玩家生存模式物品栏的起始索引
-     */
-    @Deprecated(forRemoval = true)
-    public static final int PLAYER_INVENTORY_START = 9;
-    /**
-     * 玩家生存模式物品栏的结束索引
-     */
-    @Deprecated(forRemoval = true)
-    public static final int PLAYER_INVENTORY_END = 44;
 
     private FakePlayerUtils() {
     }
@@ -79,41 +61,6 @@ public class FakePlayerUtils {
      */
     public static void dropItem(EntityPlayerMPFake player, ItemStack itemStack) {
         player.dropItem(itemStack.copyAndEmpty(), false, false);
-    }
-
-    /**
-     * 根据条件丢弃物品栏中所有物品
-     *
-     * @return 是否丢弃了物品
-     */
-    public static boolean dropInventoryItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        boolean drop = false;
-        for (Slot slot : screenHandler.slots) {
-            ItemStack itemStack = slot.getStack();
-            if (itemStack.isEmpty()) {
-                continue;
-            }
-            int id = slot.id;
-            if (isStorageSlot(id)) {
-                if (isEquipmentSlot(id)) {
-                    continue;
-                }
-                if (predicate.test(itemStack)) {
-                    throwItem(screenHandler, id, fakePlayer);
-                    drop = true;
-                }
-            }
-        }
-        return drop;
-    }
-
-    /**
-     * 整理物品栏
-     */
-    public static void sorting(EntityPlayerMPFake fakePlayer) {
-        PlayerMainInventory inventory = new PlayerMainInventory(fakePlayer);
-        inventory.sort();
     }
 
     /**
@@ -223,27 +170,6 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 拿取一个物品并放置到目标槽位
-     */
-    public static void pickupOneAndPlaceItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
-        if (fromIndex == toIndex) {
-            return;
-        }
-        ItemStack from = screenHandler.getSlot(fromIndex).getStack();
-        ItemStack to = screenHandler.getSlot(toIndex).getStack();
-        if (to.isEmpty() || InventoryUtils.canMergeTo(from, to)) {
-            ItemStack cursorStack = screenHandler.getCursorStack();
-            if (cursorStack.isEmpty() || !InventoryUtils.canMerge(from, cursorStack)) {
-                screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
-                screenHandler.onSlotClick(toIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
-                screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
-            } else {
-                screenHandler.onSlotClick(toIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
-            }
-        }
-    }
-
-    /**
      * 使用循环一个个丢弃槽位中的物品
      *
      * @param screenHandler 玩家当前打开的GUI
@@ -325,41 +251,6 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 交换两个槽位中的物品<br>
-     * 如果光标上的物品与两个槽位上的物品均不相同，则光标物品不会影响物品交换
-     */
-    public static void swapSlotItem(ScreenHandler screenHandler, int index1, int index2, EntityPlayerMPFake fakePlayer) {
-        if (index1 == index2) {
-            return;
-        }
-        ItemStack slot1Item = screenHandler.getSlot(index1).getStack();
-        ItemStack slot2Item = screenHandler.getSlot(index2).getStack();
-        // 两个槽位中的物品可以合并
-        if (InventoryUtils.canMerge(slot1Item, slot2Item)) {
-            // 不检查光标物品
-            int difference = slot1Item.getCount() - slot2Item.getCount();
-            if (difference > 0) {
-                screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-                for (int i = 0; i < difference; i++) {
-                    screenHandler.onSlotClick(index2, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, fakePlayer);
-                }
-                screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-            } else if (difference < 0) {
-                screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-                for (int i = 0; i < -difference; i++) {
-                    screenHandler.onSlotClick(index1, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, fakePlayer);
-                }
-                screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-            }
-        } else {
-            // 拿取槽位1上的物品，单击槽位2，与槽位2物品交互位置，再次单击槽位1，将物品放回
-            screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-            screenHandler.onSlotClick(index2, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-            screenHandler.onSlotClick(index1, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-        }
-    }
-
-    /**
      * 将光标上的物品放置在槽位中<br>
      * 此方法不会检查对应槽位上有没有物品，因此使用该方法前应保证要放置物品的槽位上没有物品
      *
@@ -369,107 +260,6 @@ public class FakePlayerUtils {
      */
     public static void pickupCursorStack(ScreenHandler screenHandler, int index, EntityPlayerMPFake fakePlayer) {
         screenHandler.onSlotClick(index, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
-    }
-
-    /**
-     * 将合适的物品移动到主手
-     *
-     * @return 是否移动成功
-     */
-    @Deprecated(forRemoval = true)
-    public static boolean replenishment(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
-        return replenishment(fakePlayer, Hand.MAIN_HAND, predicate);
-    }
-
-    /**
-     * 将合适的物品移动到指定手，玩家不会从盔甲槽拿取物品
-     *
-     * @return 是否移动成功
-     * @see PlayerMainInventory#replenishment(Hand, Predicate)
-     */
-    @Deprecated(forRemoval = true)
-    public static boolean replenishment(EntityPlayerMPFake fakePlayer, Hand hand, Predicate<ItemStack> predicate) {
-        ItemStack stackInHand = fakePlayer.getStackInHand(hand);
-        if (predicate.test(stackInHand)) {
-            return true;
-        }
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
-        ArrayList<Integer> shulkers = new ArrayList<>();
-        // 主手槽位
-        int headSlot = hand == Hand.MAIN_HAND ? 36 + fakePlayer.getInventory().selectedSlot : 45;
-        for (int i = PLAYER_INVENTORY_START; i <= PLAYER_INVENTORY_END; i++) {
-            if (i == headSlot) {
-                continue;
-            }
-            if (predicate.test(screenHandler.getSlot(i).getStack())) {
-                swapSlotItem(screenHandler, i, headSlot, fakePlayer);
-                return true;
-            } else if (pickItemFromShulker) {
-                ItemStack shulker = screenHandler.getSlot(i).getStack();
-                if (shulker.isEmpty()) {
-                    continue;
-                }
-                if (InventoryUtils.isShulkerBoxItem(shulker)) {
-                    shulkers.add(i);
-                }
-            }
-        }
-        // 从潜影盒获取物品
-        if (pickItemFromShulker) {
-            for (Integer index : shulkers) {
-                ItemStack shulker = screenHandler.getSlot(index).getStack();
-                ItemStack picked = InventoryUtils.pickItemFromShulkerBox(shulker, predicate);
-                if (picked.isEmpty()) {
-                    continue;
-                }
-                fakePlayer.setStackInHand(hand, picked);
-                putToEmptySlotOrDrop(fakePlayer, stackInHand);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 将物品放入玩家空槽位，如果没有空槽位，则插入到可以接收物品的潜影盒中，如果依然没有空槽位，则丢弃物品。
-     *
-     * @see PlayerMainInventory#insertOrDropStack(ItemStack)
-     */
-    @Deprecated(forRemoval = true)
-    public static void putToEmptySlotOrDrop(EntityPlayerMPFake fakePlayer, ItemStack itemStack) {
-        if (itemStack.isEmpty()) {
-            return;
-        }
-        itemStack = itemStack.copyAndEmpty();
-        PlayerInventory inventory = fakePlayer.getInventory();
-        inventory.insertStack(itemStack);
-        if (itemStack.isEmpty()) {
-            return;
-        }
-        itemStack = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
-        if (itemStack.isEmpty()) {
-            return;
-        }
-        fakePlayer.dropItem(itemStack, false, false);
-    }
-
-    public static boolean hasItem(EntityPlayerMPFake fakePlayer, Predicate<ItemStack> predicate) {
-        Inventory inventory = new PlayerMainInventory(fakePlayer);
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
-        for (int i = 0; i < inventory.size(); i++) {
-            ItemStack itemStack = inventory.getStack(i);
-            if (itemStack.isEmpty()) {
-                continue;
-            }
-            if (predicate.test(itemStack)) {
-                return true;
-            }
-            if (pickItemFromShulker && InventoryUtils.contains(itemStack, predicate)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -537,21 +327,5 @@ public class FakePlayerUtils {
      */
     public static void stopCraftAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake) {
         stopAction(source, playerMPFake, "carpet.commands.playerAction.craft");
-    }
-
-    /**
-     * 指定索引的槽位是否可以用来存储物品
-     *
-     * @return 如果是合成槽位，返回{@code false}，否则返回{@code true}
-     */
-    public static boolean isStorageSlot(int index) {
-        return MathUtils.isInRange(5, PLAYER_INVENTORY_END, index);
-    }
-
-    /**
-     * @return 指定索引的槽位是否为盔甲槽位
-     */
-    public static boolean isEquipmentSlot(int index) {
-        return MathUtils.isInRange(5, 8, index);
     }
 }

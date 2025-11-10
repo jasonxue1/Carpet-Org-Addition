@@ -1,6 +1,5 @@
 package org.carpetorgaddition.util;
 
-import carpet.patches.EntityPlayerMPFake;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
@@ -11,10 +10,7 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.PlayerScreenHandler;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
@@ -22,7 +18,6 @@ import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
@@ -92,48 +87,6 @@ public class InventoryUtils {
         if (isOperableSulkerBox(container) && itemStack.getItem().canBeNested()) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
             return inventory.addStack(itemStack);
-        }
-        return itemStack;
-    }
-
-    @CheckReturnValue
-    public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, EntityPlayerMPFake fakePlayer) {
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
-            itemStack = itemStack.copyAndEmpty();
-            // 所有潜影盒所在的索引
-            ArrayList<Integer> shulkers = new ArrayList<>();
-            PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-            for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
-                ItemStack shulker = screenHandler.getSlot(i).getStack();
-                if (isShulkerBoxItem(shulker)) {
-                    shulkers.add(i);
-                    // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
-                    if (canAcceptAsSingleItemType(shulker, itemStack, false) || isJunkBox(shulker)) {
-                        itemStack = addItemToShulkerBox(shulker, itemStack);
-                        if (itemStack.isEmpty()) {
-                            return ItemStack.EMPTY;
-                        }
-                    }
-                }
-            }
-            // 尝试向空潜影盒装入物品
-            for (Integer index : shulkers) {
-                ItemStack shulker = screenHandler.getSlot(index).getStack();
-                if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
-                    itemStack = addItemToShulkerBox(shulker, itemStack);
-                    if (itemStack.isEmpty()) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-            }
-            if (shulkers.isEmpty()) {
-                return itemStack;
-            }
-            int last = shulkers.getLast();
-            if (last < FakePlayerUtils.PLAYER_INVENTORY_END && screenHandler.getSlot(last).getStack().getCount() > 1) {
-                FakePlayerUtils.pickupOneAndPlaceItemStack(screenHandler, last, last + 1, fakePlayer);
-                itemStack = addItemToShulkerBox(screenHandler.getSlot(last + 1).getStack(), itemStack);
-            }
         }
         return itemStack;
     }

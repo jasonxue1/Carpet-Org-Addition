@@ -6,8 +6,8 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.wheel.inventory.PlayerMainInventory;
 import org.carpetorgaddition.wheel.inventory.ServerPlayerInventory;
 
 public class PlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenHandler<ServerPlayerInventory> {
@@ -27,7 +27,8 @@ public class PlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenH
     @Override
     public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
         if (CarpetOrgAddition.isDebugDevelopment() && MathUtils.isInRange(this.from(), this.to(), slotIndex) && this.player instanceof EntityPlayerMPFake fakePlayer) {
-            FakePlayerUtils.sorting(fakePlayer);
+            PlayerMainInventory inventory = new PlayerMainInventory(fakePlayer);
+            inventory.sort();
         }
         super.onSlotClick(slotIndex, button, actionType, player);
     }
