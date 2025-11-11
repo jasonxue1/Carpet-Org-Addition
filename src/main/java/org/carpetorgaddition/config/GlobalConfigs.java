@@ -9,21 +9,15 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.HashMap;
 
 public class GlobalConfigs {
     /**
      * 配置文件的路径
      */
     private final File configFile = IOUtils.CONFIGURE_DIRECTORY.resolve(CarpetOrgAddition.MOD_ID + ".json").toFile();
-    private final HashSet<AbstractConfig<?>> configurations = new HashSet<>();
-    private final CustomCommandConfig customCommandNames = new CustomCommandConfig();
-    private boolean updateRequired = false;
-    /**
-     * 是否启用隐藏功能
-     */
-    // TODO 被数据更新忽略
-    private static final String ENABLE_HIDDEN_FUNCTION = "enableHiddenFunction";
+    private final HashMap<Class<?>, AbstractConfig<?>> configurations = new HashMap<>();
+    private final JsonObject json;
     private static volatile GlobalConfigs INSTANCE;
 
     /**
@@ -43,85 +37,74 @@ public class GlobalConfigs {
 
     private GlobalConfigs() {
         if (this.configFile.isFile()) {
-            return;
-        }
-        CarpetOrgAddition.LOGGER.info("Initializing configuration file");
-        try {
-            JsonObject json = new JsonObject();
-            json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
-            IOUtils.write(this.configFile, json);
-        } catch (IOException e) {
-            IOUtils.loggerError(e);
+            JsonObject json;
+            try {
+                json = IOUtils.loadJson(this.configFile);
+            } catch (IOException e) {
+                json = this.initJsonObject();
+            }
+            this.json = json;
+        } else {
+            this.json = this.initJsonObject();
         }
         this.register();
+    }
+
+    private JsonObject initJsonObject() {
+        CarpetOrgAddition.LOGGER.info("Initializing configuration file");
+        JsonObject json = new JsonObject();
+        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        return json;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <E extends JsonElement, C extends AbstractConfig<E>> void load(C config) {
+        JsonElement element = this.json.get(config.getKey());
+        try {
+            config.load((E) element);
+        } catch (RuntimeException e) {
+            IOUtils.backupFile(this.configFile);
+            this.json.add(config.getKey(), config.getJsonValue());
+            CarpetOrgAddition.LOGGER.warn("Global config partially corrupted - resetting damaged section", e);
+        }
+    }
+
+    public void save() {
+        try {
+            for (AbstractConfig<?> configuration : this.configurations.values()) {
+                if (configuration.shouldBeSaved()) {
+                    this.json.add(configuration.getKey(), configuration.getJsonValue());
+                }
+            }
+            IOUtils.write(this.configFile, this.json);
+        } catch (IOException e) {
+            CarpetOrgAddition.LOGGER.error("An unexpected error occurred while saving the global configuration file for {}", CarpetOrgAddition.MOD_NAME, e);
+        }
+    }
+
+    private void register() {
+        this.register(new CustomCommandConfig(this));
+        this.register(new HiddenFunctionConfig(this));
+    }
+
+    private void register(AbstractConfig<?> config) {
+        this.configurations.put(config.getClass(), config);
+        this.load(config);
+    }
+
+    private <T extends AbstractConfig<?>> T getConfig(Class<T> key) {
+        AbstractConfig<?> config = this.configurations.get(key);
+        return key.cast(config);
     }
 
     /**
      * @return 是否启用了隐藏功能
      */
     public boolean isEnableHiddenFunction() {
-        try {
-            JsonObject json = IOUtils.loadJson(this.configFile);
-            return json.has(ENABLE_HIDDEN_FUNCTION) && json.get(ENABLE_HIDDEN_FUNCTION).getAsBoolean();
-        } catch (Exception e) {
-            return false;
-        }
+        return this.getConfig(HiddenFunctionConfig.class).isEnable();
     }
 
-    public void save() {
-        try {
-            File file = this.configFile;
-            JsonObject json = IOUtils.loadJson(file);
-            for (AbstractConfig<?> configuration : this.configurations) {
-                json.add(configuration.getKey(), configuration.getJsonValue());
-            }
-            IOUtils.write(file, json);
-        } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("An unexpected error occurred while saving the global configuration file for {}", CarpetOrgAddition.MOD_NAME, e);
-        }
-        this.updateRequired = false;
-    }
-
-    /**
-     * 标记为需要更新
-     */
-    public void markUpdateRequired() {
-        this.updateRequired = true;
-    }
-
-    public CustomCommandConfig getCustomCommandNames() {
-        return this.customCommandNames;
-    }
-
-    @SuppressWarnings("unchecked")
-    public <E extends JsonElement, C extends AbstractConfig<E>> void load(C config) {
-        JsonObject json;
-        try {
-            json = IOUtils.loadJson(this.configFile);
-        } catch (IOException e) {
-            IOUtils.loggerError(e);
-            return;
-        }
-        JsonElement element = json.get(config.getKey());
-        try {
-            config.load((E) element);
-        } catch (RuntimeException e) {
-            IOUtils.backupFile(this.configFile);
-            json.add(config.getKey(), config.getJsonValue());
-            this.markUpdateRequired();
-            CarpetOrgAddition.LOGGER.warn("Global config partially corrupted - resetting damaged section", e);
-        }
-    }
-
-    private void register() {
-        this.register(this.customCommandNames);
-    }
-
-    private <E extends JsonElement, C extends AbstractConfig<E>> void register(C config) {
-        this.configurations.add(config);
-        this.load(config);
-        if (this.updateRequired) {
-            this.save();
-        }
+    public String[] getCommand(String command) {
+        return this.getConfig(CustomCommandConfig.class).getCommand(command);
     }
 }

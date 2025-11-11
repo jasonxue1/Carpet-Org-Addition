@@ -1,7 +1,6 @@
 package org.carpetorgaddition.command;
 
 import org.carpetorgaddition.CarpetOrgAddition;
-import org.carpetorgaddition.config.CustomCommandConfig;
 import org.carpetorgaddition.config.GlobalConfigs;
 
 public abstract class AbstractCommand {
@@ -39,8 +38,7 @@ public abstract class AbstractCommand {
      */
     public String[] getCustomNames() {
         GlobalConfigs configs = GlobalConfigs.getInstance();
-        CustomCommandConfig config = configs.getCustomCommandNames();
-        return config.getCommand(this.getDefaultName());
+        return configs.getCommand(this.getDefaultName());
     }
 
     public String getAvailableName() {
