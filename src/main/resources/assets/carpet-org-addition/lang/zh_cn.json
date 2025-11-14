@@ -223,6 +223,8 @@
   "carpet.rule.playerManagerForceComment.desc": "保存玩家数据时强制添加注释",
   "carpet.rule.itemPickupRangeExpand.name": "物品拾取范围扩展",
   "carpet.rule.itemPickupRangeExpand.desc": "将物品拾取范围向四周扩展指定格数",
+  "carpet.rule.itemPickupRangeExpandPlayerControl.name": "物品拾取范围扩展玩家控制",
+  "carpet.rule.itemPickupRangeExpandPlayerControl.desc": "允许玩家自行决定是否启用“物品拾取范围扩展”",
   "carpet.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet.rule.message.displayPlayerSummoner": "↑由%s召唤",

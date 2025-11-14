@@ -1,6 +1,8 @@
 package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -10,16 +12,16 @@ import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.wheel.WorldFormat;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class RuleSelfManager {
-    public static final HashMap<String, CarpetRule<?>> RULES = new HashMap<>();
-    private final HashMap<String, HashSet<String>> disabledRules = new HashMap<>();
+    public static final HashMap<String, CarpetRule<?>> NAME_TO_RULES = new HashMap<>();
+    private static final BiMap<CarpetRule<?>, CustomRuleControl<?>> RULE_TO_CONTROL = HashBiMap.create();
+    private final HashMap<String, HashSet<String>> rules = new HashMap<>();
     /**
      * 数据保存的位置
      */
@@ -38,14 +40,19 @@ public class RuleSelfManager {
      * @return 指定规则是否已启用
      */
     public boolean isEnabled(ServerPlayerEntity player, String rule) {
-        if (this.disabledRules.isEmpty()) {
+        if (this.rules.isEmpty()) {
             return false;
         }
-        HashSet<String> rules = this.disabledRules.get(FetcherUtils.getPlayerName(player));
+        HashSet<String> rules = this.rules.get(FetcherUtils.getPlayerName(player));
         if (rules == null) {
             return false;
         }
         return rules.contains(rule);
+    }
+
+    public boolean isEnabled(ServerPlayerEntity player, CustomRuleControl<?> control) {
+        Optional<CustomRuleEntry> optional = get(control);
+        return optional.filter(entry -> this.isEnabled(player, entry.getName())).isPresent();
     }
 
     /**
@@ -53,12 +60,12 @@ public class RuleSelfManager {
      */
     public void setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
         String playerName = FetcherUtils.getPlayerName(player);
-        HashSet<String> rules = this.disabledRules.get(playerName);
+        HashSet<String> rules = this.rules.get(playerName);
         if (rules == null) {
             if (enabled) {
                 HashSet<String> value = new HashSet<>();
                 value.add(rule);
-                this.disabledRules.put(playerName, value);
+                this.rules.put(playerName, value);
                 this.changed = true;
             }
             return;
@@ -69,7 +76,7 @@ public class RuleSelfManager {
         }
         // 玩家已经关闭了所有仅对自己生效的规则，从集合中删除
         if (rules.isEmpty()) {
-            this.disabledRules.remove(playerName);
+            this.rules.remove(playerName);
         }
     }
 
@@ -124,7 +131,7 @@ public class RuleSelfManager {
     private JsonObject createRuleSelfJson() {
         JsonObject json = new JsonObject();
         // json的键为玩家名，值为一个字符串数组
-        for (Map.Entry<String, HashSet<String>> entry : this.disabledRules.entrySet()) {
+        for (Map.Entry<String, HashSet<String>> entry : this.rules.entrySet()) {
             JsonArray array = new JsonArray();
             HashSet<String> value = entry.getValue();
             for (String rule : value) {
@@ -145,11 +152,41 @@ public class RuleSelfManager {
                     for (JsonElement element : entry.getValue().getAsJsonArray()) {
                         rules.add(element.getAsString());
                     }
-                    this.disabledRules.put(entry.getKey(), rules);
+                    this.rules.put(entry.getKey(), rules);
                 }
             } catch (IOException e) {
                 IOUtils.loggerError(e);
             }
         }
+    }
+
+    public static void put(CustomRuleControl<?> control, CarpetRule<?> rule) {
+        NAME_TO_RULES.put(rule.name(), rule);
+        RULE_TO_CONTROL.put(rule, control);
+    }
+
+    public static Optional<CustomRuleEntry> get(String name) {
+        CarpetRule<?> rule = NAME_TO_RULES.get(name);
+        CustomRuleControl<?> control = RULE_TO_CONTROL.get(rule);
+        return CustomRuleEntry.of(name, rule, control);
+    }
+
+    public static Optional<CustomRuleEntry> get(@NotNull CarpetRule<?> rule) {
+        CustomRuleControl<?> control = RULE_TO_CONTROL.get(rule);
+        String name = rule.name();
+        return CustomRuleEntry.of(name, rule, control);
+    }
+
+    public static Optional<CustomRuleEntry> get(CustomRuleControl<?> control) {
+        CarpetRule<?> rule = RULE_TO_CONTROL.inverse().get(control);
+        if (rule == null) {
+            return Optional.empty();
+        }
+        String name = rule.name();
+        return CustomRuleEntry.of(name, rule, control);
+    }
+
+    public static List<String> values() {
+        return NAME_TO_RULES.values().stream().map(CarpetRule::name).toList();
     }
 }

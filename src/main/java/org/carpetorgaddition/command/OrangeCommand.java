@@ -24,6 +24,8 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
+import org.carpetorgaddition.rule.CustomRuleControl;
+import org.carpetorgaddition.rule.CustomRuleEntry;
 import org.carpetorgaddition.rule.RuleSelfManager;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
@@ -120,7 +122,7 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
-        return (context, builder) -> CommandSource.suggestMatching(RuleSelfManager.RULES.values().stream().map(CarpetRule::name), builder);
+        return (context, builder) -> CommandSource.suggestMatching(RuleSelfManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
     }
 
     private SuggestionProvider<ServerCommandSource> suggestsNode() {
@@ -260,21 +262,23 @@ public class OrangeCommand extends AbstractServerCommand {
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
-            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-            if (rule == null) {
+            Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
+            if (optional.isEmpty()) {
                 throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
             }
+            CustomRuleEntry entry = optional.get();
+            CustomRuleControl<?> control = entry.getControl();
             boolean value = BoolArgumentType.getBool(context, "value");
             ruleSelfManager.setEnabled(player, ruleString, value);
-            Text ruleName = RuleUtils.simpleTranslationName(rule);
-            Text playerName = player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName();
+            Text ruleName = RuleUtils.simpleTranslationName(entry.getRule());
+            Text playerName = (player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName());
             TextBuilder builder;
             if (value) {
                 builder = TextBuilder.of("carpet.commands.orange.ruleself.enable", ruleName, playerName);
             } else {
                 builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
             }
-            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get().isServerDecision()) {
+            if (control.isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }
@@ -289,17 +293,19 @@ public class OrangeCommand extends AbstractServerCommand {
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
-            CarpetRule<?> rule = RuleSelfManager.RULES.get(ruleString);
-            if (rule == null) {
+            Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
+            if (optional.isEmpty()) {
                 throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
             }
+            CustomRuleEntry entry = optional.get();
+            CustomRuleControl<?> control = entry.getControl();
             MessageUtils.sendEmptyMessage(context);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.player", player.getDisplayName());
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
-            Text displayName = RuleUtils.simpleTranslationName(rule);
+            Text displayName = RuleUtils.simpleTranslationName(entry.getRule());
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
             TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
-            if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get().isServerDecision()) {
+            if (control.isServerDecision()) {
                 builder.setHover("carpet.commands.orange.ruleself.invalid");
                 builder.setStrikethrough();
             }

@@ -20,8 +20,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Box;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.RuleSelfConstants;
-import org.carpetorgaddition.rule.RuleSelfManager;
+import org.carpetorgaddition.rule.CustomRuleControls;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -174,30 +173,26 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
     @Inject(method = "tickMovement", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
     private void pickupItem(CallbackInfo ci, @Local Box box) {
-        int expand = CarpetOrgAdditionSettings.itemPickupRangeExpand.get();
-        if (expand == 0) {
-            return;
-        }
         if (this.thisPlayer instanceof ServerPlayerEntity player) {
-            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(FetcherUtils.getServer(player));
-            boolean enabled = ruleSelfManager.isEnabled(player, RuleSelfConstants.itemPickupRangeExpand);
-            if (enabled) {
-                double minX = Math.max(box.minX + expand, 0);
-                double minY = Math.max(box.minY + expand, 0);
-                double minZ = Math.max(box.minZ + expand, 0);
-                double maxX = Math.min(box.maxX - expand, 0);
-                double maxY = Math.min(box.maxY - expand, 0);
-                double maxZ = Math.min(box.maxZ - expand, 0);
-                Box expandBox = new Box(minX, minY, minZ, maxX, maxY, maxZ);
-                List<Entity> list = this.thisPlayer.getWorld().getOtherEntities(thisPlayer, expandBox);
-                for (Entity entity : list) {
-                    if (entity.isRemoved()) {
-                        continue;
-                    }
-                    if (entity.getType() == EntityType.ITEM) {
-                        this.collideWithEntity(entity);
-                    }
-                }
+            int range = CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND.getRuleValue(player);
+            if (range == 0) {
+                return;
+            }
+            double minX = box.minX - range;
+            double minY = box.minY - range;
+            double minZ = box.minZ - range;
+            double maxX = box.maxX + range;
+            double maxY = box.maxY + range;
+            double maxZ = box.maxZ + range;
+            Box expand = new Box(minX, minY, minZ, maxX, maxY, maxZ);
+            List<Entity> list = this.thisPlayer.getWorld()
+                    .getOtherEntities(thisPlayer, expand)
+                    .stream()
+                    .filter(entity -> !entity.isRemoved())
+                    .filter(entity -> entity.getType() == EntityType.ITEM)
+                    .toList();
+            for (Entity entity : list) {
+                this.collideWithEntity(entity);
             }
         }
     }
