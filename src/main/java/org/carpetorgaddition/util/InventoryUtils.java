@@ -1,17 +1,16 @@
 package org.carpetorgaddition.util;
 
-import carpet.patches.EntityPlayerMPFake;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.screen.PlayerScreenHandler;
-import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
@@ -19,13 +18,17 @@ import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class InventoryUtils {
+    /**
+     * 模组{@code gugle-carpet-addition}是否已加载
+     */
+    private static final boolean GCA_LOADED = FabricLoader.getInstance().isModLoaded("gca");
+
     /**
      * 物品栏工具类，私有化构造方法
      */
@@ -84,48 +87,6 @@ public class InventoryUtils {
         if (isOperableSulkerBox(container) && itemStack.getItem().canBeNested()) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
             return inventory.addStack(itemStack);
-        }
-        return itemStack;
-    }
-
-    @CheckReturnValue
-    public static ItemStack putItemToInventoryShulkerBox(ItemStack itemStack, EntityPlayerMPFake fakePlayer) {
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
-            itemStack = itemStack.copyAndEmpty();
-            // 所有潜影盒所在的索引
-            ArrayList<Integer> shulkers = new ArrayList<>();
-            PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-            for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
-                ItemStack shulker = screenHandler.getSlot(i).getStack();
-                if (isShulkerBoxItem(shulker)) {
-                    shulkers.add(i);
-                    // 优先尝试向单一物品的潜影盒或杂物潜影盒装入物品
-                    if (canAcceptAsSingleItemType(shulker, itemStack, false) || isJunkBox(shulker)) {
-                        itemStack = addItemToShulkerBox(shulker, itemStack);
-                        if (itemStack.isEmpty()) {
-                            return ItemStack.EMPTY;
-                        }
-                    }
-                }
-            }
-            // 尝试向空潜影盒装入物品
-            for (Integer index : shulkers) {
-                ItemStack shulker = screenHandler.getSlot(index).getStack();
-                if (canAcceptAsSingleItemType(shulker, itemStack, true)) {
-                    itemStack = addItemToShulkerBox(shulker, itemStack);
-                    if (itemStack.isEmpty()) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-            }
-            if (shulkers.isEmpty()) {
-                return itemStack;
-            }
-            int last = shulkers.getLast();
-            if (last < FakePlayerUtils.PLAYER_INVENTORY_END && screenHandler.getSlot(last).getStack().getCount() > 1) {
-                FakePlayerUtils.pickupOneAndPlaceItemStack(screenHandler, last, last + 1, fakePlayer);
-                itemStack = addItemToShulkerBox(screenHandler.getSlot(last + 1).getStack(), itemStack);
-            }
         }
         return itemStack;
     }
@@ -191,7 +152,7 @@ public class InventoryUtils {
     /**
      * @return 潜影盒中是否有指定物品
      */
-    public static boolean hasItemStack(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
+    public static boolean contains(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
         if (isOperableSulkerBox(shulkerBox)) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             for (ItemStack itemStack : inventory) {
@@ -295,6 +256,22 @@ public class InventoryUtils {
 
     public static boolean canMerge(ItemStack stack, ItemStack otherStack) {
         return ItemStack.areItemsAndComponentsEqual(stack, otherStack);
+    }
+
+    /**
+     * 合并两个相同的物品
+     */
+    public static void mergeStack(ItemStack sacrifice, ItemStack retain) {
+        if (canMerge(sacrifice, retain)) {
+            if (isItemStackFull(retain)) {
+                return;
+            }
+            int shortage = Math.min(retain.getMaxCount() - retain.getCount(), sacrifice.getCount());
+            retain.increment(shortage);
+            sacrifice.decrement(shortage);
+        } else {
+            throw new IllegalArgumentException("Attempting to merge two items that are not completely identical");
+        }
     }
 
     /**
@@ -427,6 +404,20 @@ public class InventoryUtils {
 
     public static boolean isToolItem(ItemStack itemStack) {
         return itemStack.contains(DataComponentTypes.TOOL);
+    }
+
+    /**
+     * 指定物品是否为{@code GCA}（假人背包）物品
+     */
+    public static boolean isGcaItem(ItemStack itemStack) {
+        if (GCA_LOADED || CarpetOrgAddition.isDebugDevelopment()) {
+            NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+            if (component == null) {
+                return false;
+            }
+            return component.copyNbt().get("GcaClear") != null;
+        }
+        return false;
     }
 
     public static class ItemStackWrapper extends Counter.Wrapper<ItemStack> {
