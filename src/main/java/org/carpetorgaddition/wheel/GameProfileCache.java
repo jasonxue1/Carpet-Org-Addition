@@ -50,39 +50,53 @@ import java.util.stream.Collectors;
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
 public class GameProfileCache {
-    private static final LazyValue<File> CONFIG = new LazyValue<>(IOUtils.configFile("profile.json"), GameProfileCache::init);
-    private static final Table TABLE = new Table();
+    private final File config = IOUtils.configFile("profile.json");
+    private final Table table = new Table();
     /**
      * 集合可能被多个线程同时访问
      */
-    private static final ReentrantReadWriteLock LOCK = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     /**
      * 自上次保存以来，数据是否发生了变化
      */
-    private static boolean changed = false;
-
+    private boolean changed = false;
     /**
      * Mojang提供的根据玩家UUID查询玩家名的API
      */
     public static final String MOJANG_API = "https://api.minecraftservices.com/minecraft/profile/lookup/%s";
+    private static volatile GameProfileCache INSTANCE;
+
+    public static GameProfileCache getInstance() {
+        if (INSTANCE == null) {
+            synchronized (GameProfileCache.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new GameProfileCache();
+                }
+            }
+        }
+        return INSTANCE;
+    }
 
     private GameProfileCache() {
+        this.migration();
+        this.load();
+        this.mergeUsercache();
     }
 
     /**
      * 根据UUID获取对应的玩家名
      */
-    public static Optional<String> get(UUID uuid) {
+    public Optional<String> get(UUID uuid) {
         try {
-            LOCK.readLock().lock();
-            return TABLE.get(uuid);
+            this.lock.readLock().lock();
+            return this.table.get(uuid);
         } finally {
-            LOCK.readLock().unlock();
+            this.lock.readLock().unlock();
         }
     }
 
-    public static Optional<GameProfile> getGameProfile(UUID uuid) {
-        Optional<String> optional = get(uuid);
+    public Optional<GameProfile> getGameProfile(UUID uuid) {
+        Optional<String> optional = this.get(uuid);
         return optional.map(name -> new GameProfile(uuid, name));
     }
 
@@ -98,41 +112,41 @@ public class GameProfileCache {
      *
      * @param name 玩家的名称
      */
-    public static Optional<GameProfile> getGameProfile(@NotNull String name) {
+    public Optional<GameProfile> getGameProfile(@NotNull String name) {
         try {
-            LOCK.readLock().lock();
-            Optional<Map.Entry<UUID, String>> optional = TABLE.get(name);
+            this.lock.readLock().lock();
+            Optional<Map.Entry<UUID, String>> optional = this.table.get(name);
             return optional.map(value -> new GameProfile(value.getKey(), value.getValue()));
         } finally {
-            LOCK.readLock().unlock();
+            this.lock.readLock().unlock();
         }
     }
 
-    public static void put(GameProfile gameProfile) {
-        put(gameProfile.id(), gameProfile.name());
+    public void put(GameProfile gameProfile) {
+        this.put(gameProfile.id(), gameProfile.name());
     }
 
-    public static void put(PlayerConfigEntry entry) {
-        put(entry.id(), entry.name());
+    public void put(PlayerConfigEntry entry) {
+        this.put(entry.id(), entry.name());
     }
 
     /**
      * 将玩家UUID与玩家名称的对应关系添加至集合
      */
-    public static void put(UUID uuid, String name) {
+    public void put(UUID uuid, String name) {
         try {
-            LOCK.writeLock().lock();
-            TABLE.put(uuid, name);
-            changed = true;
+            this.lock.writeLock().lock();
+            this.table.put(uuid, name);
+            this.changed = true;
         } finally {
-            LOCK.writeLock().unlock();
+            this.lock.writeLock().unlock();
         }
     }
 
     /**
      * 将{@code usercache.json}合并到{@code profile.json}
      */
-    private static void mergeUsercache() {
+    private void mergeUsercache() {
         try {
             JsonArray array = IOUtils.loadJson(IOUtils.USERCACHE_JSON, JsonArray.class);
             Set<Map.Entry<String, String>> set = array.asList().stream()
@@ -142,48 +156,37 @@ public class GameProfileCache {
             for (Map.Entry<String, String> entry : set) {
                 String name = entry.getKey();
                 UUID uuid = UUID.fromString(entry.getValue());
-                put(uuid, name);
+                this.put(uuid, name);
             }
         } catch (RuntimeException | IOException e) {
             CarpetOrgAddition.LOGGER.warn("Unable to merge usercahce.json into profile.json", e);
         }
     }
 
-    /**
-     * 从文件加载玩家UUID与名称映射
-     */
-    private static void init(File config) {
-        if (!config.isFile()) {
-            // 迁移配置文件
-            File file = IOUtils.configFile("uuid_name_mapping.txt");
-            if (file.isFile()) {
-                try {
-                    BufferedReader reader = IOUtils.toReader(file);
-                    try (reader) {
-                        migration(reader);
-                        changed = true;
-                    }
-                    // 在弃用旧文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
-                    save();
-                    // 弃用旧的文件
-                    IOUtils.deprecatedFile(file);
-                    return;
-                } catch (IOException e) {
-                    CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
-                }
-            }
+    private void migration() {
+        if (this.config.isFile()) {
+            return;
         }
-        if (config.isFile()) {
+        // 迁移配置文件
+        File file = IOUtils.configFile("uuid_name_mapping.txt");
+        if (file.isFile()) {
             try {
-                load();
-            } catch (NullPointerException | JsonParseException | IOException e) {
-                CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
+                BufferedReader reader = IOUtils.toReader(file);
+                try (reader) {
+                    migration(reader);
+                    changed = true;
+                }
+                // 在弃用旧文件之前保存文件，避免后续可能因服务器未正常关闭而无法触发保存
+                save();
+                // 弃用旧的文件
+                IOUtils.deprecatedFile(file);
+            } catch (IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to migrate uuid_name_mapping.txt to profile.json", e);
             }
         }
-        mergeUsercache();
     }
 
-    private static void migration(BufferedReader reader) throws IOException {
+    private void migration(BufferedReader reader) throws IOException {
         String line;
         while ((line = reader.readLine()) != null) {
             String[] split = line.split("=");
@@ -201,32 +204,38 @@ public class GameProfileCache {
                 continue;
             }
             try {
-                LOCK.writeLock().lock();
-                TABLE.put(uuid, name);
+                this.lock.writeLock().lock();
+                this.table.put(uuid, name);
             } finally {
-                LOCK.writeLock().unlock();
+                this.lock.writeLock().unlock();
             }
         }
     }
 
-    private static void load() throws IOException {
-        JsonObject json = IOUtils.loadJson(CONFIG.get());
-        JsonArray array = json.getAsJsonArray("usercache");
-        for (JsonElement element : array) {
-            UUID uuid;
-            String name;
+    private void load() {
+        if (this.config.isFile()) {
             try {
-                JsonObject entry = element.getAsJsonObject();
-                uuid = UUID.fromString(entry.get("uuid").getAsString());
-                name = entry.get("name").getAsString();
-            } catch (RuntimeException e) {
-                continue;
-            }
-            try {
-                LOCK.writeLock().lock();
-                TABLE.put(uuid, name);
-            } finally {
-                LOCK.writeLock().unlock();
+                JsonObject json = IOUtils.loadJson(this.config);
+                JsonArray array = json.getAsJsonArray("usercache");
+                for (JsonElement element : array) {
+                    UUID uuid;
+                    String name;
+                    try {
+                        JsonObject entry = element.getAsJsonObject();
+                        uuid = UUID.fromString(entry.get("uuid").getAsString());
+                        name = entry.get("name").getAsString();
+                    } catch (RuntimeException e) {
+                        continue;
+                    }
+                    try {
+                        this.lock.writeLock().lock();
+                        this.table.put(uuid, name);
+                    } finally {
+                        this.lock.writeLock().unlock();
+                    }
+                }
+            } catch (NullPointerException | JsonParseException | IOException e) {
+                CarpetOrgAddition.LOGGER.error("Unable to read the mapping table between player UUID and name from the file", e);
             }
         }
     }
@@ -234,14 +243,14 @@ public class GameProfileCache {
     /**
      * 将玩家UUID与名称的映射表写入本地文件
      */
-    public static void save() {
-        if (changed) {
+    public void save() {
+        if (this.changed) {
             JsonObject json = new JsonObject();
             json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
             JsonArray array = new JsonArray();
             try {
-                LOCK.readLock().lock();
-                Set<Map.Entry<UUID, String>> entries = TABLE.entrySet();
+                this.lock.readLock().lock();
+                Set<Map.Entry<UUID, String>> entries = this.table.entrySet();
                 for (Map.Entry<UUID, String> entry : entries) {
                     JsonObject profile = new JsonObject();
                     profile.addProperty("uuid", entry.getKey().toString());
@@ -249,13 +258,13 @@ public class GameProfileCache {
                     array.add(profile);
                 }
             } finally {
-                LOCK.readLock().unlock();
+                this.lock.readLock().unlock();
             }
             json.addProperty("count", array.size());
             json.add("usercache", array);
             try {
-                IOUtils.write(CONFIG.get(), json);
-                changed = false;
+                IOUtils.write(this.config, json);
+                this.changed = false;
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
             }

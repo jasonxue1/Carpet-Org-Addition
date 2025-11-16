@@ -12,6 +12,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class UserCacheMixin {
     @Inject(method = "add(Lnet/minecraft/server/PlayerConfigEntry;)V", at = @At("HEAD"))
     private void add(PlayerConfigEntry entry, CallbackInfo ci) {
-        GameProfileCache.put(entry);
+        GameProfileCache.getInstance().put(entry);
     }
 }
