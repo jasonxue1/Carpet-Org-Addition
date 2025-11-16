@@ -20,7 +20,7 @@ import net.minecraft.util.ErrorReporter;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.RuleUtils;
+import org.carpetorgaddition.rule.CustomRuleControls;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -74,7 +74,7 @@ public abstract class SpawnerBlockMixin extends BlockWithEntity {
     @Unique
     private boolean tryCollect(ItemStack itemStack) {
         ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
-        if (RuleUtils.canCollectBlock(player)) {
+        if (CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY.getRuleValue(player)) {
             player.getInventory().insertStack(itemStack);
             return !itemStack.isEmpty();
         }
