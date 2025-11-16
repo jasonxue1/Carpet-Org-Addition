@@ -38,7 +38,8 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      */
     public static Optional<GameProfile> getGameProfile(String username, MinecraftServer server) {
         try {
-            Optional<GameProfile> optional = GameProfileCache.getGameProfile(username);
+            GameProfileCache cache = GameProfileCache.getInstance();
+            Optional<GameProfile> optional = cache.getGameProfile(username);
             if (optional.isPresent()) {
                 return optional;
             }
@@ -46,7 +47,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             UUID uuid = Uuids.getOfflinePlayerUuid(username);
             if (playerDataExists(uuid, server)) {
                 GameProfile gameProfile = new GameProfile(uuid, username);
-                GameProfileCache.put(gameProfile);
+                cache.put(gameProfile);
                 return Optional.of(gameProfile);
             }
         } catch (JsonParseException | NullPointerException e) {
@@ -73,7 +74,8 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
 
     public static Optional<GameProfile> getGameProfile(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
-            Optional<GameProfile> optional = GameProfileCache.getGameProfile(uuid);
+            GameProfileCache cache = GameProfileCache.getInstance();
+            Optional<GameProfile> optional = cache.getGameProfile(uuid);
             return Optional.of(optional.orElse(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN)));
         }
         return Optional.empty();

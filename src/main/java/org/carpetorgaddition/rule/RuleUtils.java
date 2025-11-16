@@ -15,7 +15,6 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
-import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
 
@@ -90,23 +89,6 @@ public class RuleUtils {
             return () -> carpetRule.value() instanceof Boolean value ? value : false;
         }
         return () -> false;
-    }
-
-    /**
-     * @return 规则方块掉落物直接进入物品栏是否可用
-     */
-    public static boolean canCollectBlock(@Nullable ServerPlayerEntity player) {
-        if (player == null) {
-            return false;
-        }
-        return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get()) {
-            case TRUE -> true;
-            case FALSE -> false;
-            case CUSTOM -> {
-                RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
-                yield ruleSelfManager.isEnabled(player, RuleSelfConstants.blockDropsDirectlyEnterInventory);
-            }
-        };
     }
 
     /**
