@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.Vec3d;
@@ -17,6 +18,7 @@ import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
+import org.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
@@ -92,6 +94,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 玩家所在的组，集合中可能包含null元素
      */
     private final HashSet<@Nullable String> groups = new HashSet<>();
+    private final EnumMap<FakePlayerStartupAction, Integer> startups = new EnumMap<>(FakePlayerStartupAction.class);
     /**
      * 当前对象是否已经修改，即是否需要重新保存
      */
@@ -116,6 +119,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this(fakePlayer);
         // this.groups可能传入一个null
         this.groups.addAll(serializer.getGroups());
+        this.startups.putAll(serializer.startups);
         this.autologin = serializer.autologin;
         this.comment.setComment(serializer.comment.getComment());
         this.isChanged = true;
@@ -179,6 +183,21 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 this.groups.add(group.getAsString());
             }
         }
+        // 玩家启动动作
+        JsonElement startup = json.get("startup");
+        if (startup != null && startup.isJsonArray()) {
+            JsonArray array = startup.getAsJsonArray();
+            for (JsonElement jsonElement : array) {
+                JsonObject object = jsonElement.getAsJsonObject();
+                int delay = object.has("delay") ? object.get("delay").getAsInt() : 1;
+                String action = object.get("action").getAsString();
+                Optional<FakePlayerStartupAction> optional = FakePlayerStartupAction.fromString(action);
+                if (optional.isEmpty()) {
+                    continue;
+                }
+                this.startups.put(optional.get(), delay);
+            }
+        }
         this.file = file;
     }
 
@@ -197,12 +216,18 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         if (server.getPlayerManager().getPlayer(this.fakePlayerName) != null) {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
+        ServerCommandSource source = server.getCommandSource();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Consumer<EntityPlayerMPFake> consumer = fakePlayer -> {
             fakePlayer.setSneaking(this.sneaking);
             // 设置玩家动作
             this.interactiveAction.startAction(fakePlayer);
             this.autoAction.clearPlayer();
             this.autoAction.startAction(fakePlayer);
+            for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
+                FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(fakePlayer, entry.getKey(), entry.getValue());
+                CommandUtils.handlingException(() -> taskManager.addTask(task), source);
+            }
         };
         // 生成假玩家
         GenericUtils.createFakePlayer(
@@ -292,6 +317,14 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             groups.add(group);
         }
         json.add("group", groups);
+        JsonArray startup = new JsonArray();
+        for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
+            JsonObject action = new JsonObject();
+            action.addProperty("delay", entry.getValue());
+            action.addProperty("action", entry.getKey().toString());
+            startup.add(action);
+        }
+        json.add("startup", startup);
         return json;
     }
 
@@ -399,6 +432,15 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public Set<String> getGroups() {
         return this.groups.isEmpty() ? Collections.singleton(null) : Collections.unmodifiableSet(this.groups);
+    }
+
+    public void addStartupFunction(FakePlayerStartupAction action, int delay) {
+        if (delay == -1) {
+            this.startups.remove(action);
+        } else {
+            this.startups.put(action, delay);
+        }
+        this.isChanged = true;
     }
 
     @Override

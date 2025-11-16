@@ -5,12 +5,11 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.EnderChestInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.StackWithSlot;
+import net.minecraft.item.Item;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtHelper;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtSizeTracker;
-import net.minecraft.item.Item;
-import net.minecraft.nbt.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerConfigEntry;
 import net.minecraft.server.command.ServerCommandSource;
@@ -30,16 +29,14 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.*;
-import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
-import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
-import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
-import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.GameProfileCache;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
-import org.carpetorgaddition.wheel.inventory.*;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
+import org.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
+import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
+import org.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
@@ -341,7 +338,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 查找物品
     private void searchItem(UUID uuid, @NotNull NbtCompound nbt) {
         // 获取玩家配置文件
-        Optional<PlayerConfigEntry> optional = GameProfileCache.getPlayerConfigEntry(uuid);
+        GameProfileCache cache = GameProfileCache.getInstance();
+        Optional<PlayerConfigEntry> optional = cache.getPlayerConfigEntry(uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             optional = Optional.of(new PlayerConfigEntry(uuid, UNKNOWN));

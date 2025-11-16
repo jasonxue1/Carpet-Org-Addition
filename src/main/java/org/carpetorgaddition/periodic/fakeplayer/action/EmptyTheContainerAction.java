@@ -8,6 +8,7 @@ import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -35,7 +36,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
                 break;
             }
             ItemStack itemStack = screenHandler.getSlot(index).getStack();
-            if (itemStack.isEmpty() || FakePlayerUtils.isGcaItem(itemStack)) {
+            if (itemStack.isEmpty() || InventoryUtils.isGcaItem(itemStack)) {
                 continue;
             }
             if (this.predicate.test(itemStack)) {

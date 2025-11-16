@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -15,6 +16,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.TimeArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
@@ -29,6 +31,7 @@ import org.carpetorgaddition.exception.CommandExecuteIOException;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import org.carpetorgaddition.periodic.fakeplayer.FakePlayerStartupAction;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.SilentLogoutTask;
@@ -67,6 +70,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         super(dispatcher, access);
     }
 
+    // TODO 指定区域，自动摆放加载玩家
     @Override
     public void register(String name) {
         // 延迟登录节点
@@ -82,6 +86,20 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             logoutNode.then(CommandManager.literal(unit.getName())
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
+        // 玩家启动任务节点
+        RequiredArgumentBuilder<ServerCommandSource, String> startupNameNode = CommandManager.argument("name", StringArgumentType.string())
+                .suggests(defaultSuggests());
+        for (FakePlayerStartupAction action : FakePlayerStartupAction.values()) {
+            startupNameNode.then(CommandManager.literal(action.toString())
+                    .executes(context -> this.addStartupFunction(context, action, 1))
+                    .then(CommandManager.argument("delay", TimeArgumentType.time(1))
+                            .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"1t", "3t", "5t"}, builder))
+                            .executes(context -> this.addStartupFunction(context, action, IntegerArgumentType.getInteger(context, "delay"))))
+                    .then(CommandManager.literal("clear")
+                            .executes(context -> this.addStartupFunction(context, action, -1))));
+        }
+        LiteralArgumentBuilder<ServerCommandSource> startupNode = CommandManager.literal("startup");
+        startupNode.then(startupNameNode);
         this.dispatcher.register(CommandManager.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandPlayerManager))
                 .then(CommandManager.literal("save")
@@ -102,7 +120,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                 .executes(context -> setComment(context, false)))))
                         .then(CommandManager.literal("resave")
                                 .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                        .executes(this::modifyPlayer))))
+                                        .executes(this::modifyPlayer)))
+                        .then(startupNode))
                 .then(CommandManager.literal("group")
                         .then(CommandManager.literal("add")
                                 .then(CommandManager.argument("name", StringArgumentType.string())
@@ -610,6 +629,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         PlayerSerializationManager manager = getSerializationManager(server);
         // 玩家数据是否已存在
         String name = FetcherUtils.getPlayerName(fakePlayer);
+        if (IOUtils.isValidFileName(name)) {
+            throw CommandUtils.createException("carpet.command.file.name.valid");
+        }
         Optional<FakePlayerSerializer> optional = manager.get(name);
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
@@ -682,6 +704,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 1;
         }
         throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
+    }
+
+    private int addStartupFunction(CommandContext<ServerCommandSource> context, FakePlayerStartupAction action, int delay) throws CommandSyntaxException {
+        String name = StringArgumentType.getString(context, "name");
+        FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+        serializer.addStartupFunction(action, delay);
+        return delay;
     }
 
     // 设置不断重新上线下线

@@ -11,7 +11,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.rule.RuleUtils;
+import org.carpetorgaddition.rule.CustomRuleControls;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -41,7 +41,7 @@ public abstract class BlockMixin {
     @Unique
     private static List<ItemStack> collect(List<ItemStack> list) {
         ServerPlayerEntity player = CarpetOrgAdditionSettings.blockBreaking.get();
-        if (RuleUtils.canCollectBlock(player)) {
+        if (CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY.getRuleValue(player)) {
             // 将物品直接插入玩家物品栏
             for (ItemStack itemStack : list) {
                 player.getInventory().insertStack(itemStack);
