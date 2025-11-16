@@ -32,7 +32,7 @@ public abstract class TurtleEggBlockMixin extends Block {
 
     //海龟蛋快速孵化
     @Inject(method = "shouldHatchProgress", at = @At("HEAD"), cancellable = true)
-    private void progress(World world, CallbackInfoReturnable<Boolean> cir) {
+    private void progress(World world, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.turtleEggFastHatch.get()) {
             cir.setReturnValue(true);
         }
