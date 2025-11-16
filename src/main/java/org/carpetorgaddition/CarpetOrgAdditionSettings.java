@@ -679,7 +679,7 @@ public class CarpetOrgAdditionSettings {
                             BlockDropsDirectlyEnterInventory.FALSE
                     )
                     .addCategories(RuleCategory.SURVIVAL)
-                    .setPlayerCustom()
+                    .setPlayerCustom(CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY)
                     .build()
     );
 
@@ -998,6 +998,30 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 物品拾取范围扩展
+     */
+    public static final Supplier<Integer> itemPickupRangeExpand = register(
+            RuleFactory.create(Integer.class, "itemPickupRangeExpand", 0)
+                    .addCategories(RuleCategory.FEATURE)
+                    .addValidator(integer -> integer >= 0, () -> ValidatorFeedbacks.greaterThanOrEqual(0))
+                    .setHidden()
+                    .addOptions(0, 3, 5)
+                    .setLenient()
+                    .setPlayerCustom(CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND)
+                    .build()
+    );
+
+    /**
+     * 物品拾取范围扩展玩家控制
+     */
+    public static final Supplier<Boolean> itemPickupRangeExpandPlayerControl = register(
+            RuleFactory.create(Boolean.class, "itemPickupRangeExpandPlayerControl", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .setHidden()
+                    .build()
+    );
+
     private static <T> Supplier<T> register(RuleContext<T> context) {
         allRules.add(context);
         return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
@@ -1009,8 +1033,9 @@ public class CarpetOrgAdditionSettings {
                 CarpetRule<?> rule = context.rule();
                 try {
                     CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
-                    if (context.isRuleSelf()) {
-                        RuleSelfManager.RULES.put(context.getName(), rule);
+                    CustomRuleControl<?> control = context.getCustomRuleControl();
+                    if (control != null) {
+                        RuleSelfManager.put(control, rule);
                     }
                 } catch (UnsupportedOperationException e) {
                     CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name());
