@@ -185,8 +185,8 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
             double maxY = box.maxY + range;
             double maxZ = box.maxZ + range;
             Box expand = new Box(minX, minY, minZ, maxX, maxY, maxZ);
-            List<Entity> list = this.thisPlayer.getWorld()
-                    .getOtherEntities(thisPlayer, expand)
+            List<Entity> list = FetcherUtils.getWorld(this.thisPlayer)
+                    .getOtherEntities(this.thisPlayer, expand)
                     .stream()
                     .filter(entity -> !entity.isRemoved())
                     .filter(entity -> entity.getType() == EntityType.ITEM)
