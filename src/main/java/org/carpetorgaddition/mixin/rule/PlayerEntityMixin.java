@@ -3,8 +3,10 @@ package org.carpetorgaddition.mixin.rule;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.HungerManager;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,8 +17,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.Box;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.PlayerEntityAccessor;
+import org.carpetorgaddition.rule.CustomRuleControls;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -26,6 +30,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Optional;
@@ -38,6 +43,9 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
 
     @Shadow
     public abstract boolean isSpectator();
+
+    @Shadow
+    protected abstract void collideWithEntity(Entity entity);
 
     @Unique
     private final PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
@@ -162,6 +170,32 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     private void getBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
         if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.get()) {
             this.onPlayerBreakBlock();
+        }
+    }
+
+    @Inject(method = "tickMovement", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
+    private void pickupItem(CallbackInfo ci, @Local Box box) {
+        if (this.thisPlayer instanceof ServerPlayerEntity player) {
+            int range = CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND.getRuleValue(player);
+            if (range == 0) {
+                return;
+            }
+            double minX = box.minX - range;
+            double minY = box.minY - range;
+            double minZ = box.minZ - range;
+            double maxX = box.maxX + range;
+            double maxY = box.maxY + range;
+            double maxZ = box.maxZ + range;
+            Box expand = new Box(minX, minY, minZ, maxX, maxY, maxZ);
+            List<Entity> list = this.thisPlayer.getWorld()
+                    .getOtherEntities(thisPlayer, expand)
+                    .stream()
+                    .filter(entity -> !entity.isRemoved())
+                    .filter(entity -> entity.getType() == EntityType.ITEM)
+                    .toList();
+            for (Entity entity : list) {
+                this.collideWithEntity(entity);
+            }
         }
     }
 }

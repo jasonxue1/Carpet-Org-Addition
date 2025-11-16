@@ -15,11 +15,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class CustomCommandConfig extends AbstractConfig<JsonObject> {
+    public static final String CUSTOM_COMMAND_NAME = "custom_command_name";
     private final Map<String, Set<String>> commands = new ConcurrentHashMap<>();
+
+    protected CustomCommandConfig(GlobalConfigs globalConfigs) {
+        super(globalConfigs);
+    }
 
     @Override
     public String getKey() {
-        return "custom_command_name";
+        return CUSTOM_COMMAND_NAME;
     }
 
     @Override
@@ -32,7 +37,7 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
                 // 如果值为空，将键同时做为键和值
                 json.addProperty(key, key);
             } else if (value.size() == 1) {
-                // 如果值只有应该元素，则值作为字符串
+                // 如果值只有一个元素，则值作为字符串
                 json.addProperty(key, value.iterator().next());
             } else {
                 // 如果值有多个元素，则封装为Json数组
@@ -74,7 +79,6 @@ public class CustomCommandConfig extends AbstractConfig<JsonObject> {
         if (json == null) {
             return;
         }
-        GlobalConfigs.markUpdateRequired();
         try {
             for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
                 String key = entry.getKey();

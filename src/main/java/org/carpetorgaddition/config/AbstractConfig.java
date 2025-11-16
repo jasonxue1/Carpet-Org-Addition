@@ -4,7 +4,10 @@ import com.google.gson.JsonElement;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractConfig<T extends JsonElement> {
-    protected AbstractConfig() {
+    protected final GlobalConfigs globalConfigs;
+
+    protected AbstractConfig(GlobalConfigs globalConfigs) {
+        this.globalConfigs = globalConfigs;
     }
 
     public abstract void load(@Nullable T json);
@@ -18,6 +21,10 @@ public abstract class AbstractConfig<T extends JsonElement> {
      * @return 配置的json元素
      */
     public abstract T getJsonValue();
+
+    public boolean shouldBeSaved() {
+        return true;
+    }
 
     @Override
     public boolean equals(Object obj) {

@@ -30,7 +30,7 @@ public class RuleFactory {
         private boolean strict = true;
         private boolean isHidden;
         private boolean isRemove;
-        private boolean isRuleSelf = false;
+        private CustomRuleControl<?> control;
         private String displayName = "";
         private String displayDesc = "";
 
@@ -92,8 +92,8 @@ public class RuleFactory {
             return this;
         }
 
-        public Builder<T> setPlayerCustom() {
-            this.isRuleSelf = true;
+        public Builder<T> setPlayerCustom(CustomRuleControl<?> control) {
+            this.control = control;
             return this;
         }
 
@@ -161,7 +161,7 @@ public class RuleFactory {
                     this.suggestions,
                     this.isRemove,
                     this.isHidden,
-                    this.isRuleSelf
+                    this.control
             );
         }
     }
