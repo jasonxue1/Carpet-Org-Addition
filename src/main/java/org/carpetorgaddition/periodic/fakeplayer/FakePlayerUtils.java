@@ -266,8 +266,21 @@ public class FakePlayerUtils {
      * 让玩家看向某个方向
      */
     public static void look(EntityPlayerMPFake fakePlayer, Direction direction) {
-        EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
+        EntityPlayerActionPack actionPack = getActionPack(fakePlayer);
         actionPack.look(direction);
+    }
+
+    public static void click(EntityPlayerMPFake fakePlayer, Hand hand) {
+        EntityPlayerActionPack actionPack = getActionPack(fakePlayer);
+        EntityPlayerActionPack.ActionType type = switch (hand) {
+            case MAIN_HAND -> EntityPlayerActionPack.ActionType.ATTACK;
+            case OFF_HAND -> EntityPlayerActionPack.ActionType.USE;
+        };
+        actionPack.start(type, EntityPlayerActionPack.Action.once());
+    }
+
+    public static EntityPlayerActionPack getActionPack(EntityPlayerMPFake fakePlayer) {
+        return ((ServerPlayerInterface) fakePlayer).getActionPack();
     }
 
     /**
