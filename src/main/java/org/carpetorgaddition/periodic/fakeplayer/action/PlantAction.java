@@ -269,7 +269,7 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
-        this.inventory.replenishment(this.getFakePlayer(), itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
+        this.inventory.replenishment(itemStack -> itemStack.getItem() instanceof SwordItem || itemStack.getItem() instanceof MiningToolItem);
         BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;

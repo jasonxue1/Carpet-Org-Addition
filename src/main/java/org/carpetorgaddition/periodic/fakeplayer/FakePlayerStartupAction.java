@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.util.Hand;
+import org.carpetorgaddition.util.FetcherUtils;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -33,7 +34,7 @@ public enum FakePlayerStartupAction implements Consumer<EntityPlayerMPFake> {
         return switch (this) {
             case USE -> fakePlayer -> FakePlayerUtils.click(fakePlayer, Hand.OFF_HAND);
             case ATTACK -> fakePlayer -> FakePlayerUtils.click(fakePlayer, Hand.MAIN_HAND);
-            case KILL -> EntityPlayerMPFake::kill;
+            case KILL -> fakePlayer -> fakePlayer.kill(FetcherUtils.getWorld(fakePlayer));
         };
     }
 
