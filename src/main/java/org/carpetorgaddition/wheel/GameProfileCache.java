@@ -100,8 +100,8 @@ public class GameProfileCache {
         return optional.map(name -> new GameProfile(uuid, name));
     }
 
-    public static Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid) {
-        return getGameProfile(uuid).map(PlayerConfigEntry::new);
+    public Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid) {
+        return this.getGameProfile(uuid).map(PlayerConfigEntry::new);
     }
 
     /**
