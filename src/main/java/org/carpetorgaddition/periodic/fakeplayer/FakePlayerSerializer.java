@@ -22,7 +22,6 @@ import org.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
 import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.MetaComment;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.TextJoiner;
 import org.carpetorgaddition.wheel.WorldFormat;
@@ -45,7 +44,8 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 注释
      */
-    private final MetaComment comment = new MetaComment();
+    @NotNull
+    private String comment = "";
     /**
      * 位置
      */
@@ -122,13 +122,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.groups.addAll(serializer.getGroups());
         this.startups.putAll(serializer.startups);
         this.autologin = serializer.autologin;
-        this.comment.setComment(serializer.comment.getComment());
+        this.setComment(serializer.comment);
         this.isChanged = true;
     }
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
         this(fakePlayer);
-        this.comment.setComment(comment);
+        this.setComment(comment);
     }
 
     public FakePlayerSerializer(File file) throws IOException {
@@ -160,7 +160,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.autologin = IOUtils.getJsonElement(json, "autologin", false, Boolean.class);
         // 注释
         JsonElement element = json.get("annotation");
-        this.comment.setComment(element == null ? "" : element.getAsString());
+        this.comment = (element == null ? "" : element.getAsString());
         // 假玩家左右手动作
         if (json.has("hand_action")) {
             this.interactiveAction = new EntityPlayerActionPackSerial(json.get("hand_action").getAsJsonObject());
@@ -284,9 +284,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 }
             });
         }
-        if (this.comment.hasContent()) {
+        if (this.hasComment()) {
             // 添加注释
-            joiner.append("carpet.commands.playerManager.info.comment", this.comment.getText());
+            joiner.append("carpet.commands.playerManager.info.comment", this.comment);
         }
         return joiner.join();
     }
@@ -316,7 +316,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 自动登录
         json.addProperty("autologin", this.autologin);
         // 注释
-        json.addProperty("annotation", this.comment.getComment());
+        json.addProperty("annotation", this.getComment());
         // 添加左键右键动作
         json.add("hand_action", interactiveAction.toJson());
         // 添加玩家动作
@@ -343,7 +343,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     // 修改注释
     public void setComment(@Nullable String comment) {
-        this.comment.setComment(comment);
+        this.comment = comment == null ? "" : comment;
         this.isChanged = true;
     }
 
@@ -395,9 +395,20 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         Text login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(Formatting.GREEN).build();
         Text logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
         Text info = new TextBuilder("[?]").setHover(this.info()).setColor(Formatting.GRAY).build();
-        TextBuilder builder = new TextBuilder(name);
-        builder.setHover(this.comment);
-        return TextBuilder.combineAll(login, " ", logout, " ", info, " ", builder.build());
+        TextJoiner joiner = new TextJoiner();
+        joiner.then(login)
+                .literal()
+                .then(logout)
+                .literal()
+                .then(info)
+                .literal()
+                .literal(name);
+        if (this.hasComment()) {
+            TextBuilder builder = new TextBuilder("    // " + this.getComment());
+            builder.setGrayItalic();
+            joiner.then(builder.build());
+        }
+        return joiner.join();
     }
 
     /**
@@ -435,8 +446,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         }
     }
 
+    public boolean hasComment() {
+        return !this.comment.isEmpty();
+    }
+
+    @NotNull
     public String getComment() {
-        return this.comment.getComment();
+        return this.comment;
     }
 
     public boolean isChanged() {
