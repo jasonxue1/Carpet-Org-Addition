@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.TextBuilder;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class MessageUtils {
     private MessageUtils() {
@@ -173,7 +173,7 @@ public class MessageUtils {
      * @param source 消息的发送者，消息内容仅发送者可见
      * @param list   存储所有要发送的消息的集合
      */
-    public static void sendListMessage(ServerCommandSource source, ArrayList<? extends Text> list) {
+    public static void sendListMessage(ServerCommandSource source, List<Text> list) {
         for (Text message : list) {
             sendMessage(source, message);
         }

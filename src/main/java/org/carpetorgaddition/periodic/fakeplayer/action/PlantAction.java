@@ -28,7 +28,7 @@ import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class PlantAction extends AbstractPlayerAction {
@@ -300,7 +300,7 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.getFakePlayer().getDisplayName()));
     }
 

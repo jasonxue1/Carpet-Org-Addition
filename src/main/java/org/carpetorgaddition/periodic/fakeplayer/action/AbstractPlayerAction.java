@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class AbstractPlayerAction {
@@ -44,7 +44,8 @@ public abstract class AbstractPlayerAction {
     /**
      * 当前动作的详细信息
      */
-    public abstract ArrayList<Text> info();
+    // TODO 清空潜影盒改为清空容器
+    public abstract List<Text> info();
 
     /**
      * 序列化假玩家动作数据

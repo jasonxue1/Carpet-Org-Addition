@@ -24,6 +24,7 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.MetaComment;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextJoiner;
 import org.carpetorgaddition.wheel.WorldFormat;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -245,37 +246,49 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     // 显示文本信息
     public Text info() {
-        ArrayList<Text> list = new ArrayList<>();
+        TextJoiner joiner = new TextJoiner();
         // 玩家位置
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
                      + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
                      + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.pos", pos));
+        joiner.append("carpet.commands.playerManager.info.pos", pos);
         // 获取朝向
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.direction",
+        joiner.append("carpet.commands.playerManager.info.direction",
                 MathUtils.numberToTwoDecimalString(this.yaw),
-                MathUtils.numberToTwoDecimalString(this.pitch)));
+                MathUtils.numberToTwoDecimalString(this.pitch));
         // 维度
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.dimension", TextProvider.dimension(this.dimension)));
+        joiner.append("carpet.commands.playerManager.info.dimension", TextProvider.dimension(this.dimension));
         // 游戏模式
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName()));
+        joiner.append("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
         // 是否飞行
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying)));
+        joiner.append("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
         // 是否潜行
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking)));
+        joiner.append("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
         // 是否自动登录
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin)));
+        joiner.append("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
         if (this.interactiveAction.hasAction()) {
-            list.add(this.interactiveAction.toText());
+            joiner.append(this.interactiveAction.toText());
         }
         if (this.autoAction.hasAction()) {
-            list.add(this.autoAction.toText());
+            joiner.append(this.autoAction.toText());
+        }
+        if (!this.startups.isEmpty()) {
+            joiner.append("carpet.commands.playerManager.info.startup");
+            joiner.enter(() -> {
+                for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
+                    joiner.append(entry.getKey().getDisplayName());
+                    int delay = entry.getValue();
+                    if (delay > 1) {
+                        joiner.enter("carpet.commands.playerManager.info.startup.delay", delay);
+                    }
+                }
+            });
         }
         if (this.comment.hasContent()) {
             // 添加注释
-            list.add(TextBuilder.translate("carpet.commands.playerManager.info.comment", this.comment.getText()));
+            joiner.append("carpet.commands.playerManager.info.comment", this.comment.getText());
         }
-        return TextBuilder.joinList(list);
+        return joiner.join();
     }
 
     public JsonObject toJson() {

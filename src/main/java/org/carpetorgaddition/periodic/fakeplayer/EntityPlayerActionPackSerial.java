@@ -9,9 +9,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
-import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.TextJoiner;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -82,32 +81,36 @@ public class EntityPlayerActionPackSerial {
      * 将动作转换为文本
      */
     public Text toText() {
-        ArrayList<Text> list = new ArrayList<>();
+        TextJoiner joiner = new TextJoiner();
         // 左键行为
         Action attack = this.actionMap.get(ActionType.ATTACK);
         if (attack != null) {
-            list.add(TextBuilder.translate("carpet.commands.playerManager.info.left_click"));
-            if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
-                // 左键长按
-                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
-            } else {
-                // 左键单击
-                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.interval", attack.interval)));
-            }
+            joiner.append("carpet.commands.playerManager.info.left_click");
+            joiner.enter(() -> {
+                if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
+                    // 左键长按
+                    joiner.append("carpet.commands.playerManager.info.continuous");
+                } else {
+                    // 左键单击
+                    joiner.append("carpet.commands.playerManager.info.interval", attack.interval);
+                }
+            });
         }
         // 右键行为
         Action use = this.actionMap.get(ActionType.USE);
         if (use != null) {
-            list.add(TextBuilder.translate("carpet.commands.playerManager.info.right_click"));
-            if (((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous()) {
-                // 右键长按
-                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.continuous")));
-            } else {
-                // 右键单击
-                list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, TextBuilder.translate("carpet.commands.playerManager.info.interval", use.interval)));
-            }
+            joiner.append(TextBuilder.translate("carpet.commands.playerManager.info.right_click"));
+            joiner.enter(() -> {
+                if (((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous()) {
+                    // 右键长按
+                    joiner.append("carpet.commands.playerManager.info.continuous");
+                } else {
+                    // 右键单击
+                    joiner.append("carpet.commands.playerManager.info.interval", use.interval);
+                }
+            });
         }
-        return TextBuilder.joinList(list);
+        return joiner.join();
     }
 
     public JsonObject toJson() {
