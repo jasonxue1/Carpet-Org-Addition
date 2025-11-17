@@ -17,6 +17,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.TimeArgumentType;
+import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
@@ -25,6 +26,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
+import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -212,13 +214,17 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
                                         .then(CommandManager.argument("end", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
                                                 .then(CommandManager.literal("spawn")
-                                                        .executes(this::batchSpawn))
+                                                        .executes(context -> batchSpawn(context, false))
+                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                                .executes(context -> batchSpawn(context, true))))
                                                 .then(CommandManager.literal("kill")
                                                         .executes(this::batchKill))
                                                 .then(CommandManager.literal("drop")
                                                         .executes(this::batchDrop))
                                                 .then(CommandManager.literal("trial")
-                                                        .executes(this::batchTrial)))))));
+                                                        .executes(context -> batchTrial(context, false))
+                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                                .executes(context -> batchTrial(context, true)))))))));
     }
 
     private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
@@ -750,22 +756,22 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchSpawn(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return batchSpawn(context, GenericUtils::pass);
+    private int batchSpawn(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
+        return batchSpawn(context, at, GenericUtils::pass);
     }
 
     /**
      * 批量生成玩家并踢出玩家
      */
-    private int batchTrial(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int batchTrial(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         // 异常由服务器命令源进行处理
         ServerCommandSource source = server.getCommandSource();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        return batchSpawn(context, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
+        return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
     }
 
-    private static int batchSpawn(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
+    private static int batchSpawn(CommandContext<ServerCommandSource> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         // 交换最大最小值，玩家可能将end和start参数反向输入
@@ -788,7 +794,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         }
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, consumer));
+        Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : player.getPos();
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, vec3d, consumer));
         return end - start + 1;
     }
 

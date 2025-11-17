@@ -9,6 +9,7 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
+import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
@@ -72,14 +73,22 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private long startSpawnTime = -1L;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Consumer<EntityPlayerMPFake> consumer) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Vec3d pos, Consumer<EntityPlayerMPFake> consumer) {
         this.server = server;
         this.prefix = prefix;
         this.start = start;
         this.end = end;
         int count = end - start + 1;
         this.player = player;
-        this.context = new CreateFakePlayerContext(player, consumer);
+        this.context = new CreateFakePlayerContext(
+                pos,
+                player.getYaw(),
+                player.getPitch(),
+                FetcherUtils.getWorld(player).getRegistryKey(),
+                player.interactionManager.getGameMode(),
+                player.getAbilities().flying,
+                consumer
+        );
         PlayerManager playerManager = server.getPlayerManager();
         for (int i = start; i <= end; i++) {
             String username = prefix + i;
