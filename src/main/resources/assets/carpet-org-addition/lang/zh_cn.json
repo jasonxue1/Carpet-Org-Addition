@@ -288,6 +288,7 @@
   "carpet.command.page.non_existent": "页面不存在或已被回收",
   "carpet.command.permission.insufficient": "权限不足！",
   "carpet.commands.finder.timeout": "任务超时",
+  "carpet.commands.finder.toobig": "查找范围水平跨度不能超过%s格",
   "carpet.commands.finder.block.too_much_blocks": "周围%s过多，无法统计",
   "carpet.commands.finder.block.not_found_block": "在指定范围内找不到%s",
   "carpet.commands.finder.block.find": "在指定范围内找到%s个%s",

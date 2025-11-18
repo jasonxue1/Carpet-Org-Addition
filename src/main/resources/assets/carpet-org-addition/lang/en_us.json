@@ -191,6 +191,7 @@
   "carpet.command.page.non_existent": "Page does not exist or has been removed",
   "carpet.command.permission.insufficient": "Insufficient permissions!",
   "carpet.commands.finder.timeout": "Task timeout",
+  "carpet.commands.finder.toobig": "The horizontal span of the find area cannot exceed %s blocks",
   "carpet.commands.finder.block.too_much_blocks": "Too many %s around, unable to count",
   "carpet.commands.finder.block.not_found_block": "No %s found in range",
   "carpet.commands.finder.block.find": "Found %2$s of %1$s",
