@@ -4,6 +4,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.MathUtils;
+import org.carpetorgaddition.util.WorldUtils;
 
 public abstract class WorldTraverser<T> implements Iterable<T> {
     protected final int minX;
@@ -29,10 +30,10 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
     public WorldTraverser(World world, BlockPos sourcePos, int range) {
         this(
                 sourcePos.getX() - range,
-                world.getBottomY(),
+                WorldUtils.getMinArchitectureAltitude(world),
                 sourcePos.getZ() - range,
                 sourcePos.getX() + range,
-                world.getTopY() - 1,
+                WorldUtils.getMaxArchitectureAltitude(world),
                 sourcePos.getZ() + range
         );
     }

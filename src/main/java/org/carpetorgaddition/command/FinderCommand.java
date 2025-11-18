@@ -55,6 +55,9 @@ public class FinderCommand extends AbstractServerCommand {
      * 任务执行的最大游戏刻数
      */
     public static final int MAX_TICK_COUNT = 50;
+    /**
+     * 最大查找半径
+     */
     public static final int MAX_HORIZONTAL_RANGE = 256;
     /**
      * 村民的游戏内名称
@@ -68,7 +71,6 @@ public class FinderCommand extends AbstractServerCommand {
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
 
-    // TODO 限制查找范围
     public FinderCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }

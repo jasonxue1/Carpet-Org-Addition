@@ -13,19 +13,19 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
-import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
-    private final BlockPosTraverser blockPosTraverser;
+    private final BlockPosTraverser traverser;
     protected final ServerCommandSource source;
     protected final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
@@ -50,10 +50,10 @@ public class BlockSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockPosTraverser blockPosTraverser, ServerCommandSource source, BlockStatePredicate predicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockPosTraverser traverser, ServerCommandSource source, BlockStatePredicate predicate) {
         this.world = world;
         this.sourcePos = sourcePos;
-        this.blockPosTraverser = blockPosTraverser;
+        this.traverser = traverser.clamp(world);
         this.source = source;
         this.predicate = predicate;
         this.findState = FindState.SEARCH;
@@ -96,7 +96,7 @@ public class BlockSearchTask extends ServerTask {
     // 查找方块
     private void searchBlock() {
         if (this.iterator == null) {
-            this.iterator = this.blockPosTraverser.iterator();
+            this.iterator = this.traverser.iterator();
         }
         while (this.iterator.hasNext()) {
             if (this.timeout()) {
@@ -122,7 +122,7 @@ public class BlockSearchTask extends ServerTask {
                 throw ForceReturnException.INSTANCE;
             }
             // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
-            if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.blockPosTraverser.contains(blockPos)) {
+            if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.traverser.contains(blockPos)) {
                 Block block = world.getBlockState(blockPos).getBlock();
                 Set<BlockPos> set = group.computeIfAbsent(block, ignore -> new HashSet<>());
                 // 如果软引用blockPosCache集合中的内容被回收，则此处可能重复执行

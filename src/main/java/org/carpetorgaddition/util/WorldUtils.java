@@ -10,7 +10,6 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
@@ -174,41 +173,17 @@ public class WorldUtils {
     }
 
     /**
-     * @return 两个维度ID是否表示的是同一个世界
-     * @throws InvalidIdentifierException 如果维度ID不合法
+     * @return 最大建筑高度
      */
-    public static boolean equalsWorld(String world1, String world2) {
-        return Identifier.of(world1).equals(Identifier.of(world2));
+    public static int getMaxArchitectureAltitude(World world) {
+        return world.getTopY() - 1;
     }
 
     /**
-     * @return 两个维度ID是否分别表示不同的世界
-     * @throws InvalidIdentifierException 如果维度ID不合法
+     * @return 最小建筑高度
      */
-    public static boolean isDifferentWorld(String world1, String world2) {
-        return !Identifier.of(world1).equals(Identifier.of(world2));
-    }
-
-    /**
-     * @return 维度ID是否表示主世界
-     */
-    public static boolean isOverworld(String worldId) {
-        return OVERWORLD.equals(worldId) || SIMPLE_OVERWORLD.equals(worldId);
-    }
-
-    /**
-     * @return 维度ID是否表示下界
-     */
-    public static boolean isTheNether(String worldId) {
-        return THE_NETHER.equals(worldId) || SIMPLE_THE_NETHER.equals(worldId);
-    }
-
-    /**
-     * @return 维度ID是否表示末地
-     */
-    @SuppressWarnings("unused")
-    public static boolean isTheEnd(String worldId) {
-        return THE_END.equals(worldId) || SIMPLE_THE_END.equals(worldId);
+    public static int getMinArchitectureAltitude(World world) {
+        return world.getBottomY();
     }
 
     /**
