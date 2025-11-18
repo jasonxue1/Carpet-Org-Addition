@@ -10,7 +10,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -21,8 +21,8 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final Text treadName;
 
-    public TradeItemSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ItemStackPredicate predicate, ServerCommandSource source) {
-        super(world, blockRegion, sourcePos, source);
+    public TradeItemSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ItemStackPredicate predicate, ServerCommandSource source) {
+        super(world, blockPosTraverser, sourcePos, source);
         this.predicate = predicate;
         this.treadName = predicate.toText();
     }

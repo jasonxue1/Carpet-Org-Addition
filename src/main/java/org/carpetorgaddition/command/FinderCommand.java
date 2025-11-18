@@ -29,8 +29,6 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.search.*;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockEntityRegion;
-import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
@@ -38,6 +36,8 @@ import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.function.Predicate;
 
@@ -66,6 +66,7 @@ public class FinderCommand extends AbstractServerCommand {
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
 
+    // TODO 限制查找范围
     public FinderCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
         super(dispatcher, access);
     }
@@ -136,7 +137,7 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourceBlockPos = player.getBlockPos();
         // 查找周围容器中的物品
         World world = FetcherUtils.getWorld(player);
-        BlockEntityRegion region = new BlockEntityRegion(world, sourceBlockPos, range);
+        BlockEntityTraverser region = new BlockEntityTraverser(world, sourceBlockPos, range);
         ItemSearchTask task = new ItemSearchTask(world, predicate, region, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -151,8 +152,8 @@ public class FinderCommand extends AbstractServerCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
         World world = FetcherUtils.getWorld(player);
-        BlockEntityRegion blockEntityRegion = new BlockEntityRegion(world, from, to);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityRegion, context.getSource());
+        BlockEntityTraverser blockEntityTraverser = new BlockEntityTraverser(world, from, to);
+        ItemSearchTask task = new ItemSearchTask(world, predicate, blockEntityTraverser, context.getSource());
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -173,9 +174,9 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
-        BlockRegion blockRegion = new BlockRegion(world, sourceBlockPos, range);
+        BlockPosTraverser traverser = new BlockPosTraverser(world, sourceBlockPos, range);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -189,9 +190,9 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.getBlockPos();
         ServerWorld world = FetcherUtils.getWorld(player);
-        BlockRegion blockRegion = new BlockRegion(from, to);
+        BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, blockRegion, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -202,10 +203,10 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
         BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
         // 计算要查找的区域
-        BlockRegion blockRegion = new BlockRegion(from, to);
+        BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), blockRegion, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), traverser, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -220,8 +221,8 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourcePos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
         // 查找范围
-        BlockRegion area = new BlockRegion(world, sourcePos, range);
-        TradeItemSearchTask task = new TradeItemSearchTask(world, area, sourcePos, predicate, context.getSource());
+        BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
+        TradeItemSearchTask task = new TradeItemSearchTask(world, traverser, sourcePos, predicate, context.getSource());
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
@@ -240,8 +241,8 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos sourcePos = player.getBlockPos();
         World world = FetcherUtils.getWorld(player);
         // 查找范围
-        BlockRegion region = new BlockRegion(world, sourcePos, range);
-        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, region, sourcePos, source, predicate);
+        BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
+        TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, traverser, sourcePos, source, predicate);
         // 向任务管理器添加任务
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;

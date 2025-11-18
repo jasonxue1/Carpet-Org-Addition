@@ -24,7 +24,7 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 
@@ -60,8 +60,7 @@ public class PlantAction extends AbstractPlayerAction {
             double range = this.getFakePlayer().getBlockInteractionRange();
             // 限制交互距离，减少卡顿
             Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
-            BlockRegion area = new BlockRegion(box);
-            for (BlockPos blockPos : area) {
+            for (BlockPos blockPos : new BlockPosTraverser(box)) {
                 if (this.getFakePlayer().canInteractWithBlockAt(blockPos, 0)) {
                     if (tryPlanting(blockPos, farmType, cropsItem)) {
                         continue;

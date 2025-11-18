@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
@@ -24,8 +24,8 @@ import java.util.Map;
 public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final EnchantedBookPredicate predicate;
 
-    public TradeEnchantedBookSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source, EnchantedBookPredicate predicate) {
-        super(world, blockRegion, sourcePos, source);
+    public TradeEnchantedBookSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ServerCommandSource source, EnchantedBookPredicate predicate) {
+        super(world, blockPosTraverser, sourcePos, source);
         this.predicate = predicate;
     }
 
