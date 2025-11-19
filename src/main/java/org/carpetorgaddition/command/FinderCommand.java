@@ -50,12 +50,11 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 每个游戏刻最大查找时间
      */
-    public static final long MAX_FIND_TIME = 200;
+    public static final long TIME_SLICE = 30L;
     /**
-     * 任务执行的最大游戏刻数
+     * 最大查找时间
      */
-    // TODO 单位改成秒
-    public static final int MAX_TICK_COUNT = 50;
+    public static final long MAX_SEARCH_TIME = 5L * 1000L;
     /**
      * 最大查找半径
      */
@@ -64,10 +63,6 @@ public class FinderCommand extends AbstractServerCommand {
      * 村民的游戏内名称
      */
     public static final Text VILLAGER = TextBuilder.translate("entity.minecraft.villager");
-    /**
-     * 查找超时时抛出异常的反馈消息
-     */
-    public static final String TIME_OUT = "carpet.commands.finder.timeout";
     public static final String FINDER_BLOCK = "finder.block";
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";

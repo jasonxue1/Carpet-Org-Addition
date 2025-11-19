@@ -11,7 +11,6 @@ import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
-import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
@@ -69,11 +68,12 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private final long startTime;
     /**
-     * 玩家开始创建时的时间
+     * 玩家档案预加载使用的时间
      */
-    private long startSpawnTime = -1L;
+    private long setupTime = -1L;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Vec3d pos, Consumer<EntityPlayerMPFake> consumer) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, ServerCommandSource source, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Vec3d pos, Consumer<EntityPlayerMPFake> consumer) {
+        super(source);
         this.server = server;
         this.prefix = prefix;
         this.start = start;
@@ -130,21 +130,17 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             }
             this.isPreload = false;
         }
-        if (this.startSpawnTime == -1L) {
-            this.startSpawnTime = System.currentTimeMillis();
+        if (this.setupTime == -1L) {
+            this.setupTime = this.getExecutionTime();
         }
-        // 如果召唤未能在5秒内完成，强行停止
-        if (System.currentTimeMillis() - this.startSpawnTime > 5000) {
-            this.timeout();
-        }
+        this.checkTimeout();
         try {
             batchSpawnHiddenMessage.set(true);
             if (this.iterator == null) {
                 this.iterator = this.players.iterator();
             }
-            long l = System.currentTimeMillis();
             while (this.iterator.hasNext()) {
-                if (System.currentTimeMillis() - l > 50) {
+                if (this.isTimeExpired()) {
                     return;
                 }
                 GameProfile gameProfile = iterator.next();
@@ -167,12 +163,14 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         this.complete = true;
     }
 
-    /**
-     * 任务超时，抛出异常结束任务
-     */
-    private void timeout() {
-        ServerCommandSource source = this.player.getCommandSource();
-        throw new TaskExecutionException(() -> MessageUtils.sendErrorMessage(source, "carpet.command.task.timeout"));
+    @Override
+    protected long getMaxExecutionTime() {
+        return 5000L + this.setupTime;
+    }
+
+    @Override
+    protected long getMaxTimeSlice() {
+        return 50L;
     }
 
     @Override

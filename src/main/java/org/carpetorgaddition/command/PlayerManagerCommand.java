@@ -764,11 +764,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      * 批量生成玩家并踢出玩家
      */
     private int batchTrial(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         // 异常由服务器命令源进行处理
-        ServerCommandSource source = server.getCommandSource();
+        ServerCommandSource serverSource = server.getCommandSource();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
+        return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(source, fakePlayer, 30)), serverSource));
     }
 
     private static int batchSpawn(CommandContext<ServerCommandSource> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
@@ -787,7 +788,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         UserCache userCache = server.getUserCache();
         if (userCache == null) {
             CarpetOrgAddition.LOGGER.warn("Server user cache is null");
@@ -795,7 +797,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : player.getPos();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, userCache, player, prefix, start, end, vec3d, consumer));
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, userCache, player, prefix, start, end, vec3d, consumer));
         return end - start + 1;
     }
 
@@ -810,9 +812,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        taskManager.addTask(new BatchKillFakePlayer(server, prefix, start, end));
+        taskManager.addTask(new BatchKillFakePlayer(server, source, prefix, start, end));
         return end - start + 1;
     }
 
@@ -875,7 +878,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 延时上线
     private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         Optional<DelayedLoginTask> optional = taskManager.stream(DelayedLoginTask.class)
@@ -887,7 +891,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (optional.isEmpty()) {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
-            taskManager.addTask(new DelayedLoginTask(server, serializer, tick));
+            taskManager.addTask(new DelayedLoginTask(server, source, serializer, tick));
             String key = server.getPlayerManager().getPlayer(name) == null
                     // <玩家>将于<时间>后上线
                     ? "carpet.commands.playerManager.schedule.login"
@@ -909,7 +913,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 延迟下线
     private int addDelayedLogoutTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
@@ -921,7 +926,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 添加新任务
         if (optional.isEmpty()) {
             // 添加延时下线任务
-            manager.addTask(new DelayedLogoutTask(server, fakePlayer, tick));
+            manager.addTask(new DelayedLogoutTask(server, source, fakePlayer, tick));
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.logout", fakePlayer.getDisplayName(), time);
         } else {
             // 修改退出时间

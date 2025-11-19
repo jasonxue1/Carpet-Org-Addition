@@ -226,7 +226,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             this.autoAction.clearPlayer();
             this.autoAction.startAction(fakePlayer);
             for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
-                FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(fakePlayer, entry.getKey(), entry.getValue());
+                FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(source, fakePlayer, entry.getKey(), entry.getValue());
                 CommandUtils.handlingException(() -> taskManager.addTask(task), source);
             }
         };
@@ -421,7 +421,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             int count = server.getCurrentPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    manager.addTask(new DelayedLoginTask(server, serializer, 1) {
+                    manager.addTask(new DelayedLoginTask(server, server.getCommandSource(), serializer, 1) {
                         @Override
                         public void tick() {
                             try {

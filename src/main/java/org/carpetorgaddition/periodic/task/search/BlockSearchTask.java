@@ -26,18 +26,9 @@ import java.util.function.Supplier;
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
     private final BlockPosTraverser traverser;
-    protected final ServerCommandSource source;
     protected final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
     private FindState findState;
-    /**
-     * tick方法开始执行时的时间
-     */
-    private long startTime;
-    /**
-     * 任务被执行的总游戏刻数
-     */
-    private int tickCount;
     private final BlockStatePredicate predicate;
     /**
      * 已经迭代过的坐标集合
@@ -51,31 +42,20 @@ public class BlockSearchTask extends ServerTask {
     private final PagedCollection pagedCollection;
 
     public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockPosTraverser traverser, ServerCommandSource source, BlockStatePredicate predicate) {
+        super(source);
         this.world = world;
         this.sourcePos = sourcePos;
         this.traverser = traverser.clamp(world);
-        this.source = source;
         this.predicate = predicate;
         this.findState = FindState.SEARCH;
-        this.tickCount = 0;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
     public void tick() {
-        this.startTime = System.currentTimeMillis();
-        this.tickCount++;
-        if (this.tickCount > FinderCommand.MAX_TICK_COUNT) {
-            // 任务超时
-            MessageUtils.sendErrorMessage(this.source, FinderCommand.TIME_OUT);
-            this.findState = FindState.END;
-            return;
-        }
-        while (true) {
-            if (this.timeout()) {
-                return;
-            }
+        this.checkTimeout();
+        while (this.isTimeRemaining()) {
             try {
                 switch (this.findState) {
                     case SEARCH -> this.searchBlock();
@@ -99,7 +79,7 @@ public class BlockSearchTask extends ServerTask {
             this.iterator = this.traverser.iterator();
         }
         while (this.iterator.hasNext()) {
-            if (this.timeout()) {
+            if (this.isTimeExpired()) {
                 return;
             }
             BlockPos blockPos = this.iterator.next();
@@ -118,7 +98,7 @@ public class BlockSearchTask extends ServerTask {
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
         BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
-            if (timeout()) {
+            if (this.isTimeExpired()) {
                 throw ForceReturnException.INSTANCE;
             }
             // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
@@ -176,11 +156,6 @@ public class BlockSearchTask extends ServerTask {
         this.findState = FindState.END;
     }
 
-    // 当前任务是否超时
-    private boolean timeout() {
-        return (System.currentTimeMillis() - this.startTime) > FinderCommand.MAX_FIND_TIME;
-    }
-
     @Override
     public boolean stopped() {
         return this.findState == FindState.END;
@@ -213,6 +188,16 @@ public class BlockSearchTask extends ServerTask {
     @Override
     public String getLogName() {
         return "方块查找";
+    }
+
+    @Override
+    public long getMaxExecutionTime() {
+        return FinderCommand.MAX_SEARCH_TIME * 3;
+    }
+
+    @Override
+    protected long getMaxTimeSlice() {
+        return FinderCommand.TIME_SLICE;
     }
 
     public class Result implements Supplier<Text> {

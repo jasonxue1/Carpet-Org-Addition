@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.task;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -22,7 +23,8 @@ public class CreeperExplosionTask extends ServerTask {
     private final ServerPlayerEntity player;
     private final CreeperEntity creeper;
 
-    public CreeperExplosionTask(ServerPlayerEntity player) {
+    public CreeperExplosionTask(ServerCommandSource source, ServerPlayerEntity player) {
+        super(source);
         this.player = player;
         // 传送到玩家周围
         this.creeper = teleport(player);

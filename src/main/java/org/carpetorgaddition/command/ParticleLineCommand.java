@@ -44,9 +44,10 @@ public class ParticleLineCommand {
         // 获取粒子线的起始和结束点
         Vec3d from = Vec3ArgumentType.getVec3(context, "from");
         Vec3d to;
+        ServerCommandSource source = context.getSource();
         if (isUuid) {
             String uuid = StringArgumentType.getString(context, "uuid");
-            Entity entity = WorldUtils.getEntityFromUUID(context.getSource().getServer(), CommandUtils.parseUuidFromString(uuid));
+            Entity entity = WorldUtils.getEntityFromUUID(source.getServer(), CommandUtils.parseUuidFromString(uuid));
             if (entity == null) {
                 throw EntityArgumentType.ENTITY_NOT_FOUND_EXCEPTION.create();
             }
@@ -65,7 +66,7 @@ public class ParticleLineCommand {
         }
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         // 新建绘制粒子线任务
-        manager.addTask(new DrawParticleLineTask(FetcherUtils.getWorld(player), mainParticle, from, to));
+        manager.addTask(new DrawParticleLineTask(source, FetcherUtils.getWorld(player), mainParticle, from, to));
         // 发送箭头
         sendArrow(player, to);
         // 返回值为粒子线的长度

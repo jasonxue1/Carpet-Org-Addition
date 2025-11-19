@@ -29,14 +29,14 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
-import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.ItemStackStatistics;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -47,49 +47,29 @@ import java.util.function.Supplier;
 public class ItemSearchTask extends ServerTask {
     private final World world;
     private final BlockEntityTraverser blockEntities;
-    private final ServerCommandSource source;
     private Iterator<Entity> entitySearchIterator;
     private Iterator<BlockEntity> blockEntitySearchIterator;
     private FindState findState;
     private int count;
     private boolean shulkerBox;
-    /**
-     * tick方法开始执行时的时间
-     */
-    private long startTime;
-    /**
-     * 任务被执行的总游戏刻数
-     */
-    private int tickCount;
     private final ItemStackPredicate predicate;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
     public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityTraverser blockEntities, ServerCommandSource source) {
+        super(source);
         this.world = world;
         this.blockEntities = blockEntities;
         this.findState = FindState.BLOCK;
-        this.tickCount = 0;
         this.predicate = predicate;
-        this.source = source;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
     public void tick() {
-        this.startTime = System.currentTimeMillis();
-        this.tickCount++;
-        if (tickCount > FinderCommand.MAX_TICK_COUNT) {
-            // 任务超时
-            MessageUtils.sendErrorMessage(source, FinderCommand.TIME_OUT);
-            this.findState = FindState.END;
-            return;
-        }
-        while (true) {
-            if (timeout()) {
-                return;
-            }
+        this.checkTimeout();
+        while (this.isTimeRemaining()) {
             try {
                 switch (this.findState) {
                     case BLOCK -> searchFromContainer();
@@ -114,7 +94,7 @@ public class ItemSearchTask extends ServerTask {
             this.blockEntitySearchIterator = blockEntities.iterator();
         }
         while (this.blockEntitySearchIterator.hasNext()) {
-            if (this.timeout()) {
+            if (this.isTimeExpired()) {
                 return;
             }
             BlockEntity blockEntity = this.blockEntitySearchIterator.next();
@@ -138,7 +118,7 @@ public class ItemSearchTask extends ServerTask {
             this.entitySearchIterator = this.world.getNonSpectatingEntities(Entity.class, box).iterator();
         }
         while (this.entitySearchIterator.hasNext()) {
-            if (timeout()) {
+            if (this.isTimeExpired()) {
                 return;
             }
             Entity entity = this.entitySearchIterator.next();
@@ -249,11 +229,6 @@ public class ItemSearchTask extends ServerTask {
         this.findState = FindState.END;
     }
 
-    // 当前任务是否超时
-    private boolean timeout() {
-        return (System.currentTimeMillis() - this.startTime) > FinderCommand.MAX_FIND_TIME;
-    }
-
     @Override
     public boolean stopped() {
         return this.findState == FindState.END;
@@ -270,6 +245,16 @@ public class ItemSearchTask extends ServerTask {
             return Objects.equals(this.source.getPlayer(), ((ItemSearchTask) obj).source.getPlayer());
         }
         return false;
+    }
+
+    @Override
+    public long getMaxExecutionTime() {
+        return FinderCommand.MAX_SEARCH_TIME;
+    }
+
+    @Override
+    protected long getMaxTimeSlice() {
+        return FinderCommand.TIME_SLICE;
     }
 
     public record Result(
