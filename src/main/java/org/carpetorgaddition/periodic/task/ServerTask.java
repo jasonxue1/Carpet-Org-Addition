@@ -8,7 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public abstract class ServerTask {
+public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
     private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors() + 1,
             Runtime.getRuntime().availableProcessors() + 1,
@@ -64,7 +64,9 @@ public abstract class ServerTask {
     /**
      * @return 当前任务的名称，不在游戏中使用，只在日志中使用
      */
-    public abstract String getLogName();
+    public String getLogName() {
+        return this.getClass().getSimpleName();
+    }
 
     @Override
     public abstract boolean equals(Object obj);
@@ -90,6 +92,11 @@ public abstract class ServerTask {
         this.executor.submit(task);
     }
 
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e);
+    }
+
     /**
      * 为线程池创建线程
      */
@@ -97,7 +104,7 @@ public abstract class ServerTask {
         return Thread.ofPlatform()
                 .daemon()
                 .name(this.getClass().getSimpleName() + "-Thread")
-                .uncaughtExceptionHandler((t, e) -> CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e))
+                .uncaughtExceptionHandler(this)
                 .unstarted(runnable);
     }
 }

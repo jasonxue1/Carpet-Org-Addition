@@ -16,8 +16,12 @@ public class CylinderBlockPosTraverser extends BlockPosTraverser {
 
     public CylinderBlockPosTraverser(BlockPos center, int radius, int height) {
         super(
-                new BlockPos(center.getX() - radius, center.getY(), center.getZ() - radius),
-                new BlockPos(center.getX() + radius, center.getY() + height - 1, center.getZ() + radius)
+                center.getX() - radius,
+                center.getY(),
+                center.getZ() - radius,
+                center.getX() + radius,
+                center.getY() + height - 1,
+                center.getZ() + radius
         );
         this.center = center;
         this.radius = radius;

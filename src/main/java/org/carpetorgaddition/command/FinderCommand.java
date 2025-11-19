@@ -54,6 +54,7 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 任务执行的最大游戏刻数
      */
+    // TODO 单位改成秒
     public static final int MAX_TICK_COUNT = 50;
     /**
      * 最大查找半径

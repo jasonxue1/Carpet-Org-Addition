@@ -167,7 +167,7 @@ public class BlockSearchTask extends ServerTask {
     }
 
     // 发送反馈
-    protected void sendFeedback() {
+    private void sendFeedback() {
         Text name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", this.count, name);
@@ -184,27 +184,6 @@ public class BlockSearchTask extends ServerTask {
     @Override
     public boolean stopped() {
         return this.findState == FindState.END;
-    }
-
-    public class Result implements Supplier<Text> {
-        private final BlockPos center;
-        private final Block block;
-        private final Set<BlockPos> set;
-
-        private Result(Block block, Set<BlockPos> set) {
-            this.center = MathUtils.calculateTheGeometricCenter(set);
-            this.block = block;
-            this.set = set;
-        }
-
-        @Override
-        public Text get() {
-            return getResultMessage(this.block, this.set);
-        }
-
-        public BlockPos centerPos() {
-            return center;
-        }
     }
 
     private Text getResultMessage(Block block, Set<BlockPos> set) {
@@ -231,15 +210,36 @@ public class BlockSearchTask extends ServerTask {
         return Objects.hashCode(this.source.getPlayer());
     }
 
+    @Override
+    public String getLogName() {
+        return "方块查找";
+    }
+
+    public class Result implements Supplier<Text> {
+        private final BlockPos center;
+        private final Block block;
+        private final Set<BlockPos> set;
+
+        private Result(Block block, Set<BlockPos> set) {
+            this.center = MathUtils.calculateTheGeometricCenter(set);
+            this.block = block;
+            this.set = set;
+        }
+
+        @Override
+        public Text get() {
+            return getResultMessage(this.block, this.set);
+        }
+
+        public BlockPos centerPos() {
+            return center;
+        }
+    }
+
     public enum FindState {
         SEARCH,
         SORT,
         FEEDBACK,
         END
-    }
-
-    @Override
-    public String getLogName() {
-        return "方块查找";
     }
 }
