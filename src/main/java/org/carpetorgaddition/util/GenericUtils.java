@@ -16,7 +16,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
-import org.carpetorgaddition.wheel.CreateFakePlayerContext;
+import org.carpetorgaddition.wheel.FakePlayerCreateContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -125,7 +125,7 @@ public class GenericUtils {
     /**
      * 创建一个假玩家
      */
-    public static void createFakePlayer(String username, MinecraftServer server, CreateFakePlayerContext context) {
+    public static void createFakePlayer(String username, MinecraftServer server, FakePlayerCreateContext context) {
         createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
     }
 

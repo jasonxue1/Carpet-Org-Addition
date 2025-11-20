@@ -1,28 +1,24 @@
 package org.carpetorgaddition.periodic.task.batch;
 
-import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.Uuids;
-import net.minecraft.util.math.Vec3d;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.CreateFakePlayerContext;
+import org.carpetorgaddition.wheel.FakePlayerCreateContext;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 public class BatchSpawnFakePlayerTask extends ServerTask {
     public static final ThreadLocal<Boolean> batchSpawnHiddenMessage = ThreadLocal.withInitial(() -> false);
@@ -39,13 +35,9 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     private final int start;
     private final int end;
     /**
-     * 命令的执行者
-     */
-    private final ServerPlayerEntity player;
-    /**
      * 玩家的创建上下文，用于确定玩家上线的位置，维度，朝向等
      */
-    private final CreateFakePlayerContext context;
+    private final FakePlayerCreateContext context;
     /**
      * 要召唤的玩家数量
      */
@@ -72,23 +64,14 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private long setupTime = -1L;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, ServerCommandSource source, UserCache userCache, ServerPlayerEntity player, String prefix, int start, int end, Vec3d pos, Consumer<EntityPlayerMPFake> consumer) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, ServerCommandSource source, UserCache userCache, FakePlayerCreateContext context, String prefix, int start, int end) {
         super(source);
         this.server = server;
         this.prefix = prefix;
         this.start = start;
         this.end = end;
         int count = end - start + 1;
-        this.player = player;
-        this.context = new CreateFakePlayerContext(
-                pos,
-                player.getYaw(),
-                player.getPitch(),
-                FetcherUtils.getWorld(player).getRegistryKey(),
-                player.interactionManager.getGameMode(),
-                player.getAbilities().flying,
-                consumer
-        );
+        this.context = context;
         PlayerManager playerManager = server.getPlayerManager();
         for (int i = start; i <= end; i++) {
             String username = prefix + i;
@@ -106,13 +89,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             });
         }
         this.count = count;
-        this.startTime = FetcherUtils.getWorld(player).getTime();
+        this.startTime = FetcherUtils.getWorld(this.source).getTime();
     }
 
     @Override
     protected void tick() {
         int size = this.players.size();
-        long time = FetcherUtils.getWorld(this.player).getTime();
+        long time = FetcherUtils.getWorld(this.source).getTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
@@ -120,13 +103,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
                     Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
-                    MessageUtils.sendMessageToHud(this.player, message);
+                    MessageUtils.sendMessageToHudIfPlayer(this.source, message);
                 }
                 return;
             }
             if (progress) {
                 Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
-                MessageUtils.sendMessageToHud(this.player, message);
+                MessageUtils.sendMessageToHudIfPlayer(this.source, message);
             }
             this.isPreload = false;
         }
@@ -153,7 +136,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             Text summoner = TextBuilder.translate(
                     "carpet.commands.playerManager.batch.summoner",
-                    this.player.getDisplayName(),
+                    this.source.getDisplayName(),
                     this.prefix + this.start,
                     this.prefix + this.end,
                     this.count

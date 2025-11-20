@@ -27,6 +27,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.UserCache;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -44,6 +45,7 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.wheel.FakePlayerCreateContext;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
 import org.carpetorgaddition.wheel.page.PageManager;
@@ -787,7 +789,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String prefix = StringArgumentType.getString(context, "prefix");
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
         ServerCommandSource source = context.getSource();
         MinecraftServer server = source.getServer();
         UserCache userCache = server.getUserCache();
@@ -796,8 +797,32 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         }
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : player.getPos();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, userCache, player, prefix, start, end, vec3d, consumer));
+        Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : source.getPosition();
+        Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(source);
+        FakePlayerCreateContext fakePlayerCreateContext;
+        if (optional.isEmpty()) {
+            fakePlayerCreateContext = new FakePlayerCreateContext(
+                    vec3d,
+                    0,
+                    0,
+                    FetcherUtils.getWorld(source).getRegistryKey(),
+                    GameMode.SURVIVAL,
+                    false,
+                    consumer
+            );
+        } else {
+            ServerPlayerEntity player = optional.get();
+            fakePlayerCreateContext = new FakePlayerCreateContext(
+                    vec3d,
+                    player.getYaw(),
+                    player.getPitch(),
+                    FetcherUtils.getWorld(player).getRegistryKey(),
+                    player.interactionManager.getGameMode(),
+                    player.getAbilities().flying,
+                    consumer
+            );
+        }
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, userCache, fakePlayerCreateContext, prefix, start, end));
         return end - start + 1;
     }
 
