@@ -74,7 +74,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         super(dispatcher, access);
     }
 
-    // TODO 指定区域，自动摆放加载玩家
     @Override
     public void register(String name) {
         // 延迟登录节点

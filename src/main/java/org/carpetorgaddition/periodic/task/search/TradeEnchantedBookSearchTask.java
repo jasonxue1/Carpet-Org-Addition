@@ -12,10 +12,10 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -73,13 +73,18 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     @Override
     protected void notFound() {
         MessageUtils.sendMessage(this.source,
-                "carpet.commands.finder.trade.find.not_trade",
+                "carpet.commands.finder.trade.enchanted_book.not_trade",
                 this.getTradeName(), FinderCommand.VILLAGER);
     }
 
     @Override
     protected Text getTradeName() {
         return this.predicate.getDisplayName();
+    }
+
+    @Override
+    protected String getTradeResultKey() {
+        return "carpet.commands.finder.trade.enchanted_book.result";
     }
 
     public class EnchantedBookFindResult implements Result {

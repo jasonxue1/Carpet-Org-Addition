@@ -99,7 +99,6 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.findState = FindState.FEEDBACK;
     }
 
-    // TODO 命令反馈错误，额外的附魔书文本
     private void feedback() {
         ArrayList<Object> list = new ArrayList<>();
         // 村民数量
@@ -109,7 +108,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         // 总交易选项数量
         list.add(this.tradeCount);
         // 消息的翻译键
-        String key = "carpet.commands.finder.trade.result";
+        String key = this.getTradeResultKey();
         MessageUtils.sendEmptyMessage(this.source);
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
         MessageUtils.sendMessage(this.source, key, list.toArray(Object[]::new));
@@ -117,6 +116,8 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
+
+    protected abstract String getTradeResultKey();
 
     @Override
     public boolean stopped() {

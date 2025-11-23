@@ -44,7 +44,6 @@ public abstract class AbstractPlayerAction {
     /**
      * 当前动作的详细信息
      */
-    // TODO 清空潜影盒改为清空容器
     public abstract List<Text> info();
 
     /**

@@ -75,12 +75,17 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     @Override
     protected void notFound() {
         MessageUtils.sendMessage(this.source,
-                "carpet.commands.finder.trade.find.not_trade",
+                "carpet.commands.finder.trade.item.not_trade",
                 this.getTradeName(), FinderCommand.VILLAGER);
     }
 
     @Override
     protected Text getTradeName() {
         return this.treadName;
+    }
+
+    @Override
+    protected String getTradeResultKey() {
+        return "carpet.commands.finder.trade.item.result";
     }
 }
