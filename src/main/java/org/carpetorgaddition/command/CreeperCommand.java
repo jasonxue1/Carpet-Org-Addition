@@ -34,8 +34,9 @@ public class CreeperCommand extends AbstractServerCommand {
         ServerPlayerEntity targetPlayer = CommandUtils.getArgumentPlayer(context);
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         // 添加苦力怕爆炸任务
-        manager.addTask(new CreeperExplosionTask(targetPlayer));
-        ServerPlayerEntity sourcePlayer = context.getSource().getPlayer();
+        ServerCommandSource source = context.getSource();
+        manager.addTask(new CreeperExplosionTask(source, targetPlayer));
+        ServerPlayerEntity sourcePlayer = source.getPlayer();
         if (sourcePlayer != null) {
             CarpetOrgAddition.LOGGER.info(
                     "{}在{}周围制造了一场苦力怕爆炸",

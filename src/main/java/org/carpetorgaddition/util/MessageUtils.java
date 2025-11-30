@@ -12,7 +12,7 @@ import net.minecraft.util.Formatting;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.TextBuilder;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class MessageUtils {
     private MessageUtils() {
@@ -168,12 +168,23 @@ public class MessageUtils {
     }
 
     /**
+     * 如果是玩家，则向HUD发送消息
+     */
+    public static void sendMessageToHudIfPlayer(ServerCommandSource source, Text message) {
+        ServerPlayerEntity player = source.getPlayer();
+        if (player == null) {
+            return;
+        }
+        sendMessageToHud(player, message);
+    }
+
+    /**
      * 发送多条带有特殊样式的消息，每一条消息单独占一行，消息内容仅发送者可见
      *
      * @param source 消息的发送者，消息内容仅发送者可见
      * @param list   存储所有要发送的消息的集合
      */
-    public static void sendListMessage(ServerCommandSource source, ArrayList<? extends Text> list) {
+    public static void sendListMessage(ServerCommandSource source, List<Text> list) {
         for (Text message : list) {
             sendMessage(source, message);
         }
