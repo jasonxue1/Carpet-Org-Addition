@@ -27,7 +27,7 @@ public record FakePlayerCreateContext(
         this(player, GenericUtils::pass);
     }
 
-    public CreateFakePlayerContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
+    public FakePlayerCreateContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
         this(player.getPos(),
                 player.getYaw(),
                 player.getPitch(),
