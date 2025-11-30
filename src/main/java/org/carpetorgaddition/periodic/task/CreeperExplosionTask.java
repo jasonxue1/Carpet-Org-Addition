@@ -2,6 +2,7 @@ package org.carpetorgaddition.periodic.task;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.CreeperEntity;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
@@ -12,7 +13,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.ArrayList;
 
@@ -22,7 +23,8 @@ public class CreeperExplosionTask extends ServerTask {
     private final ServerPlayerEntity player;
     private final CreeperEntity creeper;
 
-    public CreeperExplosionTask(ServerPlayerEntity player) {
+    public CreeperExplosionTask(ServerCommandSource source, ServerPlayerEntity player) {
+        super(source);
         this.player = player;
         // 传送到玩家周围
         this.creeper = teleport(player);
@@ -34,11 +36,10 @@ public class CreeperExplosionTask extends ServerTask {
         BlockPos playerPos = player.getBlockPos();
         Vec3d fromPos = new Vec3d(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
         Vec3d toPos = new Vec3d(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
-        BlockRegion blockRegion = new BlockRegion(new Box(fromPos, toPos));
         ArrayList<BlockPos> list = new ArrayList<>();
         World world = FetcherUtils.getWorld(player);
         // 获取符合条件的坐标
-        for (BlockPos blockPos : blockRegion) {
+        for (BlockPos blockPos : new BlockPosTraverser(new Box(fromPos, toPos))) {
             // 当前方块是空气
             if (world.getBlockState(blockPos).isAir()
                 // 下方方块是实心方块

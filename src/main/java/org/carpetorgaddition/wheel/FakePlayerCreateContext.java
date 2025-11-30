@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public record CreateFakePlayerContext(
+public record FakePlayerCreateContext(
         Vec3d pos,
         double yaw,
         double pitch,
@@ -23,11 +23,11 @@ public record CreateFakePlayerContext(
         Consumer<EntityPlayerMPFake> consumer
 ) {
     @SuppressWarnings("unused")
-    public CreateFakePlayerContext(ServerPlayerEntity player) {
+    public FakePlayerCreateContext(ServerPlayerEntity player) {
         this(player, GenericUtils::pass);
     }
 
-    public CreateFakePlayerContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
+    public FakePlayerCreateContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
         this(player.getPos(),
                 player.getYaw(),
                 player.getPitch(),

@@ -6,25 +6,59 @@
 
 ## 前置模组
 
-| 名称          | 类型 | 链接                                                                                                                                                                       | 备注          |
-|-------------|----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| Carpet      | 必须 | [MC百科](https://www.mcmod.cn/class/2361.html) &#124; [Modrinth](https://modrinth.com/mod/carpet) &#124; [CurseForge](https://www.curseforge.com/minecraft/mc-mods/carpet) |             |
-| MixinExtras | 内置 | [MC百科](https://www.mcmod.cn/class/12750.html)                                                                                                                            |             |
-| Fabric API  | 必须 | [MC百科](https://www.mcmod.cn/class/3124.html) &#124; [官方](https://fabricmc.net/)                                                                                          | &gt;=1.20.4 |
+| 名称          | 类型 | 链接                                                                                                                                                                       |
+|-------------|----|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Carpet      | 必须 | [MC百科](https://www.mcmod.cn/class/2361.html) &#124; [Modrinth](https://modrinth.com/mod/carpet) &#124; [CurseForge](https://www.curseforge.com/minecraft/mc-mods/carpet) |
+| MixinExtras | 内置 | [MC百科](https://www.mcmod.cn/class/12750.html)                                                                                                                            |
+| Fabric API  | 必须 | [MC百科](https://www.mcmod.cn/class/3124.html) &#124; [官方](https://fabricmc.net/)                                                                                          |
 
 ## 版本支持
 
-| 游戏版本           | 开发状态 | 最后支持版本                                                                                                 |  
-|----------------|------|--------------------------------------------------------------------------------------------------------|
-| 1.19.4         | 停更   | [carpet-org-addition-v1.26.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2)  |
-| 1.20.1         | 停更   | [carpet-org-addition-v1.34.0](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.0)  |
-| 1.20.2         | 停更   | [carpet-org-addition-v1.26.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2)  |
-| 1.20.3         | 停更   | [carpet-org-addition-v1.19.2](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.19.2)  |
-| 1.20.4         | 停更   | [carpet-org-addition-v1.34.1](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.1)  |
-| 1.20.5         | 停更   | [carpet-org-addition-v1.27.1](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v.1.27.1) |
-| 1.20.6         | 停更   | [carpet-org-addition-v1.30.0](https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.30.0)  |
-| 1.21（主版本）      | 维护中  | -                                                                                                      |
-| 1.21.1 ~ 最新正式版 | 维护中  | -                                                                                                      |
+<p>主版本：1.21</p>
+<table>
+  <tr>
+    <th>游戏版本</th>
+    <th>状态</th>
+    <th>最后支持版本</th>
+  </tr>
+  <!--suppress HtmlDeprecatedAttribute -->
+  <tbody align="center"> 
+    <tr>
+      <td>1.19.4</td>
+      <td rowspan="7">停止支持</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2">v1.26.2</a></td>
+    </tr>
+    <tr>
+      <td>1.20.1</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.0">v1.34.0</a></td>
+    </tr>
+    <tr>
+      <td>1.20.2</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2">v1.26.2</a></td>
+    </tr>
+    <tr>
+      <td>1.20.3</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.19.2">v1.19.2</a></td>
+    </tr>
+    <tr>
+      <td>1.20.4</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.34.1">v1.34.1</a></td>
+    </tr>
+    <tr>
+      <td>1.20.5</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.27.1">v1.27.1</a></td>
+    </tr>
+    <tr>
+      <td>1.20.6</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.30.0">v1.30.0</a></td>
+    </tr>
+    <tr>
+      <td>1.21-最新正式版</td>
+      <td>维护中</td>
+      <td><p>-</p></td>
+    </tr>
+  </tbody>
+</table>
 
 ## 文档
 

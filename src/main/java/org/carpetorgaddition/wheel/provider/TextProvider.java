@@ -20,6 +20,7 @@ public class TextProvider {
      * 换行
      */
     public static final Text NEW_LINE = TextBuilder.create("\n");
+    @Deprecated(forRemoval = true)
     public static final Text INDENT_SYMBOL = TextBuilder.create("    ");
 
     private TextProvider() {

@@ -17,7 +17,8 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     private final EntityPlayerMPFake fakePlayer;
     private long delayed;
 
-    public DelayedLogoutTask(MinecraftServer server, EntityPlayerMPFake fakePlayer, long delayed) {
+    public DelayedLogoutTask(MinecraftServer server, ServerCommandSource source, EntityPlayerMPFake fakePlayer, long delayed) {
+        super(source);
         this.server = server;
         this.fakePlayer = fakePlayer;
         this.delayed = delayed;

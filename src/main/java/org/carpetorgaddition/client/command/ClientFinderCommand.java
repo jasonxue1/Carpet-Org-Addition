@@ -15,6 +15,7 @@ import net.minecraft.item.Item;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType.ClientBlockArgumentType;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType.ClientItemArgumentType;
+import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket;
 import org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type;
 import org.carpetorgaddition.network.codec.ObjectSearchTaskCodecs;
@@ -35,7 +36,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
                 .then(ClientCommandManager.literal("item")
                         .then(ClientCommandManager.argument("item", new ClientItemArgumentType(true))
                                 .executes(context -> searchItem(context, 64))
-                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, 256))
+                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> searchItem(context, IntegerArgumentType.getInteger(context, "range"))))
                                 .then(ClientCommandManager.literal("from")
@@ -44,7 +45,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
                 .then(ClientCommandManager.literal("block")
                         .then(ClientCommandManager.argument("block", new ClientBlockArgumentType(true))
                                 .executes(context -> searchBlock(context, 64))
-                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, 256))
+                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> searchBlock(context, IntegerArgumentType.getInteger(context, "range")))))));
     }

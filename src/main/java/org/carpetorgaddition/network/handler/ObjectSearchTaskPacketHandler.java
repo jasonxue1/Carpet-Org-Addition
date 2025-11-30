@@ -19,8 +19,8 @@ import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.periodic.task.search.TradeItemSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockEntityRegion;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
@@ -45,8 +45,8 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             case ITEM -> {
                 ObjectSearchTaskCodecs.ItemSearchContext decode = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.decode(packet.json());
                 ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
-                BlockEntityRegion region = new BlockEntityRegion(world, blockPos, decode.range());
-                yield new ItemSearchTask(world, predicate, region, source);
+                BlockEntityTraverser traverser = new BlockEntityTraverser(world, blockPos, decode.range());
+                yield new ItemSearchTask(world, predicate, traverser, source);
             }
             case OFFLINE_PLAYER_ITEM -> {
                 ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext decode = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH_CODEC.decode(packet.json());
@@ -55,15 +55,15 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             }
             case BLOCK -> {
                 ObjectSearchTaskCodecs.BlockSearchContext decode = ObjectSearchTaskCodecs.BLOCK_SEARCH_CODEC.decode(packet.json());
-                BlockRegion region = new BlockRegion(world, blockPos, decode.range());
+                BlockPosTraverser traverser = new BlockPosTraverser(world, blockPos, decode.range());
                 BlockStatePredicate predicate = BlockStatePredicate.ofBlocks(decode.list());
-                yield new BlockSearchTask(world, blockPos, region, source, predicate);
+                yield new BlockSearchTask(world, blockPos, traverser, source, predicate);
             }
             case TRADE_ITEM -> {
                 ObjectSearchTaskCodecs.TradeItemSearchContext decode = ObjectSearchTaskCodecs.TRADE_ITEM_SEARCH_CODEC.decode(packet.json());
-                BlockRegion region = new BlockRegion(world, blockPos, decode.range());
+                BlockPosTraverser traverser = new BlockPosTraverser(world, blockPos, decode.range());
                 ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
-                yield new TradeItemSearchTask(world, region, blockPos, predicate, source);
+                yield new TradeItemSearchTask(world, traverser, blockPos, predicate, source);
             }
             default -> null;
         };

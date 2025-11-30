@@ -5,6 +5,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
@@ -48,6 +49,10 @@ public class FetcherUtils {
 
     public static World getWorld(Entity entity) {
         return entity.getWorld();
+    }
+
+    public static ServerWorld getWorld(ServerCommandSource source) {
+        return source.getWorld();
     }
 
     public static World getWorld(BlockEntity blockEntity) {
