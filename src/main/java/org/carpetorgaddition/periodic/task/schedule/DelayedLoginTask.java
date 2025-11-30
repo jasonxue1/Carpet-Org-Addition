@@ -17,7 +17,8 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     private final FakePlayerSerializer serial;
     private long delayed;
 
-    public DelayedLoginTask(MinecraftServer server, FakePlayerSerializer serial, long delayed) {
+    public DelayedLoginTask(MinecraftServer server, ServerCommandSource source, FakePlayerSerializer serial, long delayed) {
+        super(source);
         this.server = server;
         this.serial = serial;
         this.delayed = delayed;

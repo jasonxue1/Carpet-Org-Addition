@@ -11,29 +11,20 @@ import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class AbstractTradeSearchTask extends ServerTask {
     protected final World world;
-    protected final BlockRegion blockRegion;
+    protected final BlockPosTraverser blockPosTraverser;
     protected final BlockPos sourcePos;
-    protected final ServerCommandSource source;
     protected Iterator<MerchantEntity> iterator;
     private final PagedCollection pagedCollection;
     private FindState findState;
-    /**
-     * tick方法开始执行时的时间
-     */
-    private long startTime;
-    /**
-     * 任务被执行的总游戏刻数
-     */
-    private int tickCount;
     protected final ArrayList<Result> results = new ArrayList<>();
     /**
      * 周围村民的数量，一般情况下等于this.results.size()，只在个别情况下例外，例如一个村民出售了至少3本相同附魔的附魔书，并且其中两本附魔书等级也相同
@@ -44,11 +35,11 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      */
     protected int tradeCount;
 
-    public AbstractTradeSearchTask(World world, BlockRegion blockRegion, BlockPos sourcePos, ServerCommandSource source) {
+    public AbstractTradeSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ServerCommandSource source) {
+        super(source);
         this.world = world;
-        this.blockRegion = blockRegion;
+        this.blockPosTraverser = blockPosTraverser;
         this.sourcePos = sourcePos;
-        this.source = source;
         this.findState = FindState.SEARCH;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.source);
@@ -56,18 +47,8 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
 
     @Override
     public void tick() {
-        this.startTime = System.currentTimeMillis();
-        this.tickCount++;
-        if (tickCount > FinderCommand.MAX_TICK_COUNT) {
-            // 任务超时
-            MessageUtils.sendErrorMessage(source, FinderCommand.TIME_OUT);
-            this.findState = FindState.END;
-            return;
-        }
-        while (true) {
-            if (timeout()) {
-                return;
-            }
+        this.checkTimeout();
+        while (this.isTimeRemaining()) {
             try {
                 switch (this.findState) {
                     case SEARCH -> searchVillager();
@@ -88,10 +69,10 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     // 查找周围的村民
     private void searchVillager() {
         if (this.iterator == null) {
-            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockRegion.toBox()).iterator();
+            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockPosTraverser.toBox()).iterator();
         }
         while (this.iterator.hasNext()) {
-            if (timeout()) {
+            if (this.isTimeExpired()) {
                 return;
             }
             MerchantEntity merchant = this.iterator.next();
@@ -127,7 +108,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         // 总交易选项数量
         list.add(this.tradeCount);
         // 消息的翻译键
-        String key = "carpet.commands.finder.trade.result";
+        String key = this.getTradeResultKey();
         MessageUtils.sendEmptyMessage(this.source);
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
         MessageUtils.sendMessage(this.source, key, list.toArray(Object[]::new));
@@ -135,6 +116,8 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
+
+    protected abstract String getTradeResultKey();
 
     @Override
     public boolean stopped() {
@@ -149,9 +132,14 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.findState = FindState.END;
     }
 
-    // 当前任务是否超时
-    private boolean timeout() {
-        return (System.currentTimeMillis() - this.startTime) > FinderCommand.MAX_FIND_TIME;
+    @Override
+    public long getMaxExecutionTime() {
+        return FinderCommand.MAX_SEARCH_TIME;
+    }
+
+    @Override
+    protected long getMaxTimeSlice() {
+        return FinderCommand.TIME_SLICE;
     }
 
     public interface Result extends Comparator<Result>, Supplier<Text> {

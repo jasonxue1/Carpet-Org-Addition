@@ -2,6 +2,8 @@ package org.carpetorgaddition.wheel.inventory;
 
 import carpet.patches.EntityPlayerMPFake;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntImmutableList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -26,7 +28,7 @@ import java.util.function.Predicate;
 public class PlayerStorageInventory implements Inventory {
     private final PlayerInventory playerInventory;
     private final EntityPlayerMPFake fakePlayer;
-    private final IntArrayList indexMapping;
+    private final IntList indexMapping;
 
     public PlayerStorageInventory(EntityPlayerMPFake fakePlayer) {
         this.playerInventory = fakePlayer.getInventory();
@@ -37,7 +39,7 @@ public class PlayerStorageInventory implements Inventory {
             list.add(i);
         }
         list.add(PlayerInventory.OFF_HAND_SLOT);
-        this.indexMapping = list;
+        this.indexMapping = new IntImmutableList(list);
     }
 
     @Override
@@ -47,7 +49,8 @@ public class PlayerStorageInventory implements Inventory {
 
     @Override
     public boolean isEmpty() {
-        for (ItemStack itemStack : this) {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack itemStack = this.getStack(i);
             if (itemStack.isEmpty()) {
                 continue;
             }

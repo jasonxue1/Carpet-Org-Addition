@@ -24,6 +24,7 @@ import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
 
@@ -262,7 +263,7 @@ public class TradeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         // 获取按钮的索引
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.item", getFakePlayer().getDisplayName(), index + 1));

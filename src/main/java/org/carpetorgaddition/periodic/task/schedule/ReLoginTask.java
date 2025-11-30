@@ -40,6 +40,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     private int canSpawn = 2;
 
     public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, ServerCommandSource source) {
+        super(source);
         this.serializer = new FakePlayerSerializer(fakePlayer);
         this.interval = interval;
         this.remainingTick = this.interval;
