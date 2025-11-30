@@ -15,6 +15,7 @@ import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ItemCategorizeAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -106,7 +107,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         // 获取要分拣的物品名称
         Text itemName = this.predicate.toText();

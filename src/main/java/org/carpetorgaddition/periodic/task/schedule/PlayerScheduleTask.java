@@ -5,6 +5,10 @@ import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.periodic.task.ServerTask;
 
 public abstract class PlayerScheduleTask extends ServerTask {
+    public PlayerScheduleTask(ServerCommandSource source) {
+        super(source);
+    }
+
     /**
      * @return 玩家名称
      */

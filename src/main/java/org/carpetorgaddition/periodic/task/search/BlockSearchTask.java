@@ -13,31 +13,22 @@ import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
-import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
+import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.*;
 import java.util.function.Supplier;
 
 public class BlockSearchTask extends ServerTask {
     protected final ServerWorld world;
-    private final BlockRegion blockRegion;
-    protected final ServerCommandSource source;
+    private final BlockPosTraverser traverser;
     protected final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
     private FindState findState;
-    /**
-     * tick方法开始执行时的时间
-     */
-    private long startTime;
-    /**
-     * 任务被执行的总游戏刻数
-     */
-    private int tickCount;
     private final BlockStatePredicate predicate;
     /**
      * 已经迭代过的坐标集合
@@ -50,32 +41,21 @@ public class BlockSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockRegion blockRegion, ServerCommandSource source, BlockStatePredicate predicate) {
+    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockPosTraverser traverser, ServerCommandSource source, BlockStatePredicate predicate) {
+        super(source);
         this.world = world;
         this.sourcePos = sourcePos;
-        this.blockRegion = blockRegion;
-        this.source = source;
+        this.traverser = traverser.clamp(world);
         this.predicate = predicate;
         this.findState = FindState.SEARCH;
-        this.tickCount = 0;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 
     @Override
     public void tick() {
-        this.startTime = System.currentTimeMillis();
-        this.tickCount++;
-        if (this.tickCount > FinderCommand.MAX_TICK_COUNT) {
-            // 任务超时
-            MessageUtils.sendErrorMessage(this.source, FinderCommand.TIME_OUT);
-            this.findState = FindState.END;
-            return;
-        }
-        while (true) {
-            if (this.timeout()) {
-                return;
-            }
+        this.checkTimeout();
+        while (this.isTimeRemaining()) {
             try {
                 switch (this.findState) {
                     case SEARCH -> this.searchBlock();
@@ -96,10 +76,10 @@ public class BlockSearchTask extends ServerTask {
     // 查找方块
     private void searchBlock() {
         if (this.iterator == null) {
-            this.iterator = this.blockRegion.iterator();
+            this.iterator = this.traverser.iterator();
         }
         while (this.iterator.hasNext()) {
-            if (this.timeout()) {
+            if (this.isTimeExpired()) {
                 return;
             }
             BlockPos blockPos = this.iterator.next();
@@ -118,11 +98,11 @@ public class BlockSearchTask extends ServerTask {
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
         BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
-            if (timeout()) {
+            if (this.isTimeExpired()) {
                 throw ForceReturnException.INSTANCE;
             }
             // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
-            if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.blockRegion.contains(blockPos)) {
+            if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.traverser.contains(blockPos)) {
                 Block block = world.getBlockState(blockPos).getBlock();
                 Set<BlockPos> set = group.computeIfAbsent(block, ignore -> new HashSet<>());
                 // 如果软引用blockPosCache集合中的内容被回收，则此处可能重复执行
@@ -167,7 +147,7 @@ public class BlockSearchTask extends ServerTask {
     }
 
     // 发送反馈
-    protected void sendFeedback() {
+    private void sendFeedback() {
         Text name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", this.count, name);
@@ -176,35 +156,9 @@ public class BlockSearchTask extends ServerTask {
         this.findState = FindState.END;
     }
 
-    // 当前任务是否超时
-    private boolean timeout() {
-        return (System.currentTimeMillis() - this.startTime) > FinderCommand.MAX_FIND_TIME;
-    }
-
     @Override
     public boolean stopped() {
         return this.findState == FindState.END;
-    }
-
-    public class Result implements Supplier<Text> {
-        private final BlockPos center;
-        private final Block block;
-        private final Set<BlockPos> set;
-
-        private Result(Block block, Set<BlockPos> set) {
-            this.center = MathUtils.calculateTheGeometricCenter(set);
-            this.block = block;
-            this.set = set;
-        }
-
-        @Override
-        public Text get() {
-            return getResultMessage(this.block, this.set);
-        }
-
-        public BlockPos centerPos() {
-            return center;
-        }
     }
 
     private Text getResultMessage(Block block, Set<BlockPos> set) {
@@ -231,15 +185,46 @@ public class BlockSearchTask extends ServerTask {
         return Objects.hashCode(this.source.getPlayer());
     }
 
+    @Override
+    public String getLogName() {
+        return "方块查找";
+    }
+
+    @Override
+    public long getMaxExecutionTime() {
+        return FinderCommand.MAX_SEARCH_TIME * 3;
+    }
+
+    @Override
+    protected long getMaxTimeSlice() {
+        return FinderCommand.TIME_SLICE;
+    }
+
+    public class Result implements Supplier<Text> {
+        private final BlockPos center;
+        private final Block block;
+        private final Set<BlockPos> set;
+
+        private Result(Block block, Set<BlockPos> set) {
+            this.center = MathUtils.calculateTheGeometricCenter(set);
+            this.block = block;
+            this.set = set;
+        }
+
+        @Override
+        public Text get() {
+            return getResultMessage(this.block, this.set);
+        }
+
+        public BlockPos centerPos() {
+            return center;
+        }
+    }
+
     public enum FindState {
         SEARCH,
         SORT,
         FEEDBACK,
         END
-    }
-
-    @Override
-    public String getLogName() {
-        return "方块查找";
     }
 }

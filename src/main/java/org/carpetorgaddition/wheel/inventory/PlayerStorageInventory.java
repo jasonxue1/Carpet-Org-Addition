@@ -1,6 +1,9 @@
 package org.carpetorgaddition.wheel.inventory;
 
 import carpet.patches.EntityPlayerMPFake;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntImmutableList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
@@ -17,7 +20,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -26,35 +28,30 @@ import java.util.function.Predicate;
 public class PlayerStorageInventory implements Inventory {
     private final PlayerInventory playerInventory;
     private final EntityPlayerMPFake fakePlayer;
-    private final List<Map.Entry<Integer, DefaultedList<ItemStack>>> combine;
+    private final IntList indexMapping;
 
     public PlayerStorageInventory(EntityPlayerMPFake fakePlayer) {
         this.playerInventory = fakePlayer.getInventory();
         this.fakePlayer = fakePlayer;
-        ArrayList<Map.Entry<Integer, DefaultedList<ItemStack>>> list = new ArrayList<>();
+        IntArrayList list = new IntArrayList(37);
         DefaultedList<ItemStack> main = this.playerInventory.main;
-        list.add(Map.entry(0, main));
-        DefaultedList<ItemStack> armor = this.playerInventory.armor;
-        DefaultedList<ItemStack> offHand = this.playerInventory.offHand;
-        list.add(Map.entry(main.size() + armor.size(), offHand));
-        this.combine = list;
+        for (int i = 0; i < main.size(); i++) {
+            list.add(i);
+        }
+        list.add(PlayerInventory.OFF_HAND_SLOT);
+        this.indexMapping = new IntImmutableList(list);
     }
 
     @Override
     public int size() {
-        int size = 0;
-        for (Map.Entry<Integer, DefaultedList<ItemStack>> entry : this.combine) {
-            DefaultedList<ItemStack> stacks = entry.getValue();
-            size += stacks.size();
-        }
-        return size;
+        return this.indexMapping.size();
     }
 
     @Override
     public boolean isEmpty() {
-        for (Map.Entry<Integer, DefaultedList<ItemStack>> entry : this.combine) {
-            DefaultedList<ItemStack> stacks = entry.getValue();
-            if (stacks.isEmpty()) {
+        for (int i = 0; i < this.size(); i++) {
+            ItemStack itemStack = this.getStack(i);
+            if (itemStack.isEmpty()) {
                 continue;
             }
             return false;
@@ -435,17 +432,6 @@ public class PlayerStorageInventory implements Inventory {
      * 将该物品栏的索引映射到完整玩家物品栏上
      */
     private int map(int index) {
-        int sum = 0;
-        for (Map.Entry<Integer, DefaultedList<ItemStack>> entry : this.combine) {
-            // 当前子物品集合在完整集合上对应的索引
-            int start = entry.getKey();
-            // 当前子物品集合的长度
-            int size = entry.getValue().size();
-            if (index - sum < size) {
-                return start + index - sum;
-            }
-            sum += size;
-        }
-        throw new IndexOutOfBoundsException();
+        return this.indexMapping.getInt(index);
     }
 }

@@ -22,7 +22,10 @@ import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.rule.value.OpenPlayerInventory;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.*;
+import org.carpetorgaddition.wheel.GameProfileCache;
+import org.carpetorgaddition.wheel.ItemStackStatistics;
+import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.WorldFormat;
 import org.carpetorgaddition.wheel.inventory.*;
 import org.carpetorgaddition.wheel.page.PageManager;
 import org.carpetorgaddition.wheel.page.PagedCollection;
@@ -80,7 +83,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 总的玩家数量
      */
     private int total = 0;
-    protected final ServerCommandSource source;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
     private final File[] files;
@@ -95,7 +97,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final PagedCollection pagedCollection;
 
     public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player) {
-        this.source = source;
+        super(source);
         this.predicate = predicate;
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
@@ -529,6 +531,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
             }
         }
         return this.backupFileDirectory;
+    }
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e);
     }
 
     /**
