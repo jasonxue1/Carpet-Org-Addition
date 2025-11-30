@@ -13,6 +13,7 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class RenameAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -113,7 +114,7 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         // 获取假玩家的显示名称
         Text playerName = getFakePlayer().getDisplayName();

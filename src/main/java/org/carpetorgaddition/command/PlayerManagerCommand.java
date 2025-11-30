@@ -17,6 +17,7 @@ import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.argument.EntityArgumentType;
 import net.minecraft.command.argument.TimeArgumentType;
+import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
 import net.minecraft.server.command.CommandManager;
@@ -25,6 +26,9 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.NameToIdCache;
+import net.minecraft.util.UserCache;
+import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -42,6 +46,7 @@ import org.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import org.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import org.carpetorgaddition.util.*;
+import org.carpetorgaddition.wheel.FakePlayerCreateContext;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.WorldFormat;
 import org.carpetorgaddition.wheel.page.PageManager;
@@ -70,7 +75,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         super(dispatcher, access);
     }
 
-    // TODO 指定区域，自动摆放加载玩家
     @Override
     public void register(String name) {
         // 延迟登录节点
@@ -212,13 +216,17 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
                                         .then(CommandManager.argument("end", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
                                                 .then(CommandManager.literal("spawn")
-                                                        .executes(this::batchSpawn))
+                                                        .executes(context -> batchSpawn(context, false))
+                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                                .executes(context -> batchSpawn(context, true))))
                                                 .then(CommandManager.literal("kill")
                                                         .executes(this::batchKill))
                                                 .then(CommandManager.literal("drop")
                                                         .executes(this::batchDrop))
                                                 .then(CommandManager.literal("trial")
-                                                        .executes(this::batchTrial)))))));
+                                                        .executes(context -> batchTrial(context, false))
+                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                                .executes(context -> batchTrial(context, true)))))))));
     }
 
     private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
@@ -750,22 +758,23 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchSpawn(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return batchSpawn(context, GenericUtils::pass);
+    private int batchSpawn(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
+        return batchSpawn(context, at, GenericUtils::pass);
     }
 
     /**
      * 批量生成玩家并踢出玩家
      */
-    private int batchTrial(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+    private int batchTrial(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         // 异常由服务器命令源进行处理
-        ServerCommandSource source = server.getCommandSource();
+        ServerCommandSource serverSource = server.getCommandSource();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        return batchSpawn(context, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(fakePlayer, 30)), source));
+        return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(source, fakePlayer, 30)), serverSource));
     }
 
-    private static int batchSpawn(CommandContext<ServerCommandSource> context, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
+    private static int batchSpawn(CommandContext<ServerCommandSource> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         // 交换最大最小值，玩家可能将end和start参数反向输入
@@ -788,7 +797,32 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         }
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, cache, player, prefix, start, end, consumer));
+        Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : source.getPosition();
+        Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(source);
+        FakePlayerCreateContext fakePlayerCreateContext;
+        if (optional.isEmpty()) {
+            fakePlayerCreateContext = new FakePlayerCreateContext(
+                    vec3d,
+                    0,
+                    0,
+                    FetcherUtils.getWorld(source).getRegistryKey(),
+                    GameMode.SURVIVAL,
+                    false,
+                    consumer
+            );
+        } else {
+            ServerPlayerEntity player = optional.get();
+            fakePlayerCreateContext = new FakePlayerCreateContext(
+                    vec3d,
+                    player.getYaw(),
+                    player.getPitch(),
+                    FetcherUtils.getWorld(player).getRegistryKey(),
+                    player.interactionManager.getGameMode(),
+                    player.getAbilities().flying,
+                    consumer
+            );
+        }
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, userCache, fakePlayerCreateContext, prefix, start, end));
         return end - start + 1;
     }
 
@@ -803,9 +837,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        taskManager.addTask(new BatchKillFakePlayer(server, prefix, start, end));
+        taskManager.addTask(new BatchKillFakePlayer(server, source, prefix, start, end));
         return end - start + 1;
     }
 
@@ -868,7 +903,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 延时上线
     private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         Optional<DelayedLoginTask> optional = taskManager.stream(DelayedLoginTask.class)
@@ -880,7 +916,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (optional.isEmpty()) {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
-            taskManager.addTask(new DelayedLoginTask(server, serializer, tick));
+            taskManager.addTask(new DelayedLoginTask(server, source, serializer, tick));
             String key = server.getPlayerManager().getPlayer(name) == null
                     // <玩家>将于<时间>后上线
                     ? "carpet.commands.playerManager.schedule.login"
@@ -902,7 +938,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 延迟下线
     private int addDelayedLogoutTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
@@ -914,7 +951,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 添加新任务
         if (optional.isEmpty()) {
             // 添加延时下线任务
-            manager.addTask(new DelayedLogoutTask(server, fakePlayer, tick));
+            manager.addTask(new DelayedLogoutTask(server, source, fakePlayer, tick));
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.logout", fakePlayer.getDisplayName(), time);
         } else {
             // 修改退出时间

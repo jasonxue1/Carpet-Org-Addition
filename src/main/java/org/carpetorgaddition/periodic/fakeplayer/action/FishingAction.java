@@ -15,6 +15,7 @@ import org.carpetorgaddition.mixin.accessor.FishingBobberEntityAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class FishingAction extends AbstractPlayerAction {
     private int timer = 0;
@@ -128,7 +129,7 @@ public class FishingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.fishing", this.getFakePlayer().getDisplayName()));
         return list;
