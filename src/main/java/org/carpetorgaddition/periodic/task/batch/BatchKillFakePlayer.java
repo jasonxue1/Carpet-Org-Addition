@@ -3,6 +3,7 @@ package org.carpetorgaddition.periodic.task.batch;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.PlayerManager;
+import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 
@@ -12,7 +13,8 @@ public class BatchKillFakePlayer extends ServerTask {
     private final int end;
     private int current;
 
-    public BatchKillFakePlayer(MinecraftServer server, String prefix, int start, int end) {
+    public BatchKillFakePlayer(MinecraftServer server, ServerCommandSource source, String prefix, int start, int end) {
+        super(source);
         this.playerManager = server.getPlayerManager();
         this.prefix = prefix;
         this.end = end;

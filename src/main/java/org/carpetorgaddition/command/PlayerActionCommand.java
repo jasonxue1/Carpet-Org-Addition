@@ -155,8 +155,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                     .then(argument));
             case CYLINDER -> argument ->
                     CommandManager.argument("center", BlockPosArgumentType.blockPos())
-                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(1))
-                                    .then(CommandManager.argument("height", IntegerArgumentType.integer(1))
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(1, 1024))
+                                    .then(CommandManager.argument("height", IntegerArgumentType.integer(1, 1024))
                                             .executes(command)
                                             .then(argument)));
         };
