@@ -177,7 +177,7 @@ public class WorldUtils {
      * @return 最大建筑高度
      */
     public static int getMaxArchitectureAltitude(World world) {
-        return world.getTopY() - 1;
+        return world.getTopYInclusive();
     }
 
     /**

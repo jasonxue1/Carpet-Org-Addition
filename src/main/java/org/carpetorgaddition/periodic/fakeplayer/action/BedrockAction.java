@@ -758,7 +758,7 @@ public class BedrockAction extends AbstractPlayerAction {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         World world = FetcherUtils.getWorld(fakePlayer);
         BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
-        BlockPos to = new BlockPos(blockPos.getX() + range, world.getTopY(), blockPos.getZ() + range);
+        BlockPos to = new BlockPos(blockPos.getX() + range, WorldUtils.getMaxArchitectureAltitude(world), blockPos.getZ() + range);
         return new EntityTraverser<>(world, from, to, FallingBlockEntity.class).isPresent();
     }
 
