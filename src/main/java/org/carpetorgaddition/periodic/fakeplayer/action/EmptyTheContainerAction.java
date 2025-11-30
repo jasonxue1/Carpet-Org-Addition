@@ -8,10 +8,12 @@ import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
+import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class EmptyTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -35,7 +37,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
                 break;
             }
             ItemStack itemStack = screenHandler.getSlot(index).getStack();
-            if (itemStack.isEmpty() || FakePlayerUtils.isGcaItem(itemStack)) {
+            if (itemStack.isEmpty() || InventoryUtils.isGcaItem(itemStack)) {
                 continue;
             }
             if (this.predicate.test(itemStack)) {
@@ -55,7 +57,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         Text text = this.predicate.toText();
         Text playerName = this.getFakePlayer().getDisplayName();

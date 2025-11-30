@@ -15,7 +15,6 @@ import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.server.network.ServerPlayerInteractionManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
@@ -35,12 +34,14 @@ import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.*;
 import org.carpetorgaddition.util.*;
-import org.carpetorgaddition.wheel.BlockEntityRegion;
-import org.carpetorgaddition.wheel.BlockRegion;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
+import org.carpetorgaddition.wheel.traverser.CylinderBlockPosTraverser;
+import org.carpetorgaddition.wheel.traverser.EntityTraverser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,8 +52,9 @@ import java.util.function.Predicate;
 public class BedrockAction extends AbstractPlayerAction {
     private final LinkedHashSet<BedrockBreakingContext> contexts = new LinkedHashSet<>();
     private final HashSet<BlockPos> lavas = new HashSet<>();
-    private final BlockRegion blockRegion;
+    private final BlockPosTraverser traverser;
     private final BedrockRegionType regionType;
+    private PlayerStorageInventory inventory;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -107,29 +109,28 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private static final int MATERIAL_RECYCLING_TIME = 3600;
 
-    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockRegion blockRegion, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
+    private BedrockAction(EntityPlayerMPFake fakePlayer, BlockPosTraverser traverser, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
         super(fakePlayer);
-        this.blockRegion = blockRegion;
+        this.traverser = traverser;
         this.regionType = regionType;
         this.ai = ai;
         this.recycleTimer = timedMaterialRecycling ? MATERIAL_RECYCLING_TIME : -1;
     }
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos from, BlockPos to, boolean ai, boolean timedMaterialRecycling) {
-        this(fakePlayer, new BlockRegion(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
+        this(fakePlayer, new BlockPosTraverser(from, to), BedrockRegionType.CUBOID, ai, timedMaterialRecycling);
     }
 
     public BedrockAction(EntityPlayerMPFake fakePlayer, BlockPos center, int radius, int height, boolean ai, boolean timedMaterialRecycling) {
-        this(fakePlayer, new CylinderBlockRegion(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
+        this(fakePlayer, new CylinderBlockPosTraverser(center, radius, height), BedrockRegionType.CYLINDER, ai, timedMaterialRecycling);
     }
 
     @Override
     protected void tick() {
         if (this.ai) {
             this.pathfinder.tick();
-            EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             // 周围有下落的方块，暂停寻路，防止被砸死
-            if (BlockEntityRegion.ofAbove(fakePlayer, 3).contains(FallingBlockEntity.class)) {
+            if (this.hasFallingSand(3)) {
                 this.pathfinder.pause(3);
             }
             this.itemEntities.removeIf(Entity::isRemoved);
@@ -187,8 +188,7 @@ public class BedrockAction extends AbstractPlayerAction {
         double range = this.getFakePlayer().getBlockInteractionRange();
         // 如果this.selectionArea过大，遍历时可能会造成大量卡顿
         Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
-        BlockRegion area = new BlockRegion(box);
-        for (BlockPos blockPos : area) {
+        for (BlockPos blockPos : new BlockPosTraverser(box)) {
             if (canInteract(blockPos) && this.inSelectionArea(blockPos)) {
                 BlockState blockState = world.getBlockState(blockPos);
                 if (blockState.isOf(Blocks.BEDROCK)) {
@@ -247,7 +247,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private void selectRandomBedrock(World world) {
         if (this.pathfinder.isInvalid()) {
             for (int i = 0; i < 100; i++) {
-                BlockPos blockPos = this.blockRegion.randomBlockPos();
+                BlockPos blockPos = this.traverser.randomBlockPos();
                 if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
                     this.bedrockTarget = blockPos;
                     return;
@@ -406,7 +406,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private StepResult placePiston(BlockPos bedrockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         World world = FetcherUtils.getWorld(fakePlayer);
-        if (this.aboveHasFallingBlockEntity(world, bedrockPos)) {
+        if (this.aboveHasFallingBlockEntity(bedrockPos)) {
             return StepResult.COMPLETION;
         }
         BlockPos up = bedrockPos.up(1);
@@ -543,7 +543,7 @@ public class BedrockAction extends AbstractPlayerAction {
             // 当前位置下方是移动的活塞
             return StepResult.COMPLETION;
         }
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
+        this.inventory.replenishment(Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
         BlockHitResult hitResult = new BlockHitResult(bedrockPos.toCenterPos(), direction, bedrockPos, false);
         // 放置拉杆
@@ -689,7 +689,7 @@ public class BedrockAction extends AbstractPlayerAction {
         World world = FetcherUtils.getWorld(player);
         if (FallingBlock.canFallThrough(world.getBlockState(blockPos.up()))) {
             // 等待上方下落的方块实体落下
-            if (aboveHasFallingBlockEntity(world, blockPos)) {
+            if (aboveHasFallingBlockEntity(blockPos)) {
                 return StepResult.COMPLETION;
             }
         }
@@ -722,7 +722,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             boolean broken = breakBlock(blockExcavator, blockPos, true);
             if (broken && hasTorch) {
-                FakePlayerUtils.replenishment(player, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.TORCH));
+                this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.TORCH));
                 placeBlock(blockPos);
                 return StepResult.COMPLETION;
             } else {
@@ -736,14 +736,30 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 玩家是否有火把
      */
     private boolean hasTorch() {
-        return FakePlayerUtils.hasItem(this.getFakePlayer(), itemStack -> itemStack.isOf(Items.TORCH));
+        return this.inventory.contains(itemStack -> itemStack.isOf(Items.TORCH));
     }
 
     /**
      * @return 如果玩家有火把，返回上方是否有下落的方块，否则返回{@code false}
      */
-    private boolean aboveHasFallingBlockEntity(World world, BlockPos blockPos) {
-        return this.hasTorch() && BlockEntityRegion.ofAbove(world, blockPos, 0).contains(FallingBlockEntity.class);
+    private boolean aboveHasFallingBlockEntity(BlockPos blockPos) {
+        return this.hasTorch() && this.hasFallingSand(0, blockPos);
+    }
+
+    /**
+     * 玩家上方是否有下落的方块
+     */
+    @SuppressWarnings("SameParameterValue")
+    private boolean hasFallingSand(int range) {
+        return this.hasFallingSand(range, this.getFakePlayer().getBlockPos());
+    }
+
+    private boolean hasFallingSand(int range, BlockPos blockPos) {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        World world = FetcherUtils.getWorld(fakePlayer);
+        BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
+        BlockPos to = new BlockPos(blockPos.getX() + range, WorldUtils.getMaxArchitectureAltitude(world), blockPos.getZ() + range);
+        return new EntityTraverser<>(world, from, to, FallingBlockEntity.class).isPresent();
     }
 
     /**
@@ -764,8 +780,8 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     private void switchTool(BlockState blockState, World world, BlockPos blockPos, EntityPlayerMPFake player) {
-        boolean replenishment = FakePlayerUtils.replenishment(player, itemStack -> {
-            if (player.isCreative()) {
+        boolean replenishment = this.inventory.replenishment(itemStack -> {
+            if (this.getFakePlayer().isCreative()) {
                 return itemStack.getItem().canMine(player.getMainHandStack(), blockState, world, blockPos, player);
             }
             if (itemStack.isEmpty()) {
@@ -781,7 +797,7 @@ public class BedrockAction extends AbstractPlayerAction {
             return;
         }
         // 工具没有切换成功，使用其他物品替换手上工具以避免工具损坏
-        FakePlayerUtils.replenishment(this.getFakePlayer(), itemStack -> !isDamaged(itemStack));
+        this.inventory.replenishment(itemStack -> !isDamaged(itemStack));
     }
 
     /**
@@ -799,7 +815,7 @@ public class BedrockAction extends AbstractPlayerAction {
         ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
         // 看向与活塞相反的方向
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
-        FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
+        this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
         // 放置活塞
         BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(bedrockPos, 1.0), direction, bedrockPos.up(), false);
         ActionResult result = interactionManager.interactBlock(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
@@ -836,7 +852,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 是否需要进食
      */
     private boolean shouldEat() {
-        if (FakePlayerUtils.hasItem(this.getFakePlayer(), InventoryUtils::isFoodItem)) {
+        if (this.inventory.contains(InventoryUtils::isFoodItem)) {
             if (this.getFakePlayer().getAbilities().invulnerable) {
                 return false;
             }
@@ -861,8 +877,8 @@ public class BedrockAction extends AbstractPlayerAction {
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             World world = FetcherUtils.getWorld(fakePlayer);
             if (this.canInteract(blockPos) &&
-                (FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, canDrainFluid(world, blockPos)) ||
-                 FakePlayerUtils.replenishment(fakePlayer, Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON)))) {
+                (this.inventory.replenishment(Hand.OFF_HAND, canDrainFluid(world, blockPos)) ||
+                 this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON)))) {
                 placeBlock(blockPos);
             }
             iterator.remove();
@@ -897,7 +913,7 @@ public class BedrockAction extends AbstractPlayerAction {
         }
         if (this.getFakePlayer().canConsume(false)) {
             if (this.getFakePlayer().getActiveItem().isEmpty()) {
-                if (FakePlayerUtils.replenishment(this.getFakePlayer(), InventoryUtils::isFoodItem)) {
+                if (this.inventory.replenishment(InventoryUtils::isFoodItem)) {
                     ServerPlayerInteractionManager interactionManager = this.getFakePlayer().interactionManager;
                     World world = FetcherUtils.getWorld(this.getFakePlayer());
                     ItemStack food = this.getFakePlayer().getMainHandStack();
@@ -933,7 +949,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         if (this.itemEntities.isEmpty()) {
-            Box box = this.blockRegion.toBox().expand(10.0);
+            Box box = this.traverser.toBox().expand(10.0);
             List<ItemEntity> list = FetcherUtils.getWorld(this.getFakePlayer()).getNonSpectatingEntities(ItemEntity.class, box)
                     .stream()
                     .filter(itemEntity -> isMaterial(itemEntity.getStack()))
@@ -979,7 +995,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         final ItemStack finalMostStack = mostStack;
-        boolean dropped = FakePlayerUtils.dropInventoryItem(fakePlayer, itemStack -> itemStack != finalMostStack && isGarbage(itemStack));
+        boolean dropped = this.inventory.drop(itemStack -> itemStack != finalMostStack && isGarbage(itemStack));
         if (dropped) {
             return;
         }
@@ -993,39 +1009,32 @@ public class BedrockAction extends AbstractPlayerAction {
      * 把多余的材料装入潜影盒
      */
     private void collectMaterialToShulkerBox() {
-        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        PlayerInventory inventory = fakePlayer.getInventory();
         // 获取物品栏中数量最多的物品
-        ItemStack most = InventoryUtils.findMostAbundantStack(inventory, this::isMaterial);
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
+        ItemStack most = InventoryUtils.findMostAbundantStack(this.inventory, this::isMaterial);
         // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
         // 执行到这里时，物品栏一定是满的
-        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
-            if (InventoryUtils.canMerge(most, screenHandler.getSlot(i).getStack())) {
-                FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
-                FakePlayerUtils.throwItem(screenHandler, i, fakePlayer);
+        for (int i = 0; i < this.inventory.size(); i++) {
+            if (InventoryUtils.canMerge(most, this.inventory.getStack(i))) {
+                this.inventory.drop(i);
                 break;
             }
         }
         // 整理物品栏
-        FakePlayerUtils.sorting(fakePlayer);
+        this.inventory.sort();
         // 是否已经遍历到了数量最多的物品
         boolean isFoundMost = false;
-        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
-            ItemStack itemStack = screenHandler.getSlot(i).getStack();
+        for (int i = 0; i < this.inventory.size(); i++) {
+            ItemStack itemStack = this.inventory.getStack(i);
             // 因为已经整理过，所以遍历到了空物品或潜影盒，后面所有的物品都不是材料
             if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
                 return;
             }
             if (InventoryUtils.canMerge(itemStack, most)) {
                 isFoundMost = true;
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
-                if (result.isEmpty()) {
-                    continue;
+                if (this.inventory.insertWithShulkerBoxPriority(itemStack)) {
+                    this.setPhase(PlayerWorkPhase.WORK);
+                    return;
                 }
-                FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
-                this.setPhase(PlayerWorkPhase.WORK);
-                return;
             } else if (isFoundMost) {
                 // 相同的材料是连续放置的，所以后面的物品都不是要装入潜影盒的材料
                 return;
@@ -1037,22 +1046,15 @@ public class BedrockAction extends AbstractPlayerAction {
      * 把损坏的工具放入潜影盒
      */
     private void collectToolToShulkerBox() {
-        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         // 整理物品栏
-        FakePlayerUtils.sorting(fakePlayer);
-        PlayerScreenHandler screenHandler = fakePlayer.playerScreenHandler;
-        for (int i = FakePlayerUtils.PLAYER_INVENTORY_START; i <= FakePlayerUtils.PLAYER_INVENTORY_END; i++) {
-            ItemStack itemStack = screenHandler.getSlot(i).getStack();
+        this.inventory.sort();
+        for (int i = 0; i < this.inventory.size(); i++) {
+            ItemStack itemStack = this.inventory.getStack(i);
             if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
                 return;
             }
             // 将已损坏的物品放入潜影盒
-            if (InventoryUtils.isToolItem(itemStack) && isDamaged(itemStack)) {
-                ItemStack result = InventoryUtils.putItemToInventoryShulkerBox(itemStack, fakePlayer);
-                if (result.isEmpty()) {
-                    continue;
-                }
-                FakePlayerUtils.putToEmptySlotOrDrop(fakePlayer, result);
+            if (InventoryUtils.isToolItem(itemStack) && isDamaged(itemStack) && this.inventory.insertWithShulkerBoxPriority(itemStack)) {
                 return;
             }
         }
@@ -1087,25 +1089,25 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     public boolean inSelectionArea(BlockPos blockPos) {
-        return this.blockRegion.contains(blockPos);
+        return this.traverser.contains(blockPos);
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
         switch (this.regionType) {
             case CUBOID -> {
-                Text from = TextProvider.blockPos(this.blockRegion.getMinBlockPos(), Formatting.GREEN);
-                Text to = TextProvider.blockPos(this.blockRegion.getMaxBlockPos(), Formatting.GREEN);
+                Text from = TextProvider.blockPos(this.traverser.getMinBlockPos(), Formatting.GREEN);
+                Text to = TextProvider.blockPos(this.traverser.getMaxBlockPos(), Formatting.GREEN);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
             }
             case CYLINDER -> {
-                CylinderBlockRegion iterator = (CylinderBlockRegion) this.blockRegion;
-                Text center = TextProvider.blockPos(iterator.center);
+                CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
+                Text center = TextProvider.blockPos(iterator.getCenter());
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.radius));
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.height));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.getRadius()));
+                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.getHeight()));
             }
         }
         if (this.ai) {
@@ -1120,16 +1122,16 @@ public class BedrockAction extends AbstractPlayerAction {
         json.addProperty("region_type", this.regionType.name().toLowerCase());
         switch (this.regionType) {
             case CUBOID -> {
-                BlockPos minBlockPos = this.blockRegion.getMinBlockPos();
+                BlockPos minBlockPos = this.traverser.getMinBlockPos();
                 json.add("from", JsonUtils.toJson(minBlockPos));
-                BlockPos maxBlockPos = this.blockRegion.getMaxBlockPos();
+                BlockPos maxBlockPos = this.traverser.getMaxBlockPos();
                 json.add("to", JsonUtils.toJson(maxBlockPos));
             }
             case CYLINDER -> {
-                CylinderBlockRegion iterator = (CylinderBlockRegion) this.blockRegion;
-                json.add("center", JsonUtils.toJson(iterator.center));
-                json.addProperty("radius", iterator.radius);
-                json.addProperty("height", iterator.height);
+                CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
+                json.add("center", JsonUtils.toJson(iterator.getCenter()));
+                json.addProperty("radius", iterator.getRadius());
+                json.addProperty("height", iterator.getHeight());
             }
         }
         json.addProperty("ai", this.ai);
@@ -1155,11 +1157,13 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     protected void onAssignPlayer() {
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this::getMovingTarget);
+        this.inventory = new PlayerStorageInventory(this.getFakePlayer());
     }
 
     @Override
     protected void onClearPlayer() {
         this.pathfinder = FakePlayerPathfinder.EMPTY;
+        this.inventory = null;
     }
 
     /**
@@ -1207,68 +1211,6 @@ public class BedrockAction extends AbstractPlayerAction {
         this.phase = phase;
         if (this.recycleTimer != -1 && phase == PlayerWorkPhase.WORK) {
             this.recycleTimer = MATERIAL_RECYCLING_TIME;
-        }
-    }
-
-    public static class CylinderBlockRegion extends BlockRegion {
-        private final BlockPos center;
-        private final int radius;
-        private final int height;
-
-        public CylinderBlockRegion(BlockPos center, int radius, int height) {
-            super(
-                    new BlockPos(center.getX() - radius, center.getY(), center.getZ() - radius),
-                    new BlockPos(center.getX() + radius, center.getY() + height, center.getZ() + radius)
-            );
-            this.center = center;
-            this.radius = radius;
-            this.height = height;
-        }
-
-        @Override
-        public boolean contains(BlockPos blockPos) {
-            return super.contains(blockPos) && MathUtils.getCalculateBlockIntegerDistance(this.center, blockPos) <= this.radius;
-        }
-
-        @Override
-        public BlockPos randomBlockPos() {
-            while (true) {
-                BlockPos blockPos = super.randomBlockPos();
-                if (this.contains(blockPos)) {
-                    return blockPos;
-                }
-            }
-        }
-
-        @Override
-        @NotNull
-        public Iterator<BlockPos> iterator() {
-            return new Iterator<>() {
-                private final Iterator<BlockPos> iterator = CylinderBlockRegion.super.iterator();
-                private BlockPos blockPos;
-
-                @Override
-                public boolean hasNext() {
-                    if (this.blockPos == null) {
-                        while (this.iterator.hasNext()) {
-                            BlockPos next = this.iterator.next();
-                            if (contains(next)) {
-                                this.blockPos = next;
-                                break;
-                            }
-                        }
-                        return false;
-                    }
-                    return true;
-                }
-
-                @Override
-                public BlockPos next() {
-                    BlockPos result = this.blockPos;
-                    this.blockPos = null;
-                    return result;
-                }
-            };
         }
     }
 }

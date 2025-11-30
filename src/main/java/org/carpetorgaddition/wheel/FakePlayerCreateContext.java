@@ -8,10 +8,11 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
-public record CreateFakePlayerContext(
+public record FakePlayerCreateContext(
         Vec3d pos,
         double yaw,
         double pitch,
@@ -21,11 +22,11 @@ public record CreateFakePlayerContext(
         Consumer<EntityPlayerMPFake> consumer
 ) {
     @SuppressWarnings("unused")
-    public CreateFakePlayerContext(ServerPlayerEntity player) {
+    public FakePlayerCreateContext(ServerPlayerEntity player) {
         this(player, GenericUtils::pass);
     }
 
-    public CreateFakePlayerContext(ServerPlayerEntity player, Consumer<EntityPlayerMPFake> consumer) {
+    public FakePlayerCreateContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
         this(FetcherUtils.getFootPos(player),
                 player.getYaw(),
                 player.getPitch(),

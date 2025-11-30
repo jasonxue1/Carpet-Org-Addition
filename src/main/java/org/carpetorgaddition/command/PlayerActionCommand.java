@@ -30,11 +30,11 @@ import org.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionTyp
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionLevel;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import org.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
 
@@ -155,8 +155,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                     .then(argument));
             case CYLINDER -> argument ->
                     CommandManager.argument("center", BlockPosArgumentType.blockPos())
-                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(1))
-                                    .then(CommandManager.argument("height", IntegerArgumentType.integer(1))
+                            .then(CommandManager.argument("radius", IntegerArgumentType.integer(1, 1024))
+                                    .then(CommandManager.argument("height", IntegerArgumentType.integer(1, 1024))
                                             .executes(command)
                                             .then(argument)));
         };
@@ -226,7 +226,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], false);
-        FakePlayerActionManager actionManager = prepareTheCrafting(context);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
@@ -236,7 +236,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], true);
-        FakePlayerActionManager actionManager = prepareTheCrafting(context);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
@@ -244,7 +244,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置物品栏合成
     private int setInventoryCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = prepareTheCrafting(context);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate[] items = new ItemStackPredicate[4];
         for (int i = 1; i <= 4; i++) {
             // 获取每一个合成材料
@@ -257,7 +257,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 九个物品合成
     private int setNineCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = prepareTheCrafting(context);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[9], true);
         actionManager.setAction(new CraftingTableCraftAction(fakePlayer, predicates));
@@ -267,7 +267,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置工作台合成
     private int setCraftingTableCraft(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = prepareTheCrafting(context);
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
         ItemStackPredicate[] items = new ItemStackPredicate[9];
         for (int i = 1; i <= 9; i++) {
             items[i - 1] = new ItemStackPredicate(context, "item" + i);
@@ -433,12 +433,6 @@ public class PlayerActionCommand extends AbstractServerCommand {
                 TextBuilder.translate("carpet.commands.playerAction.info.craft.gui"));
         player.openHandledScreen(screen);
         return 1;
-    }
-
-    // 在设置假玩家合成时获取动作管理器并提示启用合成修复
-    private FakePlayerActionManager prepareTheCrafting(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        return FetcherUtils.getFakePlayerActionManager(fakePlayer);
     }
 
     @Override

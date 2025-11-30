@@ -73,7 +73,7 @@ public class CarpetOrgAddition implements ModInitializer {
      * 或引发未知的问题，因此，请<b>不要</b>将解锁这些功能的方式告诉给其他人。
      * </p>
      */
-    public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.isEnableHiddenFunction();
+    public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.getInstance().isEnableHiddenFunction();
 
     /**
      * 模组初始化

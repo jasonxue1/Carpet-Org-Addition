@@ -93,7 +93,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 总的玩家数量
      */
     private int total = 0;
-    protected final ServerCommandSource source;
     protected final ServerPlayerEntity player;
     private final MinecraftServer server;
     private final File[] files;
@@ -108,7 +107,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final PagedCollection pagedCollection;
 
     public OfflinePlayerSearchTask(ServerCommandSource source, ItemStackPredicate predicate, ServerPlayerEntity player) {
-        this.source = source;
+        super(source);
         this.predicate = predicate;
         this.player = player;
         this.server = FetcherUtils.getServer(this.player);
@@ -338,7 +337,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 查找物品
     private void searchItem(UUID uuid, @NotNull NbtCompound nbt) {
         // 获取玩家配置文件
-        Optional<PlayerConfigEntry> optional = GameProfileCache.getPlayerConfigEntry(uuid);
+        GameProfileCache cache = GameProfileCache.getInstance();
+        Optional<PlayerConfigEntry> optional = cache.getPlayerConfigEntry(uuid);
         boolean unknownPlayer = false;
         if (optional.isEmpty()) {
             optional = Optional.of(new PlayerConfigEntry(uuid, UNKNOWN));
@@ -538,6 +538,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
             }
         }
         return this.backupFileDirectory;
+    }
+
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+        CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e);
     }
 
     /**

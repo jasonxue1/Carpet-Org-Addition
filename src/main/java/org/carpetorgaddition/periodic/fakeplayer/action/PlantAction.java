@@ -24,10 +24,11 @@ import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.BlockRegion;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class PlantAction extends AbstractPlayerAction {
@@ -35,6 +36,7 @@ public class PlantAction extends AbstractPlayerAction {
      * 当前正在采集的农作物
      */
     private BlockPos cropPos;
+    private PlayerStorageInventory inventory;
 
     public PlantAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
@@ -58,8 +60,7 @@ public class PlantAction extends AbstractPlayerAction {
             double range = this.getFakePlayer().getBlockInteractionRange();
             // 限制交互距离，减少卡顿
             Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
-            BlockRegion area = new BlockRegion(box);
-            for (BlockPos blockPos : area) {
+            for (BlockPos blockPos : new BlockPosTraverser(box)) {
                 if (this.getFakePlayer().canInteractWithBlockAt(blockPos, 0)) {
                     if (tryPlanting(blockPos, farmType, cropsItem)) {
                         continue;
@@ -229,7 +230,7 @@ public class PlantAction extends AbstractPlayerAction {
     private void fertilize(World world, BlockPos upPos) {
         Predicate<ItemStack> predicate = stack -> stack.isOf(Items.BONE_MEAL);
         // 要求玩家身上有骨粉
-        if (FakePlayerUtils.replenishment(this.getFakePlayer(), predicate)) {
+        if (this.inventory.replenishment(predicate)) {
             ItemStack itemStack = this.getFakePlayer().getMainHandStack();
             if (itemStack.getCount() > 1
                 || this.getFakePlayer().isCreative()
@@ -266,7 +267,7 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
-        FakePlayerUtils.replenishment(this.getFakePlayer(), itemStack -> itemStack.contains(DataComponentTypes.TOOL));
+        this.inventory.replenishment(itemStack -> itemStack.contains(DataComponentTypes.TOOL));
         BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
@@ -298,7 +299,7 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.getFakePlayer().getDisplayName()));
     }
 
@@ -320,6 +321,16 @@ public class PlantAction extends AbstractPlayerAction {
     @Override
     public boolean isHidden() {
         return true;
+    }
+
+    @Override
+    protected void onAssignPlayer() {
+        this.inventory = new PlayerStorageInventory(this.getFakePlayer());
+    }
+
+    @Override
+    protected void onClearPlayer() {
+        this.inventory = null;
     }
 
     public enum FarmType {
