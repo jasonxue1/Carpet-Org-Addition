@@ -8,6 +8,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.World;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 

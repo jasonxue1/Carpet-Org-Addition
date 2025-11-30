@@ -26,7 +26,6 @@ import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.NameToIdCache;
-import net.minecraft.util.UserCache;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.GameMode;
 import org.carpetorgaddition.CarpetOrgAddition;
@@ -789,8 +788,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String prefix = StringArgumentType.getString(context, "prefix");
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        MinecraftServer server = context.getSource().getServer();
+        ServerCommandSource source = context.getSource();
+        MinecraftServer server = source.getServer();
         NameToIdCache cache = server.getApiServices().nameToIdCache();
         if (cache == null) {
             CarpetOrgAddition.LOGGER.warn("Server user cache is null");
@@ -822,7 +821,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     consumer
             );
         }
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, userCache, fakePlayerCreateContext, prefix, start, end));
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, cache, fakePlayerCreateContext, prefix, start, end));
         return end - start + 1;
     }
 
