@@ -22,6 +22,7 @@ import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class StonecuttingAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -151,7 +152,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
         // 获取假玩家所在的世界对象

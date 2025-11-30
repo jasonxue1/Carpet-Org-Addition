@@ -18,6 +18,7 @@ import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -65,7 +66,7 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         Text name = this.getFakePlayer().getDisplayName();
         String key = this.targetType.getTranslateKey();
         Text text = TextBuilder.translate(key, name, displayName);
