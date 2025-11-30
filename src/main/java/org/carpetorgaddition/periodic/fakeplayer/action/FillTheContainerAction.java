@@ -7,10 +7,11 @@ import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.IntStream;
 
 public class FillTheContainerAction extends AbstractPlayerAction {
@@ -93,7 +94,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         Text translate = TextBuilder.translate(
                 "carpet.commands.playerAction.info.fill.predicate",

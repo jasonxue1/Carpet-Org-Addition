@@ -1,6 +1,7 @@
 package org.carpetorgaddition.periodic.task;
 
 import net.minecraft.particle.ParticleEffect;
+import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -16,7 +17,8 @@ public class DrawParticleLineTask extends ServerTask {
     private final Vec3d vector;
     private Vec3d origin = new Vec3d(0.0, 0.0, 0.0);
 
-    public DrawParticleLineTask(ServerWorld world, ParticleEffect particleEffect, Vec3d from, Vec3d to) {
+    public DrawParticleLineTask(ServerCommandSource source, ServerWorld world, ParticleEffect particleEffect, Vec3d from, Vec3d to) {
+        super(source);
         this.world = world;
         this.particleEffect = particleEffect;
         this.from = from;

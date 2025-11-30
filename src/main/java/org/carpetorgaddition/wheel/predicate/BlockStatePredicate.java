@@ -147,7 +147,8 @@ public class BlockStatePredicate implements BiPredicate<World, BlockPos> {
         }
         try {
             Block block = GenericUtils.getBlock(id);
-            if (block.getDefaultState().isAir()) {
+            // 不能使用isAir()，因为虚空空气和洞穴空气也是空气
+            if (block == Blocks.AIR) {
                 return null;
             }
             return block;

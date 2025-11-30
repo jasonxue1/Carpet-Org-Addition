@@ -61,6 +61,12 @@ public class DebugSettings {
                     .setDisplayName("固定钓鱼上钩时间")
                     .build()
     );
+    @SuppressWarnings("all")
+    public static final Supplier<Boolean> tempDebugSwitch = register(
+            RuleFactory.create(Boolean.class, "temporaryDebuggingSwitch", false)
+                    .addCategories("Debug")
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();

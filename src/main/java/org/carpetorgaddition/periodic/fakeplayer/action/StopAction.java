@@ -6,6 +6,7 @@ import net.minecraft.text.Text;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public final class StopAction extends AbstractPlayerAction {
     public StopAction(EntityPlayerMPFake fakePlayer) {
@@ -18,7 +19,7 @@ public final class StopAction extends AbstractPlayerAction {
     }
 
     @Override
-    public ArrayList<Text> info() {
+    public List<Text> info() {
         ArrayList<Text> list = new ArrayList<>();
         // 直接将假玩家没有任何动作的信息加入集合然后返回
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.stop", this.getFakePlayer().getDisplayName()));

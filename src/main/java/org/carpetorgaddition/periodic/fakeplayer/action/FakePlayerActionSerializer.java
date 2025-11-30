@@ -5,11 +5,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.provider.TextProvider;
-import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.TextJoiner;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.ArrayList;
 
 public class FakePlayerActionSerializer {
     private final AbstractPlayerAction action;
@@ -65,11 +62,10 @@ public class FakePlayerActionSerializer {
     }
 
     public Text toText() {
-        ArrayList<Text> list = new ArrayList<>();
-        list.add(TextBuilder.translate("carpet.commands.playerManager.info.action"));
-        list.add(TextProvider.NEW_LINE);
-        list.add(TextBuilder.combineAll(TextProvider.INDENT_SYMBOL, this.action.getDisplayName()));
-        return TextBuilder.combineList(list);
+        TextJoiner joiner = new TextJoiner();
+        joiner.append("carpet.commands.playerManager.info.action");
+        joiner.enter(this.action.getDisplayName());
+        return joiner.join();
     }
 
     public JsonObject toJson() {
