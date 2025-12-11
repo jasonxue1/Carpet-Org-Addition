@@ -268,6 +268,11 @@ public class GameProfileCache {
         }
     }
 
+    /**
+     * 将玩家名和UUID映射再保存一份到csv表格文件
+     *
+     * @apiNote 该文件不是配置文件，设置文件为只读是为了提醒玩家不去修改，修改该文件不会影响游戏读取真正的配置文件
+     */
     private void saveToCsv() {
         StringJoiner joiner = new StringJoiner("\n");
         joiner.add("Name,UUID");
@@ -276,13 +281,15 @@ public class GameProfileCache {
         }
         String csv = joiner.toString();
         saveToCsv(CONFIG_NAME_NAME + ".csv", csv, StandardCharsets.UTF_8);
+        // 使用GBK编码再保存一份
+        // Windows下直接用Excel打开中UTF-8编码的csv文件会导致中文部分乱码
         saveToCsv(CONFIG_NAME_NAME + "(GBK).csv", csv, Charset.forName("GBK"));
     }
 
     private void saveToCsv(String fileName, String csv, Charset charset) {
         File file = IOUtils.configFile(fileName);
         if (file.isFile()) {
-            // 取消文件只读
+            // 写入文件前取消文件只读
             if (!(file.canWrite() || file.setWritable(true))) {
                 CarpetOrgAddition.LOGGER.warn("Failed to set {} as writable", fileName);
                 return;
