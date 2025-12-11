@@ -16,6 +16,8 @@ import org.jetbrains.annotations.VisibleForTesting;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -49,7 +51,8 @@ import java.util.stream.Collectors;
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
 public class GameProfileCache {
-    private final File config = IOUtils.configFile("profile.json");
+    private static final String CONFIG_NAME_NAME = "profile";
+    private final File config = IOUtils.configFile(CONFIG_NAME_NAME + ".json");
     private final Table table = new Table();
     /**
      * 集合可能被多个线程同时访问
@@ -259,6 +262,47 @@ public class GameProfileCache {
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
             }
+        }
+        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+            this.saveToCsv();
+        }
+    }
+
+    /**
+     * 将玩家名和UUID映射再保存一份到csv表格文件
+     *
+     * @apiNote 该文件不是配置文件，设置文件为只读是为了提醒玩家不去修改，修改该文件不会影响游戏读取真正的配置文件
+     */
+    private void saveToCsv() {
+        StringJoiner joiner = new StringJoiner("\n");
+        joiner.add("Name,UUID");
+        for (Map.Entry<UUID, String> entry : this.table.entrySet()) {
+            joiner.add("%s,%s".formatted(entry.getValue(), entry.getKey()));
+        }
+        String csv = joiner.toString();
+        saveToCsv(CONFIG_NAME_NAME + ".csv", csv, StandardCharsets.UTF_8);
+        // 使用GBK编码再保存一份
+        // Windows下直接用Excel打开中UTF-8编码的csv文件会导致中文部分乱码
+        saveToCsv(CONFIG_NAME_NAME + "(GBK).csv", csv, Charset.forName("GBK"));
+    }
+
+    private void saveToCsv(String fileName, String csv, Charset charset) {
+        File file = IOUtils.configFile(fileName);
+        if (file.isFile()) {
+            // 写入文件前取消文件只读
+            if (!(file.canWrite() || file.setWritable(true))) {
+                CarpetOrgAddition.LOGGER.warn("Failed to set {} as writable", fileName);
+                return;
+            }
+        }
+        try {
+            IOUtils.write(file, csv, charset);
+        } catch (IOException e) {
+            CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the {}", fileName, e);
+        }
+        // 设置文件为只读
+        if (!file.setReadOnly()) {
+            CarpetOrgAddition.LOGGER.warn("Failed to set {} as read-only", fileName);
         }
     }
 
