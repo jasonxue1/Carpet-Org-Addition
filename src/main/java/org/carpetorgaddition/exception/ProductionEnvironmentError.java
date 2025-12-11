@@ -1,6 +1,5 @@
 package org.carpetorgaddition.exception;
 
-import net.fabricmc.loader.api.FabricLoader;
 import org.carpetorgaddition.CarpetOrgAddition;
 
 /**
@@ -16,7 +15,7 @@ public class ProductionEnvironmentError extends AssertionError {
      * 断言当前环境为开发环境
      */
     public static void assertDevelopmentEnvironment() {
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+        if (CarpetOrgAddition.IS_DEVELOPMENT) {
             return;
         }
         // 除非发生了逻辑错误，否则永远不会执行到这里
