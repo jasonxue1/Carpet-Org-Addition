@@ -57,6 +57,10 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final boolean IS_DEBUG = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.contains("jdwp"));
     /**
+     * 当前游戏环境是否为开发环境
+     */
+    public static final boolean IS_DEVELOPMENT = FabricLoader.getInstance().isDevelopmentEnvironment();
+    /**
      * 是否同时加载了{@code Lithium}（锂）模组
      */
     public static final boolean LITHIUM = FabricLoader.getInstance().isModLoaded("lithium");
@@ -86,7 +90,7 @@ public class CarpetOrgAddition implements ModInitializer {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
         }
-        if (FabricLoader.getInstance().isDevelopmentEnvironment()) {
+        if (IS_DEVELOPMENT) {
             this.runs();
         }
         // 如果当前为调试模式的开发环境，注册测试规则
@@ -147,6 +151,6 @@ public class CarpetOrgAddition implements ModInitializer {
      * @return 当前环境是否为调试模式的开发环境
      */
     public static boolean isDebugDevelopment() {
-        return IS_DEBUG && FabricLoader.getInstance().isDevelopmentEnvironment();
+        return IS_DEBUG && IS_DEVELOPMENT;
     }
 }

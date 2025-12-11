@@ -63,23 +63,31 @@ public class RuleFactory {
         }
 
         public Builder<T> addCategories(String... categories) {
-            if (categories.length == 0) {
+            return this.addCategories(List.of(categories));
+        }
+
+        public Builder<T> addCategories(List<String> list) {
+            if (list.isEmpty()) {
                 throw new IllegalArgumentException("At least one category must be provided");
             }
-            this.categories.addAll(List.of(categories));
+            this.categories.addAll(list);
             return this;
         }
 
         public Builder<T> addOptions(String... options) {
-            if (options.length == 0) {
-                throw new IllegalArgumentException("At least one option must be provided");
-            }
-            this.suggestions.addAll(List.of(options));
-            return this;
+            return this.addOptions(List.of(options));
         }
 
         public Builder<T> addOptions(int... options) {
-            return this.addOptions(Arrays.stream(options).mapToObj(Integer::toString).toArray(String[]::new));
+            return this.addOptions(Arrays.stream(options).mapToObj(Integer::toString).toList());
+        }
+
+        public Builder<T> addOptions(List<String> list) {
+            if (list.isEmpty()) {
+                throw new IllegalArgumentException("At least one option must be provided");
+            }
+            this.suggestions.addAll(list);
+            return this;
         }
 
         public Builder<T> setClient() {

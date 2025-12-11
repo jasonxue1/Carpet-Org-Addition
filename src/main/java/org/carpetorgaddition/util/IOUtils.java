@@ -7,6 +7,7 @@ import org.carpetorgaddition.exception.FileOperationException;
 import org.jetbrains.annotations.Contract;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,6 +56,13 @@ public class IOUtils {
      * 创建一个UTF-8编码的字符输出流对象
      */
     public static BufferedWriter toWriter(File file) throws IOException {
+        return toWriter(file, StandardCharsets.UTF_8);
+    }
+
+    /**
+     * 创建一个指定编码的字符输出流对象
+     */
+    public static BufferedWriter toWriter(File file, Charset charset) throws IOException {
         // 如果父级目录不存在则创建
         // 如果是根目录或父级目录存在，则无需创建父级目录
         File parent = file.getParentFile();
@@ -63,7 +71,7 @@ public class IOUtils {
                 throw new IOException("Failed to create directory: " + parent);
             }
         }
-        return Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8);
+        return Files.newBufferedWriter(file.toPath(), charset);
     }
 
     /**
@@ -78,6 +86,10 @@ public class IOUtils {
      * 将一段字符串文本保存到文件
      */
     public static void write(File file, String content) throws IOException {
+        write(file, content, StandardCharsets.UTF_8);
+    }
+
+    public static void write(File file, String content, Charset charset) throws IOException {
         File parent = file.getParentFile();
         if (parent == null) {
             throw new IOException("File parent directory is null: " + file.getAbsolutePath());
@@ -89,7 +101,7 @@ public class IOUtils {
         File backupFile = Paths.get(file.getParent(), file.getName() + ".bak").toFile();
         try {
             // 将数据保存到临时文件
-            try (BufferedWriter writer = toWriter(tempFile)) {
+            try (BufferedWriter writer = toWriter(tempFile, charset)) {
                 writer.write(content);
             }
             // 备份旧的文件
