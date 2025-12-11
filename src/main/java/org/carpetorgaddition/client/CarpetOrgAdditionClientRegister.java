@@ -2,7 +2,6 @@ package org.carpetorgaddition.client;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.math.Vec3d;
@@ -10,6 +9,7 @@ import net.minecraft.world.World;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
+import org.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import org.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
 import org.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import org.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
