@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.mob.EndermanEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 // 注视末影人眼睛时不会激怒末影人
-@Mixin(EndermanEntity.class)
+@Mixin(EnderMan.class)
 public class EndermanEntityMixin {
-    @Inject(method = "isPlayerStaring", at = @At("HEAD"), cancellable = true)
-    private void isPlayerStaring(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "isBeingStaredBy", at = @At("HEAD"), cancellable = true)
+    private void isPlayerStaring(Player player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.staringEndermanNotAngry.get()) {
             cir.setReturnValue(false);
         }

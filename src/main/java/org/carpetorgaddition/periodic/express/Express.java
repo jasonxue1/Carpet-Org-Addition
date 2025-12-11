@@ -2,20 +2,20 @@ package org.carpetorgaddition.periodic.express;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.storage.NbtReadView;
-import net.minecraft.storage.NbtWriteView;
-import net.minecraft.storage.ReadView;
-import net.minecraft.text.Text;
-import net.minecraft.util.ErrorReporter;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.CommandRegister;
@@ -71,15 +71,15 @@ public class Express implements Comparable<Express> {
     private final int nbtDataVersion;
     public static final String EXPRESS = "express";
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, ServerPlayerEntity recipient, int id) throws CommandSyntaxException {
+    public Express(MinecraftServer server, ServerPlayer sender, ServerPlayer recipient, int id) throws CommandSyntaxException {
         this(server, sender, recipient.getGameProfile(), getPlayerHandStack(sender), id);
     }
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, ItemStack itemStack, int id) {
+    public Express(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, ItemStack itemStack, int id) {
         this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
     }
 
-    public Express(MinecraftServer server, ServerPlayerEntity sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
+    public Express(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
         this(server, sender, gameProfile, getPlayerHandStack(sender), id);
     }
 
@@ -95,16 +95,16 @@ public class Express implements Comparable<Express> {
         this.nbtDataVersion = nbtDataVersion;
     }
 
-    private static ItemStack getPlayerHandStack(ServerPlayerEntity player) throws CommandSyntaxException {
-        ItemStack mainHandStack = player.getMainHandStack();
+    private static ItemStack getPlayerHandStack(ServerPlayer player) throws CommandSyntaxException {
+        ItemStack mainHandStack = player.getMainHandItem();
         if (mainHandStack.isEmpty()) {
-            ItemStack offHandStack = player.getOffHandStack();
+            ItemStack offHandStack = player.getOffhandItem();
             if (offHandStack.isEmpty()) {
                 throw CommandUtils.createException("carpet.commands.mail.structure");
             }
-            return offHandStack.copyAndEmpty();
+            return offHandStack.copyAndClear();
         } else {
-            return mainHandStack.copyAndEmpty();
+            return mainHandStack.copyAndClear();
         }
     }
 
@@ -112,20 +112,20 @@ public class Express implements Comparable<Express> {
      * 发送快递
      */
     public void sending() {
-        PlayerManager playerManager = this.server.getPlayerManager();
-        ServerPlayerEntity senderPlayer = playerManager.getPlayer(this.sender);
-        ServerPlayerEntity recipientPlayer = playerManager.getPlayer(this.recipient);
+        PlayerList playerManager = this.server.getPlayerList();
+        ServerPlayer senderPlayer = playerManager.getPlayerByName(this.sender);
+        ServerPlayer recipientPlayer = playerManager.getPlayerByName(this.recipient);
         if (senderPlayer == null) {
             CarpetOrgAddition.LOGGER.error("The express delivery is sent by non-existent player");
             return;
         }
         // 向快递发送者发送发出快递的消息
-        Text cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
-        Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), cancelText};
+        Component cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
+        Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), cancelText};
         MessageUtils.sendMessage(senderPlayer, TextBuilder.translate("carpet.commands.mail.sending.sender", senderArray));
         // 向快递接受者发送发出快递的消息
-        Text receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
-        Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.toHoverableText(), receiveText};
+        Component receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
+        Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), receiveText};
         if (recipientPlayer == null) {
             TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.offline_player");
             builder.setGrayItalic();
@@ -135,15 +135,15 @@ public class Express implements Comparable<Express> {
             // 在接收者位置播放音效
             playXpOrbPickupSound(recipientPlayer);
         }
-        CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}", this.sender, this.recipient, this.express.getCount(), this.express.getName().getString());
+        CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}", this.sender, this.recipient, this.express.getCount(), this.express.getHoverName().getString());
     }
 
     /**
      * 接收快递
      */
     public void receive() throws IOException {
-        PlayerManager playerManager = this.server.getPlayerManager();
-        ServerPlayerEntity player = playerManager.getPlayer(this.recipient);
+        PlayerList playerManager = this.server.getPlayerList();
+        ServerPlayer player = playerManager.getPlayerByName(this.recipient);
         if (player == null) {
             CarpetOrgAddition.LOGGER.error("The player who received the package does not exist");
             return;
@@ -161,10 +161,10 @@ public class Express implements Comparable<Express> {
                 // 物品完全接收
                 MessageUtils.sendMessage(player,
                         TextBuilder.translate("carpet.commands.mail.receive.success",
-                                count, copy.toHoverableText()));
+                                count, copy.getDisplayName()));
                 counter.add(copy.getItem(), count);
                 // 通知发送者物品已接收
-                Function<ServerPlayerEntity, Text> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = __ -> ExpressManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -178,7 +178,7 @@ public class Express implements Comparable<Express> {
                                 count - surplusCount, surplusCount));
                 counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
-                Function<ServerPlayerEntity, Text> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = __ -> ExpressManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -192,8 +192,8 @@ public class Express implements Comparable<Express> {
      * 撤回快递
      */
     public void cancel() throws IOException {
-        PlayerManager playerManager = this.server.getPlayerManager();
-        ServerPlayerEntity player = playerManager.getPlayer(this.sender);
+        PlayerList playerManager = this.server.getPlayerList();
+        ServerPlayer player = playerManager.getPlayerByName(this.sender);
         if (player == null) {
             CarpetOrgAddition.LOGGER.error("The player who withdrew the package does not exist");
             return;
@@ -203,7 +203,7 @@ public class Express implements Comparable<Express> {
         // 将快递内容放入物品栏
         switch (insertStack(player)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", count, copy.toHoverableText());
+                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", count, copy.getDisplayName());
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -220,7 +220,7 @@ public class Express implements Comparable<Express> {
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Function<ServerPlayerEntity, Text> message = __ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
+        Function<ServerPlayer, Component> message = __ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
         this.sendMessageIfPlayerOnline(this.recipient, message);
         this.cancel = true;
     }
@@ -228,12 +228,12 @@ public class Express implements Comparable<Express> {
     /**
      * 拦截快递
      */
-    public void intercept(ServerPlayerEntity operator) throws IOException {
+    public void intercept(ServerPlayer operator) throws IOException {
         int count = this.express.getCount();
         ItemStack copy = this.express.copy();
         switch (insertStack(operator)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.success", count, copy.toHoverableText());
+                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.success", count, copy.getDisplayName());
                 playItemPickupSound(operator);
             }
             case PART -> {
@@ -247,16 +247,16 @@ public class Express implements Comparable<Express> {
                 return;
             }
         }
-        Text hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
+        Component hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
         sendMessageIfPlayerOnline(this.sender, player -> {
-            Text text = getOperatorPlayerName(operator, player);
+            Component text = getOperatorPlayerName(operator, player);
             TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.sender", text, this.recipient);
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
         });
         sendMessageIfPlayerOnline(this.recipient, player -> {
-            Text text = getOperatorPlayerName(operator, player);
+            Component text = getOperatorPlayerName(operator, player);
             TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.recipient", text, this.sender);
             builder.setGrayItalic();
             builder.setHover(hover);
@@ -264,30 +264,30 @@ public class Express implements Comparable<Express> {
         });
     }
 
-    private Text getOperatorPlayerName(ServerPlayerEntity operator, ServerPlayerEntity player) {
+    private Component getOperatorPlayerName(ServerPlayer operator, ServerPlayer player) {
         MailCommand instance = CommandRegister.getCommandInstance(MailCommand.class);
-        return instance.intercept.test(player.getCommandSource()) ? operator.getDisplayName() : TextBuilder.translate("carpet.generic.operator");
+        return instance.intercept.test(player.createCommandSourceStack()) ? operator.getDisplayName() : TextBuilder.translate("carpet.generic.operator");
     }
 
     /**
      * 播放物品拾取音效
      */
-    public static void playItemPickupSound(@NotNull ServerPlayerEntity player) {
-        WorldUtils.playSound(player, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.PLAYERS);
+    public static void playItemPickupSound(@NotNull ServerPlayer player) {
+        WorldUtils.playSound(player, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS);
     }
 
     /**
      * 播放经验球拾取音效
      */
-    public static void playXpOrbPickupSound(@NotNull ServerPlayerEntity player) {
-        WorldUtils.playSound(player, SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS);
+    public static void playXpOrbPickupSound(@NotNull ServerPlayer player) {
+        WorldUtils.playSound(player, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS);
     }
 
     /**
      * 接收每一件快递
      */
     public InsertResult receiveEach() throws IOException {
-        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.recipient);
+        ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.recipient);
         if (player == null) {
             CarpetOrgAddition.LOGGER.error("找不到接收快递的玩家，正在停止接收");
             throw new NullPointerException();
@@ -299,7 +299,7 @@ public class Express implements Comparable<Express> {
      * 撤回每一件快递
      */
     public InsertResult cancelEach() throws IOException {
-        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.sender);
+        ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.sender);
         if (player == null) {
             CarpetOrgAddition.LOGGER.error("找不到撤回快递的玩家，正在停止撤回");
             throw new NullPointerException();
@@ -310,9 +310,9 @@ public class Express implements Comparable<Express> {
     /**
      * 向物品栏里插入物品
      */
-    private InsertResult insertStack(ServerPlayerEntity player) throws IOException {
+    private InsertResult insertStack(ServerPlayer player) throws IOException {
         int count = this.express.getCount();
-        player.getInventory().insertStack(this.express);
+        player.getInventory().add(this.express);
         // 物品没有插入
         if (count == this.express.getCount()) {
             return InsertResult.FAIL;
@@ -335,8 +335,8 @@ public class Express implements Comparable<Express> {
      * @param playerName 要查找的玩家名称
      * @param message    要发送的消息，使用Supplier包装，只在玩家存在时获取消息
      */
-    private void sendMessageIfPlayerOnline(String playerName, Function<ServerPlayerEntity, Text> message) {
-        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(playerName);
+    private void sendMessageIfPlayerOnline(String playerName, Function<ServerPlayer, Component> message) {
+        ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
         if (player == null) {
             return;
         }
@@ -347,27 +347,27 @@ public class Express implements Comparable<Express> {
      * 检查接收方是否有足够的权限执行接收物品的命令，这不会阻止物品发送，而是提示发送者
      */
     public void checkRecipientPermission() {
-        PlayerManager playerManager = this.server.getPlayerManager();
+        PlayerList playerManager = this.server.getPlayerList();
         // 物品接收者玩家
-        ServerPlayerEntity recipientPlayer = playerManager.getPlayer(this.recipient);
+        ServerPlayer recipientPlayer = playerManager.getPlayerByName(this.recipient);
         if (recipientPlayer == null) {
             return;
         }
         // 对方没有结束物品的权限，提示发送者
-        ServerPlayerEntity senderPlayer = playerManager.getPlayer(this.sender);
+        ServerPlayer senderPlayer = playerManager.getPlayerByName(this.sender);
         checkRecipientPermission(senderPlayer, recipientPlayer);
     }
 
-    public static void checkRecipientPermission(@Nullable ServerPlayerEntity senderPlayer, ServerPlayerEntity recipientPlayer) {
+    public static void checkRecipientPermission(@Nullable ServerPlayer senderPlayer, ServerPlayer recipientPlayer) {
         // 检查接收者是否有接收物品的权限
-        if (CommandUtils.canUseCommand(recipientPlayer.getCommandSource(), CarpetOrgAdditionSettings.commandMail)) {
+        if (CommandUtils.canUseCommand(recipientPlayer.createCommandSourceStack(), CarpetOrgAdditionSettings.commandMail)) {
             return;
         }
         if (senderPlayer == null) {
             return;
         }
         // 将消息设置为灰色斜体
-        Text message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
+        Component message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 
@@ -399,10 +399,10 @@ public class Express implements Comparable<Express> {
     /**
      * 将快递内容写入NBT
      */
-    public NbtCompound writeNbt(MinecraftServer server) {
-        ErrorReporter.Logging logging = createErrorReporter();
+    public CompoundTag writeNbt(MinecraftServer server) {
+        ProblemReporter.ScopedCollector logging = createErrorReporter();
         try (logging) {
-            NbtWriteView nbt = NbtWriteView.create(logging, server.getRegistryManager());
+            TagValueOutput nbt = TagValueOutput.createWithContext(logging, server.registryAccess());
             nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
             nbt.putInt(NBT_DATA_VERSION, GenericUtils.getNbtDataVersion());
             nbt.putString("sender", this.sender);
@@ -414,26 +414,26 @@ public class Express implements Comparable<Express> {
             nbt.putInt("id", this.id);
             int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
             nbt.putIntArray("time", args);
-            nbt.put("item", ItemStack.CODEC, this.express);
-            return nbt.getNbt();
+            nbt.store("item", ItemStack.CODEC, this.express);
+            return nbt.buildResult();
         }
     }
 
     /**
      * 从NBT读取快递信息
      */
-    public static Express readNbt(MinecraftServer server, NbtCompound nbt) {
-        ErrorReporter.Logging logging = createErrorReporter();
+    public static Express readNbt(MinecraftServer server, CompoundTag nbt) {
+        ProblemReporter.ScopedCollector logging = createErrorReporter();
         try (logging) {
-            ReadView view = NbtReadView.create(logging, server.getRegistryManager(), nbt);
+            ValueInput view = TagValueInput.create(logging, server.registryAccess(), nbt);
             int nbtDataVersion = nbt.getInt(NBT_DATA_VERSION).orElse(-1);
-            String sender = view.getOptionalString("sender").orElse(OfflinePlayerSearchTask.UNKNOWN);
-            String recipient = view.getOptionalString("recipient").orElse(OfflinePlayerSearchTask.UNKNOWN);
+            String sender = view.getString("sender").orElse(OfflinePlayerSearchTask.UNKNOWN);
+            String recipient = view.getString("recipient").orElse(OfflinePlayerSearchTask.UNKNOWN);
             UUID uuid = GenericUtils.uuidFromString(nbt.getString("uuid").orElse(null)).orElse(null);
-            boolean cancel = view.getBoolean("cancel", false);
+            boolean cancel = view.getBooleanOr("cancel", false);
             ItemStack stack = view.read("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
-            int id = view.getOptionalInt("id").orElse(-1);
-            int[] times = view.getOptionalIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
+            int id = view.getInt("id").orElse(-1);
+            int[] times = view.getIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
             LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
             Express express = new Express(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
             express.cancel = cancel;
@@ -441,8 +441,8 @@ public class Express implements Comparable<Express> {
         }
     }
 
-    private static ErrorReporter.Logging createErrorReporter() {
-        return new ErrorReporter.Logging(Express.class::toString, CarpetOrgAddition.LOGGER);
+    private static ProblemReporter.ScopedCollector createErrorReporter() {
+        return new ProblemReporter.ScopedCollector(Express.class::toString, CarpetOrgAddition.LOGGER);
     }
 
     /**
@@ -460,7 +460,7 @@ public class Express implements Comparable<Express> {
         return recipient;
     }
 
-    public Text getTime() {
+    public Component getTime() {
         return TextBuilder.translate("carpet.command.time.format",
                 this.time.getYear(),
                 this.time.getMonthValue(),
@@ -477,14 +477,14 @@ public class Express implements Comparable<Express> {
     /**
      * @return 指定玩家是否是当前快递的发送者
      */
-    public boolean isSender(ServerPlayerEntity player) {
+    public boolean isSender(ServerPlayer player) {
         return Objects.equals(this.sender, FetcherUtils.getPlayerName(player));
     }
 
     /**
      * @return 指定玩家是否是当前快递的接收者
      */
-    public boolean isRecipient(ServerPlayerEntity player) {
+    public boolean isRecipient(ServerPlayer player) {
         return Objects.equals(this.recipient, FetcherUtils.getPlayerName(player));
     }
 

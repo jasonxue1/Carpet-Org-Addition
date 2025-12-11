@@ -2,14 +2,14 @@ package org.carpetorgaddition.mixin.rule;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RedstoneWireBlock;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.RedStoneWireBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -17,10 +17,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 // 红石线不会连接到打开的活板门上的红石线
-@Mixin(RedstoneWireBlock.class)
+@Mixin(RedStoneWireBlock.class)
 public class RedstoneWireBlockMixin {
     // 红石线不会连接到打开的活板门上的红石线
-    @WrapOperation(method = "getRenderConnectionType(Lnet/minecraft/world/BlockView;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/util/math/Direction;Z)Lnet/minecraft/block/enums/WireConnection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/BlockState;getBlock()Lnet/minecraft/block/Block;"))
+    @WrapOperation(method = "getConnectingSide(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/Direction;Z)Lnet/minecraft/world/level/block/state/properties/RedstoneSide;", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;getBlock()Lnet/minecraft/world/level/block/Block;"))
     private Block getBlock(BlockState instance, Operation<Block> original) {
         if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get()) {
             return null;
@@ -29,8 +29,8 @@ public class RedstoneWireBlockMixin {
     }
 
     // 防止红石线掉落
-    @Inject(method = "getStateForNeighborUpdate", at = @At("HEAD"), cancellable = true)
-    private void preventDrop(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random, CallbackInfoReturnable<BlockState> cir) {
+    @Inject(method = "updateShape", at = @At("HEAD"), cancellable = true)
+    private void preventDrop(BlockState state, LevelReader world, ScheduledTickAccess tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random, CallbackInfoReturnable<BlockState> cir) {
         if (CarpetOrgAdditionSettings.simpleUpdateSkipper.get() && direction == Direction.DOWN) {
             cir.setReturnValue(state);
         }

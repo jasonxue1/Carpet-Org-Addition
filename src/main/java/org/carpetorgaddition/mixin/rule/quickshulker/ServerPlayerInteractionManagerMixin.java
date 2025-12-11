@@ -1,11 +1,11 @@
 package org.carpetorgaddition.mixin.rule.quickshulker;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.util.ScreenUtils;
@@ -14,16 +14,16 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ServerPlayerInteractionManager.class)
+@Mixin(ServerPlayerGameMode.class)
 public class ServerPlayerInteractionManagerMixin {
-    @Inject(method = "interactItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;use(Lnet/minecraft/world/World;Lnet/minecraft/entity/player/PlayerEntity;Lnet/minecraft/util/Hand;)Lnet/minecraft/util/ActionResult;"), cancellable = true)
-    private void interactItem(ServerPlayerEntity player, World world, ItemStack stack, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "useItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;use(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"), cancellable = true)
+    private void interactItem(ServerPlayer player, Level world, ItemStack stack, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (stack.isEmpty()) {
             return;
         }
         if (CarpetOrgAdditionSettings.quickShulker.get() && InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1) {
             ScreenUtils.openShulkerScreenHandler(player, stack);
-            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
 }

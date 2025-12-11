@@ -2,30 +2,33 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.block.*;
-import net.minecraft.block.enums.BlockFace;
-import net.minecraft.block.piston.PistonBehavior;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.FallingBlockEntity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.HungerManager;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.FallingBlockEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.food.FoodData;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.piston.PistonBaseBlock;
+import net.minecraft.world.level.block.piston.PistonHeadBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
@@ -175,25 +178,25 @@ public class BedrockAction extends AbstractPlayerAction {
         if (this.tickCurrentWork()) {
             return;
         }
-        World world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = FetcherUtils.getWorld(this.getFakePlayer());
         this.removeIf(context -> {
             if (context.getState() == BreakingState.COMPLETE) {
                 return true;
             }
-            if (world.getBlockState(context.getBedrockPos()).isOf(Blocks.BEDROCK)) {
+            if (world.getBlockState(context.getBedrockPos()).is(Blocks.BEDROCK)) {
                 return !canInteract(context.getBedrockPos());
             }
             return context.getState() != BreakingState.CLEAN_PISTON;
         });
-        double range = this.getFakePlayer().getBlockInteractionRange();
+        double range = this.getFakePlayer().blockInteractionRange();
         // 如果this.selectionArea过大，遍历时可能会造成大量卡顿
-        Box box = new Box(this.getFakePlayer().getBlockPos()).expand(Math.min(range, 10.0));
+        AABB box = new AABB(this.getFakePlayer().blockPosition()).inflate(Math.min(range, 10.0));
         for (BlockPos blockPos : new BlockPosTraverser(box)) {
             if (canInteract(blockPos) && this.inSelectionArea(blockPos)) {
                 BlockState blockState = world.getBlockState(blockPos);
-                if (blockState.isOf(Blocks.BEDROCK)) {
+                if (blockState.is(Blocks.BEDROCK)) {
                     this.add(new BedrockBreakingContext(blockPos));
-                } else if (blockState.isOf(Blocks.LAVA)) {
+                } else if (blockState.is(Blocks.LAVA)) {
                     this.lavas.add(blockPos);
                 }
             }
@@ -214,7 +217,7 @@ public class BedrockAction extends AbstractPlayerAction {
     /**
      * 设置目标基岩位置
      */
-    private void setGotoTarget(World world) {
+    private void setGotoTarget(Level world) {
         if (this.hasAction) {
             if (this.pathfinder.isFinished()) {
                 this.bedrockTarget = null;
@@ -244,11 +247,11 @@ public class BedrockAction extends AbstractPlayerAction {
     /**
      * 随机选择基岩位置
      */
-    private void selectRandomBedrock(World world) {
+    private void selectRandomBedrock(Level world) {
         if (this.pathfinder.isInvalid()) {
             for (int i = 0; i < 100; i++) {
                 BlockPos blockPos = this.traverser.randomBlockPos();
-                if (world.getBlockState(blockPos).isOf(Blocks.BEDROCK)) {
+                if (world.getBlockState(blockPos).is(Blocks.BEDROCK)) {
                     this.bedrockTarget = blockPos;
                     return;
                 }
@@ -260,7 +263,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 指定方块坐标是否在玩家交互距离内
      */
     private boolean canInteract(BlockPos blockPos) {
-        return this.getFakePlayer().canInteractWithBlockAt(blockPos, 0.0);
+        return this.getFakePlayer().isWithinBlockInteractionRange(blockPos, 0.0);
     }
 
     private boolean tickCurrentWork() {
@@ -349,7 +352,7 @@ public class BedrockAction extends AbstractPlayerAction {
                 }
             }
             case CLEAN_PISTON -> {
-                if (cleanPiston(bedrockPos.up())) {
+                if (cleanPiston(bedrockPos.above())) {
                     // 活塞挖掘完毕，执行下一步
                     context.nextStep();
                 } else {
@@ -370,8 +373,8 @@ public class BedrockAction extends AbstractPlayerAction {
         MutableInt pistonCount = new MutableInt(0);
         MutableInt levelCount = new MutableInt(0);
         // 遍历物品栏和副手，不遍历盔甲槽
-        ArrayList<ItemStack> list = new ArrayList<>(this.getFakePlayer().getInventory().getMainStacks());
-        list.add(this.getFakePlayer().getOffHandStack());
+        ArrayList<ItemStack> list = new ArrayList<>(this.getFakePlayer().getInventory().getNonEquipmentItems());
+        list.add(this.getFakePlayer().getOffhandItem());
         if (hasMaterial(list, pistonCount, levelCount)) {
             return true;
         }
@@ -386,12 +389,12 @@ public class BedrockAction extends AbstractPlayerAction {
 
     private static boolean hasMaterial(Iterable<ItemStack> list, MutableInt pistonCount, MutableInt levelCount) {
         for (ItemStack itemStack : list) {
-            if (itemStack.isOf(Items.PISTON)) {
+            if (itemStack.is(Items.PISTON)) {
                 pistonCount.add(itemStack.getCount());
-            } else if (itemStack.isOf(Items.LEVER)) {
+            } else if (itemStack.is(Items.LEVER)) {
                 levelCount.add(itemStack.getCount());
             }
-            if (pistonCount.getValue() >= 2 && levelCount.getValue() >= 1) {
+            if (pistonCount.intValue() >= 2 && levelCount.intValue() >= 1) {
                 return true;
             }
         }
@@ -405,11 +408,11 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private StepResult placePiston(BlockPos bedrockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        World world = FetcherUtils.getWorld(fakePlayer);
+        Level world = FetcherUtils.getWorld(fakePlayer);
         if (this.aboveHasFallingBlockEntity(bedrockPos)) {
             return StepResult.COMPLETION;
         }
-        BlockPos up = bedrockPos.up(1);
+        BlockPos up = bedrockPos.above(1);
         BlockState blockState = world.getBlockState(up);
         BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         boolean isPiston = false;
@@ -417,7 +420,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (isReplaceableBlock(blockState)) {
             // 当前方块是可以被直接替换的，例如雪
             // 什么也不需要不做
-        } else if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.FACING) == Direction.UP) {
+        } else if (blockState.is(Blocks.PISTON) && blockState.getValue(PistonBaseBlock.FACING) == Direction.UP) {
             // 当方块已经是活塞了，不需要再次放置
             isPiston = true;
         } else if (canMine(blockState, world, up)) {
@@ -425,19 +428,19 @@ public class BedrockAction extends AbstractPlayerAction {
         } else {
             return StepResult.COMPLETION;
         }
-        up = bedrockPos.up(2);
+        up = bedrockPos.above(2);
         blockState = world.getBlockState(up);
-        if (isPiston && blockState.isOf(Blocks.PISTON_HEAD) && blockState.get(PistonHeadBlock.FACING) == Direction.UP) {
+        if (isPiston && blockState.is(Blocks.PISTON_HEAD) && blockState.getValue(PistonHeadBlock.FACING) == Direction.UP) {
             // 上方方块是下方活塞伸出的活塞头
             return StepResult.CONTINUE;
         }
         // 活塞上方的方块不会影响活塞退出
-        if (blockState.isAir() || blockState.getPistonBehavior() == PistonBehavior.DESTROY) {
+        if (blockState.isAir() || blockState.getPistonPushReaction() == PushReaction.DESTROY) {
             if (isPiston) {
                 return StepResult.CONTINUE;
             }
             // 放置活塞
-            if (placePiston(bedrockPos, Direction.UP).isAccepted()) {
+            if (placePiston(bedrockPos, Direction.UP).consumesAction()) {
                 return StepResult.CONTINUE;
             }
             return StepResult.COMPLETION;
@@ -448,33 +451,33 @@ public class BedrockAction extends AbstractPlayerAction {
         }
     }
 
-    private boolean canMine(BlockState blockState, World world, BlockPos blockPos) {
+    private boolean canMine(BlockState blockState, Level world, BlockPos blockPos) {
         if (blockState.isAir()) {
             return true;
         }
-        boolean isPiston = blockState.isOf(Blocks.PISTON);
+        boolean isPiston = blockState.is(Blocks.PISTON);
         if (isPiston) {
             // 允许破坏方向不正确的活塞
-            if (blockState.get(PistonBlock.FACING).getAxis() != Direction.Axis.Y) {
+            if (blockState.getValue(PistonBaseBlock.FACING).getAxis() != Direction.Axis.Y) {
                 return true;
             }
             // 允许破坏浮空的活塞
-            if (!world.getBlockState(blockPos.down()).isOf(Blocks.BEDROCK)) {
+            if (!world.getBlockState(blockPos.below()).is(Blocks.BEDROCK)) {
                 return true;
             }
             // 允许破坏放置在基岩上但朝下的活塞
-            if (blockState.get(PistonBlock.FACING) == Direction.DOWN) {
+            if (blockState.getValue(PistonBaseBlock.FACING) == Direction.DOWN) {
                 return true;
             }
         }
         // 允许破坏没有附着在方块侧面的拉杆
-        if (blockState.isOf(Blocks.LEVER)) {
-            return blockState.get(LeverBlock.FACE) != BlockFace.WALL;
+        if (blockState.is(Blocks.LEVER)) {
+            return blockState.getValue(LeverBlock.FACE) != AttachFace.WALL;
         }
-        if (isPiston || blockState.isOf(Blocks.PISTON_HEAD)) {
+        if (isPiston || blockState.is(Blocks.PISTON_HEAD)) {
             return false;
         }
-        return blockState.getHardness(world, blockPos) != -1 && BlockExcavator.canBreak(this.getFakePlayer(), blockPos);
+        return blockState.getDestroySpeed(world, blockPos) != -1 && BlockExcavator.canBreak(this.getFakePlayer(), blockPos);
     }
 
     /**
@@ -485,26 +488,26 @@ public class BedrockAction extends AbstractPlayerAction {
     private StepResult placeAndActivateTheLever(BedrockBreakingContext context) {
         BlockPos bedrockPos = context.getBedrockPos();
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        World world = FetcherUtils.getWorld(fakePlayer);
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
+        Level world = FetcherUtils.getWorld(fakePlayer);
+        ServerPlayerGameMode interactionManager = fakePlayer.gameMode;
         Direction direction = null;
         for (Direction value : MathUtils.HORIZONTAL) {
-            BlockPos offset = bedrockPos.offset(value);
+            BlockPos offset = bedrockPos.relative(value);
             BlockState blockState = world.getBlockState(offset);
             if (isReplaceableBlock(blockState)) {
                 direction = value;
                 continue;
             }
             BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(fakePlayer);
-            if (blockState.isOf(Blocks.LEVER)) {
+            if (blockState.is(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
-                if (blockState.get(WallMountedBlock.FACE) != BlockFace.WALL) {
+                if (blockState.getValue(FaceAttachedHorizontalDirectionalBlock.FACE) != AttachFace.WALL) {
                     return tickBreakBlock(blockExcavator, offset);
                 }
-                if (bedrockPos.equals(offset.offset(blockState.get(LeverBlock.FACING), -1))) {
+                if (bedrockPos.equals(offset.relative(blockState.getValue(LeverBlock.FACING), -1))) {
                     if (context.getLeverPos() == null) {
                         context.setLeverPos(offset);
-                        if (blockState.get(LeverBlock.POWERED)) {
+                        if (blockState.getValue(LeverBlock.POWERED)) {
                             continue;
                         }
                         // 激活拉杆
@@ -514,9 +517,9 @@ public class BedrockAction extends AbstractPlayerAction {
                         return tickBreakBlock(blockExcavator, offset);
                     }
                 } else {
-                    BlockPos supportBlockPos = offset.offset(blockState.get(LeverBlock.FACING), -1);
+                    BlockPos supportBlockPos = offset.relative(blockState.getValue(LeverBlock.FACING), -1);
                     // 拉杆附着在了另一个基岩上
-                    if (world.getBlockState(supportBlockPos).isOf(Blocks.BEDROCK) && this.inSelectionArea(supportBlockPos)) {
+                    if (world.getBlockState(supportBlockPos).is(Blocks.BEDROCK) && this.inSelectionArea(supportBlockPos)) {
                         continue;
                     }
                     // 拉杆附着在了墙上，但不是当前要破坏的基岩方块
@@ -533,21 +536,21 @@ public class BedrockAction extends AbstractPlayerAction {
             return StepResult.COMPLETION;
         }
         // 没有正确的拉杆附着在基岩上，放置并激活拉杆
-        BlockPos offset = bedrockPos.offset(direction);
-        BlockState blockState = world.getBlockState(offset.down());
-        if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.FACING) == Direction.UP) {
+        BlockPos offset = bedrockPos.relative(direction);
+        BlockState blockState = world.getBlockState(offset.below());
+        if (blockState.is(Blocks.PISTON) && blockState.getValue(PistonBaseBlock.FACING) == Direction.UP) {
             // 当前位置下方是未伸出的活塞，不能在这里放置拉杆
             return StepResult.COMPLETION;
         }
-        if (blockState.isOf(Blocks.MOVING_PISTON)) {
+        if (blockState.is(Blocks.MOVING_PISTON)) {
             // 当前位置下方是移动的活塞
             return StepResult.COMPLETION;
         }
-        this.inventory.replenishment(Hand.OFF_HAND, stack -> stack.isOf(Items.LEVER));
+        this.inventory.replenishment(InteractionHand.OFF_HAND, stack -> stack.is(Items.LEVER));
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
-        BlockHitResult hitResult = new BlockHitResult(bedrockPos.toCenterPos(), direction, bedrockPos, false);
+        BlockHitResult hitResult = new BlockHitResult(bedrockPos.getCenter(), direction, bedrockPos, false);
         // 放置拉杆
-        interactionManager.interactBlock(fakePlayer, world, fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        interactionManager.useItemOn(fakePlayer, world, fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
         // 再次单击激活拉杆
         interactionLever(offset);
         context.setLeverPos(offset);
@@ -563,10 +566,10 @@ public class BedrockAction extends AbstractPlayerAction {
         if (blockState.isAir()) {
             return true;
         }
-        if (blockState.isIn(BlockTags.REPLACEABLE)) {
-            if (blockState.isOf(Blocks.SNOW)) {
+        if (blockState.is(BlockTags.REPLACEABLE)) {
+            if (blockState.is(Blocks.SNOW)) {
                 // 只有层数为1的雪片才能被替换
-                return blockState.get(SnowBlock.LAYERS) == 1;
+                return blockState.getValue(SnowLayerBlock.LAYERS) == 1;
             }
             return true;
         }
@@ -578,11 +581,11 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private StepResult pistonBreakBedrock(BedrockBreakingContext context) {
         BlockPos bedrockPos = context.getBedrockPos();
-        BlockPos up = bedrockPos.up();
+        BlockPos up = bedrockPos.above();
         // 基岩上方方块是活塞
-        World world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = FetcherUtils.getWorld(this.getFakePlayer());
         BlockState blockState = world.getBlockState(up);
-        if (blockState.isOf(Blocks.PISTON) && blockState.get(PistonBlock.EXTENDED)) {
+        if (blockState.is(Blocks.PISTON) && blockState.getValue(PistonBaseBlock.EXTENDED)) {
             BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
             // 先切换工具，再计算剩余挖掘时间
             switchTool(blockState, world, up, this.getFakePlayer());
@@ -592,8 +595,8 @@ public class BedrockAction extends AbstractPlayerAction {
                 // 方块将在本游戏刻挖掘完毕
                 BlockPos leverPos = context.getLeverPos();
                 BlockState leverState = world.getBlockState(leverPos);
-                if (leverState.isOf(Blocks.LEVER)) {
-                    if (leverState.get(LeverBlock.POWERED)) {
+                if (leverState.is(Blocks.LEVER)) {
+                    if (leverState.getValue(LeverBlock.POWERED)) {
                         // 关闭附着在基岩上的拉杆
                         interactionLever(leverPos);
                     }
@@ -603,7 +606,7 @@ public class BedrockAction extends AbstractPlayerAction {
                     // 继续挖掘，此时活塞应该会挖掘完毕
                     breakBlock(blockExcavator, up, false);
                     // 放置一个朝下的活塞，这个活塞会破坏掉基岩
-                    if (placePiston(bedrockPos, Direction.DOWN).isAccepted()) {
+                    if (placePiston(bedrockPos, Direction.DOWN).consumesAction()) {
                         return StepResult.COMPLETION;
                     }
                 }
@@ -620,46 +623,46 @@ public class BedrockAction extends AbstractPlayerAction {
      * 关闭周围所有可能激活活塞的拉杆
      */
     private void closeTheSurroundingLevers(BlockPos pistonPos) {
-        World world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = FetcherUtils.getWorld(this.getFakePlayer());
         Consumer<BlockPos> consumer = blockPos -> {
             BlockState blockState = world.getBlockState(blockPos);
             if (blockState.isAir()) {
                 return;
             }
-            if (blockState.isOf(Blocks.LEVER) && blockState.get(LeverBlock.POWERED)) {
+            if (blockState.is(Blocks.LEVER) && blockState.getValue(LeverBlock.POWERED)) {
                 interactionLever(blockPos);
             }
         };
         for (Direction direction : MathUtils.HORIZONTAL) {
-            BlockPos offset = pistonPos.offset(direction);
+            BlockPos offset = pistonPos.relative(direction);
             // 活塞周围的拉杆
             consumer.accept(offset);
             // 活塞周围的方块，这些方块可能是拉杆的支撑方块
             for (Direction value : MathUtils.HORIZONTAL) {
-                consumer.accept(offset.offset(value));
+                consumer.accept(offset.relative(value));
             }
         }
         for (Direction direction : MathUtils.HORIZONTAL) {
-            BlockPos offset = pistonPos.up().offset(direction);
+            BlockPos offset = pistonPos.above().relative(direction);
             consumer.accept(offset);
             for (Direction value : MathUtils.HORIZONTAL) {
-                consumer.accept(offset.offset(value));
+                consumer.accept(offset.relative(value));
             }
         }
-        consumer.accept(pistonPos.up(2));
+        consumer.accept(pistonPos.above(2));
         for (Direction direction : MathUtils.HORIZONTAL) {
-            consumer.accept(pistonPos.up(2).offset(direction));
+            consumer.accept(pistonPos.above(2).relative(direction));
         }
         // 活塞上方第三格可能放着朝下的拉杆
-        BlockPos up = pistonPos.up(3);
+        BlockPos up = pistonPos.above(3);
         BlockState upBlockState = world.getBlockState(up);
-        if (upBlockState.isOf(Blocks.LEVER) && upBlockState.get(LeverBlock.POWERED) && upBlockState.get(LeverBlock.FACE) == BlockFace.FLOOR) {
+        if (upBlockState.is(Blocks.LEVER) && upBlockState.getValue(LeverBlock.POWERED) && upBlockState.getValue(LeverBlock.FACE) == AttachFace.FLOOR) {
             interactionLever(up);
         }
         // 活塞下方第二格可能放着朝上的拉杆
-        BlockPos down = pistonPos.down(2);
+        BlockPos down = pistonPos.below(2);
         BlockState downBlockState = world.getBlockState(down);
-        if (downBlockState.isOf(Blocks.LEVER) && downBlockState.get(LeverBlock.POWERED) && downBlockState.get(LeverBlock.FACE) == BlockFace.CEILING) {
+        if (downBlockState.is(Blocks.LEVER) && downBlockState.getValue(LeverBlock.POWERED) && downBlockState.getValue(LeverBlock.FACE) == AttachFace.CEILING) {
             interactionLever(down);
         }
     }
@@ -674,10 +677,10 @@ public class BedrockAction extends AbstractPlayerAction {
             return true;
         }
         // 移动的活塞
-        if (blockState.isOf(Blocks.MOVING_PISTON)) {
+        if (blockState.is(Blocks.MOVING_PISTON)) {
             return false;
         }
-        if (blockState.isOf(Blocks.PISTON)) {
+        if (blockState.is(Blocks.PISTON)) {
             return breakBlock(blockExcavator, blockPos, true);
         }
         // 如果返回false，可能引发更多问题
@@ -686,18 +689,18 @@ public class BedrockAction extends AbstractPlayerAction {
 
     private StepResult tickBreakBlock(BlockExcavator blockExcavator, BlockPos blockPos) {
         EntityPlayerMPFake player = blockExcavator.getPlayer();
-        World world = FetcherUtils.getWorld(player);
-        if (FallingBlock.canFallThrough(world.getBlockState(blockPos.up()))) {
+        Level world = FetcherUtils.getWorld(player);
+        if (FallingBlock.isFree(world.getBlockState(blockPos.above()))) {
             // 等待上方下落的方块实体落下
             if (aboveHasFallingBlockEntity(blockPos)) {
                 return StepResult.COMPLETION;
             }
         }
         BlockState blockState = world.getBlockState(blockPos);
-        if (blockState.isOf(Blocks.TORCH) || blockState.isOf(Blocks.WALL_TORCH)) {
+        if (blockState.is(Blocks.TORCH) || blockState.is(Blocks.WALL_TORCH)) {
             // 挖掘火把上方的重力方块，只检查上方一格可能发生误判
             for (int i = 1; i <= 2; i++) {
-                BlockPos up = blockPos.up(i);
+                BlockPos up = blockPos.above(i);
                 if (world.getBlockState(up).getBlock() instanceof FallingBlock) {
                     if (canInteract(up)) {
                         return breakBlock(blockExcavator, up, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
@@ -713,8 +716,8 @@ public class BedrockAction extends AbstractPlayerAction {
             boolean hasTorch = this.hasTorch();
             while (true) {
                 Direction direction = hasTorch ? Direction.DOWN : Direction.UP;
-                BlockPos offset = blockPos.offset(direction);
-                if (world.getBlockState(offset).getBlock() instanceof FallingBlock && canInteract(offset.offset(direction))) {
+                BlockPos offset = blockPos.relative(direction);
+                if (world.getBlockState(offset).getBlock() instanceof FallingBlock && canInteract(offset.relative(direction))) {
                     blockPos = offset;
                 } else {
                     break;
@@ -722,7 +725,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             boolean broken = breakBlock(blockExcavator, blockPos, true);
             if (broken && hasTorch) {
-                this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.TORCH));
+                this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.TORCH));
                 placeBlock(blockPos);
                 return StepResult.COMPLETION;
             } else {
@@ -736,7 +739,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 玩家是否有火把
      */
     private boolean hasTorch() {
-        return this.inventory.contains(itemStack -> itemStack.isOf(Items.TORCH));
+        return this.inventory.contains(itemStack -> itemStack.is(Items.TORCH));
     }
 
     /**
@@ -751,12 +754,12 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     @SuppressWarnings("SameParameterValue")
     private boolean hasFallingSand(int range) {
-        return this.hasFallingSand(range, this.getFakePlayer().getBlockPos());
+        return this.hasFallingSand(range, this.getFakePlayer().blockPosition());
     }
 
     private boolean hasFallingSand(int range, BlockPos blockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        World world = FetcherUtils.getWorld(fakePlayer);
+        Level world = FetcherUtils.getWorld(fakePlayer);
         BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
         BlockPos to = new BlockPos(blockPos.getX() + range, WorldUtils.getMaxArchitectureAltitude(world), blockPos.getZ() + range);
         return new EntityTraverser<>(world, from, to, FallingBlockEntity.class).isPresent();
@@ -771,7 +774,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private boolean breakBlock(BlockExcavator blockExcavator, BlockPos blockPos, boolean switchTool) {
         this.hasAction = true;
         EntityPlayerMPFake player = blockExcavator.getPlayer();
-        World world = FetcherUtils.getWorld(player);
+        Level world = FetcherUtils.getWorld(player);
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
             switchTool(blockState, world, blockPos, player);
@@ -779,10 +782,10 @@ public class BedrockAction extends AbstractPlayerAction {
         return blockExcavator.mining(blockPos, Direction.DOWN, false);
     }
 
-    private void switchTool(BlockState blockState, World world, BlockPos blockPos, EntityPlayerMPFake player) {
+    private void switchTool(BlockState blockState, Level world, BlockPos blockPos, EntityPlayerMPFake player) {
         boolean replenishment = this.inventory.replenishment(itemStack -> {
             if (this.getFakePlayer().isCreative()) {
-                return itemStack.getItem().canMine(player.getMainHandStack(), blockState, world, blockPos, player);
+                return itemStack.getItem().canDestroyBlock(player.getMainHandItem(), blockState, world, blockPos, player);
             }
             if (itemStack.isEmpty()) {
                 return false;
@@ -791,7 +794,7 @@ public class BedrockAction extends AbstractPlayerAction {
             if (isDamaged(itemStack)) {
                 return false;
             }
-            return itemStack.getMiningSpeedMultiplier(blockState) > 1F;
+            return itemStack.getDestroySpeed(blockState) > 1F;
         });
         if (replenishment) {
             return;
@@ -804,22 +807,22 @@ public class BedrockAction extends AbstractPlayerAction {
      * @return 指定物品是否是低耐久且有经验修补的物品
      */
     private boolean isDamaged(ItemStack itemStack) {
-        return itemStack.isDamageable() && itemStack.getMaxDamage() - itemStack.getDamage() <= 10 && EnchantmentUtils.canRepairWithXp(itemStack);
+        return itemStack.isDamageableItem() && itemStack.getMaxDamage() - itemStack.getDamageValue() <= 10 && EnchantmentUtils.canRepairWithXp(itemStack);
     }
 
     /**
      * 放置活塞
      */
-    private ActionResult placePiston(BlockPos bedrockPos, Direction direction) {
+    private InteractionResult placePiston(BlockPos bedrockPos, Direction direction) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
+        ServerPlayerGameMode interactionManager = fakePlayer.gameMode;
         // 看向与活塞相反的方向
         FakePlayerUtils.look(fakePlayer, direction.getOpposite());
-        this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON));
+        this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.PISTON));
         // 放置活塞
-        BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(bedrockPos, 1.0), direction, bedrockPos.up(), false);
-        ActionResult result = interactionManager.interactBlock(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
-        if (result.isAccepted()) {
+        BlockHitResult hitResult = new BlockHitResult(Vec3.upFromBottomCenterOf(bedrockPos, 1.0), direction, bedrockPos.above(), false);
+        InteractionResult result = interactionManager.useItemOn(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
+        if (result.consumesAction()) {
             this.hasAction = true;
         }
         return result;
@@ -830,20 +833,20 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private void placeBlock(BlockPos blockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        ServerPlayerInteractionManager interactionManager = fakePlayer.interactionManager;
-        fakePlayer.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.toCenterPos());
-        BlockHitResult hitResult = new BlockHitResult(Vec3d.ofCenter(blockPos, 1.0), Direction.DOWN, blockPos, false);
-        interactionManager.interactBlock(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffHandStack(), Hand.OFF_HAND, hitResult);
+        ServerPlayerGameMode interactionManager = fakePlayer.gameMode;
+        fakePlayer.lookAt(EntityAnchorArgument.Anchor.EYES, blockPos.getCenter());
+        BlockHitResult hitResult = new BlockHitResult(Vec3.upFromBottomCenterOf(blockPos, 1.0), Direction.DOWN, blockPos, false);
+        interactionManager.useItemOn(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
     }
 
     /**
      * 单击一次拉杆
      */
     private void interactionLever(BlockPos leverPos) {
-        ServerPlayerInteractionManager interactionManager = this.getFakePlayer().interactionManager;
-        BlockHitResult hitResult = new BlockHitResult(leverPos.toCenterPos(), Direction.UP, leverPos, false);
-        ActionResult result = interactionManager.interactBlock(this.getFakePlayer(), FetcherUtils.getWorld(this.getFakePlayer()), this.getFakePlayer().getMainHandStack(), Hand.MAIN_HAND, hitResult);
-        if (result.isAccepted()) {
+        ServerPlayerGameMode interactionManager = this.getFakePlayer().gameMode;
+        BlockHitResult hitResult = new BlockHitResult(leverPos.getCenter(), Direction.UP, leverPos, false);
+        InteractionResult result = interactionManager.useItemOn(this.getFakePlayer(), FetcherUtils.getWorld(this.getFakePlayer()), this.getFakePlayer().getMainHandItem(), InteractionHand.MAIN_HAND, hitResult);
+        if (result.consumesAction()) {
             this.hasAction = true;
         }
     }
@@ -856,11 +859,11 @@ public class BedrockAction extends AbstractPlayerAction {
             if (this.getFakePlayer().getAbilities().invulnerable) {
                 return false;
             }
-            HungerManager hungerManager = this.getFakePlayer().getHungerManager();
+            FoodData hungerManager = this.getFakePlayer().getFoodData();
             if (hungerManager.getFoodLevel() <= 10) {
                 return true;
             }
-            if (hungerManager.isNotFull()) {
+            if (hungerManager.needsFood()) {
                 return this.getFakePlayer().getMaxHealth() - this.getFakePlayer().getHealth() > 2;
             }
         }
@@ -875,28 +878,28 @@ public class BedrockAction extends AbstractPlayerAction {
         while (iterator.hasNext()) {
             BlockPos blockPos = iterator.next();
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-            World world = FetcherUtils.getWorld(fakePlayer);
+            Level world = FetcherUtils.getWorld(fakePlayer);
             if (this.canInteract(blockPos) &&
-                (this.inventory.replenishment(Hand.OFF_HAND, canDrainFluid(world, blockPos)) ||
-                 this.inventory.replenishment(Hand.OFF_HAND, itemStack -> itemStack.isOf(Items.PISTON)))) {
+                (this.inventory.replenishment(InteractionHand.OFF_HAND, canDrainFluid(world, blockPos)) ||
+                 this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.PISTON)))) {
                 placeBlock(blockPos);
             }
             iterator.remove();
         }
     }
 
-    private Predicate<ItemStack> canDrainFluid(World world, BlockPos blockPos) {
+    private Predicate<ItemStack> canDrainFluid(Level world, BlockPos blockPos) {
         return itemStack -> {
-            if (itemStack.isOf(Items.PISTON) || itemStack.isOf(Items.REDSTONE_BLOCK)) {
+            if (itemStack.is(Items.PISTON) || itemStack.is(Items.REDSTONE_BLOCK)) {
                 return false;
             }
             if (itemStack.getItem() instanceof BlockItem blockItem) {
                 Block block = blockItem.getBlock();
                 // 避免放置潜影盒
-                if (block instanceof BlockWithEntity) {
+                if (block instanceof BaseEntityBlock) {
                     return false;
                 }
-                return block.getDefaultState().isSolidBlock(world, blockPos);
+                return block.defaultBlockState().isRedstoneConductor(world, blockPos);
             }
             return false;
         };
@@ -911,13 +914,13 @@ public class BedrockAction extends AbstractPlayerAction {
             this.setPhase(prev);
             return;
         }
-        if (this.getFakePlayer().canConsume(false)) {
-            if (this.getFakePlayer().getActiveItem().isEmpty()) {
+        if (this.getFakePlayer().canEat(false)) {
+            if (this.getFakePlayer().getUseItem().isEmpty()) {
                 if (this.inventory.replenishment(InventoryUtils::isFoodItem)) {
-                    ServerPlayerInteractionManager interactionManager = this.getFakePlayer().interactionManager;
-                    World world = FetcherUtils.getWorld(this.getFakePlayer());
-                    ItemStack food = this.getFakePlayer().getMainHandStack();
-                    interactionManager.interactItem(this.getFakePlayer(), world, food, Hand.MAIN_HAND);
+                    ServerPlayerGameMode interactionManager = this.getFakePlayer().gameMode;
+                    Level world = FetcherUtils.getWorld(this.getFakePlayer());
+                    ItemStack food = this.getFakePlayer().getMainHandItem();
+                    interactionManager.useItem(this.getFakePlayer(), world, food, InteractionHand.MAIN_HAND);
                 } else {
                     this.setPhase(prev);
                 }
@@ -949,10 +952,10 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         if (this.itemEntities.isEmpty()) {
-            Box box = this.traverser.toBox().expand(10.0);
-            List<ItemEntity> list = FetcherUtils.getWorld(this.getFakePlayer()).getNonSpectatingEntities(ItemEntity.class, box)
+            AABB box = this.traverser.toBox().inflate(10.0);
+            List<ItemEntity> list = FetcherUtils.getWorld(this.getFakePlayer()).getEntitiesOfClass(ItemEntity.class, box)
                     .stream()
-                    .filter(itemEntity -> isMaterial(itemEntity.getStack()))
+                    .filter(itemEntity -> isMaterial(itemEntity.getItem()))
                     .toList();
             this.itemEntities.addAll(list);
         }
@@ -978,17 +981,17 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private void dropGarbageAndCollectMaterial() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        PlayerInventory inventory = fakePlayer.getInventory();
-        World world = FetcherUtils.getWorld(fakePlayer);
-        BlockPos blockPos = fakePlayer.getBlockPos();
+        Inventory inventory = fakePlayer.getInventory();
+        Level world = FetcherUtils.getWorld(fakePlayer);
+        BlockPos blockPos = fakePlayer.blockPosition();
         ItemStack mostStack = ItemStack.EMPTY;
-        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
-            ItemStack itemStack = inventory.getMainStacks().get(i);
+        for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
+            ItemStack itemStack = inventory.getNonEquipmentItems().get(i);
             if (itemStack.isEmpty()) {
                 // 玩家物品栏里还有空槽位
                 return;
             }
-            if (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().getDefaultState().isSolidBlock(world, blockPos)) {
+            if (itemStack.getItem() instanceof BlockItem blockItem && blockItem.getBlock().defaultBlockState().isRedstoneConductor(world, blockPos)) {
                 if (itemStack.getCount() > mostStack.getCount()) {
                     mostStack = itemStack;
                 }
@@ -1013,8 +1016,8 @@ public class BedrockAction extends AbstractPlayerAction {
         ItemStack most = InventoryUtils.findMostAbundantStack(this.inventory, this::isMaterial);
         // 丢弃一组最多的物品，预留一个空槽位，后面向堆叠的空潜影盒中放入物品时会用到
         // 执行到这里时，物品栏一定是满的
-        for (int i = 0; i < this.inventory.size(); i++) {
-            if (InventoryUtils.canMerge(most, this.inventory.getStack(i))) {
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            if (InventoryUtils.canMerge(most, this.inventory.getItem(i))) {
                 this.inventory.drop(i);
                 break;
             }
@@ -1023,8 +1026,8 @@ public class BedrockAction extends AbstractPlayerAction {
         this.inventory.sort();
         // 是否已经遍历到了数量最多的物品
         boolean isFoundMost = false;
-        for (int i = 0; i < this.inventory.size(); i++) {
-            ItemStack itemStack = this.inventory.getStack(i);
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            ItemStack itemStack = this.inventory.getItem(i);
             // 因为已经整理过，所以遍历到了空物品或潜影盒，后面所有的物品都不是材料
             if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
                 return;
@@ -1048,8 +1051,8 @@ public class BedrockAction extends AbstractPlayerAction {
     private void collectToolToShulkerBox() {
         // 整理物品栏
         this.inventory.sort();
-        for (int i = 0; i < this.inventory.size(); i++) {
-            ItemStack itemStack = this.inventory.getStack(i);
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            ItemStack itemStack = this.inventory.getItem(i);
             if (itemStack.isEmpty() || InventoryUtils.isShulkerBoxItem(itemStack)) {
                 return;
             }
@@ -1064,7 +1067,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (isMaterial(itemStack)) {
             return false;
         }
-        if (itemStack.isOf(Items.TORCH)) {
+        if (itemStack.is(Items.TORCH)) {
             return false;
         }
         if (InventoryUtils.isFoodItem(itemStack)) {
@@ -1077,7 +1080,7 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     private boolean isMaterial(ItemStack itemStack) {
-        return itemStack.isOf(Items.PISTON) || itemStack.isOf(Items.LEVER);
+        return itemStack.is(Items.PISTON) || itemStack.is(Items.LEVER);
     }
 
     public void add(BedrockBreakingContext context) {
@@ -1093,18 +1096,18 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
-        ArrayList<Text> list = new ArrayList<>();
+    public List<Component> info() {
+        ArrayList<Component> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
         switch (this.regionType) {
             case CUBOID -> {
-                Text from = TextProvider.blockPos(this.traverser.getMinBlockPos(), Formatting.GREEN);
-                Text to = TextProvider.blockPos(this.traverser.getMaxBlockPos(), Formatting.GREEN);
+                Component from = TextProvider.blockPos(this.traverser.getMinBlockPos(), ChatFormatting.GREEN);
+                Component to = TextProvider.blockPos(this.traverser.getMaxBlockPos(), ChatFormatting.GREEN);
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
             }
             case CYLINDER -> {
                 CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
-                Text center = TextProvider.blockPos(iterator.getCenter());
+                Component center = TextProvider.blockPos(iterator.getCenter());
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.getRadius()));
                 list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.getHeight()));
@@ -1140,7 +1143,7 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.bedrock");
     }
 
@@ -1172,12 +1175,12 @@ public class BedrockAction extends AbstractPlayerAction {
     public Optional<BlockPos> getMovingTarget() {
         switch (this.getPhase()) {
             case WORK -> {
-                World world = FetcherUtils.getWorld(this.getFakePlayer());
+                Level world = FetcherUtils.getWorld(this.getFakePlayer());
                 if (this.bedrockTarget == null) {
                     return Optional.empty();
                 }
                 BlockState blockState = world.getBlockState(this.bedrockTarget);
-                if (blockState.isOf(Blocks.BEDROCK) || this.isMovingToNearbyBedrock) {
+                if (blockState.is(Blocks.BEDROCK) || this.isMovingToNearbyBedrock) {
                     return Optional.of(this.bedrockTarget);
                 }
                 return Optional.empty();
@@ -1186,7 +1189,7 @@ public class BedrockAction extends AbstractPlayerAction {
                 if (this.recentItemEntity == null || this.recentItemEntity.isRemoved()) {
                     return Optional.empty();
                 }
-                return Optional.of(this.recentItemEntity.getBlockPos());
+                return Optional.of(this.recentItemEntity.blockPosition());
             }
             default -> {
                 return Optional.empty();

@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.vehicle.boat.Boat;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,11 +17,11 @@ public abstract class EntityMixin {
     private final Entity thisEntity = (Entity) (Object) this;
 
     // 登山船
-    @Inject(method = "getStepHeight", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "maxUpStep", at = @At("HEAD"), cancellable = true)
     private void getStepHeight(CallbackInfoReturnable<Float> cir) {
         if (CarpetOrgAdditionSettings.climbingBoat.get()
-                && thisEntity instanceof BoatEntity boatEntity
-                && boatEntity.getControllingPassenger() instanceof PlayerEntity) {
+                && thisEntity instanceof Boat boatEntity
+                && boatEntity.getControllingPassenger() instanceof Player) {
             cir.setReturnValue(1.0F);
         }
     }

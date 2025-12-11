@@ -3,20 +3,20 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.block.BlockState;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.ai.pathing.LandPathNodeMaker;
-import net.minecraft.entity.ai.pathing.Path;
-import net.minecraft.entity.ai.pathing.PathNode;
-import net.minecraft.entity.ai.pathing.PathNodeNavigator;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.ChunkCache;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.PathNavigationRegion;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.Path;
+import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class GeneralPathfinder implements FakePlayerPathfinder {
     private final Supplier<EntityPlayerMPFake> fakePlayerSupplier;
     private final Supplier<Optional<BlockPos>> target;
-    private final ArrayList<Vec3d> nodes = new ArrayList<>();
+    private final ArrayList<Vec3> nodes = new ArrayList<>();
     private int currentIndex;
     /**
      * 无需改变移动方向的时间
@@ -87,13 +87,13 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             this.setValid();
         }
         this.previous = blockPos;
-        Vec3d pos = FetcherUtils.getFootPos(this.getFakePlayer());
+        Vec3 pos = FetcherUtils.getFootPos(this.getFakePlayer());
         this.directTravelTime--;
         if (this.updateTime > 0) {
             this.updateTime--;
         }
         // 是否还没有接近目标
-        boolean farAway = blockPos.toBottomCenterPos().distanceTo(pos) > 1.5;
+        boolean farAway = blockPos.getBottomCenter().distanceTo(pos) > 1.5;
         if (this.updateTime == 0 && farAway) {
             // 更新路径
             this.noRoad = false;
@@ -111,25 +111,25 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             }
             return;
         }
-        Vec3d current = this.getCurrentNode();
-        boolean onGround = this.getFakePlayer().isOnGround();
+        Vec3 current = this.getCurrentNode();
+        boolean onGround = this.getFakePlayer().onGround();
         if (onGround) {
             if (this.directTravelTime <= 0) {
-                this.getFakePlayer().lookAt(EntityAnchorArgumentType.EntityAnchor.FEET, current);
+                this.getFakePlayer().lookAt(EntityAnchorArgument.Anchor.FEET, current);
             }
-        } else if (this.getFakePlayer().getVelocity().getY() < 0) {
+        } else if (this.getFakePlayer().getDeltaMovement().y() < 0) {
             // 玩家跳跃时，也会执行到这里
             // 玩家在从一格高的方块上下来，有时会尝试回到上一个节点
             this.directTravelTime = 1;
             // 如果下一个位置需要跳下去，设置潜行
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-            Direction direction = fakePlayer.getMovementDirection();
-            BlockPos down = fakePlayer.getBlockPos().down();
-            World world = FetcherUtils.getWorld(fakePlayer);
+            Direction direction = fakePlayer.getMotionDirection();
+            BlockPos down = fakePlayer.blockPosition().below();
+            Level world = FetcherUtils.getWorld(fakePlayer);
             BlockState blockState = world.getBlockState(down);
-            if (blockState.isAir() || blockState.isSideSolidFullSquare(world, down, Direction.UP)) {
-                BlockPos offset = down.offset(direction);
-                if (!world.getBlockState(offset).isSideSolidFullSquare(world, offset, Direction.UP)) {
+            if (blockState.isAir() || blockState.isFaceSturdy(world, down, Direction.UP)) {
+                BlockPos offset = down.relative(direction);
+                if (!world.getBlockState(offset).isFaceSturdy(world, offset, Direction.UP)) {
                     this.sneakTime = 3;
                 }
             }
@@ -147,20 +147,20 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         }
     }
 
-    private void jump(Vec3d current, Vec3d pos) {
+    private void jump(Vec3 current, Vec3 pos) {
         double horizontal = MathUtils.horizontalDistance(current, pos);
         double vertical = MathUtils.verticalDistance(current, pos);
         // 玩家可以直接走向方块，不需要跳跃
-        if (vertical <= getFakePlayer().getAttributeValue(EntityAttributes.STEP_HEIGHT)) {
+        if (vertical <= getFakePlayer().getAttributeValue(Attributes.STEP_HEIGHT)) {
             return;
         }
         // 当前位置比玩家位置低，不需要跳跃
-        if (current.getY() < pos.getY()) {
+        if (current.y() < pos.y()) {
             return;
         }
         // 跳跃高度可能受多种因素影响，但这里不考虑它
         if (horizontal < 1.0 && vertical < 1.25) {
-            this.getFakePlayer().jump();
+            this.getFakePlayer().jumpFromGround();
         }
     }
 
@@ -195,22 +195,22 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             return;
         }
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        BlockPos blockPos = fakePlayer.getBlockPos();
-        BlockPos from = blockPos.add(-FOLLOW_RANGE, -FOLLOW_RANGE, -FOLLOW_RANGE);
-        BlockPos to = blockPos.add(FOLLOW_RANGE, FOLLOW_RANGE, FOLLOW_RANGE);
-        World world = FetcherUtils.getWorld(fakePlayer);
-        ChunkCache chunkCache = new ChunkCache(world, from, to);
-        LandPathNodeMaker maker = new LandPathNodeMaker();
-        Vec3d pos = FetcherUtils.getFootPos(fakePlayer);
+        BlockPos blockPos = fakePlayer.blockPosition();
+        BlockPos from = blockPos.offset(-FOLLOW_RANGE, -FOLLOW_RANGE, -FOLLOW_RANGE);
+        BlockPos to = blockPos.offset(FOLLOW_RANGE, FOLLOW_RANGE, FOLLOW_RANGE);
+        Level world = FetcherUtils.getWorld(fakePlayer);
+        PathNavigationRegion chunkCache = new PathNavigationRegion(world, from, to);
+        WalkNodeEvaluator maker = new WalkNodeEvaluator();
+        Vec3 pos = FetcherUtils.getFootPos(fakePlayer);
         DummyEntity entity = new DummyEntity(world, pos);
-        PathNodeNavigator navigator = new PathNodeNavigator(maker, FOLLOW_RANGE * 16);
-        Path path = navigator.findPathToAny(chunkCache, entity, Set.of(optional.get()), FOLLOW_RANGE, 0, 1F);
+        PathFinder navigator = new PathFinder(maker, FOLLOW_RANGE * 16);
+        Path path = navigator.findPath(chunkCache, entity, Set.of(optional.get()), FOLLOW_RANGE, 0, 1F);
         if (path == null) {
             return;
         }
-        for (int i = 0; i < path.getLength(); i++) {
-            PathNode node = path.getNode(i);
-            this.nodes.add(node.getBlockPos().toBottomCenterPos());
+        for (int i = 0; i < path.getNodeCount(); i++) {
+            Node node = path.getNode(i);
+            this.nodes.add(node.asBlockPos().getBottomCenter());
         }
         this.nodes.set(0, pos);
         this.onStart();
@@ -220,15 +220,15 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public Vec3d getCurrentNode() {
+    public Vec3 getCurrentNode() {
         return this.nodes.get(this.currentIndex);
     }
 
     @Override
     public boolean arrivedAtAnyNode() {
         for (int i = this.currentIndex; i < this.nodes.size(); i++) {
-            Vec3d current = this.nodes.get(i);
-            Vec3d pos = FetcherUtils.getFootPos(this.getFakePlayer());
+            Vec3 current = this.nodes.get(i);
+            Vec3 pos = FetcherUtils.getFootPos(this.getFakePlayer());
             if (current.distanceTo(pos) <= 0.5) {
                 if (i > 0) {
                     this.setValid();
@@ -262,7 +262,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public List<Vec3d> getRenderNodes() {
+    public List<Vec3> getRenderNodes() {
         return this.nodes.stream().map(vec3d -> vec3d.add(0.0, 0.1, 0.0)).toList();
     }
 
@@ -305,7 +305,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     @Override
     public boolean isInaccessible() {
         Optional<BlockPos> optional = this.target.get();
-        return !optional.map(blockPos -> blockPos.equals(BlockPos.ofFloored(this.nodes.getLast()))).orElse(true);
+        return !optional.map(blockPos -> blockPos.equals(BlockPos.containing(this.nodes.getLast()))).orElse(true);
     }
 
     private EntityPlayerMPFake getFakePlayer() {
@@ -315,10 +315,10 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     /**
      * 一个占位实体，没有实际作用
      */
-    public static class DummyEntity extends MobEntity {
-        protected DummyEntity(World world, Vec3d pos) {
+    public static class DummyEntity extends Mob {
+        protected DummyEntity(Level world, Vec3 pos) {
             super(EntityType.VILLAGER, world);
-            this.setPosition(pos);
+            this.setPos(pos);
         }
     }
 }

@@ -1,11 +1,11 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.FireworkRocketItem;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.FireworkRocketItem;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,23 +14,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(FireworkRocketItem.class)
 public abstract class FireworkRocketItemMixin {
-    @Inject(method = "useOnBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrement(I)V"))
-    private void useOnBlock(ItemUsageContext context, CallbackInfoReturnable<ActionResult> cir) {
-        PlayerEntity player = context.getPlayer();
+    @Inject(method = "useOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;shrink(I)V"))
+    private void useOnBlock(UseOnContext context, CallbackInfoReturnable<InteractionResult> cir) {
+        Player player = context.getPlayer();
         if (player == null) {
             return;
         }
         //烟花火箭使用冷却(对方块使用)
         if (CarpetOrgAdditionSettings.fireworkRocketUseCooldown.get()) {
-            player.getItemCooldownManager().set(context.getStack(), 5);
+            player.getCooldowns().addCooldown(context.getItemInHand(), 5);
         }
     }
 
     //烟花火箭使用冷却(使用鞘翅飞行时)
-    @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;decrementUnlessCreative(ILnet/minecraft/entity/LivingEntity;)V"))
-    private void use(World world, PlayerEntity user, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (CarpetOrgAdditionSettings.fireworkRocketUseCooldown.get() && user != null && user.isGliding()) {
-            user.getItemCooldownManager().set(user.getStackInHand(hand), 5);
+    @Inject(method = "use", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;consume(ILnet/minecraft/world/entity/LivingEntity;)V"))
+    private void use(Level world, Player user, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        if (CarpetOrgAdditionSettings.fireworkRocketUseCooldown.get() && user != null && user.isFallFlying()) {
+            user.getCooldowns().addCooldown(user.getItemInHand(hand), 5);
         }
     }
 }

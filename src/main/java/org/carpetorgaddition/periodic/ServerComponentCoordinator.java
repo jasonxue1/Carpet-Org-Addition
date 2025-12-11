@@ -2,9 +2,9 @@ package org.carpetorgaddition.periodic;
 
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerTickManager;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.ServerTickRateManager;
 import org.carpetorgaddition.periodic.express.ExpressManager;
 import org.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import org.carpetorgaddition.periodic.task.ServerTaskManager;
@@ -49,7 +49,7 @@ public class ServerComponentCoordinator {
 
     public void tick() {
         this.expressManager.tick();
-        ServerTickManager tickManager = this.server.getTickManager();
+        ServerTickRateManager tickManager = this.server.tickRateManager();
         this.serverTaskManager.tick(tickManager);
         this.pageManager.tick();
     }
@@ -88,7 +88,7 @@ public class ServerComponentCoordinator {
     }
 
     @NotNull
-    public static ServerComponentCoordinator getCoordinator(CommandContext<ServerCommandSource> context) {
+    public static ServerComponentCoordinator getCoordinator(CommandContext<CommandSourceStack> context) {
         return getCoordinator(context.getSource().getServer());
     }
 

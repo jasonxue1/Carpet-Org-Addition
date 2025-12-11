@@ -1,11 +1,11 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.resources.Identifier;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
@@ -51,12 +51,12 @@ public class WaypointRenderer {
      * 绘制路径点
      */
     public void render(WorldRenderContext context) {
-        MatrixStack matrixStack = context.matrixStack();
+        PoseStack matrixStack = context.matrixStack();
         for (Waypoint waypoint : waypoints.values()) {
             try {
                 // 绘制图标
-                VertexConsumerProvider consumers = context.consumers();
-                RenderTickCounter tickCounter = context.tickCounter();
+                MultiBufferSource consumers = context.consumers();
+                DeltaTracker tickCounter = context.tickCounter();
                 waypoint.render(matrixStack, consumers, this.camera, tickCounter);
             } catch (RuntimeException e) {
                 // 发送错误消息，然后停止渲染

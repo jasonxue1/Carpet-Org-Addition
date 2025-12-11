@@ -1,39 +1,39 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.village.TradeOfferList;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
-import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
-import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.carpetorgaddition.wheel.provider.TextProvider;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 import java.util.ArrayList;
 
 public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
-    private final Text treadName;
+    private final Component treadName;
 
-    public TradeItemSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ItemStackPredicate predicate, ServerCommandSource source) {
+    public TradeItemSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ItemStackPredicate predicate, CommandSourceStack source) {
         super(world, blockPosTraverser, sourcePos, source);
         this.predicate = predicate;
         this.treadName = predicate.toText();
     }
 
     @Override
-    protected void searchVillager(MerchantEntity merchant) {
-        TradeOfferList offers = merchant.getOffers();
+    protected void searchVillager(AbstractVillager merchant) {
+        MerchantOffers offers = merchant.getOffers();
         ArrayList<Integer> list = new ArrayList<>();
         for (int index = 0; index < offers.size(); index++) {
             // 检查每个出售的物品是否与谓词匹配
-            if (this.predicate.test(offers.get(index).getSellItem())) {
+            if (this.predicate.test(offers.get(index).getResult())) {
                 list.add(index + 1);
                 this.tradeCount++;
             }
@@ -48,7 +48,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     /**
      * @return 获取查找结果
      */
-    private Result getResult(MerchantEntity merchant, ArrayList<Integer> list) {
+    private Result getResult(AbstractVillager merchant, ArrayList<Integer> list) {
         return new Result() {
             @Override
             public int compare(Result o1, Result o2) {
@@ -56,18 +56,18 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
             }
 
             @Override
-            public Text get() {
+            public Component get() {
                 // 村民所在坐标
-                BlockPos blockPos = merchant.getBlockPos();
+                BlockPos blockPos = merchant.blockPosition();
                 // 村民或流浪商人的名称
-                Text villagerName = merchant.getName();
+                Component villagerName = merchant.getName();
                 return TextBuilder.translate("carpet.commands.finder.trade.item.each",
-                        TextProvider.blockPos(blockPos, Formatting.GREEN), villagerName, getIndexArray(list));
+                        TextProvider.blockPos(blockPos, ChatFormatting.GREEN), villagerName, getIndexArray(list));
             }
 
             @Override
             public BlockPos villagerPos() {
-                return merchant.getBlockPos();
+                return merchant.blockPosition();
             }
         };
     }
@@ -80,7 +80,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected Text getTradeName() {
+    protected Component getTradeName() {
         return this.treadName;
     }
 

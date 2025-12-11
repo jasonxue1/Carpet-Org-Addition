@@ -1,7 +1,7 @@
 package org.carpetorgaddition.periodic.task;
 
-import net.minecraft.server.ServerTickManager;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.ServerTickRateManager;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.util.MessageUtils;
@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
-    protected final ServerCommandSource source;
+    protected final CommandSourceStack source;
     /**
      * 之前每个游戏刻中任务持续时间的总和
      */
@@ -26,7 +26,7 @@ public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
             this::ofPlatformThread
     );
 
-    public ServerTask(ServerCommandSource source) {
+    public ServerTask(CommandSourceStack source) {
         this.source = source;
         this.executor.allowCoreThreadTimeOut(true);
     }
@@ -51,12 +51,12 @@ public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
      *
      * @return 当前任务是否已经执行结束
      */
-    public final boolean execute(ServerTickManager tickManager) {
+    public final boolean execute(ServerTickRateManager tickManager) {
         if (this.remove) {
             return true;
         }
         try {
-            if (tickManager.shouldTick() || this.constantSpeed()) {
+            if (tickManager.runsNormally() || this.constantSpeed()) {
                 this.tickTaskStartTime = System.currentTimeMillis();
                 this.tick();
                 this.executionTime += getTickExecutionTime();

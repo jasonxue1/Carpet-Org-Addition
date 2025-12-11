@@ -1,17 +1,17 @@
 package org.carpetorgaddition.client.util;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.Mouse;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.util.hit.HitResult;
+import net.minecraft.client.Camera;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
+import net.minecraft.client.Options;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,8 +25,8 @@ public class ClientUtils {
     /**
      * 获取游戏客户端示例
      */
-    public static MinecraftClient getClient() {
-        return MinecraftClient.getInstance();
+    public static Minecraft getClient() {
+        return Minecraft.getInstance();
     }
 
     /**
@@ -35,7 +35,7 @@ public class ClientUtils {
     @Nullable
     @Contract(pure = true)
     public static IntegratedServer getServer() {
-        return getClient().getServer();
+        return getClient().getSingleplayerServer();
     }
 
     /**
@@ -43,8 +43,8 @@ public class ClientUtils {
      */
     @NotNull
     @Contract(pure = true)
-    public static ClientPlayerEntity getPlayer() {
-        ClientPlayerEntity player = getClient().player;
+    public static LocalPlayer getPlayer() {
+        LocalPlayer player = getClient().player;
         if (player == null) {
             throw new IllegalStateException("Attempted to get client player while not in a game");
         }
@@ -56,7 +56,7 @@ public class ClientUtils {
         if (id == -1) {
             return Optional.empty();
         }
-        return Optional.ofNullable(getWorld().getEntityById(id));
+        return Optional.ofNullable(getWorld().getEntity(id));
     }
 
     /**
@@ -64,8 +64,8 @@ public class ClientUtils {
      */
     @NotNull
     @Contract(pure = true)
-    public static ClientWorld getWorld() {
-        ClientWorld world = getClient().world;
+    public static ClientLevel getWorld() {
+        ClientLevel world = getClient().level;
         if (world == null) {
             throw new IllegalStateException("Attempted to get client world while not in a game");
         }
@@ -83,8 +83,8 @@ public class ClientUtils {
     /**
      * 获取文字渲染器
      */
-    public static TextRenderer getTextRenderer() {
-        return getClient().textRenderer;
+    public static Font getTextRenderer() {
+        return getClient().font;
     }
 
     /**
@@ -92,7 +92,7 @@ public class ClientUtils {
      */
     @Contract(pure = true)
     public static Camera getCamera() {
-        return getGameRenderer().getCamera();
+        return getGameRenderer().getMainCamera();
     }
 
     /**
@@ -100,13 +100,13 @@ public class ClientUtils {
      */
     @Nullable
     public static Screen getCurrentScreen() {
-        return getClient().currentScreen;
+        return getClient().screen;
     }
 
     /**
      * 获取客户端游戏设置
      */
-    public static GameOptions getGameOptions() {
+    public static Options getGameOptions() {
         return getClient().options;
     }
 
@@ -115,13 +115,13 @@ public class ClientUtils {
      */
     @Nullable
     public static HitResult getCrosshairTarget() {
-        return getClient().crosshairTarget;
+        return getClient().hitResult;
     }
 
     /**
      * 获取鼠标信息
      */
-    public static Mouse getMouse() {
-        return getClient().mouse;
+    public static MouseHandler getMouse() {
+        return getClient().mouseHandler;
     }
 }

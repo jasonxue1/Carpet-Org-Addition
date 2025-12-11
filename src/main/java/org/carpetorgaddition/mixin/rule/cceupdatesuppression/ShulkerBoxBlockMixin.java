@@ -1,14 +1,14 @@
 package org.carpetorgaddition.mixin.rule.cceupdatesuppression;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
+import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.carpetorgaddition.exception.CCEUpdateSuppressException;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -24,10 +24,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ShulkerBoxBlock.class)
 public class ShulkerBoxBlockMixin {
     // CCE更新抑制器
-    @Inject(method = "getComparatorOutput", at = @At("HEAD"))
-    private void getComparatorOutput(BlockState state, World world, BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir) {
+    @Inject(method = "getAnalogOutputSignal", at = @At("HEAD"))
+    private void getComparatorOutput(BlockState state, Level world, BlockPos pos, Direction direction, CallbackInfoReturnable<Integer> cir) {
         // 不要在客户端抛出异常，这可能导致客户端游戏崩溃
-        if (world.isClient()) {
+        if (world.isClientSide()) {
             return;
         }
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {
@@ -37,20 +37,20 @@ public class ShulkerBoxBlockMixin {
 
     @Unique
     @Nullable
-    private String getBlockName(World world, BlockPos blockPos) {
+    private String getBlockName(Level world, BlockPos blockPos) {
         if (world.getBlockEntity(blockPos) instanceof ShulkerBoxBlockEntity shulkerBoxBlockEntity) {
             return shulkerBoxBlockEntity.getDisplayName().getString();
         }
         return null;
     }
 
-    @Inject(method = "onUse", at = @At("HEAD"), cancellable = true)
-    private void onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit,
-                       CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
+    private void onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit,
+                       CallbackInfoReturnable<InteractionResult> cir) {
         // 提示玩家不能打开用于更新抑制的潜影盒
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {
             MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.CCEUpdateSuppression"));
-            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
 }

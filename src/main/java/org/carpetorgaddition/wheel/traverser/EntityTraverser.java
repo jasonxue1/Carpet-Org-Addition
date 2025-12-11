@@ -1,8 +1,8 @@
 package org.carpetorgaddition.wheel.traverser;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class EntityTraverser<T extends Entity> extends WorldTraverser<Optional<T>> {
-    private final World world;
+    private final Level world;
     private final Class<T> type;
 
-    public EntityTraverser(World world, BlockPos from, BlockPos to, Class<T> type) {
+    public EntityTraverser(Level world, BlockPos from, BlockPos to, Class<T> type) {
         super(from, to);
         this.world = world;
         this.type = type;
@@ -24,7 +24,7 @@ public class EntityTraverser<T extends Entity> extends WorldTraverser<Optional<T
     }
 
     private List<T> entities(Class<T> type) {
-        return this.world.getNonSpectatingEntities(type, this.toBox());
+        return this.world.getEntitiesOfClass(type, this.toBox());
     }
 
     public boolean isEmpty() {

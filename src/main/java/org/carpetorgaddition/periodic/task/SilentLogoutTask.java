@@ -1,14 +1,14 @@
 package org.carpetorgaddition.periodic.task;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 
 public class SilentLogoutTask extends ServerTask {
     private final EntityPlayerMPFake fakePlayer;
     private int time;
 
-    public SilentLogoutTask(ServerCommandSource source, EntityPlayerMPFake fakePlayer, int time) {
+    public SilentLogoutTask(CommandSourceStack source, EntityPlayerMPFake fakePlayer, int time) {
         super(source);
         this.fakePlayer = fakePlayer;
         if (time <= 0) {

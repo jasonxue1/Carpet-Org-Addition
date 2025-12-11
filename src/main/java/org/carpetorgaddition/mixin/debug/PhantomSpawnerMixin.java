@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.debug;
 
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.spawner.PhantomSpawner;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.levelgen.PhantomSpawner;
 import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.debug.OnlyDeveloped;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,12 +14,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(PhantomSpawner.class)
 public class PhantomSpawnerMixin {
     @Shadow
-    private int cooldown;
+    private int nextTick;
 
-    @Inject(method = "spawn", at = @At("HEAD"))
-    private void spawn(ServerWorld world, boolean spawnMonsters, CallbackInfo ci) {
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void spawn(ServerLevel world, boolean spawnMonsters, CallbackInfo ci) {
         if (DebugSettings.phantomImmediatelySpawn.get()) {
-            this.cooldown = 0;
+            this.nextTick = 0;
         }
     }
 }

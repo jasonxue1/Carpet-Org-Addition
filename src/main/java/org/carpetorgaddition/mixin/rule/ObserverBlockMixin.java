@@ -1,47 +1,48 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.FacingBlock;
-import net.minecraft.block.ObserverBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.stat.Stats;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.tick.ScheduledTickView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.stats.Stats;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.DirectionalBlock;
+import net.minecraft.world.level.block.ObserverBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
+import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
 @Mixin(ObserverBlock.class)
-public abstract class ObserverBlockMixin extends FacingBlock {
+public abstract class ObserverBlockMixin extends DirectionalBlock {
     @Shadow
-    protected abstract void scheduleTick(WorldView world, ScheduledTickView tickView, BlockPos pos);
+    protected abstract void startSignal(LevelReader world, ScheduledTickAccess tickView, BlockPos pos);
 
-    private ObserverBlockMixin(Settings settings) {
+    private ObserverBlockMixin(Properties settings) {
         super(settings);
     }
 
     // 可激活侦测器，打火石右键激活
     @Override
-    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected @NonNull InteractionResult useItemOn(@NonNull ItemStack stack, @NonNull BlockState state, @NonNull Level world, @NonNull BlockPos pos, @NonNull Player player, @NonNull InteractionHand hand, @NonNull BlockHitResult hit) {
         if (CarpetOrgAdditionSettings.canActivatesObserver.get()) {
-            ItemStack itemStack = player.getStackInHand(hand);
-            if (itemStack.isOf(Items.FLINT_AND_STEEL) && !player.isSneaking()) {
-                this.scheduleTick(world, world, pos);
-                stack.damage(1, player, hand);
-                world.playSound(player, pos, SoundEvents.ITEM_FLINTANDSTEEL_USE, SoundCategory.BLOCKS, 1, 1);
-                player.incrementStat(Stats.USED.getOrCreateStat(itemStack.getItem()));
-                return ActionResult.SUCCESS;
+            ItemStack itemStack = player.getItemInHand(hand);
+            if (itemStack.is(Items.FLINT_AND_STEEL) && !player.isShiftKeyDown()) {
+                this.startSignal(world, world, pos);
+                stack.hurtAndBreak(1, player, hand);
+                world.playSound(player, pos, SoundEvents.FLINTANDSTEEL_USE, SoundSource.BLOCKS, 1, 1);
+                player.awardStat(Stats.ITEM_USED.get(itemStack.getItem()));
+                return InteractionResult.SUCCESS;
             }
         }
-        return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
+        return super.useItemOn(stack, state, world, pos, player, hand, hit);
     }
 }

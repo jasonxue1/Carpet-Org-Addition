@@ -1,12 +1,12 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BundleContentsComponent;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,7 +41,7 @@ public class ItemStackStatistics {
      * 统计物品栏内指定物品的数量<br>
      * 如果物品栏内包含容器物品或者收纳袋，则同时统计嵌套的物品数量
      */
-    public void statistics(Inventory inventory) {
+    public void statistics(Container inventory) {
         this.statistics(inventory, false);
     }
 
@@ -51,9 +51,9 @@ public class ItemStackStatistics {
      *
      * @param isNestingInventory 当前物品栏是否是潜影盒或收纳袋内部的物品栏
      */
-    public void statistics(Inventory inventory, boolean isNestingInventory) {
-        for (int i = 0; i < inventory.size(); i++) {
-            this.tally(inventory.getStack(i), isNestingInventory);
+    public void statistics(Container inventory, boolean isNestingInventory) {
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            this.tally(inventory.getItem(i), isNestingInventory);
         }
     }
 
@@ -64,16 +64,16 @@ public class ItemStackStatistics {
     private void statistics(ItemStack itemStack) {
         // 容器物品
         int count = itemStack.getCount();
-        ContainerComponent container = itemStack.get(DataComponentTypes.CONTAINER);
+        ItemContainerContents container = itemStack.get(DataComponents.CONTAINER);
         if (container != null) {
-            this.statistics(container.iterateNonEmpty(), true, count);
+            this.statistics(container.nonEmptyItems(), true, count);
             // 不考虑一个物品同时有容器物品组件和收纳袋物品组件的情况
             return;
         }
         // 收纳袋物品
-        BundleContentsComponent bundleContents = itemStack.get(DataComponentTypes.BUNDLE_CONTENTS);
+        BundleContents bundleContents = itemStack.get(DataComponents.BUNDLE_CONTENTS);
         if (bundleContents != null) {
-            this.statistics(bundleContents.iterate(), true, count);
+            this.statistics(bundleContents.items(), true, count);
         }
     }
 
@@ -114,10 +114,10 @@ public class ItemStackStatistics {
         return !this.nestingItem.isEmpty();
     }
 
-    public Text getCountText() {
-        ArrayList<Text> list = new ArrayList<>();
+    public Component getCountText() {
+        ArrayList<Component> list = new ArrayList<>();
         for (Item item : this.counter) {
-            Text itemCount = itemCount(this.counter.getCount(item), item.getMaxCount());
+            Component itemCount = itemCount(this.counter.getCount(item), item.getDefaultMaxStackSize());
             if (this.nestingItem.contains(item)) {
                 TextBuilder builder = TextBuilder.fromCombined(item.getName(), " ", itemCount);
                 builder.setItalic();
@@ -126,13 +126,13 @@ public class ItemStackStatistics {
                 list.add(TextBuilder.combineAll(item.getName(), " ", itemCount));
             }
         }
-        Text text = TextBuilder.create(this.getSum());
+        Component text = TextBuilder.create(this.getSum());
         TextBuilder builder = new TextBuilder(text);
         builder.setHover(TextBuilder.joinList(list));
         return this.nestingItem.isEmpty() ? builder.build() : builder.setItalic().build();
     }
 
-    private Text itemCount(int count, int maxCount) {
+    private Component itemCount(int count, int maxCount) {
         // 计算物品有多少组
         int group = count / maxCount;
         // 计算物品余几个

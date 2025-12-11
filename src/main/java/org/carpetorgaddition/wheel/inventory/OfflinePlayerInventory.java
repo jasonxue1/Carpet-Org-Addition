@@ -3,23 +3,24 @@ package org.carpetorgaddition.wheel.inventory;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.permission.Permission;
-import net.minecraft.command.permission.PermissionLevel;
-import net.minecraft.entity.ContainerUser;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.ContainerUser;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.storage.LevelResource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.GameProfileCache;
+import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,7 +49,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
                 return optional;
             }
             // 获取玩家的离线UUID
-            UUID uuid = Uuids.getOfflinePlayerUuid(username);
+            UUID uuid = UUIDUtil.createOfflinePlayerUUID(username);
             if (playerDataExists(uuid, server)) {
                 GameProfile gameProfile = new GameProfile(uuid, username);
                 cache.put(gameProfile);
@@ -64,24 +65,24 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     /**
      * 检查玩家是否有权限打开离线玩家物品栏
      */
-    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayerEntity player) throws CommandSyntaxException {
+    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayer player) throws CommandSyntaxException {
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().permissionRequired()) {
-            if (player.getPermissions().hasPermission(new Permission.Level(PermissionLevel.GAMEMASTERS))) {
+            if (player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))) {
                 return;
             }
-            PlayerManager playerManager = server.getPlayerManager();
-            PlayerConfigEntry entry = new PlayerConfigEntry(gameProfile);
-            if (playerManager.isWhitelisted(entry) || playerManager.isOperator(entry)) {
+            PlayerList playerManager = server.getPlayerList();
+            NameAndId entry = new NameAndId(gameProfile);
+            if (playerManager.isWhiteListed(entry) || playerManager.isOp(entry)) {
                 throw CommandUtils.createException("carpet.commands.player.inventory.offline.permission");
             }
         }
     }
 
-    public static Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid, MinecraftServer server) {
+    public static Optional<NameAndId> getPlayerConfigEntry(UUID uuid, MinecraftServer server) {
         if (playerDataExists(uuid, server)) {
             GameProfileCache cache = GameProfileCache.getInstance();
-            Optional<PlayerConfigEntry> optional = cache.getPlayerConfigEntry(uuid);
-            return Optional.of(optional.orElse(new PlayerConfigEntry(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN))));
+            Optional<NameAndId> optional = cache.getPlayerConfigEntry(uuid);
+            return Optional.of(optional.orElse(new NameAndId(new GameProfile(uuid, OfflinePlayerSearchTask.UNKNOWN))));
         }
         return Optional.empty();
     }
@@ -91,23 +92,23 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      */
     public static boolean playerDataExists(UUID uuid, MinecraftServer server) {
         String filename = uuid.toString() + ".dat";
-        Path path = server.getSavePath(WorldSavePath.PLAYERDATA).resolve(filename);
+        Path path = server.getWorldPath(LevelResource.PLAYER_DATA_DIR).resolve(filename);
         return Files.exists(path);
     }
 
     @Override
-    public int size() {
+    public int getContainerSize() {
         return 54;
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         return true;
     }
 
     @Override
-    public void onOpen(ContainerUser user) {
-        if (user instanceof ServerPlayerEntity player) {
+    public void startOpen(@NonNull ContainerUser user) {
+        if (user instanceof ServerPlayer player) {
             this.accessor.onOpen(player);
             if (this.showLog) {
                 // 译：{}打开了离线玩家{}的物品栏
@@ -121,14 +122,14 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public void onClose(ContainerUser user) {
-        if (user instanceof ServerPlayerEntity player) {
+    public void stopOpen(@NonNull ContainerUser user) {
+        if (user instanceof ServerPlayer player) {
             this.accessor.onClose(player);
         }
     }
 
     @Override
-    protected Inventory getInventory() {
+    protected Container getInventory() {
         return this.accessor.getInventory();
     }
 

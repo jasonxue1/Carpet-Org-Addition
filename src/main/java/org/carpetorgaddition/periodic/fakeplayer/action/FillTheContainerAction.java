@@ -2,10 +2,9 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.*;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.*;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
@@ -34,19 +33,19 @@ public class FillTheContainerAction extends AbstractPlayerAction {
 
     @Override
     protected void tick() {
-        ScreenHandler screenHandler = getFakePlayer().currentScreenHandler;
-        if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
+        AbstractContainerMenu screenHandler = getFakePlayer().containerMenu;
+        if (screenHandler instanceof InventoryMenu) {
             return;
         }
         // 获取要装在潜影盒的物品
         for (int index : getRange(screenHandler)) {
             Slot slot = screenHandler.getSlot(index);
-            ItemStack itemStack = slot.getStack();
+            ItemStack itemStack = slot.getItem();
             if (itemStack.isEmpty()) {
                 continue;
             }
             if (this.predicate.test(itemStack)) {
-                if (screenHandler instanceof ShulkerBoxScreenHandler && !itemStack.getItem().canBeNested()) {
+                if (screenHandler instanceof ShulkerBoxMenu && !itemStack.getItem().canFitInsideContainerItems()) {
                     // 丢弃不能放入潜影盒的物品
                     if (this.dropOther) {
                         FakePlayerUtils.throwItem(screenHandler, index, this.getFakePlayer());
@@ -55,7 +54,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
                 }
                 // 模拟按住Shift键移动物品
                 if (FakePlayerUtils.quickMove(screenHandler, index, this.getFakePlayer()).isEmpty()) {
-                    this.getFakePlayer().onHandledScreenClosed();
+                    this.getFakePlayer().doCloseContainer();
                     return;
                 }
             } else if (this.dropOther) {
@@ -64,27 +63,27 @@ public class FillTheContainerAction extends AbstractPlayerAction {
         }
     }
 
-    private Integer[] getRange(ScreenHandler screenHandler) {
+    private Integer[] getRange(AbstractContainerMenu screenHandler) {
         IntStream intStream;
         if (this.moreContainer) {
             intStream = switch (screenHandler) {
-                case ShulkerBoxScreenHandler ignored -> IntStream.rangeClosed(27, 62);
+                case ShulkerBoxMenu ignored -> IntStream.rangeClosed(27, 62);
                 // 箱子，末影箱，木桶等容器
-                case GenericContainerScreenHandler handler
-                        when handler.getType() == ScreenHandlerType.GENERIC_9X3 -> IntStream.rangeClosed(27, 62);
+                case ChestMenu handler
+                        when handler.getType() == MenuType.GENERIC_9x3 -> IntStream.rangeClosed(27, 62);
                 // 大箱子，GCA假人背包
-                case GenericContainerScreenHandler handler
-                        when handler.getType() == ScreenHandlerType.GENERIC_9X6 -> IntStream.rangeClosed(54, 89);
+                case ChestMenu handler
+                        when handler.getType() == MenuType.GENERIC_9x6 -> IntStream.rangeClosed(54, 89);
                 // 漏斗
-                case HopperScreenHandler ignored -> IntStream.rangeClosed(5, 40);
+                case HopperMenu ignored -> IntStream.rangeClosed(5, 40);
                 // 发射器，投掷器
-                case Generic3x3ContainerScreenHandler ignored -> IntStream.rangeClosed(9, 44);
+                case DispenserMenu ignored -> IntStream.rangeClosed(9, 44);
                 // 合成器
-                case CrafterScreenHandler ignored -> IntStream.rangeClosed(9, 44);
+                case CrafterMenu ignored -> IntStream.rangeClosed(9, 44);
                 case null, default -> IntStream.of();
             };
         } else {
-            if (screenHandler instanceof ShulkerBoxScreenHandler) {
+            if (screenHandler instanceof ShulkerBoxMenu) {
                 intStream = IntStream.rangeClosed(27, 62);
             } else {
                 intStream = IntStream.of();
@@ -94,9 +93,9 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
-        ArrayList<Text> list = new ArrayList<>();
-        Text translate = TextBuilder.translate(
+    public List<Component> info() {
+        ArrayList<Component> list = new ArrayList<>();
+        Component translate = TextBuilder.translate(
                 "carpet.commands.playerAction.info.fill.predicate",
                 this.getFakePlayer().getDisplayName(),
                 this.predicate.toText()
@@ -118,7 +117,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.fill");
     }
 

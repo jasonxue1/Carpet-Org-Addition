@@ -8,10 +8,10 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.Block;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.item.Item;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType.ClientBlockArgumentType;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType.ClientItemArgumentType;
@@ -26,7 +26,7 @@ import org.carpetorgaddition.network.codec.ObjectSearchTaskCodecs.OfflinePlayerI
 import java.util.List;
 
 public class ClientFinderCommand extends AbstractClientCommand {
-    public ClientFinderCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+    public ClientFinderCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
@@ -51,7 +51,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
     }
 
     private SuggestionProvider<FabricClientCommandSource> suggestionDefaultDistance() {
-        return (context, builder) -> CommandSource.suggestMatching(new String[]{"64", "128", "256"}, builder);
+        return (context, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
     }
 
     private int searchItem(CommandContext<FabricClientCommandSource> context, int range) {

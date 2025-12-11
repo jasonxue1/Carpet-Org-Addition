@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.screen.SmithingScreenHandler;
+import net.minecraft.world.inventory.SmithingMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -12,21 +12,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
 
-@Mixin(SmithingScreenHandler.class)
+@Mixin(SmithingMenu.class)
 public abstract class SmithingScreenHandlerMixin {
     @Shadow
-    protected abstract List<ItemStack> getInputStacks();
+    protected abstract List<ItemStack> getRelevantItems();
 
     // 可重复使用的锻造模板
-    @Inject(method = "decrementStack", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "shrinkStackInSlot", at = @At("HEAD"), cancellable = true)
     private void decrement(int slot, CallbackInfo ci) {
-        ItemStack itemStack = this.getInputStacks().get(slot);
+        ItemStack itemStack = this.getRelevantItems().get(slot);
         if (slot == 0) {
             switch (CarpetOrgAdditionSettings.reusableSmithingTemplate.get()) {
                 case FALSE -> {
                 }
                 case UPGRADE -> {
-                    if (itemStack.isOf(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)) {
+                    if (itemStack.is(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE)) {
                         ci.cancel();
                     }
                 }

@@ -4,13 +4,13 @@ import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.projectile.FishingBobberEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.projectile.FishingHook;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.mixin.accessor.FishingBobberEntityAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -29,7 +29,7 @@ public class FishingAction extends AbstractPlayerAction {
         // 检查玩家是否持有钓鱼竿
         if (pickFishingRod()) {
             // 检查玩家是否抛出钓竿
-            FishingBobberEntity fishHook = this.getFakePlayer().fishHook;
+            FishingHook fishHook = this.getFakePlayer().fishing;
             if (fishHook == null) {
                 // 检查计时器是否清零
                 if (this.timer == 0) {
@@ -40,8 +40,8 @@ public class FishingAction extends AbstractPlayerAction {
                 }
             } else {
                 // 如果钓鱼竿钩到方块或其它实体，通过切换物品收杆，防止额外的耐久损耗
-                Entity entity = fishHook.getHookedEntity();
-                if (fishHook.isOnGround() || (entity != null && !(entity instanceof ItemEntity))) {
+                Entity entity = fishHook.getHookedIn();
+                if (fishHook.onGround() || (entity != null && !(entity instanceof ItemEntity))) {
                     this.switchInventory();
                 }
                 // 检查鱼是否上钩
@@ -62,16 +62,16 @@ public class FishingAction extends AbstractPlayerAction {
      */
     private boolean pickFishingRod() {
         // 如果玩家手上有钓鱼竿，无需切换
-        if (this.getFakePlayer().getMainHandStack().isOf(Items.FISHING_ROD) || this.getFakePlayer().getOffHandStack().isOf(Items.FISHING_ROD)) {
+        if (this.getFakePlayer().getMainHandItem().is(Items.FISHING_ROD) || this.getFakePlayer().getOffhandItem().is(Items.FISHING_ROD)) {
             return true;
         }
         // 从物品栏拿取钓鱼竿
-        PlayerInventory inventory = this.getFakePlayer().getInventory();
-        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
-            if (inventory.getStack(i).isOf(Items.FISHING_ROD)) {
+        Inventory inventory = this.getFakePlayer().getInventory();
+        for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
+            if (inventory.getItem(i).is(Items.FISHING_ROD)) {
                 // 将非钓鱼竿物品放入主手
-                inventory.swapSlotWithHotbar(i);
-                if (this.getFakePlayer().getMainHandStack().isOf(Items.FISHING_ROD)) {
+                inventory.pickSlot(i);
+                if (this.getFakePlayer().getMainHandItem().is(Items.FISHING_ROD)) {
                     return true;
                 }
             }
@@ -83,21 +83,21 @@ public class FishingAction extends AbstractPlayerAction {
      * 通过切换物品栏收起钓鱼竿
      */
     private void switchInventory() {
-        if (this.getFakePlayer().getOffHandStack().isOf(Items.FISHING_ROD)) {
+        if (this.getFakePlayer().getOffhandItem().is(Items.FISHING_ROD)) {
             swapHands();
         }
-        PlayerInventory inventory = this.getFakePlayer().getInventory();
+        Inventory inventory = this.getFakePlayer().getInventory();
         // 查找物品栏内的非钓鱼竿物品
-        for (int i = 0; i < inventory.getMainStacks().size(); i++) {
-            ItemStack itemStack = inventory.getStack(i);
+        for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
+            ItemStack itemStack = inventory.getItem(i);
             // 其它钓鱼竿物品不能与主手物品切换
-            if (itemStack.isOf(Items.FISHING_ROD)) {
+            if (itemStack.is(Items.FISHING_ROD)) {
                 continue;
             }
             // 将非钓鱼竿物品放入主手
-            inventory.swapSlotWithHotbar(i);
+            inventory.pickSlot(i);
             // 检查钓鱼竿是否切换成功（钓鱼竿不能与盔甲槽中的物品切换），如果成功，结束方法
-            if (this.getFakePlayer().getMainHandStack().isOf(Items.FISHING_ROD)) {
+            if (this.getFakePlayer().getMainHandItem().is(Items.FISHING_ROD)) {
                 // 主手是钓鱼竿，切换失败
                 continue;
             }
@@ -108,7 +108,7 @@ public class FishingAction extends AbstractPlayerAction {
     /**
      * @return 是否可以收杆
      */
-    private boolean canReelInTheFishingPole(FishingBobberEntity fishHook) {
+    private boolean canReelInTheFishingPole(FishingHook fishHook) {
         return ((FishingBobberEntityAccessor) fishHook).getHookCountdown() > 0;
     }
 
@@ -129,8 +129,8 @@ public class FishingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
-        ArrayList<Text> list = new ArrayList<>();
+    public List<Component> info() {
+        ArrayList<Component> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.fishing", this.getFakePlayer().getDisplayName()));
         return list;
     }
@@ -141,7 +141,7 @@ public class FishingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.fishing");
     }
 

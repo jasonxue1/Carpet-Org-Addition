@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.ai.brain.MemoryModuleType;
-import net.minecraft.entity.mob.PiglinBrain;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,13 +10,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 //猪灵快速交易
-@Mixin(PiglinBrain.class)
+@Mixin(PiglinAi.class)
 public abstract class PiglinBrainMixin {
-    @Inject(method = "setAdmiringItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "admireGoldItem", at = @At("HEAD"), cancellable = true)
     private static void setAdmiringItem(LivingEntity entity, CallbackInfo ci) {
         Long time = CarpetOrgAdditionSettings.customPiglinBarteringTime.get();
         if (time != -1) {
-            entity.getBrain().remember(MemoryModuleType.ADMIRING_ITEM, true, time);
+            entity.getBrain().setMemoryWithExpiry(MemoryModuleType.ADMIRING_ITEM, true, time);
             ci.cancel();
         }
     }

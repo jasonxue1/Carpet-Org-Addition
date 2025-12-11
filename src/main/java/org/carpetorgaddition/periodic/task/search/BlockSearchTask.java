@@ -1,10 +1,10 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import net.minecraft.block.Block;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.ForceReturnException;
 import org.carpetorgaddition.exception.TaskExecutionException;
@@ -24,7 +24,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class BlockSearchTask extends ServerTask {
-    protected final ServerWorld world;
+    protected final ServerLevel world;
     private final BlockPosTraverser traverser;
     protected final BlockPos sourcePos;
     private Iterator<BlockPos> iterator;
@@ -41,7 +41,7 @@ public class BlockSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public BlockSearchTask(ServerWorld world, BlockPos sourcePos, BlockPosTraverser traverser, ServerCommandSource source, BlockStatePredicate predicate) {
+    public BlockSearchTask(ServerLevel world, BlockPos sourcePos, BlockPosTraverser traverser, CommandSourceStack source, BlockStatePredicate predicate) {
         super(source);
         this.world = world;
         this.sourcePos = sourcePos;
@@ -97,7 +97,7 @@ public class BlockSearchTask extends ServerTask {
 
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
-        BlockPos.iterateRecursively(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
+        BlockPos.breadthFirstTraversal(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
             if (this.isTimeExpired()) {
                 throw ForceReturnException.INSTANCE;
             }
@@ -118,9 +118,9 @@ public class BlockSearchTask extends ServerTask {
                         throw new TaskExecutionException(function);
                     }
                 }
-                return BlockPos.IterationState.ACCEPT;
+                return BlockPos.TraversalNodeStatus.ACCEPT;
             }
-            return BlockPos.IterationState.STOP;
+            return BlockPos.TraversalNodeStatus.STOP;
         });
         for (Map.Entry<Block, Set<BlockPos>> entry : group.entrySet()) {
             this.results.add(new Result(entry.getKey(), entry.getValue()));
@@ -131,7 +131,7 @@ public class BlockSearchTask extends ServerTask {
     private void sort() {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
-            Text name = this.predicate.getDisplayName();
+            Component name = this.predicate.getDisplayName();
             MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.not_found_block", name);
             this.findState = FindState.END;
             return;
@@ -148,7 +148,7 @@ public class BlockSearchTask extends ServerTask {
 
     // 发送反馈
     private void sendFeedback() {
-        Text name = this.predicate.getDisplayName();
+        Component name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", this.count, name);
         this.pagedCollection.addContent(this.results);
@@ -161,7 +161,7 @@ public class BlockSearchTask extends ServerTask {
         return this.findState == FindState.END;
     }
 
-    private Text getResultMessage(Block block, Set<BlockPos> set) {
+    private Component getResultMessage(Block block, Set<BlockPos> set) {
         BlockPos center = MathUtils.calculateTheGeometricCenter(set);
         TextBuilder builder = TextBuilder.of(
                 "carpet.commands.finder.block.feedback",
@@ -200,7 +200,7 @@ public class BlockSearchTask extends ServerTask {
         return FinderCommand.TIME_SLICE;
     }
 
-    public class Result implements Supplier<Text> {
+    public class Result implements Supplier<Component> {
         private final BlockPos center;
         private final Block block;
         private final Set<BlockPos> set;
@@ -212,7 +212,7 @@ public class BlockSearchTask extends ServerTask {
         }
 
         @Override
-        public Text get() {
+        public Component get() {
             return getResultMessage(this.block, this.set);
         }
 

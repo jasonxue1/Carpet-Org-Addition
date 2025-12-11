@@ -1,7 +1,7 @@
 package org.carpetorgaddition.wheel;
 
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.exception.FileOperationException;
 import org.carpetorgaddition.util.IOUtils;
@@ -38,7 +38,7 @@ public class WorldFormat {
      */
     public WorldFormat(MinecraftServer server, @Nullable String directory, String... directories) {
         // 获取服务器存档保存文件的路径
-        Path path = server.getSavePath(WorldSavePath.ROOT).resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
+        Path path = server.getWorldPath(LevelResource.ROOT).resolve(CarpetOrgAddition.MOD_NAME_LOWER_CASE);
         if (directory == null) {
             if (directories.length != 0) {
                 throw new IllegalArgumentException();

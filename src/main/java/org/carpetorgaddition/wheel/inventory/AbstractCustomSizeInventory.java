@@ -1,18 +1,19 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.wheel.TextBuilder;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Supplier;
 
-public abstract class AbstractCustomSizeInventory implements Inventory {
+public abstract class AbstractCustomSizeInventory implements Container {
     /**
      * 用来占位的物品
      */
@@ -21,8 +22,8 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
     static {
         ItemStack itemStack = new ItemStack(Items.RED_STAINED_GLASS_PANE);
         TextBuilder builder = TextBuilder.of("carpet.inventory.item.placeholder");
-        builder.setColor(Formatting.RED);
-        itemStack.set(DataComponentTypes.CUSTOM_NAME, builder.build());
+        builder.setColor(ChatFormatting.RED);
+        itemStack.set(DataComponents.CUSTOM_NAME, builder.build());
         PLACEHOLDER = itemStack;
     }
 
@@ -31,19 +32,19 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
      *
      * @apiNote 使用 {@code Supplier} 包装，推迟变量的初始化到构造方法之后
      */
-    private final Supplier<DefaultedList<ItemStack>> stacks = () -> DefaultedList.ofSize(this.size() - this.getActualSize(), PLACEHOLDER);
+    private final Supplier<NonNullList<ItemStack>> stacks = () -> NonNullList.withSize(this.getContainerSize() - this.getActualSize(), PLACEHOLDER);
 
     /**
      * @return 物品栏的实际大小，超出此大小的索引都是在GUI中用来占位的，没有实际用途
      */
     protected int getActualSize() {
-        return this.getInventory().size();
+        return this.getInventory().getContainerSize();
     }
 
     /**
      * @return 实际可用的物品栏
      */
-    protected abstract Inventory getInventory();
+    protected abstract Container getInventory();
 
     @Override
     public boolean isEmpty() {
@@ -51,29 +52,29 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
     }
 
     @Override
-    public ItemStack getStack(int slot) {
+    public @NonNull ItemStack getItem(int slot) {
         if (slot < this.getActualSize()) {
-            return this.getInventory().getStack(slot);
+            return this.getInventory().getItem(slot);
         }
         return stacks.get().get(this.getAmendSlotIndex(slot));
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
+    public @NonNull ItemStack removeItem(int slot, int amount) {
         if (slot < this.getActualSize()) {
-            return this.getInventory().removeStack(slot, amount);
+            return this.getInventory().removeItem(slot, amount);
         }
-        ItemStack itemStack = Inventories.splitStack(this.stacks.get(), getAmendSlotIndex(slot), amount);
+        ItemStack itemStack = ContainerHelper.removeItem(this.stacks.get(), getAmendSlotIndex(slot), amount);
         if (!itemStack.isEmpty()) {
-            this.markDirty();
+            this.setChanged();
         }
         return itemStack;
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
+    public @NonNull ItemStack removeItemNoUpdate(int slot) {
         if (slot < this.getActualSize()) {
-            return this.getInventory().removeStack(slot);
+            return this.getInventory().removeItemNoUpdate(slot);
         }
         ItemStack itemStack = this.stacks.get().get(getAmendSlotIndex(slot));
         if (itemStack.isEmpty()) {
@@ -84,42 +85,42 @@ public abstract class AbstractCustomSizeInventory implements Inventory {
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setItem(int slot, @NonNull ItemStack stack) {
         if (slot < this.getActualSize()) {
-            this.getInventory().setStack(slot, stack);
+            this.getInventory().setItem(slot, stack);
             return;
         }
         this.stacks.get().set(getAmendSlotIndex(slot), stack);
-        if (!stack.isEmpty() && stack.getCount() > this.getMaxCountPerStack()) {
-            stack.setCount(this.getMaxCountPerStack());
+        if (!stack.isEmpty() && stack.getCount() > this.getMaxStackSize()) {
+            stack.setCount(this.getMaxStackSize());
         }
-        this.markDirty();
+        this.setChanged();
     }
 
     @Override
-    public void markDirty() {
-        this.getInventory().markDirty();
+    public void setChanged() {
+        this.getInventory().setChanged();
     }
 
     @Override
-    public void clear() {
+    public void clearContent() {
         // 只清空物品栏即可，不需要清空用来占位的stacks
-        this.getInventory().clear();
+        this.getInventory().clearContent();
     }
 
     @Override
-    public boolean isValid(int slot, ItemStack stack) {
+    public boolean canPlaceItem(int slot, @NonNull ItemStack stack) {
         return slot < this.getActualSize();
     }
 
     // 丢弃多余的槽位中的物品
-    public void dropExcess(PlayerEntity player) {
+    public void dropExcess(Player player) {
         for (ItemStack itemStack : stacks.get()) {
             // 不丢弃占位用的物品
             if (itemStack == PLACEHOLDER) {
                 continue;
             }
-            player.dropItem(itemStack, false, false);
+            player.drop(itemStack, false, false);
         }
     }
 

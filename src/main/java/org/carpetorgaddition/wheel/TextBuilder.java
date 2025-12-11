@@ -1,12 +1,12 @@
 package org.carpetorgaddition.wheel;
 
 import com.mojang.brigadier.Message;
-import net.minecraft.text.ClickEvent;
-import net.minecraft.text.HoverEvent;
-import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
@@ -17,9 +17,9 @@ import java.util.List;
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class TextBuilder {
     @NotNull
-    private MutableText text;
+    private MutableComponent text;
 
-    private TextBuilder(@NotNull MutableText text) {
+    private TextBuilder(@NotNull MutableComponent text) {
         this.text = text;
     }
 
@@ -27,7 +27,7 @@ public class TextBuilder {
         this(empty());
     }
 
-    public TextBuilder(Text text) {
+    public TextBuilder(Component text) {
         this(text.copy());
     }
 
@@ -51,23 +51,23 @@ public class TextBuilder {
         return new TextBuilder(combineAll(args));
     }
 
-    public static Text empty() {
-        return Text.empty();
+    public static Component empty() {
+        return Component.empty();
     }
 
-    public static Text create(String str) {
-        return Text.literal(str);
+    public static Component create(String str) {
+        return Component.literal(str);
     }
 
-    public static Text create(Number number) {
-        return Text.literal(number.toString());
+    public static Component create(Number number) {
+        return Component.literal(number.toString());
     }
 
-    public static Text create(Message message) {
-        return Text.of(message).copy();
+    public static Component create(Message message) {
+        return Component.translationArg(message).copy();
     }
 
-    public static Text create(Identifier identifier) {
+    public static Component create(Identifier identifier) {
         return TextBuilder.create(identifier.toString());
     }
 
@@ -75,26 +75,26 @@ public class TextBuilder {
      * 设置文本单击后在聊天栏输入内容
      */
     public TextBuilder setSuggest(String input) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(input)));
+        this.text.withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand(input)));
         return this;
     }
 
     /**
      * 设置文本颜色
      */
-    public TextBuilder setColor(Formatting color) {
+    public TextBuilder setColor(ChatFormatting color) {
         if (color == null) {
             return this;
         }
-        this.text.styled(style -> style.withColor(color));
+        this.text.withStyle(style -> style.withColor(color));
         return this;
     }
 
     /**
      * 设置悬停提示
      */
-    public TextBuilder setHover(Text text) {
-        this.text.styled(style -> style.withHoverEvent(new HoverEvent.ShowText(text)));
+    public TextBuilder setHover(Component text) {
+        this.text.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(text)));
         return this;
     }
 
@@ -131,7 +131,7 @@ public class TextBuilder {
      * @param hover 是否显示“单击复制到剪贴板”的悬停提示
      */
     public TextBuilder setCopyToClipboard(String str, boolean hover) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(str)));
+        this.text.withStyle(style -> style.withClickEvent(new ClickEvent.CopyToClipboard(str)));
         if (hover) {
             this.setHover(TextProvider.COPY_CLICK);
         }
@@ -142,7 +142,7 @@ public class TextBuilder {
      * 设置单击文本后执行命令
      */
     public TextBuilder setCommand(String command) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent.RunCommand(command)));
+        this.text.withStyle(style -> style.withClickEvent(new ClickEvent.RunCommand(command)));
         return this;
     }
 
@@ -150,7 +150,7 @@ public class TextBuilder {
      * 设置单击文本后聊天框输入命令
      */
     public TextBuilder setSuggestCommand(String command) {
-        this.text.styled(style -> style.withClickEvent(new ClickEvent.SuggestCommand(command)));
+        this.text.withStyle(style -> style.withClickEvent(new ClickEvent.SuggestCommand(command)));
         return this;
     }
 
@@ -158,7 +158,7 @@ public class TextBuilder {
      * 设置为斜体
      */
     public TextBuilder setItalic() {
-        this.text.styled(style -> style.withItalic(true));
+        this.text.withStyle(style -> style.withItalic(true));
         return this;
     }
 
@@ -166,7 +166,7 @@ public class TextBuilder {
      * 设置为粗体
      */
     public TextBuilder setBold() {
-        this.text.styled(style -> style.withBold(true));
+        this.text.withStyle(style -> style.withBold(true));
         return this;
     }
 
@@ -174,7 +174,7 @@ public class TextBuilder {
      * 设置有删除线
      */
     public TextBuilder setStrikethrough() {
-        this.text.styled(style -> style.withStrikethrough(true));
+        this.text.withStyle(style -> style.withStrikethrough(true));
         return this;
     }
 
@@ -182,7 +182,7 @@ public class TextBuilder {
      * 设置有下划线
      */
     public TextBuilder setUnderline() {
-        this.text.styled(style -> style.withUnderline(true));
+        this.text.withStyle(style -> style.withUnderlined(true));
         return this;
     }
 
@@ -190,7 +190,7 @@ public class TextBuilder {
      * 设置为随机字符
      */
     public TextBuilder setObfuscated() {
-        this.text.styled(style -> style.withObfuscated(true));
+        this.text.withStyle(style -> style.withObfuscated(true));
         return this;
     }
 
@@ -198,14 +198,14 @@ public class TextBuilder {
      * 设置为灰色斜体
      */
     public TextBuilder setGrayItalic() {
-        return this.setColor(Formatting.GRAY).setItalic();
+        return this.setColor(ChatFormatting.GRAY).setItalic();
     }
 
     public TextBuilder append(String str) {
         return this.append(create(str));
     }
 
-    public TextBuilder append(@Nullable Text text) {
+    public TextBuilder append(@Nullable Component text) {
         if (text == null) {
             return this;
         }
@@ -217,7 +217,7 @@ public class TextBuilder {
         return this.append(builder.text);
     }
 
-    public Text build() {
+    public Component build() {
         return this.text;
     }
 
@@ -227,24 +227,24 @@ public class TextBuilder {
      * @param args 要拼接的文本
      * @return 拼接后的 {@code MutableText}对象
      */
-    public static Text combineAll(Object... args) {
-        MutableText result = empty().copy();
+    public static Component combineAll(Object... args) {
+        MutableComponent result = empty().copy();
         for (Object obj : args) {
             appendEach(obj, result);
         }
         return result;
     }
 
-    public static Text combineList(List<?> list) {
-        MutableText result = empty().copy();
+    public static Component combineList(List<?> list) {
+        MutableComponent result = empty().copy();
         list.forEach(obj -> appendEach(obj, result));
         return result;
     }
 
-    private static void appendEach(@Nullable Object obj, MutableText result) {
+    private static void appendEach(@Nullable Object obj, MutableComponent result) {
         switch (obj) {
             case String str -> result.append(str);
-            case Text text -> result.append(text);
+            case Component text -> result.append(text);
             case Message message -> result.append(create(message));
             case Number number -> result.append(String.valueOf(number));
             case TextBuilder builder -> result.append(builder.text);
@@ -260,7 +260,7 @@ public class TextBuilder {
      *
      * @return 拼接后的文本对象
      */
-    public static Text joinList(List<? extends Text> list) {
+    public static Component joinList(List<? extends Component> list) {
         return joinList(list, TextProvider.NEW_LINE);
     }
 
@@ -269,8 +269,8 @@ public class TextBuilder {
      *
      * @return 拼接后的文本对象
      */
-    public static Text joinList(List<? extends Text> list, Text separator) {
-        MutableText result = empty().copy();
+    public static Component joinList(List<? extends Component> list, Component separator) {
+        MutableComponent result = empty().copy();
         for (int i = 0; i < list.size(); i++) {
             result.append(list.get(i));
             if (i < list.size() - 1) {
@@ -287,8 +287,8 @@ public class TextBuilder {
      * @return 可翻译文本
      * @apiNote 客户端不需要有对应的翻译
      */
-    public static Text translate(String key, Object... obj) {
+    public static Component translate(String key, Object... obj) {
         String value = Translation.getTranslateValue(key);
-        return Text.translatableWithFallback(key, value, obj);
+        return Component.translatableWithFallback(key, value, obj);
     }
 }

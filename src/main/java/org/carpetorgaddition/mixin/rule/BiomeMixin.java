@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldView;
-import net.minecraft.world.biome.Biome;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.biome.Biome;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -12,8 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Biome.class)
 public class BiomeMixin {
     // 禁止水结冰
-    @Inject(method = "canSetIce(Lnet/minecraft/world/WorldView;Lnet/minecraft/util/math/BlockPos;)Z", at = @At("HEAD"), cancellable = true)
-    private void canSetIce(WorldView world, BlockPos blockPos, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "shouldFreeze(Lnet/minecraft/world/level/LevelReader;Lnet/minecraft/core/BlockPos;)Z", at = @At("HEAD"), cancellable = true)
+    private void canSetIce(LevelReader world, BlockPos blockPos, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.disableWaterFreezes.get()) {
             cir.setReturnValue(false);
         }

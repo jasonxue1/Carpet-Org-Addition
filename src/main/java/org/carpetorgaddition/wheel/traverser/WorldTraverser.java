@@ -1,8 +1,8 @@
 package org.carpetorgaddition.wheel.traverser;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.WorldUtils;
 
@@ -17,17 +17,17 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
     protected final BlockPos to;
 
     public WorldTraverser(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        this.minX = Math.max(minX, -World.HORIZONTAL_LIMIT);
-        this.minY = Math.max(minY, World.MIN_Y);
-        this.minZ = Math.max(minZ, -World.HORIZONTAL_LIMIT);
-        this.maxX = Math.min(maxX, World.HORIZONTAL_LIMIT);
-        this.maxY = Math.min(maxY, World.MAX_Y);
-        this.maxZ = Math.min(maxZ, World.HORIZONTAL_LIMIT);
+        this.minX = Math.max(minX, -Level.MAX_LEVEL_SIZE);
+        this.minY = Math.max(minY, Level.MIN_ENTITY_SPAWN_Y);
+        this.minZ = Math.max(minZ, -Level.MAX_LEVEL_SIZE);
+        this.maxX = Math.min(maxX, Level.MAX_LEVEL_SIZE);
+        this.maxY = Math.min(maxY, Level.MAX_ENTITY_SPAWN_Y);
+        this.maxZ = Math.min(maxZ, Level.MAX_LEVEL_SIZE);
         this.from = new BlockPos(this.minX, this.minY, this.minZ);
         this.to = new BlockPos(this.maxX, this.maxY, this.maxZ);
     }
 
-    public WorldTraverser(World world, BlockPos sourcePos, int range) {
+    public WorldTraverser(Level world, BlockPos sourcePos, int range) {
         this(
                 sourcePos.getX() - range,
                 WorldUtils.getMinArchitectureAltitude(world),
@@ -49,7 +49,7 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
         );
     }
 
-    public WorldTraverser(Box box) {
+    public WorldTraverser(AABB box) {
         this((int) box.minX, (int) box.minY, (int) box.minZ, (int) box.maxX, (int) box.maxY, (int) box.maxZ);
     }
 
@@ -84,8 +84,8 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
     /**
      * @return 与当前对象等效的Box对象
      */
-    public Box toBox() {
-        return new Box(this.minX, this.minY, this.minZ, this.maxX + 1, this.maxY + 1, this.maxZ + 1);
+    public AABB toBox() {
+        return new AABB(this.minX, this.minY, this.minZ, this.maxX + 1, this.maxY + 1, this.maxZ + 1);
     }
 
     /**

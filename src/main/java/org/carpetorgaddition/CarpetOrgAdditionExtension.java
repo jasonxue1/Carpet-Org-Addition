@@ -5,13 +5,13 @@ import carpet.CarpetServer;
 import carpet.api.settings.SettingsManager;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.entity.effect.StatusEffectCategory;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectCategory;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.command.CommandRegister;
 import org.carpetorgaddition.command.PlayerManagerCommand;
 import org.carpetorgaddition.command.SpectatorCommand;
@@ -49,7 +49,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     // 当玩家登录时
     @Override
-    public void onPlayerLoggedIn(ServerPlayerEntity player) {
+    public void onPlayerLoggedIn(ServerPlayer player) {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
@@ -58,7 +58,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
         MinecraftServer server = FetcherUtils.getServer(player);
-        GameMode gameMode = server.getForcedGameMode();
+        GameType gameMode = server.getForcedGameType();
         if (gameMode != null) {
             SpectatorCommand instance = CommandRegister.getCommandInstance(SpectatorCommand.class);
             instance.loadPlayerPos(server, player);
@@ -68,16 +68,16 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     /**
      * 清除击退效果
      */
-    private static void clearKnockback(ServerPlayerEntity player) {
+    private static void clearKnockback(ServerPlayer player) {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnNoKnockback.get() && player instanceof EntityPlayerMPFake) {
             // 清除速度
-            player.setVelocity(Vec3d.ZERO);
+            player.setDeltaMovement(Vec3.ZERO);
             // 清除着火时间
-            player.setFireTicks(0);
+            player.setRemainingFireTicks(0);
             // 清除摔落高度
             player.fallDistance = 0;
             // 清除负面效果
-            player.getStatusEffects().removeIf(effect -> effect.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL);
+            player.getActiveEffects().removeIf(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL);
         }
     }
 
@@ -111,7 +111,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
 
     // 注册命令
     @Override
-    public void registerCommands(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         CommandRegister.register(dispatcher, access);
     }
 }

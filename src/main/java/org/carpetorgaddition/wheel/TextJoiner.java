@@ -1,6 +1,6 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -9,7 +9,7 @@ import java.util.StringJoiner;
 
 @SuppressWarnings("UnusedReturnValue")
 public class TextJoiner {
-    private final ArrayList<Text> list = new ArrayList<>();
+    private final ArrayList<Component> list = new ArrayList<>();
     /**
      * 当前缩进层级的深度
      */
@@ -33,7 +33,7 @@ public class TextJoiner {
     /**
      * 追加文本并换行
      */
-    public TextJoiner append(Text text) {
+    public TextJoiner append(Component text) {
         if (this.depth == 0) {
             this.list.add(text);
         } else {
@@ -43,7 +43,7 @@ public class TextJoiner {
     }
 
     public TextJoiner append(String key, Object... args) {
-        Text translate = TextBuilder.translate(key, args);
+        Component translate = TextBuilder.translate(key, args);
         return this.append(translate);
     }
 
@@ -61,12 +61,12 @@ public class TextJoiner {
     /**
      * 追加文本但不换行
      */
-    public TextJoiner then(Text text) {
+    public TextJoiner then(Component text) {
         if (this.list.isEmpty()) {
             this.append(text);
         } else {
-            Text last = this.list.removeLast();
-            Text combined = TextBuilder.combineAll(last, text);
+            Component last = this.list.removeLast();
+            Component combined = TextBuilder.combineAll(last, text);
             this.list.addLast(combined);
         }
         return this;
@@ -75,7 +75,7 @@ public class TextJoiner {
     /**
      * 进入下一缩进层级并追加文本
      */
-    public TextJoiner enter(Text text) {
+    public TextJoiner enter(Component text) {
         return this.enter(() -> this.append(text));
     }
 
@@ -133,11 +133,11 @@ public class TextJoiner {
         };
     }
 
-    public Text join() {
+    public Component join() {
         return TextBuilder.joinList(this.list);
     }
 
-    public List<Text> collect() {
+    public List<Component> collect() {
         return Collections.unmodifiableList(this.list);
     }
 }

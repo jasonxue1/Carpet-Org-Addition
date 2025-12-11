@@ -2,8 +2,8 @@ package org.carpetorgaddition.logger;
 
 import carpet.logging.Logger;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
 
@@ -20,7 +20,7 @@ public class NetworkPacketLogger extends Logger {
         super(acceleratorField, logName, def, options, strictOptions);
     }
 
-    public void sendPacket(Supplier<CustomPayload> supplier) {
+    public void sendPacket(Supplier<CustomPacketPayload> supplier) {
         this.onlinePlayers
                 .keySet()
                 .stream()
@@ -29,15 +29,15 @@ public class NetworkPacketLogger extends Logger {
                 .forEach(player -> ServerPlayNetworking.send(player, supplier.get()));
     }
 
-    public void sendPacket(Function<String, CustomPayload> function) {
+    public void sendPacket(Function<String, CustomPacketPayload> function) {
         for (Map.Entry<String, String> entry : this.onlinePlayers.entrySet()) {
-            if (this.playerFromName(entry.getKey()) instanceof ServerPlayerEntity player) {
+            if (this.playerFromName(entry.getKey()) instanceof ServerPlayer player) {
                 ServerPlayNetworking.send(player, function.apply(entry.getValue()));
             }
         }
     }
 
-    public void sendPacketIfOnline(ServerPlayerEntity player, Supplier<CustomPayload> supplier) {
+    public void sendPacketIfOnline(ServerPlayer player, Supplier<CustomPacketPayload> supplier) {
         if (this.onlinePlayers.containsKey(FetcherUtils.getPlayerName(player))) {
             ServerPlayNetworking.send(player, supplier.get());
         }

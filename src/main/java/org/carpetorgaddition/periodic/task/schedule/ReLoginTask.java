@@ -4,16 +4,16 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.Messenger;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.DisconnectionInfo;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.DisconnectionDetails;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentContents;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.ServerTask;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextContent;
-import net.minecraft.text.TranslatableTextContent;
+import net.minecraft.server.TickTask;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.TaskExecutionException;
@@ -33,13 +33,13 @@ public class ReLoginTask extends PlayerScheduleTask {
     // 距离下一次重新上线所需的时间
     private int remainingTick;
     private final MinecraftServer server;
-    private final ServerCommandSource source;
+    private final CommandSourceStack source;
     // 当前任务是否已经结束
     private boolean stop = false;
     // 假玩家重新上线的倒计时
     private int canSpawn = 2;
 
-    public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, ServerCommandSource source) {
+    public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, CommandSourceStack source) {
         super(source);
         this.serializer = new FakePlayerSerializer(fakePlayer);
         this.interval = interval;
@@ -52,7 +52,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     public void tick() {
         // 启用内存泄漏修复
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
-            ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
+            ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.getPlayerName());
             if (player == null) {
                 if (this.canSpawn == 0) {
                     loginPlayer();
@@ -64,7 +64,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 this.remainingTick = this.interval;
                 if (player instanceof EntityPlayerMPFake fakePlayer) {
                     // 如果假玩家坠入虚空，设置任务为停止
-                    if (fakePlayer.getY() < FetcherUtils.getWorld(fakePlayer).getBottomY() - 64) {
+                    if (fakePlayer.getY() < FetcherUtils.getWorld(fakePlayer).getMinY() - 64) {
                         this.stop();
                     }
                     // 让假玩家退出游戏
@@ -77,7 +77,7 @@ public class ReLoginTask extends PlayerScheduleTask {
             Runnable function = () -> {
                 MessageUtils.sendErrorMessage(source, "carpet.commands.playerManager.schedule.relogin.rule.disable");
                 // 如果假玩家已经下线，重新生成假玩家
-                ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
+                ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.getPlayerName());
                 if (player == null) {
                     loginPlayer();
                 }
@@ -90,28 +90,28 @@ public class ReLoginTask extends PlayerScheduleTask {
     /**
      * 让假玩家退出游戏
      *
-     * @see EntityPlayerMPFake#kill(Text)
+     * @see EntityPlayerMPFake#kill(Component)
      * @see EntityPlayerMPFake#shakeOff()
      */
     @SuppressWarnings("JavadocReference")
     public static void logoutPlayer(EntityPlayerMPFake fakePlayer) {
-        Text reason = Messenger.s("Killed");
+        Component reason = Messenger.s("Killed");
         // 停止骑行
-        if (fakePlayer.getVehicle() instanceof PlayerEntity) {
+        if (fakePlayer.getVehicle() instanceof Player) {
             fakePlayer.stopRiding();
         }
-        for (Entity passenger : fakePlayer.getPassengersDeep()) {
-            if (passenger instanceof PlayerEntity) {
+        for (Entity passenger : fakePlayer.getIndirectPassengers()) {
+            if (passenger instanceof Player) {
                 passenger.stopRiding();
             }
         }
         // 退出游戏
-        TextContent content = reason.getContent();
-        if (content instanceof TranslatableTextContent text) {
+        ComponentContents content = reason.getContents();
+        if (content instanceof TranslatableContents text) {
             if (text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
                 try {
                     CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
-                    fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
+                    fakePlayer.connection.onDisconnect(new DisconnectionDetails(reason));
                 } finally {
                     CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
                 }
@@ -119,7 +119,7 @@ public class ReLoginTask extends PlayerScheduleTask {
             }
         }
         MinecraftServer server = FetcherUtils.getServer(fakePlayer);
-        server.send(new ServerTask(server.getTicks(), () -> {
+        server.schedule(new TickTask(server.getTickCount(), () -> {
             try {
                 CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
                 /*
@@ -134,7 +134,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 if (fakePlayer.isRemoved()) {
                     return;
                 }
-                fakePlayer.networkHandler.onDisconnected(new DisconnectionInfo(reason));
+                fakePlayer.connection.onDisconnect(new DisconnectionDetails(reason));
             } finally {
                 CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
             }
@@ -158,17 +158,17 @@ public class ReLoginTask extends PlayerScheduleTask {
     }
 
     @Override
-    public void onCancel(CommandContext<ServerCommandSource> context) {
+    public void onCancel(CommandContext<CommandSourceStack> context) {
         this.markRemove();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.cancel", this.getPlayerName());
-        ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.getPlayerName());
+        ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.getPlayerName());
         if (player == null) {
             loginPlayer();
         }
     }
 
     @Override
-    public void sendEachMessage(ServerCommandSource source) {
+    public void sendEachMessage(CommandSourceStack source) {
         MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.relogin", this.getPlayerName(), this.interval);
     }
 

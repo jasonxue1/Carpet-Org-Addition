@@ -1,6 +1,6 @@
 package org.carpetorgaddition.wheel.page;
 
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
@@ -25,7 +25,7 @@ public class PageManager {
         this.pagingList.entrySet().removeIf(entry -> entry.getValue().canFreeMemory());
     }
 
-    public PagedCollection newPagedCollection(ServerCommandSource source) {
+    public PagedCollection newPagedCollection(CommandSourceStack source) {
         PagedCollection collection = new PagedCollection(this.currentId, source);
         this.pagingList.put(this.currentId, new PagedCache(collection, referenceQueue, this.currentId));
         this.currentId++;

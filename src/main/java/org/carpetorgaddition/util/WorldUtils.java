@@ -1,18 +1,18 @@
 package org.carpetorgaddition.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +42,7 @@ public class WorldUtils {
      * 并且在集合对象使用完毕之前不会被回收，短时间内多次调用时，容易导致{@link OutOfMemoryError}
      */
     @Deprecated(forRemoval = true)
-    public static ArrayList<BlockPos> allBlockPos(Box box) {
+    public static ArrayList<BlockPos> allBlockPos(AABB box) {
         int endX = (int) box.maxX;
         int endY = (int) box.maxY;
         int endZ = (int) box.maxZ;
@@ -62,11 +62,11 @@ public class WorldUtils {
      *
      * @return 如果是下界，返回红色；如果是末地，返回紫色；如果是主世界或者自定义维度，返回绿色
      */
-    public static Formatting getColor(World world) {
+    public static ChatFormatting getColor(Level world) {
         return switch (getDimensionId(world)) {
-            case THE_NETHER -> Formatting.RED;
-            case THE_END -> Formatting.DARK_PURPLE;
-            default -> Formatting.GREEN;
+            case THE_NETHER -> ChatFormatting.RED;
+            case THE_END -> ChatFormatting.DARK_PURPLE;
+            default -> ChatFormatting.GREEN;
         };
     }
 
@@ -83,7 +83,7 @@ public class WorldUtils {
     /**
      * 将方块坐标转换为字符串形式，坐标前追加维度id
      */
-    public static String toWorldPosString(World world, BlockPos blockPos) {
+    public static String toWorldPosString(Level world, BlockPos blockPos) {
         return getDimensionId(world) + "[" + toPosString(blockPos) + "]";
     }
 
@@ -93,8 +93,8 @@ public class WorldUtils {
      * @param world 当前世界的对象
      * @return 当前维度的ID
      */
-    public static String getDimensionId(World world) {
-        return world.getRegistryKey().getValue().toString();
+    public static String getDimensionId(Level world) {
+        return world.dimension().identifier().toString();
     }
 
     /**
@@ -103,17 +103,17 @@ public class WorldUtils {
      * @param server    游戏当前的服务器
      * @param dimension 一个维度的id
      */
-    public static ServerWorld getWorld(MinecraftServer server, String dimension) {
+    public static ServerLevel getWorld(MinecraftServer server, String dimension) {
         String[] split = dimension.split(":");
         Identifier identifier;
         if (split.length == 1) {
-            identifier = Identifier.of("minecraft", dimension);
+            identifier = Identifier.fromNamespaceAndPath("minecraft", dimension);
         } else if (split.length == 2) {
-            identifier = Identifier.of(split[0], split[1]);
+            identifier = Identifier.fromNamespaceAndPath(split[0], split[1]);
         } else {
             throw new IllegalArgumentException();
         }
-        return server.getWorld(RegistryKey.of(RegistryKeys.WORLD, identifier));
+        return server.getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
     }
 
     /**
@@ -122,15 +122,15 @@ public class WorldUtils {
      * @param worldId 世界的ID，如果指定了命名空间，则使用指定的，否则使用minecraft
      * @return 世界类型的注册表项
      */
-    public static RegistryKey<World> getWorld(String worldId) {
+    public static ResourceKey<Level> getWorld(String worldId) {
         if (worldId.contains(":")) {
             String[] split = worldId.split(":");
             if (split.length != 2) {
                 throw new IllegalArgumentException();
             }
-            return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(split[0], split[1]));
+            return ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath(split[0], split[1]));
         }
-        return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId));
+        return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
     }
 
     /**
@@ -138,7 +138,7 @@ public class WorldUtils {
      */
     @Nullable
     public static Entity getEntityFromUUID(MinecraftServer server, UUID uuid) {
-        for (ServerWorld world : server.getWorlds()) {
+        for (ServerLevel world : server.getAllLevels()) {
             Entity entity = world.getEntity(uuid);
             if (entity == null) {
                 continue;
@@ -151,7 +151,7 @@ public class WorldUtils {
     /**
      * 在指定位置播放一个音效
      */
-    public static void playSound(World world, BlockPos blockPos, SoundEvent soundEvent, SoundCategory soundCategory) {
+    public static void playSound(Level world, BlockPos blockPos, SoundEvent soundEvent, SoundSource soundCategory) {
         world.playSound(null, blockPos, soundEvent, soundCategory, 1F, 1F);
     }
 
@@ -161,52 +161,52 @@ public class WorldUtils {
      * @param soundEvent    声音时间
      * @param soundCategory 声音类别
      */
-    public static void playSound(ServerPlayerEntity player, SoundEvent soundEvent, SoundCategory soundCategory) {
-        World world = FetcherUtils.getWorld(player);
+    public static void playSound(ServerPlayer player, SoundEvent soundEvent, SoundSource soundCategory) {
+        Level world = FetcherUtils.getWorld(player);
         world.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, soundCategory, 1F, 1F);
     }
 
     /**
      * @return 两个世界的坐标是否可以互相转换
      */
-    public static boolean canMappingPos(World world1, World world2) {
+    public static boolean canMappingPos(Level world1, Level world2) {
         return (isOverworld(world1) && isTheNether(world2)) || (isOverworld(world2) && isTheNether(world1));
     }
 
     /**
      * @return 最大建筑高度
      */
-    public static int getMaxArchitectureAltitude(World world) {
-        return world.getTopYInclusive();
+    public static int getMaxArchitectureAltitude(Level world) {
+        return world.getMaxY();
     }
 
     /**
      * @return 最小建筑高度
      */
-    public static int getMinArchitectureAltitude(World world) {
-        return world.getBottomY();
+    public static int getMinArchitectureAltitude(Level world) {
+        return world.getMinY();
     }
 
     /**
      * @return 维度ID是否表示主世界
      */
-    public static boolean isOverworld(World world) {
-        return world.getRegistryKey() == World.OVERWORLD;
+    public static boolean isOverworld(Level world) {
+        return world.dimension() == Level.OVERWORLD;
     }
 
     /**
      * @return 维度ID是否表示下界
      */
-    public static boolean isTheNether(World world) {
-        return world.getRegistryKey() == World.NETHER;
+    public static boolean isTheNether(Level world) {
+        return world.dimension() == Level.NETHER;
     }
 
     /**
      * @return 维度ID是否表示末地
      */
     @SuppressWarnings("unused")
-    public static boolean isTheEnd(World world) {
-        return world.getRegistryKey() == World.END;
+    public static boolean isTheEnd(Level world) {
+        return world.dimension() == Level.END;
     }
 
     /**
@@ -220,8 +220,8 @@ public class WorldUtils {
      * @param yaw    传送后实体的偏航角
      * @param pitch  传送后实体的俯仰角
      */
-    public static void teleport(Entity source, ServerWorld world, double x, double y, double z, float yaw, float pitch) {
-        source.teleport(world, x, y, z, Set.of(), yaw, pitch, true);
+    public static void teleport(Entity source, ServerLevel world, double x, double y, double z, float yaw, float pitch) {
+        source.teleportTo(world, x, y, z, Set.of(), yaw, pitch, true);
     }
 
     /**
@@ -232,16 +232,16 @@ public class WorldUtils {
      */
     public static void teleport(Entity source, Entity target) {
         // 不要在客户端传送实体
-        if (target.getEntityWorld() instanceof ServerWorld world) {
-            teleport(source, world, target.getX(), target.getY(), target.getZ(), target.getYaw(), target.getPitch());
+        if (target.level() instanceof ServerLevel world) {
+            teleport(source, world, target.getX(), target.getY(), target.getZ(), target.getYRot(), target.getXRot());
         }
     }
 
-    public static boolean isOverworld(RegistryKey<World> key) {
-        return World.OVERWORLD.equals(key);
+    public static boolean isOverworld(ResourceKey<Level> key) {
+        return Level.OVERWORLD.equals(key);
     }
 
-    public static boolean isTheNether(RegistryKey<World> key) {
-        return World.NETHER.equals(key);
+    public static boolean isTheNether(ResourceKey<Level> key) {
+        return Level.NETHER.equals(key);
     }
 }

@@ -4,8 +4,8 @@ import carpet.api.settings.CarpetRule;
 import carpet.api.settings.InvalidRuleValueException;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.carpetorgaddition.dataupdate.CarpetConfDataUpdater;
@@ -33,7 +33,7 @@ public class RuleConfig {
      * 读取配置文件
      */
     public void load() {
-        ServerCommandSource source = this.server.getCommandSource();
+        CommandSourceStack source = this.server.createCommandSourceStack();
         for (Map.Entry<String, String> entry : this.read().entrySet()) {
             CarpetRule<?> rule = CarpetOrgAdditionExtension.getSettingManager().getCarpetRule(entry.getKey());
             if (rule == null) {

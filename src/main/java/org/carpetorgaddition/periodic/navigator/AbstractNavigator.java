@@ -1,12 +1,12 @@
 package org.carpetorgaddition.periodic.navigator;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
@@ -20,11 +20,11 @@ import java.util.Map;
 public abstract class AbstractNavigator {
     protected static final String IN = "carpet.commands.navigate.hud.in";
     protected static final String REACH = "carpet.commands.navigate.hud.reach";
-    protected final ServerPlayerEntity player;
+    protected final ServerPlayer player;
     protected final MinecraftServer server;
     protected final NavigatorManager manager;
 
-    public AbstractNavigator(ServerPlayerEntity player) {
+    public AbstractNavigator(ServerPlayer player) {
         this.player = player;
         this.server = FetcherUtils.getServer(player);
         this.manager = PlayerComponentCoordinator.getManager(this.player).getNavigatorManager();
@@ -52,10 +52,10 @@ public abstract class AbstractNavigator {
     /**
      * @return 此导航器的浅拷贝副本
      */
-    public abstract AbstractNavigator copy(ServerPlayerEntity player);
+    public abstract AbstractNavigator copy(ServerPlayer player);
 
     @NotNull
-    protected Text getHUDText(Vec3d vec3d, Text displayName, int distance) {
+    protected Component getHUDText(Vec3 vec3d, Component displayName, int distance) {
         // 添加左右箭头
         Map.Entry<String, String> entry = switch (forwardAngle(this.player, vec3d)) {
             case -3 -> Map.entry("    ", " >>>");
@@ -82,13 +82,13 @@ public abstract class AbstractNavigator {
 
     /**
      * @param target 玩家看向的位置
-     * @see net.minecraft.client.gui.hud.SubtitlesHud#render(DrawContext)
+     * @see net.minecraft.client.gui.components.SubtitleOverlay#render(GuiGraphics)
      */
-    private static int forwardAngle(PlayerEntity player, Vec3d target) {
-        double x = target.getX() - player.getX();
-        double y = target.getZ() - player.getZ();
+    private static int forwardAngle(Player player, Vec3 target) {
+        double x = target.x() - player.getX();
+        double y = target.z() - player.getZ();
         // 将直角坐标转换为极坐标，然后获取角度
-        double result = player.getYaw() + Math.toDegrees(Math.atan2(x, y));
+        double result = player.getYRot() + Math.toDegrees(Math.atan2(x, y));
         result = result < 0 ? result + 360 : result;
         result = result > 180 ? result - 360 : result;
         return forwardAngle(result);
@@ -111,10 +111,10 @@ public abstract class AbstractNavigator {
     }
 
     // 玩家视角是否指向目标位置（仅考虑高度）
-    private static int verticalAngle(PlayerEntity player, Vec3d target) {
-        double x = Math.sqrt(Math.pow(player.getX() - target.getX(), 2) + Math.pow(player.getZ() - target.getZ(), 2));
-        double y = target.getY() - player.getEyeY();
-        double result = player.getPitch() + Math.toDegrees(Math.atan2(y, x));
+    private static int verticalAngle(Player player, Vec3 target) {
+        double x = Math.sqrt(Math.pow(player.getX() - target.x(), 2) + Math.pow(player.getZ() - target.z(), 2));
+        double y = target.y() - player.getEyeY();
+        double result = player.getXRot() + Math.toDegrees(Math.atan2(y, x));
         if (result >= 10) {
             return 1;
         } else if (result <= -10) {
@@ -131,7 +131,7 @@ public abstract class AbstractNavigator {
         // 更新上一个坐标
         if (force || this.updateRequired()) {
             // 要求玩家有执行/navigate命令的权限
-            boolean hasPermission = CommandUtils.canUseCommand(this.player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
+            boolean hasPermission = CommandUtils.canUseCommand(this.player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate);
             if (CarpetOrgAdditionSettings.syncNavigateWaypoint.get() && hasPermission) {
                 WaypointUpdateS2CPacket packet = this.createPacket();
                 ServerPlayNetworking.send(this.player, packet);

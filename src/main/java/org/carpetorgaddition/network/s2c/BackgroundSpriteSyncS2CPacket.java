@@ -1,20 +1,21 @@
 package org.carpetorgaddition.network.s2c;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
 import org.carpetorgaddition.network.PacketUtils;
+import org.jspecify.annotations.NonNull;
 
 /**
  * 背景精灵同步数据包
  */
-public record BackgroundSpriteSyncS2CPacket(int syncId, int slotIndex, Identifier identifier) implements CustomPayload {
-    public static final Id<BackgroundSpriteSyncS2CPacket> ID = PacketUtils.createId("background_sprite_sync");
+public record BackgroundSpriteSyncS2CPacket(int syncId, int slotIndex, Identifier identifier) implements CustomPacketPayload {
+    public static final Type<BackgroundSpriteSyncS2CPacket> ID = PacketUtils.createId("background_sprite_sync");
 
-    public static final PacketCodec<RegistryByteBuf, BackgroundSpriteSyncS2CPacket> CODEC = new PacketCodec<>() {
+    public static final StreamCodec<RegistryFriendlyByteBuf, BackgroundSpriteSyncS2CPacket> CODEC = new StreamCodec<>() {
         @Override
-        public BackgroundSpriteSyncS2CPacket decode(RegistryByteBuf buf) {
+        public BackgroundSpriteSyncS2CPacket decode(RegistryFriendlyByteBuf buf) {
             int syncId = buf.readInt();
             int slotIndex = buf.readInt();
             Identifier identifier = buf.readIdentifier();
@@ -22,7 +23,7 @@ public record BackgroundSpriteSyncS2CPacket(int syncId, int slotIndex, Identifie
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, BackgroundSpriteSyncS2CPacket value) {
+        public void encode(RegistryFriendlyByteBuf buf, BackgroundSpriteSyncS2CPacket value) {
             buf.writeInt(value.syncId);
             buf.writeInt(value.slotIndex);
             buf.writeIdentifier(value.identifier);
@@ -30,7 +31,7 @@ public record BackgroundSpriteSyncS2CPacket(int syncId, int slotIndex, Identifie
     };
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public @NonNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

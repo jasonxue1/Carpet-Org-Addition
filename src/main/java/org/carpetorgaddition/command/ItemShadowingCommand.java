@@ -3,13 +3,13 @@ package org.carpetorgaddition.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
@@ -17,52 +17,52 @@ import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.inventory.ImmutableInventory;
 
 public class ItemShadowingCommand extends AbstractServerCommand {
-    public ItemShadowingCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public ItemShadowingCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandItemShadowing))
                 .executes(this::itemShadowing));
     }
 
     // 制作物品分身
-    private int itemShadowing(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int itemShadowing(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取主副手上的物品
-        ItemStack main = player.getMainHandStack();
-        ItemStack off = player.getOffHandStack();
+        ItemStack main = player.getMainHandItem();
+        ItemStack off = player.getOffhandItem();
         if (main.isEmpty()) {
             // 主手不能为空
             throw CommandUtils.createException("carpet.commands.itemshadowing.main_hand_is_empty");
         } else if (off.isEmpty()) {
             // 制作物品分身
-            player.setStackInHand(Hand.OFF_HAND, main);
+            player.setItemInHand(InteractionHand.OFF_HAND, main);
             // 广播制作物品分身的消息
             MessageUtils.broadcastMessage(
                     context.getSource().getServer(),
-                    TextBuilder.translate("carpet.commands.itemshadowing.broadcast", player.getDisplayName(), main.toHoverableText())
+                    TextBuilder.translate("carpet.commands.itemshadowing.broadcast", player.getDisplayName(), main.getDisplayName())
             );
             // 将玩家制作物品分身的消息写入日志
-            World world = FetcherUtils.getWorld(player);
+            Level world = FetcherUtils.getWorld(player);
             if (InventoryUtils.isShulkerBoxItem(main)) {
                 // 获取潜影盒的物品栏
                 ImmutableInventory inventory = InventoryUtils.getInventory(main);
                 if (inventory.isEmpty()) {
                     CarpetOrgAddition.LOGGER.info("{}制作了一个空[{}]的物品分身，在{}，坐标:[{}]",
                             FetcherUtils.getPlayerName(player), main.getItem().getName().getString(),
-                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.getBlockPos()));
+                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
                 } else {
                     CarpetOrgAddition.LOGGER.info("{}制作了一个{}的物品分身，包含{}，在{}，坐标:[{}]",
                             FetcherUtils.getPlayerName(player), main.getItem().getName().getString(), inventory,
-                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.getBlockPos()));
+                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
                 }
             } else {
                 CarpetOrgAddition.LOGGER.info("{}制作了一个[{}]的物品分身，在{}，坐标:[{}]",
                         FetcherUtils.getPlayerName(player), main.getItem().getName().getString(),
-                        WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.getBlockPos()));
+                        WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
             }
             return 1;
         } else {

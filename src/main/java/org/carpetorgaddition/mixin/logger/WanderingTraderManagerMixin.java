@@ -3,15 +3,15 @@ package org.carpetorgaddition.mixin.logger;
 import carpet.logging.HUDLogger;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.entity.passive.WanderingTraderEntity;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WanderingTraderManager;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
+import net.minecraft.world.entity.npc.wanderingtrader.WanderingTraderSpawner;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.logger.LoggerRegister;
 import org.carpetorgaddition.logger.Loggers;
@@ -34,30 +34,30 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.Map;
 import java.util.Set;
 
-@Mixin(WanderingTraderManager.class)
+@Mixin(WanderingTraderSpawner.class)
 public class WanderingTraderManagerMixin {
     @Shadow
     private int spawnDelay;
 
     @Shadow
-    private int spawnTimer;
+    private int tickDelay;
 
     @Shadow
     private int spawnChance;
 
-    @Inject(method = "spawn", at = @At("HEAD"))
-    private void updataLogger(ServerWorld world, boolean spawnMonsters, CallbackInfo ci) {
-        if (world.getGameRules().getValue(GameRules.SPAWN_WANDERING_TRADERS)) {
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void updataLogger(ServerLevel world, boolean spawnMonsters, CallbackInfo ci) {
+        if (world.getGameRules().get(GameRules.SPAWN_WANDERING_TRADERS)) {
             // 获取流浪商人生成的倒计时，并换算成秒
-            int countdown = ((this.spawnDelay == 0 ? 1200 : this.spawnDelay) - (1200 - this.spawnTimer)) / 20;
+            int countdown = ((this.spawnDelay == 0 ? 1200 : this.spawnDelay) - (1200 - this.tickDelay)) / 20;
             WanderingTraderSpawnLogger.setSpawnCountdown(new SpawnCountdown(countdown, this.spawnChance));
             return;
         }
         WanderingTraderSpawnLogger.setSpawnCountdown(null);
     }
 
-    @WrapOperation(method = "trySpawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/passive/WanderingTraderEntity;setPositionTarget(Lnet/minecraft/util/math/BlockPos;I)V"))
-    private void broadcastSpawnSuccess(WanderingTraderEntity trader, BlockPos pos, int i, Operation<Void> original) {
+    @WrapOperation(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/npc/wanderingtrader/WanderingTrader;setHomeTo(Lnet/minecraft/core/BlockPos;I)V"))
+    private void broadcastSpawnSuccess(WanderingTrader trader, BlockPos pos, int i, Operation<Void> original) {
         original.call(trader, pos, i);
         if (LoggerRegister.wanderingTrader && WanderingTraderSpawnLogger.spawnCountdownNonNull()) {
             // 获取流浪商人所在的服务器
@@ -68,29 +68,29 @@ public class WanderingTraderManagerMixin {
             HUDLogger logger = Loggers.getWanderingTraderLogger();
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
-            Text blockPos = TextProvider.blockPos(trader.getBlockPos(), Formatting.GREEN);
-            Text message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
+            Component blockPos = TextProvider.blockPos(trader.blockPosition(), ChatFormatting.GREEN);
+            Component message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
             for (Map.Entry<String, String> entry : entries) {
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.getKey());
+                ServerPlayer player = server.getPlayerList().getPlayerByName(entry.getKey());
                 if (player == null) {
                     continue;
                 }
                 // 广播流浪商人生成成功
-                boolean canNavigate = CommandUtils.canUseCommand(player.getCommandSource(), CarpetOrgAdditionSettings.commandNavigate);
+                boolean canNavigate = CommandUtils.canUseCommand(player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate);
                 if (canNavigate) {
                     // 带点击导航的消息
-                    Text button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
-                            .setCommand(CommandProvider.navigateToUuidEntity(trader.getUuid()))
+                    Component button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
+                            .setCommand(CommandProvider.navigateToUuidEntity(trader.getUUID()))
                             .setHover(TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()))
-                            .setColor(Formatting.AQUA)
+                            .setColor(ChatFormatting.AQUA)
                             .build();
-                    Text canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
+                    Component canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
                     MessageUtils.sendMessage(player, canNavigateMessage);
                 } else {
                     MessageUtils.sendMessage(player, message);
                 }
                 // 播放音效通知流浪商人生成
-                WorldUtils.playSound(FetcherUtils.getWorld(trader), player.getBlockPos(), trader.getYesSound(), trader.getSoundCategory());
+                WorldUtils.playSound(FetcherUtils.getWorld(trader), player.blockPosition(), trader.getNotifyTradeSound(), trader.getSoundSource());
             }
         }
     }

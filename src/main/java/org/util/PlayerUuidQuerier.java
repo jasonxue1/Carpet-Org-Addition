@@ -2,7 +2,7 @@ package org.util;
 
 import com.google.gson.*;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.util.Uuids;
+import net.minecraft.core.UUIDUtil;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import java.io.*;
@@ -64,7 +64,7 @@ public class PlayerUuidQuerier {
                     continue;
                 }
                 ordinal.increment();
-                write(ordinal.getValue(), false, new GameProfile(generateOfflineUuid(name), name));
+                write(ordinal.intValue(), false, new GameProfile(generateOfflineUuid(name), name));
             }
         }
     }
@@ -76,7 +76,7 @@ public class PlayerUuidQuerier {
         for (GameProfile gameProfile : list) {
             if (name.equalsIgnoreCase(gameProfile.name())) {
                 ordinal.increment();
-                write(ordinal.getValue(), true, gameProfile);
+                write(ordinal.intValue(), true, gameProfile);
                 return true;
             }
         }
@@ -185,6 +185,6 @@ public class PlayerUuidQuerier {
      * 获取玩家的离线UUID
      */
     private UUID generateOfflineUuid(String name) {
-        return Uuids.getOfflinePlayerUuid(name);
+        return UUIDUtil.createOfflinePlayerUUID(name);
     }
 }

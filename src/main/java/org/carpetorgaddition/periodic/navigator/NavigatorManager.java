@@ -1,11 +1,11 @@
 package org.carpetorgaddition.periodic.navigator;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.network.s2c.WaypointClearS2CPacket;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
@@ -17,9 +17,9 @@ public class NavigatorManager {
     @Nullable
     private AbstractNavigator navigator;
     private boolean isUpdated = false;
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
 
-    public NavigatorManager(ServerPlayerEntity player) {
+    public NavigatorManager(ServerPlayer player) {
         this.player = player;
     }
 
@@ -38,7 +38,7 @@ public class NavigatorManager {
                 this.navigator.tick();
             }
         } catch (RuntimeException e) {
-            MessageUtils.sendErrorMessage(this.player.getCommandSource(), e, "carpet.commands.navigate.exception");
+            MessageUtils.sendErrorMessage(this.player.createCommandSourceStack(), e, "carpet.commands.navigate.exception");
             CarpetOrgAddition.LOGGER.error("导航器没有按照预期工作", e);
             // 清除导航器
             this.clearNavigator();
@@ -58,11 +58,11 @@ public class NavigatorManager {
         this.setNavigator(new WaypointNavigator(this.player, waypoint));
     }
 
-    public void setNavigator(BlockPos blockPos, World world) {
+    public void setNavigator(BlockPos blockPos, Level world) {
         this.setNavigator(new BlockPosNavigator(this.player, blockPos, world));
     }
 
-    public void setNavigator(BlockPos blockPos, World world, Text name) {
+    public void setNavigator(BlockPos blockPos, Level world, Component name) {
         this.setNavigator(new HasNamePosNavigator(this.player, blockPos, world, name));
     }
 
@@ -77,7 +77,7 @@ public class NavigatorManager {
         ServerPlayNetworking.send(this.player, WaypointClearS2CPacket.INSTANCE);
     }
 
-    public void setNavigatorFromOldPlayer(ServerPlayerEntity oldPlayer) {
+    public void setNavigatorFromOldPlayer(ServerPlayer oldPlayer) {
         NavigatorManager manager = PlayerComponentCoordinator.getManager(oldPlayer).getNavigatorManager();
         AbstractNavigator navigator = manager.getNavigator();
         this.navigator = navigator == null ? null : navigator.copy(this.player);

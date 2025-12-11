@@ -1,6 +1,6 @@
 package org.carpetorgaddition.rule.value;
 
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 
@@ -48,7 +48,7 @@ public enum OpenPlayerInventory {
         return this == NON_WHITELIST;
     }
 
-    public static boolean isEnable(ServerCommandSource source) {
+    public static boolean isEnable(CommandSourceStack source) {
         return CommandUtils.canUseCommand(source, CarpetOrgAdditionSettings.playerCommandOpenPlayerInventory);
     }
 }

@@ -2,7 +2,7 @@ package org.carpetorgaddition.client.util;
 
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.player.LocalPlayer;
 
 public class ClientCommandUtils {
     private ClientCommandUtils() {
@@ -14,9 +14,9 @@ public class ClientCommandUtils {
      * @param command 命令的内容，不建议以“/”开头
      */
     public static void sendCommand(String command) {
-        ClientPlayerEntity player = ClientUtils.getPlayer();
+        LocalPlayer player = ClientUtils.getPlayer();
         // 发送命令，发送前移除命令的斜杠
-        player.networkHandler.sendChatCommand(command.startsWith("/") ? command.substring(1) : command);
+        player.connection.sendCommand(command.startsWith("/") ? command.substring(1) : command);
     }
 
     /**

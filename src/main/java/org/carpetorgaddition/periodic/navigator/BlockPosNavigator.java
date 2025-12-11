@@ -1,9 +1,9 @@
 package org.carpetorgaddition.periodic.navigator;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class BlockPosNavigator extends AbstractNavigator {
     protected final BlockPos blockPos;
-    protected final World world;
+    protected final Level world;
 
-    public BlockPosNavigator(@NotNull ServerPlayerEntity player, BlockPos blockPos, World world) {
+    public BlockPosNavigator(@NotNull ServerPlayer player, BlockPos blockPos, Level world) {
         super(player);
         this.blockPos = blockPos;
         this.world = world;
@@ -24,11 +24,11 @@ public class BlockPosNavigator extends AbstractNavigator {
 
     @Override
     public void tick() {
-        Text text;
+        Component text;
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
-            Text in = TextProvider.simpleBlockPos(this.blockPos);
-            int distance = MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos);
-            text = getHUDText(this.blockPos.toCenterPos(), in, distance);
+            Component in = TextProvider.simpleBlockPos(this.blockPos);
+            int distance = MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos);
+            text = getHUDText(this.blockPos.getCenter(), in, distance);
         } else {
             text = TextBuilder.combineAll(TextProvider.dimension(this.world), TextProvider.simpleBlockPos(this.blockPos));
         }
@@ -46,7 +46,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     }
 
     @Override
-    public BlockPosNavigator copy(ServerPlayerEntity player) {
+    public BlockPosNavigator copy(ServerPlayer player) {
         return new BlockPosNavigator(player, this.blockPos, this.world);
     }
 
@@ -54,7 +54,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     protected boolean isArrive() {
         // 玩家与目的地在同一维度
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
-            if (MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos) <= 8) {
+            if (MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos) <= 8) {
                 // 到达目的地，停止追踪
                 MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
                 this.clear();

@@ -1,14 +1,12 @@
 package org.carpetorgaddition.periodic.task.batch;
 
-import carpet.patches.EntityPlayerMPFake;
-import com.mojang.authlib.GameProfile;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.NameToIdCache;
-import net.minecraft.util.Uuids;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.players.UserNameToIdResolver;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -28,7 +26,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
      * 所有要召唤的玩家
      */
-    private final Set<PlayerConfigEntry> players = ConcurrentHashMap.newKeySet();
+    private final Set<NameAndId> players = ConcurrentHashMap.newKeySet();
     private final MinecraftServer server;
     /**
      * 玩家名称的前缀
@@ -52,7 +50,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 是否正在预加载
      */
     private boolean isPreload = true;
-    private Iterator<PlayerConfigEntry> iterator;
+    private Iterator<NameAndId> iterator;
     /**
      * 是否召唤完成，用于确定任务是否结束
      */
@@ -66,7 +64,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      */
     private long setupTime = -1L;
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, ServerCommandSource source, NameToIdCache userCache, FakePlayerCreateContext context, String prefix, int start, int end) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, UserNameToIdResolver userCache, FakePlayerCreateContext context, String prefix, int start, int end) {
         super(source);
         this.server = server;
         this.prefix = prefix;
@@ -74,16 +72,16 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         this.end = end;
         int count = end - start + 1;
         this.context = context;
-        PlayerManager playerManager = server.getPlayerManager();
+        PlayerList playerManager = server.getPlayerList();
         for (int i = start; i <= end; i++) {
             String username = prefix + i;
-            if (playerManager.getPlayer(username) != null) {
+            if (playerManager.getPlayerByName(username) != null) {
                 count--;
                 continue;
             }
             Thread.ofVirtual().start(() -> {
-                Optional<PlayerConfigEntry> optional = userCache.findByName(username);
-                PlayerConfigEntry gameProfile = optional.orElseGet(() -> new PlayerConfigEntry(Uuids.getOfflinePlayerUuid(username), username));
+                Optional<NameAndId> optional = userCache.get(username);
+                NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(username), username));
                 if (optional.isEmpty()) {
                     userCache.add(gameProfile);
                 }
@@ -91,26 +89,26 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             });
         }
         this.count = count;
-        this.startTime = FetcherUtils.getWorld(this.source).getTime();
+        this.startTime = FetcherUtils.getWorld(this.source).getGameTime();
     }
 
     @Override
     protected void tick() {
         int size = this.players.size();
-        long time = FetcherUtils.getWorld(this.source).getTime();
+        long time = FetcherUtils.getWorld(this.source).getGameTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
             if (size < this.count) {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
-                    Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
+                    Component message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
                     MessageUtils.sendMessageToHudIfPlayer(this.source, message);
                 }
                 return;
             }
             if (progress) {
-                Text message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
+                Component message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
                 MessageUtils.sendMessageToHudIfPlayer(this.source, message);
             }
             this.isPreload = false;
@@ -128,7 +126,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 if (this.isTimeExpired()) {
                     return;
                 }
-                PlayerConfigEntry entry = iterator.next();
+                NameAndId entry = iterator.next();
                 GenericUtils.createFakePlayer(entry.name(), this.server, this.context);
             }
         } finally {
@@ -136,7 +134,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
-            Text summoner = TextBuilder.translate(
+            Component summoner = TextBuilder.translate(
                     "carpet.commands.playerManager.batch.summoner",
                     this.source.getDisplayName(),
                     this.prefix + this.start,

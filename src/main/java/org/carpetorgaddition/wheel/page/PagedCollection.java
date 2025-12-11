@@ -1,9 +1,9 @@
 package org.carpetorgaddition.wheel.page;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -19,15 +19,15 @@ import java.util.function.Supplier;
 public class PagedCollection implements Iterable<Page> {
     private final ArrayList<Page> pages = new ArrayList<>();
     private final int id;
-    private final ServerCommandSource source;
+    private final CommandSourceStack source;
     private int length = 0;
 
-    public PagedCollection(int id, ServerCommandSource source) {
+    public PagedCollection(int id, CommandSourceStack source) {
         this.id = id;
         this.source = source;
     }
 
-    public void addContent(List<? extends Supplier<Text>> list) {
+    public void addContent(List<? extends Supplier<Component>> list) {
         int max = maximumNumberOfRow();
         int from = 0;
         while (from < list.size()) {
@@ -55,42 +55,42 @@ public class PagedCollection implements Iterable<Page> {
         } else {
             getPage(pagination).print(this.source);
             ArrayList<Object> list = new ArrayList<>();
-            list.add(new TextBuilder("  ======").setColor(Formatting.DARK_GRAY));
+            list.add(new TextBuilder("  ======").setColor(ChatFormatting.DARK_GRAY));
             list.add(this.prevPageButton(pagination));
             list.add(" [");
-            list.add(new TextBuilder(pagination).setColor(Formatting.GOLD));
+            list.add(new TextBuilder(pagination).setColor(ChatFormatting.GOLD));
             list.add("/");
-            list.add(new TextBuilder(this.totalPages()).setColor(Formatting.GOLD));
+            list.add(new TextBuilder(this.totalPages()).setColor(ChatFormatting.GOLD));
             list.add("] ");
             list.add(this.nextPageButton(pagination));
-            list.add(new TextBuilder("======").setColor(Formatting.DARK_GRAY));
-            Text pageTurningButton = TextBuilder.combineList(list);
+            list.add(new TextBuilder("======").setColor(ChatFormatting.DARK_GRAY));
+            Component pageTurningButton = TextBuilder.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
 
-    private Text prevPageButton(int pagination) {
+    private Component prevPageButton(int pagination) {
         TextBuilder builder = new TextBuilder(" <<< ");
         if (pagination == 1) {
             // 已经是第一页，没有上一页了
-            builder.setColor(Formatting.GRAY);
+            builder.setColor(ChatFormatting.GRAY);
         } else {
             builder.setHover("carpet.command.page.prev");
             builder.setCommand(CommandProvider.pageTurning(this.id, pagination - 1));
-            builder.setColor(Formatting.AQUA);
+            builder.setColor(ChatFormatting.AQUA);
         }
         return builder.build();
     }
 
-    private Text nextPageButton(int pagination) {
+    private Component nextPageButton(int pagination) {
         TextBuilder builder = new TextBuilder(" >>> ");
         if (pagination == this.totalPages()) {
             // 已经是最后一页，没有下一页了
-            builder.setColor(Formatting.GRAY);
+            builder.setColor(ChatFormatting.GRAY);
         } else {
             builder.setHover("carpet.command.page.next");
             builder.setCommand(CommandProvider.pageTurning(this.id, pagination + 1));
-            builder.setColor(Formatting.AQUA);
+            builder.setColor(ChatFormatting.AQUA);
         }
         return builder.build();
     }
@@ -113,7 +113,7 @@ public class PagedCollection implements Iterable<Page> {
         return this.length;
     }
 
-    public ServerCommandSource getSource() {
+    public CommandSourceStack getSource() {
         return this.source;
     }
 

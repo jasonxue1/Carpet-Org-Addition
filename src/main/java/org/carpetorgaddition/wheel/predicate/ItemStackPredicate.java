@@ -7,18 +7,18 @@ import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.ItemPredicateArgumentType;
-import net.minecraft.command.argument.ItemPredicateArgumentType.ItemStackPredicateArgument;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.InvalidIdentifierException;
+import net.minecraft.ChatFormatting;
+import net.minecraft.IdentifierException;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument.Result;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.CommandRegistryAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -50,12 +50,12 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         this.convert = null;
     }
 
-    public ItemStackPredicate(CommandContext<ServerCommandSource> context, String arguments) {
-        for (ParsedCommandNode<ServerCommandSource> commandNode : context.getNodes()) {
+    public ItemStackPredicate(CommandContext<CommandSourceStack> context, String arguments) {
+        for (ParsedCommandNode<CommandSourceStack> commandNode : context.getNodes()) {
             if (commandNode.getNode() instanceof ArgumentCommandNode<?, ?> node && Objects.equals(node.getName(), arguments)) {
                 StringRange range = commandNode.getRange();
                 this.input = context.getInput().substring(range.getStart(), range.getEnd());
-                ItemStackPredicateArgument predicate = ItemPredicateArgumentType.getItemStackPredicate(context, arguments);
+                Result predicate = ItemPredicateArgument.getItemPredicate(context, arguments);
                 this.isWildcard = this.isWildcard();
                 this.predicate = this.isWildcard ? itemStack -> !itemStack.isEmpty() && predicate.test(itemStack) : predicate;
                 this.convert = tryConvert(this.input);
@@ -66,7 +66,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     }
 
     public ItemStackPredicate(@NotNull Item item) {
-        this.predicate = itemStack -> itemStack.isOf(item);
+        this.predicate = itemStack -> itemStack.is(item);
         this.input = GenericUtils.getIdAsString(item);
         this.isWildcard = false;
         this.convert = item;
@@ -105,7 +105,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             return null;
         }
         try {
-            return Registries.ITEM.get(Identifier.of(input));
+            return BuiltInRegistries.ITEM.getValue(Identifier.parse(input));
         } catch (RuntimeException e) {
             return null;
         }
@@ -129,11 +129,11 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      * @throws NullPointerException 如果在游戏外加载物品谓词则抛出
      */
     public static ItemStackPredicate parse(String input) {
-        CommandRegistryAccessor accessor = (CommandRegistryAccessor) CarpetServer.minecraft_server.getCommandManager();
-        CommandRegistryAccess access = accessor.carpet_Org_Addition$getAccess();
+        CommandRegistryAccessor accessor = (CommandRegistryAccessor) CarpetServer.minecraft_server.getCommands();
+        CommandBuildContext access = accessor.carpet_Org_Addition$getAccess();
         try {
             StringReader reader = new StringReader(input);
-            ItemStackPredicateArgument predicate = ItemPredicateArgumentType.itemPredicate(access).parse(reader);
+            Result predicate = ItemPredicateArgument.itemPredicate(access).parse(reader);
             return new ItemStackPredicate(predicate, input);
         } catch (CommandSyntaxException e) {
             throw new RuntimeException(e);
@@ -150,10 +150,10 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     /**
      * @return 谓词的字符串首字母
      */
-    public Text getInitialUpperCase() {
+    public Component getInitialUpperCase() {
         if (this.isEmpty()) {
             TextBuilder builder = new TextBuilder("[A]");
-            builder.setColor(Formatting.DARK_GRAY);
+            builder.setColor(ChatFormatting.DARK_GRAY);
             builder.setHover(Items.AIR.getName());
             return builder.build();
         }
@@ -173,7 +173,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         String[] split = this.input.split(":");
         int index = split.length == 1 ? 0 : 1;
         builder = new TextBuilder("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
-        Text name = Registries.ITEM.get(Identifier.of(this.input)).getName();
+        Component name = BuiltInRegistries.ITEM.getValue(Identifier.parse(this.input)).getName();
         return builder.setHover(name).build();
     }
 
@@ -181,9 +181,9 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      * 将当前命令参数输入转换成文本对象
      *
      * @return 如果是谓词，返回封装的字符串，如果是物品，返回物品名称
-     * @throws InvalidIdentifierException 如果解析到了不正确的字符串
+     * @throws IdentifierException 如果解析到了不正确的字符串
      */
-    public Text toText() throws InvalidIdentifierException {
+    public Component toText() throws IdentifierException {
         if (this.isEmpty()) {
             return Items.AIR.getName();
         }
@@ -195,8 +195,8 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);
-            Text ellipsis = TextBuilder.create("...");
-            Text result = TextBuilder.combineAll(substring, ellipsis);
+            Component ellipsis = TextBuilder.create("...");
+            Component result = TextBuilder.combineAll(substring, ellipsis);
             TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
             return builder.build();
         }
@@ -212,7 +212,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             return Items.AIR;
         }
         if (this.isConvertible()) {
-            return Registries.ITEM.get(Identifier.of(this.input));
+            return BuiltInRegistries.ITEM.getValue(Identifier.parse(this.input));
         }
         throw new UnsupportedOperationException(this.input + " cannot be converted to item");
     }
@@ -250,11 +250,11 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
 
         @Override
-        public Text toText() throws InvalidIdentifierException {
+        public Component toText() throws IdentifierException {
             if (this.getInput().length() > 30) {
                 String substring = this.getInput().substring(0, 30);
-                Text ellipsis = TextBuilder.create("...");
-                Text result = TextBuilder.combineAll(substring, ellipsis);
+                Component ellipsis = TextBuilder.create("...");
+                Component result = TextBuilder.combineAll(substring, ellipsis);
                 StringJoiner joiner = new StringJoiner(",\n");
                 for (Item item : this.items) {
                     joiner.add(GenericUtils.getIdAsString(item));

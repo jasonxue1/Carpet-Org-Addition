@@ -1,8 +1,8 @@
 package org.carpetorgaddition.rule.validator;
 
 import carpet.api.settings.CarpetRule;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.jetbrains.annotations.NotNull;
@@ -24,17 +24,17 @@ public interface Validator<T> {
      * @return 规则校验失败时的错误反馈
      */
     @NotNull
-    Text errorMessage();
+    Component errorMessage();
 
 
-    default void notifyFailure(ServerCommandSource source, CarpetRule<T> currentRule, String providedValue) {
+    default void notifyFailure(CommandSourceStack source, CarpetRule<T> currentRule, String providedValue) {
         // 获取此规则的翻译名称
-        Text name = RuleUtils.simpleTranslationName(currentRule);
+        Component name = RuleUtils.simpleTranslationName(currentRule);
         MessageUtils.sendErrorMessage(source, "carpet.rule.validate.invalid_value", name, providedValue);
         MessageUtils.sendErrorMessage(source, errorMessage());
     }
 
-    static <T> Validator<T> of(Predicate<T> predicate, Supplier<Text> supplier) {
+    static <T> Validator<T> of(Predicate<T> predicate, Supplier<Component> supplier) {
         return new Validator<>() {
             @Override
             public boolean validate(T newValue) {
@@ -42,7 +42,7 @@ public interface Validator<T> {
             }
 
             @Override
-            public @NotNull Text errorMessage() {
+            public @NotNull Component errorMessage() {
                 return supplier.get();
             }
         };

@@ -2,9 +2,9 @@ package org.carpetorgaddition.periodic.task.schedule;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import org.carpetorgaddition.util.MessageUtils;
@@ -17,7 +17,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     private final FakePlayerSerializer serial;
     private long delayed;
 
-    public DelayedLoginTask(MinecraftServer server, ServerCommandSource source, FakePlayerSerializer serial, long delayed) {
+    public DelayedLoginTask(MinecraftServer server, CommandSourceStack source, FakePlayerSerializer serial, long delayed) {
         super(source);
         this.server = server;
         this.serial = serial;
@@ -51,22 +51,22 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     }
 
     @Override
-    public void onCancel(CommandContext<ServerCommandSource> context) {
+    public void onCancel(CommandContext<CommandSourceStack> context) {
         this.markRemove();
-        Text time = getDisplayTime();
-        Text displayName = this.serial.getDisplayName();
+        Component time = getDisplayTime();
+        Component displayName = this.serial.getDisplayName();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.cancel", displayName, time);
     }
 
     // 获取带有悬停提示的时间
-    private @NotNull Text getDisplayTime() {
+    private @NotNull Component getDisplayTime() {
         TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
         builder.setHover(TextProvider.tickToRealTime(this.delayed));
         return builder.build();
     }
 
     @Override
-    public void sendEachMessage(ServerCommandSource source) {
+    public void sendEachMessage(CommandSourceStack source) {
         MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.login",
                 this.serial.getDisplayName(), this.getDisplayTime());
     }
@@ -75,7 +75,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
         this.delayed = delayed;
     }
 
-    public Text getInfo() {
+    public Component getInfo() {
         return this.serial.info();
     }
 

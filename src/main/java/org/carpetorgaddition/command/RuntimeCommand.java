@@ -3,14 +3,14 @@ package org.carpetorgaddition.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import net.minecraft.util.Util;
-import net.minecraft.util.WorldSavePath;
+import net.minecraft.world.level.storage.LevelResource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.IOUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -24,26 +24,26 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 
 public class RuntimeCommand extends AbstractServerCommand {
-    public RuntimeCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public RuntimeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
-                .then(CommandManager.literal("memory")
-                        .then(CommandManager.literal("jvm")
+        this.dispatcher.register(Commands.literal(name)
+                .then(Commands.literal("memory")
+                        .then(Commands.literal("jvm")
                                 .executes(this::showJvmMemory))
-                        .then(CommandManager.literal("physical")
+                        .then(Commands.literal("physical")
                                 .executes(this::showPhysicalMemory))
-                        .then(CommandManager.literal("gc")
+                        .then(Commands.literal("gc")
                                 .executes(this::triggerGc)))
-                .then(CommandManager.literal("server")
-                        .then(CommandManager.literal("openfolder")
+                .then(Commands.literal("server")
+                        .then(Commands.literal("openfolder")
                                 .executes(this::openFolder)))
-                .then(CommandManager.literal("test")
-                        .then(CommandManager.literal("io")
-                                .then(CommandManager.argument("content", StringArgumentType.greedyString())
+                .then(Commands.literal("test")
+                        .then(Commands.literal("io")
+                                .then(Commands.argument("content", StringArgumentType.greedyString())
                                         .executes(this::writeContent)))));
     }
 
@@ -52,13 +52,13 @@ public class RuntimeCommand extends AbstractServerCommand {
      *
      * @return 已使用的内存大小
      */
-    private int showJvmMemory(CommandContext<ServerCommandSource> context) {
+    private int showJvmMemory(CommandContext<CommandSourceStack> context) {
         Runtime runtime = Runtime.getRuntime();
         // 已使用内存
         long usedSize = runtime.totalMemory() - runtime.freeMemory();
-        Text used = displayMemory(usedSize);
-        Text total = displayMemory(runtime.totalMemory());
-        Text max = displayMemory(runtime.maxMemory());
+        Component used = displayMemory(usedSize);
+        Component total = displayMemory(runtime.totalMemory());
+        Component max = displayMemory(runtime.maxMemory());
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm");
         MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm.used", used);
@@ -72,12 +72,12 @@ public class RuntimeCommand extends AbstractServerCommand {
      *
      * @return 已使用的物理内存大小
      */
-    private int showPhysicalMemory(CommandContext<ServerCommandSource> context) {
+    private int showPhysicalMemory(CommandContext<CommandSourceStack> context) {
         SystemInfo info = new SystemInfo();
         GlobalMemory memory = info.getHardware().getMemory();
         long usedSize = memory.getTotal() - memory.getAvailable();
-        Text total = displayMemory(memory.getTotal());
-        Text used = displayMemory(usedSize);
+        Component total = displayMemory(memory.getTotal());
+        Component used = displayMemory(usedSize);
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.physical");
         MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.physical.total", total);
@@ -88,14 +88,14 @@ public class RuntimeCommand extends AbstractServerCommand {
     /**
      * 尝试触发一次gc
      */
-    private int triggerGc(CommandContext<ServerCommandSource> context) {
+    private int triggerGc(CommandContext<CommandSourceStack> context) {
         Runtime runtime = Runtime.getRuntime();
         long l = runtime.freeMemory();
         runtime.gc();
         long size = runtime.freeMemory() - l;
-        Text free = displayMemory(size);
+        Component free = displayMemory(size);
         MessageUtils.sendMessage(context, "carpet.commands.runtime.gc", free);
-        Text prompt = TextBuilder.of("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
+        Component prompt = TextBuilder.of("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
         MessageUtils.sendMessage(context.getSource(), prompt);
         return (int) size;
     }
@@ -103,21 +103,21 @@ public class RuntimeCommand extends AbstractServerCommand {
     /**
      * 打开世界文件夹
      */
-    private int openFolder(CommandContext<ServerCommandSource> context) {
-        Util.getOperatingSystem().open(context.getSource().getServer().getSavePath(WorldSavePath.ROOT));
+    private int openFolder(CommandContext<CommandSourceStack> context) {
+        Util.getPlatform().openPath(context.getSource().getServer().getWorldPath(LevelResource.ROOT));
         return 1;
     }
 
-    private Text displayMemory(long size) {
+    private Component displayMemory(long size) {
         DecimalFormat format = new DecimalFormat("#.00");
         String mb = format.format(size / 1024.0 / 1024.0);
         TextBuilder builder = new TextBuilder("%s MB".formatted(mb))
                 .setHover("carpet.command.data.unit.byte", size)
-                .setColor(Formatting.GRAY);
+                .setColor(ChatFormatting.GRAY);
         return builder.build();
     }
 
-    private int writeContent(CommandContext<ServerCommandSource> context) {
+    private int writeContent(CommandContext<CommandSourceStack> context) {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, "debug", "io");
         File file = worldFormat.file("FileWriteTest.txt");

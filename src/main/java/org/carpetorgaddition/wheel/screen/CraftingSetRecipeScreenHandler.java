@@ -1,20 +1,21 @@
 package org.carpetorgaddition.wheel.screen;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
-import net.minecraft.screen.CraftingScreenHandler;
-import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
+import org.jspecify.annotations.NonNull;
 
-public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implements UnavailableSlotSyncInterface {
+public class CraftingSetRecipeScreenHandler extends CraftingMenu implements UnavailableSlotSyncInterface {
     /**
      * 一个假玩家对象，类中所有操作都是围绕这个假玩家进行的
      */
@@ -22,38 +23,38 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
 
     public CraftingSetRecipeScreenHandler(
             int syncId,
-            PlayerInventory playerInventory,
+            Inventory playerInventory,
             EntityPlayerMPFake fakePlayer,
-            ScreenHandlerContext screenHandlerContext) {
+            ContainerLevelAccess screenHandlerContext) {
         super(syncId, playerInventory, screenHandlerContext);
         this.fakePlayer = fakePlayer;
     }
 
     // 阻止玩家取出输出槽位的物品
     @Override
-    public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
         if (slotIndex == 0) {
             return;
         }
-        super.onSlotClick(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, actionType, player);
     }
 
     // 关闭GUI时，设置假玩家的合成动作和配方
     @Override
-    public void onClosed(PlayerEntity player) {
+    public void removed(@NonNull Player player) {
         //如果没有给假玩家指定合成配方，结束方法
-        if (craftingInventory.isEmpty()) {
+        if (craftSlots.isEmpty()) {
             return;
         }
         //修改假玩家的3x3合成配方
         Item[] items = new Item[9];
-        for (int i = 0; i < craftingInventory.size(); i++) {
-            items[i] = craftingInventory.getStack(i).getItem();
+        for (int i = 0; i < craftSlots.getContainerSize(); i++) {
+            items[i] = craftSlots.getItem(i).getItem();
         }
         // 设置假玩家合成动作
         setCraftAction(items, FetcherUtils.getFakePlayerActionManager(fakePlayer));
         // 关闭GUI后，使用父类的方法让物品回到玩家背包
-        super.onClosed(player);
+        super.removed(player);
     }
 
     // 设置假玩家合成动作
@@ -99,7 +100,7 @@ public class CraftingSetRecipeScreenHandler extends CraftingScreenHandler implem
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         return true;
     }
 

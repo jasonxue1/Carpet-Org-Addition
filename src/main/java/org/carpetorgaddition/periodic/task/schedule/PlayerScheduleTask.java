@@ -1,11 +1,11 @@
 package org.carpetorgaddition.periodic.task.schedule;
 
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.periodic.task.ServerTask;
 
 public abstract class PlayerScheduleTask extends ServerTask {
-    public PlayerScheduleTask(ServerCommandSource source) {
+    public PlayerScheduleTask(CommandSourceStack source) {
         super(source);
     }
 
@@ -17,9 +17,9 @@ public abstract class PlayerScheduleTask extends ServerTask {
     /**
      * 任务取消被取消时调用，可以用来发送消息
      */
-    public abstract void onCancel(CommandContext<ServerCommandSource> context);
+    public abstract void onCancel(CommandContext<CommandSourceStack> context);
 
-    public abstract void sendEachMessage(ServerCommandSource source);
+    public abstract void sendEachMessage(CommandSourceStack source);
 
     @Override
     public boolean equals(Object obj) {

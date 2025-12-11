@@ -1,12 +1,12 @@
 package org.carpetorgaddition.mixin.rule.enchantment;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -25,10 +25,10 @@ public class EnchantmentMixin {
     private final Enchantment thisEnchantment = (Enchantment) (Object) this;
 
     // 击退棒
-    @Inject(method = "isAcceptableItem", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "canEnchant", at = @At("HEAD"), cancellable = true)
     public void isAcceptableItem(ItemStack stack, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.knockbackStick.get() && stack.isOf(Items.STICK)) {
-            PlayerEntity player = CarpetOrgAdditionSettings.enchanter.get();
+        if (CarpetOrgAdditionSettings.knockbackStick.get() && stack.is(Items.STICK)) {
+            Player player = CarpetOrgAdditionSettings.enchanter.get();
             if (player == null) {
                 return;
             }
@@ -39,11 +39,11 @@ public class EnchantmentMixin {
     }
 
     // 保护类魔咒兼容
-    @Inject(method = "canBeCombined", at = @At("HEAD"), cancellable = true)
-    private static void protectionEnchantmentCompatible(RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "areCompatible", at = @At("HEAD"), cancellable = true)
+    private static void protectionEnchantmentCompatible(Holder<Enchantment> first, Holder<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.protectionEnchantmentCompatible.get() && !first.equals(second)) {
-            Optional<RegistryKey<Enchantment>> firstKey = first.getKey();
-            Optional<RegistryKey<Enchantment>> secondKey = second.getKey();
+            Optional<ResourceKey<Enchantment>> firstKey = first.unwrapKey();
+            Optional<ResourceKey<Enchantment>> secondKey = second.unwrapKey();
             if (firstKey.isEmpty() || secondKey.isEmpty()) {
                 return;
             }
@@ -54,11 +54,11 @@ public class EnchantmentMixin {
     }
 
     // 伤害类魔咒兼容
-    @Inject(method = "canBeCombined", at = @At("HEAD"), cancellable = true)
-    private static void damageEnchantmentCompatible(RegistryEntry<Enchantment> first, RegistryEntry<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "areCompatible", at = @At("HEAD"), cancellable = true)
+    private static void damageEnchantmentCompatible(Holder<Enchantment> first, Holder<Enchantment> second, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.damageEnchantmentCompatible.get() && !first.equals(second)) {
-            Optional<RegistryKey<Enchantment>> firstKey = first.getKey();
-            Optional<RegistryKey<Enchantment>> secondKey = second.getKey();
+            Optional<ResourceKey<Enchantment>> firstKey = first.unwrapKey();
+            Optional<ResourceKey<Enchantment>> secondKey = second.unwrapKey();
             if (firstKey.isEmpty() || secondKey.isEmpty()) {
                 return;
             }

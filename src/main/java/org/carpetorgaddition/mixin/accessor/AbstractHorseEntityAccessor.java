@@ -1,12 +1,12 @@
 package org.carpetorgaddition.mixin.accessor;
 
-import net.minecraft.entity.passive.AbstractHorseEntity;
-import net.minecraft.inventory.SimpleInventory;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(AbstractHorseEntity.class)
+@Mixin(AbstractHorse.class)
 public interface AbstractHorseEntityAccessor {
-    @Accessor("items")
-    SimpleInventory getDonkeyInventory();
+    @Accessor("inventory")
+    SimpleContainer getDonkeyInventory();
 }

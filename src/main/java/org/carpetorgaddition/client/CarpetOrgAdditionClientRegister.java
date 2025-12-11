@@ -2,10 +2,10 @@ package org.carpetorgaddition.client;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.logger.ClientLogger;
@@ -52,8 +52,8 @@ public class CarpetOrgAdditionClientRegister {
                 WaypointUpdateS2CPacket.ID,
                 (payload, context) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
-                    Vec3d target = payload.target();
-                    RegistryKey<World> registryKey = GenericUtils.getWorld(payload.worldId());
+                    Vec3 target = payload.target();
+                    ResourceKey<Level> registryKey = GenericUtils.getWorld(payload.worldId());
                     Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(registryKey, target));
                     waypoint.setTarget(registryKey, target);
                 }
@@ -68,15 +68,15 @@ public class CarpetOrgAdditionClientRegister {
         );
         // 容器不可用槽位同步数据包
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {
-            ScreenHandler screen = context.player().currentScreenHandler;
-            if (screen.syncId == payload.syncId() && screen instanceof UnavailableSlotImplInterface anInterface) {
+            AbstractContainerMenu screen = context.player().containerMenu;
+            if (screen.containerId == payload.syncId() && screen instanceof UnavailableSlotImplInterface anInterface) {
                 anInterface.carpet_Org_Addition$sync(payload);
             }
         });
         // 背景精灵同步数据包
         ClientPlayNetworking.registerGlobalReceiver(BackgroundSpriteSyncS2CPacket.ID, (payload, context) -> {
-            ScreenHandler screen = context.player().currentScreenHandler;
-            if (screen.syncId == payload.syncId() && screen.getSlot(payload.slotIndex()) instanceof BackgroundSpriteSyncSlot slot) {
+            AbstractContainerMenu screen = context.player().containerMenu;
+            if (screen.containerId == payload.syncId() && screen.getSlot(payload.slotIndex()) instanceof BackgroundSpriteSyncSlot slot) {
                 slot.carpet_Org_Addition$setIdentifier(payload.identifier());
             }
         });

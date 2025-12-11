@@ -1,21 +1,21 @@
 package org.carpetorgaddition.periodic.task.batch;
 
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.server.players.PlayerList;
 import org.carpetorgaddition.periodic.task.ServerTask;
 import org.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 
 public class BatchKillFakePlayer extends ServerTask {
-    private final PlayerManager playerManager;
+    private final PlayerList playerManager;
     private final String prefix;
     private final int end;
     private int current;
 
-    public BatchKillFakePlayer(MinecraftServer server, ServerCommandSource source, String prefix, int start, int end) {
+    public BatchKillFakePlayer(MinecraftServer server, CommandSourceStack source, String prefix, int start, int end) {
         super(source);
-        this.playerManager = server.getPlayerManager();
+        this.playerManager = server.getPlayerList();
         this.prefix = prefix;
         this.end = end;
         this.current = start;
@@ -25,7 +25,7 @@ public class BatchKillFakePlayer extends ServerTask {
     protected void tick() {
         long l = System.currentTimeMillis();
         while (this.current <= this.end && System.currentTimeMillis() - l < 30) {
-            if (this.playerManager.getPlayer(this.prefix + this.current) instanceof EntityPlayerMPFake fakePlayer) {
+            if (this.playerManager.getPlayerByName(this.prefix + this.current) instanceof EntityPlayerMPFake fakePlayer) {
                 ReLoginTask.logoutPlayer(fakePlayer);
             }
             this.current++;

@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.network;
 
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.Slot;
 import org.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,7 +14,7 @@ public class SlotMixin implements BackgroundSpriteSyncSlot {
     @Unique
     private Identifier identifier;
 
-    @Inject(method = "getBackgroundSprite", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getNoItemIcon", at = @At("HEAD"), cancellable = true)
     private void getBackgroundSprite(CallbackInfoReturnable<Identifier> cir) {
         Identifier pair = cir.getReturnValue();
         if (pair == null && this.identifier != null) {

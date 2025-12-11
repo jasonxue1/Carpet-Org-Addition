@@ -1,14 +1,14 @@
 package org.carpetorgaddition.client.renderer.substitute;
 
-import net.minecraft.client.render.Frustum;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.culling.Frustum;
 
 public record WorldRenderContext(
-        MatrixStack matrixStack,
-        RenderTickCounter tickCounter,
+        PoseStack matrixStack,
+        DeltaTracker tickCounter,
         Frustum frustum,
-        VertexConsumerProvider consumers
+        MultiBufferSource consumers
 ) {
 }

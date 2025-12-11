@@ -1,37 +1,38 @@
 package org.carpetorgaddition.wheel.screen;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ShulkerBoxScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ShulkerBoxMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import org.jspecify.annotations.NonNull;
 
 import java.util.function.Predicate;
 
-public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implements UnavailableSlotSyncInterface {
+public class QuickShulkerScreenHandler extends ShulkerBoxMenu implements UnavailableSlotSyncInterface {
     private final int shulkerSlotIndex;
     private final ContainerComponentInventory inventory;
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
     /**
      * 是否可以继续使用快捷潜影盒
      */
-    private final Predicate<PlayerEntity> predicate;
+    private final Predicate<Player> predicate;
     private final ItemStack shulkerBox;
 
     public QuickShulkerScreenHandler(
             int syncId,
-            PlayerInventory playerInventory,
+            Inventory playerInventory,
             ContainerComponentInventory inventory,
-            ServerPlayerEntity player,
-            Predicate<PlayerEntity> predicate,
+            ServerPlayer player,
+            Predicate<Player> predicate,
             ItemStack shulkerBox
     ) {
         super(syncId, playerInventory, inventory);
@@ -41,8 +42,8 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
         this.shulkerBox = shulkerBox;
         if (canUseQuickShulker()) {
             for (Slot slot : this.slots) {
-                if (slot.getStack() == shulkerBox) {
-                    this.shulkerSlotIndex = slot.id;
+                if (slot.getItem() == shulkerBox) {
+                    this.shulkerSlotIndex = slot.index;
                     return;
                 }
             }
@@ -53,27 +54,27 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
     }
 
     @Override
-    public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
         if (MathUtils.isInRange(this.from(), this.to(), slotIndex)) {
             if (button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
-                ItemStack cursorStack = this.getCursorStack();
+                ItemStack cursorStack = this.getCarried();
                 // 光标物品是否可以放入潜影盒
-                if (cursorStack.getItem().canBeNested()) {
-                    ItemStack remaining = this.inventory.addStack(cursorStack);
-                    this.setCursorStack(remaining);
+                if (cursorStack.getItem().canFitInsideContainerItems()) {
+                    ItemStack remaining = this.inventory.addItem(cursorStack);
+                    this.setCarried(remaining);
                 }
             }
             return;
         }
-        super.onSlotClick(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, actionType, player);
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         if (this.shulkerBox.isEmpty()) {
             return false;
         }
-        return canUseQuickShulker() && this.shulkerBox.getCount() == 1 && this.predicate.test(player) && super.canUse(player);
+        return canUseQuickShulker() && this.shulkerBox.getCount() == 1 && this.predicate.test(player) && super.stillValid(player);
     }
 
     private boolean canUseQuickShulker() {
@@ -81,8 +82,8 @@ public class QuickShulkerScreenHandler extends ShulkerBoxScreenHandler implement
     }
 
     @Override
-    public void onContentChanged(Inventory inventory) {
-        super.onContentChanged(inventory);
+    public void slotsChanged(@NonNull Container inventory) {
+        super.slotsChanged(inventory);
     }
 
     @Override

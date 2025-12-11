@@ -1,7 +1,7 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.commands.CommandBuildContext;
 
 public interface CommandRegistryAccessor {
-    CommandRegistryAccess carpet_Org_Addition$getAccess();
+    CommandBuildContext carpet_Org_Addition$getAccess();
 }

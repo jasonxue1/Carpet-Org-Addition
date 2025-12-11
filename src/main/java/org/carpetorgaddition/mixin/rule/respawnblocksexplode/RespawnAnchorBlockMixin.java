@@ -1,12 +1,12 @@
 package org.carpetorgaddition.mixin.rule.respawnblocksexplode;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.RespawnAnchorBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.RespawnAnchorBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -18,11 +18,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RespawnAnchorBlock.class)
 public class RespawnAnchorBlockMixin {
     //禁止重生锚爆炸
-    @Inject(method = "onUse", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/RespawnAnchorBlock;explode(Lnet/minecraft/block/BlockState;Lnet/minecraft/server/world/ServerWorld;Lnet/minecraft/util/math/BlockPos;)V"), cancellable = true)
-    private void onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit, CallbackInfoReturnable<ActionResult> cir) {
+    @Inject(method = "useWithoutItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/RespawnAnchorBlock;explode(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)V"), cancellable = true)
+    private void onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
         if (CarpetOrgAdditionSettings.disableRespawnBlocksExplode.get()) {
             MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.disableRespawnBlocksExplode"));
-            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
 }

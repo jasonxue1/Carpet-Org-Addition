@@ -3,11 +3,11 @@ package org.carpetorgaddition.mixin.rule;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.block.entity.BeaconBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BeaconBlockEntity;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.wheel.BeaconRangeBox;
 import org.spongepowered.asm.mixin.Mixin;
@@ -18,8 +18,8 @@ import java.util.List;
 @Mixin(BeaconBlockEntity.class)
 public abstract class BeaconBlockEntityMixin {
     // 大范围信标
-    @WrapOperation(method = "applyPlayerEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/World;getNonSpectatingEntities(Ljava/lang/Class;Lnet/minecraft/util/math/Box;)Ljava/util/List;"))
-    private static List<PlayerEntity> box(World world, Class<PlayerEntity> aClass, Box box, Operation<List<PlayerEntity>> original, @Local(argsOnly = true) BlockPos pos) {
+    @WrapOperation(method = "applyEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"))
+    private static List<Player> box(Level world, Class<Player> aClass, AABB box, Operation<List<Player>> original, @Local(argsOnly = true) BlockPos pos) {
         BeaconRangeBox beaconRangeBox = new BeaconRangeBox(box);
         // 调整信标范围
         int range = CarpetOrgAdditionSettings.beaconRangeExpand.get();

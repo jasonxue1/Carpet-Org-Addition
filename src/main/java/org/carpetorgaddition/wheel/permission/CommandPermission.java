@@ -1,10 +1,10 @@
 package org.carpetorgaddition.wheel.permission;
 
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.function.Predicate;
 
-public class CommandPermission implements Predicate<ServerCommandSource> {
+public class CommandPermission implements Predicate<CommandSourceStack> {
     private PermissionLevel level;
 
     /*package-private*/ CommandPermission(PermissionLevel level) {
@@ -12,7 +12,7 @@ public class CommandPermission implements Predicate<ServerCommandSource> {
     }
 
     @Override
-    public boolean test(ServerCommandSource source) {
+    public boolean test(CommandSourceStack source) {
         return this.level.test(source);
     }
 

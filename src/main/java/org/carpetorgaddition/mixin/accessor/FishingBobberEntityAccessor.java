@@ -1,11 +1,11 @@
 package org.carpetorgaddition.mixin.accessor;
 
-import net.minecraft.entity.projectile.FishingBobberEntity;
+import net.minecraft.world.entity.projectile.FishingHook;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(FishingBobberEntity.class)
+@Mixin(FishingHook.class)
 public interface FishingBobberEntityAccessor {
-    @Accessor("hookCountdown")
+    @Accessor("nibble")
     int getHookCountdown();
 }

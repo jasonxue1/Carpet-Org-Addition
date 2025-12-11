@@ -1,11 +1,11 @@
 package org.carpetorgaddition.mixin.debug;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.debug.DebugSettings;
 import org.carpetorgaddition.debug.OnlyDeveloped;
 import org.carpetorgaddition.exception.ProductionEnvironmentError;
@@ -18,22 +18,22 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @OnlyDeveloped
-@Mixin(value = PlayerEntity.class, priority = 1001)
+@Mixin(value = Player.class, priority = 1001)
 public class PlayerEntityMixin {
     @Unique
-    private final PlayerEntity thisPlayer = (PlayerEntity) (Object) this;
+    private final Player thisPlayer = (Player) (Object) this;
 
-    @Inject(method = "interact", at = @At("HEAD"), cancellable = true)
-    private void openInventory(Entity entity, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        if (hand == Hand.OFF_HAND) {
+    @Inject(method = "interactOn", at = @At("HEAD"), cancellable = true)
+    private void openInventory(Entity entity, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
+        if (hand == InteractionHand.OFF_HAND) {
             return;
         }
         ProductionEnvironmentError.assertDevelopmentEnvironment();
         if (DebugSettings.openFakePlayerInventory.get() && entity instanceof EntityPlayerMPFake fakePlayer) {
-            if (thisPlayer instanceof ServerPlayerEntity player) {
+            if (thisPlayer instanceof ServerPlayer player) {
                 CommandUtils.execute(player, CommandProvider.openPlayerInventory(fakePlayer));
             }
-            cir.setReturnValue(ActionResult.SUCCESS);
+            cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
 }

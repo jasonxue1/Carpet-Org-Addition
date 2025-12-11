@@ -1,19 +1,19 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.OperatorBlock;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket.Action;
-import net.minecraft.server.network.ServerPlayerInteractionManager;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket.Action;
+import net.minecraft.server.level.ServerPlayerGameMode;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.GameMasterBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,15 +59,15 @@ public class BlockExcavator {
         if (breakingCooldown && this.blockBreakingCooldown > 0) {
             return false;
         }
-        World world = FetcherUtils.getWorld(this.player);
-        ServerPlayerInteractionManager interactionManager = this.player.interactionManager;
-        GameMode gameMode = interactionManager.getGameMode();
+        Level world = FetcherUtils.getWorld(this.player);
+        ServerPlayerGameMode interactionManager = this.player.gameMode;
+        GameType gameMode = interactionManager.getGameModeForPlayer();
         // 当前方块是可以破坏的
-        if (this.player.isBlockBreakingRestricted(world, blockPos, gameMode)) {
+        if (this.player.blockActionRestricted(world, blockPos, gameMode)) {
             return false;
         }
         // 当前位置是否为出生点保护区域或超出了世界边界
-        if (!world.canEntityModifyAt(this.player, blockPos)) {
+        if (!world.mayInteract(this.player, blockPos)) {
             return false;
         }
         // 正在挖掘空气方块
@@ -77,9 +77,9 @@ public class BlockExcavator {
         }
         BlockState blockState = world.getBlockState(blockPos);
         // 让假玩家看向该位置（这不是必须的）
-        this.player.lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, blockPos.toCenterPos());
+        this.player.lookAt(EntityAnchorArgument.Anchor.EYES, blockPos.getCenter());
         // 获取每次挖掘增加的进度
-        float delta = blockState.calcBlockBreakingDelta(this.player, world, blockPos);
+        float delta = blockState.getDestroyProgress(this.player, world, blockPos);
         // 当前方块是否被破坏
         boolean blockBroken;
         if (this.player.isCreative()) {
@@ -98,9 +98,9 @@ public class BlockExcavator {
             blockBroken = startMining(blockPos, direction, delta);
         }
         // 更新上次操作时间
-        this.player.updateLastActionTime();
+        this.player.resetLastActionTime();
         // 摆动手
-        this.player.swingHand(Hand.MAIN_HAND);
+        this.player.swing(InteractionHand.MAIN_HAND);
         return blockBroken;
     }
 
@@ -146,18 +146,18 @@ public class BlockExcavator {
      * @return 破坏当前方块还需要多少个游戏刻
      */
     public int computingRemainingMiningTime(BlockPos blockPos) {
-        World world = FetcherUtils.getWorld(this.player);
+        Level world = FetcherUtils.getWorld(this.player);
         if (this.player.isCreative()) {
             return 1;
         }
         BlockState blockState = world.getBlockState(blockPos);
-        float delta = blockState.calcBlockBreakingDelta(this.player, world, blockPos);
+        float delta = blockState.getDestroyProgress(this.player, world, blockPos);
         return (int) Math.ceil((1F - this.currentBreakingProgress) / delta);
     }
 
     private void breakingAction(Action action, BlockPos blockPos, Direction direction) {
-        World world = FetcherUtils.getWorld(this.player);
-        this.player.interactionManager.processBlockBreakingAction(blockPos, action, direction, world.getTopYInclusive(), -1);
+        Level world = FetcherUtils.getWorld(this.player);
+        this.player.gameMode.handleBlockBreakAction(blockPos, action, direction, world.getMaxY(), -1);
     }
 
     public EntityPlayerMPFake getPlayer() {
@@ -168,27 +168,27 @@ public class BlockExcavator {
      * @return 玩家是否可以破坏指定位置的方块
      */
     public static boolean canBreak(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
-        World world = FetcherUtils.getWorld(fakePlayer);
+        Level world = FetcherUtils.getWorld(fakePlayer);
         BlockState blockState = world.getBlockState(blockPos);
         Block block = blockState.getBlock();
         // 非管理员不能破坏管理员方块
-        if (block instanceof OperatorBlock && !fakePlayer.isCreativeLevelTwoOp()) {
+        if (block instanceof GameMasterBlock && !fakePlayer.canUseGameMasterBlocks()) {
             return false;
         }
         // 是否限制了方块破坏
-        if (fakePlayer.isBlockBreakingRestricted(world, blockPos, fakePlayer.interactionManager.getGameMode())) {
+        if (fakePlayer.blockActionRestricted(world, blockPos, fakePlayer.gameMode.getGameModeForPlayer())) {
             return false;
         }
-        ItemStack mainHandItemStack = fakePlayer.getMainHandStack();
+        ItemStack mainHandItemStack = fakePlayer.getMainHandItem();
         Item mainHandItem = mainHandItemStack.getItem();
         // 主手物品是否可以挖掘方块，当前位置是否超出了世界边界
-        if (mainHandItem.canMine(mainHandItemStack, blockState, world, blockPos, fakePlayer) && world.canEntityModifyAt(fakePlayer, blockPos)) {
+        if (mainHandItem.canDestroyBlock(mainHandItemStack, blockState, world, blockPos, fakePlayer) && world.mayInteract(fakePlayer, blockPos)) {
             // 创造模式破坏方块
             if (fakePlayer.isCreative() || blockState.isAir()) {
                 return true;
             }
             // 非创造玩家无法破坏硬度为-1的方块
-            return blockState.getHardness(world, blockPos) != -1;
+            return blockState.getDestroySpeed(world, blockPos) != -1;
         }
         return true;
     }

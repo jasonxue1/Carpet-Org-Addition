@@ -1,9 +1,10 @@
 package org.carpetorgaddition.network.s2c;
 
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.carpetorgaddition.network.PacketUtils;
+import org.jspecify.annotations.NonNull;
 
 /**
  * 不可用槽位同步数据包
@@ -12,11 +13,11 @@ import org.carpetorgaddition.network.PacketUtils;
  * @param from   槽位的起始索引
  * @param to     槽位的结束索引
  */
-public record UnavailableSlotSyncS2CPacket(int syncId, int from, int to) implements CustomPayload {
-    public static final Id<UnavailableSlotSyncS2CPacket> ID = PacketUtils.createId("unavailable_slot_sync");
-    public static final PacketCodec<RegistryByteBuf, UnavailableSlotSyncS2CPacket> CODEC = new PacketCodec<>() {
+public record UnavailableSlotSyncS2CPacket(int syncId, int from, int to) implements CustomPacketPayload {
+    public static final Type<UnavailableSlotSyncS2CPacket> ID = PacketUtils.createId("unavailable_slot_sync");
+    public static final StreamCodec<RegistryFriendlyByteBuf, UnavailableSlotSyncS2CPacket> CODEC = new StreamCodec<>() {
         @Override
-        public UnavailableSlotSyncS2CPacket decode(RegistryByteBuf buf) {
+        public UnavailableSlotSyncS2CPacket decode(RegistryFriendlyByteBuf buf) {
             int syncId = buf.readInt();
             int from = buf.readInt();
             int to = buf.readInt();
@@ -24,7 +25,7 @@ public record UnavailableSlotSyncS2CPacket(int syncId, int from, int to) impleme
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, UnavailableSlotSyncS2CPacket value) {
+        public void encode(RegistryFriendlyByteBuf buf, UnavailableSlotSyncS2CPacket value) {
             buf.writeInt(value.syncId);
             buf.writeInt(value.from);
             buf.writeInt(value.to);
@@ -32,7 +33,7 @@ public record UnavailableSlotSyncS2CPacket(int syncId, int from, int to) impleme
     };
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public @NonNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

@@ -1,6 +1,6 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.ExperienceOrbEntity;
+import net.minecraft.world.entity.ExperienceOrb;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,13 +11,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ExperienceOrbEntity.class)
+@Mixin(ExperienceOrb.class)
 public abstract class ExperienceOrbEntityMixin {
     @Shadow
-    private int orbAge;
+    private int age;
 
     @Shadow
-    private int pickingCount;
+    private int count;
 
     @Shadow
     public abstract int getValue();
@@ -26,10 +26,10 @@ public abstract class ExperienceOrbEntityMixin {
     protected abstract void setValue(int value);
 
     @Unique
-    private final ExperienceOrbEntity thisEntity = (ExperienceOrbEntity) (Object) this;
+    private final ExperienceOrb thisEntity = (ExperienceOrb) (Object) this;
 
-    @Inject(method = "isMergeable(Lnet/minecraft/entity/ExperienceOrbEntity;II)Z", at = @At("HEAD"), cancellable = true)
-    private static void isMergeable(ExperienceOrbEntity orb, int seed, int amount, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "canMerge(Lnet/minecraft/world/entity/ExperienceOrb;II)Z", at = @At("HEAD"), cancellable = true)
+    private static void isMergeable(ExperienceOrb orb, int seed, int amount, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.experienceOrbMerge.get()) {
             boolean combine = ((ExperienceOrbEntityMixin) (Object) orb).combine();
             if (combine) {
@@ -40,16 +40,16 @@ public abstract class ExperienceOrbEntityMixin {
 
     @SuppressWarnings("DataFlowIssue")
     @Inject(method = "merge", at = @At("HEAD"), cancellable = true)
-    private void merge(ExperienceOrbEntity other, CallbackInfo ci) {
+    private void merge(ExperienceOrb other, CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.experienceOrbMerge.get() && this.combine()) {
-            int sum = this.getValue() * this.pickingCount + other.getValue() * ((ExperienceOrbEntityMixin) (Object) other).pickingCount;
+            int sum = this.getValue() * this.count + other.getValue() * ((ExperienceOrbEntityMixin) (Object) other).count;
             if (sum > Short.MAX_VALUE) {
                 ci.cancel();
                 return;
             }
             this.setValue(sum);
-            this.orbAge = Math.min(this.orbAge, ((ExperienceOrbEntityMixin) (Object) other).orbAge);
-            this.pickingCount = 1;
+            this.age = Math.min(this.age, ((ExperienceOrbEntityMixin) (Object) other).age);
+            this.count = 1;
             other.discard();
             ci.cancel();
         }
@@ -60,7 +60,7 @@ public abstract class ExperienceOrbEntityMixin {
      */
     @Unique
     private boolean combine() {
-        long time = FetcherUtils.getWorld(thisEntity).getTime();
+        long time = FetcherUtils.getWorld(thisEntity).getGameTime();
         return Math.sin(time / 10.0) > 0;
     }
 }

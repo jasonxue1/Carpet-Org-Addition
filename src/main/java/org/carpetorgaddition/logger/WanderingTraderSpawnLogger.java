@@ -1,8 +1,8 @@
 package org.carpetorgaddition.logger;
 
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.carpetorgaddition.wheel.TextBuilder;
 
 /**
@@ -13,11 +13,11 @@ public class WanderingTraderSpawnLogger {
 
     // 更新HUD
     public static void updateHud(MinecraftServer server) {
-        if (server.getOverworld().getGameRules().getValue(GameRules.SPAWN_WANDERING_TRADERS)) {
+        if (server.overworld().getGameRules().get(GameRules.SPAWN_WANDERING_TRADERS)) {
             if (LoggerRegister.wanderingTrader && spawnCountdown != null) {
                 // 计算流浪商人生成概率的百分比
                 double chance = spawnCountdown.spawnChance / 10.0;
-                Text time;
+                Component time;
                 // 流浪商人生成倒计时（单位：秒）
                 int spawnCountdown = WanderingTraderSpawnLogger.spawnCountdown.countdown + 1;
                 if (spawnCountdown <= 60) {
@@ -31,14 +31,14 @@ public class WanderingTraderSpawnLogger {
                     time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes_and_seconds",
                             spawnCountdown / 60, spawnCountdown % 60);
                 }
-                Loggers.getWanderingTraderLogger().log((s, playerEntity) -> new Text[]{
+                Loggers.getWanderingTraderLogger().log((s, playerEntity) -> new Component[]{
                         TextBuilder.translate("carpet.logger.wanderingTrader.hud", time, (String.format("%.1f", chance) + "%"))
                 });
             }
         } else {
             Loggers.getWanderingTraderLogger().log((s, playerEntity)
-                    -> new Text[]{TextBuilder.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
-                    TextBuilder.translate(GameRules.SPAWN_WANDERING_TRADERS.getTranslationKey()))});
+                    -> new Component[]{TextBuilder.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
+                    TextBuilder.translate(GameRules.SPAWN_WANDERING_TRADERS.getDescriptionId()))});
         }
     }
 

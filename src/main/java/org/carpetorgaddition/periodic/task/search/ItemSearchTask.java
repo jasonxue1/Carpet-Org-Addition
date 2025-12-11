@@ -1,26 +1,26 @@
 package org.carpetorgaddition.periodic.task.search;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.LockableContainerBlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.decoration.ItemFrameEntity;
-import net.minecraft.entity.passive.AbstractDonkeyEntity;
-import net.minecraft.entity.passive.AllayEntity;
-import net.minecraft.entity.passive.VillagerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.entity.vehicle.VehicleInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.allay.Allay;
+import net.minecraft.world.entity.animal.equine.AbstractChestedHorse;
+import net.minecraft.world.entity.decoration.ItemFrame;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.npc.villager.Villager;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.vehicle.ContainerEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BaseContainerBlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
@@ -45,7 +45,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class ItemSearchTask extends ServerTask {
-    private final World world;
+    private final Level world;
     private final BlockEntityTraverser blockEntities;
     private Iterator<Entity> entitySearchIterator;
     private Iterator<BlockEntity> blockEntitySearchIterator;
@@ -56,7 +56,7 @@ public class ItemSearchTask extends ServerTask {
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
 
-    public ItemSearchTask(World world, ItemStackPredicate predicate, BlockEntityTraverser blockEntities, ServerCommandSource source) {
+    public ItemSearchTask(Level world, ItemStackPredicate predicate, BlockEntityTraverser blockEntities, CommandSourceStack source) {
         super(source);
         this.world = world;
         this.blockEntities = blockEntities;
@@ -98,11 +98,11 @@ public class ItemSearchTask extends ServerTask {
                 return;
             }
             BlockEntity blockEntity = this.blockEntitySearchIterator.next();
-            BlockPos blockPos = blockEntity.getPos();
-            if (blockEntity instanceof Inventory inventory) {
+            BlockPos blockPos = blockEntity.getBlockPos();
+            if (blockEntity instanceof Container inventory) {
                 // 获取容器名称
-                Text containerName
-                        = inventory instanceof LockableContainerBlockEntity lockableContainer
+                Component containerName
+                        = inventory instanceof BaseContainerBlockEntity lockableContainer
                         ? lockableContainer.getName()
                         : this.world.getBlockState(blockPos).getBlock().getName();
                 this.count(inventory, blockPos, containerName);
@@ -113,9 +113,9 @@ public class ItemSearchTask extends ServerTask {
 
     // 从实体查找
     private void searchFromEntity() {
-        Box box = blockEntities.toBox();
+        AABB box = blockEntities.toBox();
         if (this.entitySearchIterator == null) {
-            this.entitySearchIterator = this.world.getNonSpectatingEntities(Entity.class, box).iterator();
+            this.entitySearchIterator = this.world.getEntitiesOfClass(Entity.class, box).iterator();
         }
         while (this.entitySearchIterator.hasNext()) {
             if (this.isTimeExpired()) {
@@ -125,43 +125,43 @@ public class ItemSearchTask extends ServerTask {
             switch (entity) {
                 // 掉落物
                 case ItemEntity itemEntity -> {
-                    Text drops = TextBuilder.translate("carpet.commands.finder.item.drops");
-                    this.count(new SimpleInventory(itemEntity.getStack()), itemEntity.getBlockPos(), drops);
+                    Component drops = TextBuilder.translate("carpet.commands.finder.item.drops");
+                    this.count(new SimpleContainer(itemEntity.getItem()), itemEntity.blockPosition(), drops);
                 }
                 // 假玩家
                 case EntityPlayerMPFake fakePlayer -> {
-                    PlayerInventory inventory = fakePlayer.getInventory();
-                    this.count(inventory, fakePlayer.getBlockPos(), fakePlayer.getName());
+                    Inventory inventory = fakePlayer.getInventory();
+                    this.count(inventory, fakePlayer.blockPosition(), fakePlayer.getName());
                 }
                 // 容器实体
-                case VehicleInventory inventory -> this.count(inventory, entity.getBlockPos(), entity.getName());
+                case ContainerEntity inventory -> this.count(inventory, entity.blockPosition(), entity.getName());
                 // 物品展示框
-                case ItemFrameEntity itemFrame -> {
-                    ItemStack itemStack = itemFrame.getHeldItemStack();
-                    if (itemStack != null) {
+                case ItemFrame itemFrame -> {
+                    ItemStack itemStack = itemFrame.getItem();
+                    if (!itemStack.isEmpty()) {
                         ImmutableInventory inventory = new ImmutableInventory(itemStack);
-                        this.count(inventory, itemFrame.getBlockPos(), itemFrame.getName());
+                        this.count(inventory, itemFrame.blockPosition(), itemFrame.getName());
                     }
                 }
                 // 村民
-                case VillagerEntity villager when CarpetOrgAdditionSettings.openVillagerInventory.get() -> {
-                    SimpleInventory inventory = villager.getInventory();
-                    this.count(inventory, villager.getBlockPos(), villager.getName());
+                case Villager villager when CarpetOrgAdditionSettings.openVillagerInventory.get() -> {
+                    SimpleContainer inventory = villager.getInventory();
+                    this.count(inventory, villager.blockPosition(), villager.getName());
                 }
                 // 驴，骡和羊驼
-                case AbstractDonkeyEntity donkey when donkey.hasChest() -> {
+                case AbstractChestedHorse donkey when donkey.hasChest() -> {
                     ArrayList<ItemStack> list = new ArrayList<>();
                     AbstractHorseEntityAccessor accessor = (AbstractHorseEntityAccessor) donkey;
-                    SimpleInventory inventory = accessor.getDonkeyInventory();
-                    for (int i = 0; i < inventory.size(); i++) {
-                        list.add(inventory.getStack(i));
+                    SimpleContainer inventory = accessor.getDonkeyInventory();
+                    for (int i = 0; i < inventory.getContainerSize(); i++) {
+                        list.add(inventory.getItem(i));
                     }
-                    this.count(new ImmutableInventory(list), donkey.getBlockPos(), donkey.getName());
+                    this.count(new ImmutableInventory(list), donkey.blockPosition(), donkey.getName());
                 }
                 // 悦灵
-                case AllayEntity allay -> {
-                    ImmutableInventory inventory = new ImmutableInventory(allay.getMainHandStack());
-                    this.count(inventory, allay.getBlockPos(), allay.getName());
+                case Allay allay -> {
+                    ImmutableInventory inventory = new ImmutableInventory(allay.getMainHandItem());
+                    this.count(inventory, allay.blockPosition(), allay.getName());
                 }
                 default -> {
                 }
@@ -171,7 +171,7 @@ public class ItemSearchTask extends ServerTask {
     }
 
     // 统计符合条件的物品
-    private void count(Inventory inventory, BlockPos blockPos, Text containerName) {
+    private void count(Container inventory, BlockPos blockPos, Component containerName) {
         // 是否有物品是在潜影盒中找到的
         ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
         statistics.statistics(inventory);
@@ -208,11 +208,11 @@ public class ItemSearchTask extends ServerTask {
 
     // 发送命令反馈
     private void feedback() {
-        Text itemCount;
+        Component itemCount;
         Optional<Item> optional = predicate.getConvert();
         if (optional.isPresent()) {
             // 为数量添加鼠标悬停效果
-            itemCount = FinderCommand.showCount(optional.get().getDefaultStack(), this.count, this.shulkerBox);
+            itemCount = FinderCommand.showCount(optional.get().getDefaultInstance(), this.count, this.shulkerBox);
         } else {
             TextBuilder builder = new TextBuilder(this.count);
             if (this.shulkerBox) {
@@ -258,14 +258,14 @@ public class ItemSearchTask extends ServerTask {
 
     public record Result(
             BlockPos blockPos,
-            Text containerName,
+            Component containerName,
             ItemStackStatistics statistics
-    ) implements Supplier<Text> {
+    ) implements Supplier<Component> {
         @Override
-        public Text get() {
+        public Component get() {
             return TextBuilder.translate(
                     "carpet.commands.finder.item.each",
-                    TextProvider.blockPos(blockPos, Formatting.GREEN),
+                    TextProvider.blockPos(blockPos, ChatFormatting.GREEN),
                     containerName,
                     statistics.getCountText()
             );

@@ -1,11 +1,11 @@
 package org.carpetorgaddition.exception;
 
-import net.minecraft.network.listener.ServerPlayPacketListener;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
-import net.minecraft.network.packet.c2s.play.PlayerInteractBlockC2SPacket;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ServerGamePacketListener;
+import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
+import net.minecraft.network.protocol.game.ServerboundUseItemOnPacket;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.WorldUtils;
@@ -25,10 +25,10 @@ public class CCEUpdateSuppressException extends ClassCastException {
      * @param packet 造成异常的数据包
      * @apiNote 如果启用了 {@code Carpet TIS Addition} 的{@code 阻止更新抑制崩溃}，可能导致异常提前被捕获
      */
-    public void onCatch(ServerPlayerEntity player, Packet<ServerPlayPacketListener> packet) {
+    public void onCatch(ServerPlayer player, Packet<ServerGamePacketListener> packet) {
         StringBuilder builder = new StringBuilder();
         builder.append(FetcherUtils.getPlayerName(player)).append("在");
-        if (packet instanceof PlayerActionC2SPacket actionC2SPacket) {
+        if (packet instanceof ServerboundPlayerActionPacket actionC2SPacket) {
             // 破坏方块
             switch (actionC2SPacket.getAction()) {
                 // 不应该会执行到其他case块
@@ -39,7 +39,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
                 case SWAP_ITEM_WITH_OFFHAND -> builder.append("交换主副手物品");
                 default -> throw new IllegalStateException();
             }
-        } else if (packet instanceof PlayerInteractBlockC2SPacket) {
+        } else if (packet instanceof ServerboundUseItemOnPacket) {
             // 放置或交互方块
             builder.append("放置或交互方块");
         } else {

@@ -2,7 +2,7 @@ package org.carpetorgaddition.wheel.traverser;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 

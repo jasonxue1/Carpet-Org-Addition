@@ -1,6 +1,6 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +40,7 @@ public class MetaComment {
         this.comment = comment == null ? "" : comment;
     }
 
-    public Text getText() {
+    public Component getText() {
         return TextBuilder.create(this.comment);
     }
 

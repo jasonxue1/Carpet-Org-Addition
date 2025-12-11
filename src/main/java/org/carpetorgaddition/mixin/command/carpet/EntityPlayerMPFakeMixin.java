@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.command.carpet;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.damage.DamageSource;
+import net.minecraft.world.damagesource.DamageSource;
 import org.carpetorgaddition.mixin.command.ServerPlayerEntityMixin;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -14,7 +14,7 @@ public abstract class EntityPlayerMPFakeMixin extends ServerPlayerEntityMixin {
     @Unique
     private boolean isDead = false;
 
-    @Inject(method = "onDeath", at = @At("HEAD"))
+    @Inject(method = "die", at = @At("HEAD"))
     private void onDeath(DamageSource cause, CallbackInfo ci) {
         this.isDead = true;
     }

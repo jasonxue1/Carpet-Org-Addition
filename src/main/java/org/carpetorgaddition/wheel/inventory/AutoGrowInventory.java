@@ -1,11 +1,12 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -13,17 +14,17 @@ import java.util.NoSuchElementException;
 /**
  * 自动扩容物品栏
  */
-public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
+public class AutoGrowInventory implements Container, Iterable<ItemStack> {
     @NotNull
-    private SimpleInventory inventory = new SimpleInventory(27);
+    private SimpleContainer inventory = new SimpleContainer(27);
     private int growCount = 0;
 
     public AutoGrowInventory() {
     }
 
     @Override
-    public int size() {
-        return this.inventory.size();
+    public int getContainerSize() {
+        return this.inventory.getContainerSize();
     }
 
     @Override
@@ -32,38 +33,38 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
     }
 
     @Override
-    public ItemStack getStack(int slot) {
-        return this.inventory.getStack(slot);
+    public @NonNull ItemStack getItem(int slot) {
+        return this.inventory.getItem(slot);
     }
 
     @Override
-    public ItemStack removeStack(int slot, int amount) {
-        return this.inventory.removeStack(slot, amount);
+    public @NonNull ItemStack removeItem(int slot, int amount) {
+        return this.inventory.removeItem(slot, amount);
     }
 
     @Override
-    public ItemStack removeStack(int slot) {
-        return this.inventory.removeStack(slot);
+    public @NonNull ItemStack removeItemNoUpdate(int slot) {
+        return this.inventory.removeItemNoUpdate(slot);
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
-        this.inventory.setStack(slot, stack);
+    public void setItem(int slot, @NonNull ItemStack stack) {
+        this.inventory.setItem(slot, stack);
     }
 
     @Override
-    public void markDirty() {
-        this.inventory.markDirty();
+    public void setChanged() {
+        this.inventory.setChanged();
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
-        return this.inventory.canPlayerUse(player);
+    public boolean stillValid(@NonNull Player player) {
+        return this.inventory.stillValid(player);
     }
 
     @Override
-    public void clear() {
-        this.inventory.clear();
+    public void clearContent() {
+        this.inventory.clearContent();
     }
 
     /**
@@ -81,20 +82,20 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
      */
     private ItemStack tryAddStack(ItemStack stack) {
         // 添加过量堆叠的物品
-        while (stack.getCount() > stack.getMaxCount()) {
-            this.tryAddStack(stack.split(stack.getMaxCount()));
+        while (stack.getCount() > stack.getMaxStackSize()) {
+            this.tryAddStack(stack.split(stack.getMaxStackSize()));
         }
-        ItemStack itemStack = this.inventory.addStack(stack);
+        ItemStack itemStack = this.inventory.addItem(stack);
         // 物品栏内容足够容纳物品
         if (itemStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
         // 计算新物品栏的大小
-        int newSize = this.size() + (this.size() >>> 1);
+        int newSize = this.getContainerSize() + (this.getContainerSize() >>> 1);
         // 创建新物品栏，并拷贝物品
-        SimpleInventory inventory = new SimpleInventory(newSize);
-        for (int i = 0; i < this.inventory.size(); i++) {
-            inventory.setStack(i, this.inventory.getStack(i));
+        SimpleContainer inventory = new SimpleContainer(newSize);
+        for (int i = 0; i < this.inventory.getContainerSize(); i++) {
+            inventory.setItem(i, this.inventory.getItem(i));
         }
         // 将当前封装的物品栏替换为新物品栏，并重新添加物品
         this.inventory = inventory;
@@ -125,7 +126,7 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
 
         @Override
         public boolean hasNext() {
-            return this.index < AutoGrowInventory.this.size();
+            return this.index < AutoGrowInventory.this.getContainerSize();
         }
 
         @Override
@@ -135,10 +136,10 @@ public class AutoGrowInventory implements Inventory, Iterable<ItemStack> {
                 throw new ConcurrentModificationException();
             }
             // 索引超出物品栏范围
-            if (this.index >= AutoGrowInventory.this.size()) {
+            if (this.index >= AutoGrowInventory.this.getContainerSize()) {
                 throw new NoSuchElementException();
             }
-            ItemStack itemStack = AutoGrowInventory.this.getStack(this.index);
+            ItemStack itemStack = AutoGrowInventory.this.getItem(this.index);
             index++;
             return itemStack;
         }

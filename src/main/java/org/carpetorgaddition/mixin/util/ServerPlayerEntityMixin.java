@@ -3,12 +3,12 @@ package org.carpetorgaddition.mixin.util;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.network.packet.c2s.common.SyncedClientOptions;
-import net.minecraft.screen.NamedScreenHandlerFactory;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import org.carpetorgaddition.network.s2c.BackgroundSpriteSyncS2CPacket;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
@@ -24,15 +24,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.OptionalInt;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
     @Unique
-    private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
+    private final ServerPlayer thisPlayer = (ServerPlayer) (Object) this;
     @Unique
     private PlayerComponentCoordinator manager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void init(MinecraftServer server, ServerWorld world, GameProfile profile, SyncedClientOptions clientOptions, CallbackInfo ci) {
+    private void init(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions, CallbackInfo ci) {
         this.manager = PlayerComponentCoordinator.of(thisPlayer);
     }
 
@@ -46,21 +46,21 @@ public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
         this.manager.tick();
     }
 
-    @Inject(method = "copyFrom", at = @At("HEAD"))
-    private void copyFrom(ServerPlayerEntity oldPlayer, boolean alive, CallbackInfo ci) {
+    @Inject(method = "restoreFrom", at = @At("HEAD"))
+    private void copyFrom(ServerPlayer oldPlayer, boolean alive, CallbackInfo ci) {
         this.manager.copyFrom(oldPlayer);
     }
 
-    @Inject(method = "openHandledScreen", at = @At(value = "RETURN", ordinal = 2))
-    private void openHandledScreen(NamedScreenHandlerFactory factory, CallbackInfoReturnable<OptionalInt> cir, @Local ScreenHandler screenHandler) {
+    @Inject(method = "openMenu", at = @At(value = "RETURN", ordinal = 2))
+    private void openHandledScreen(MenuProvider factory, CallbackInfoReturnable<OptionalInt> cir, @Local AbstractContainerMenu screenHandler) {
         // 同步不可用槽位
         if (screenHandler instanceof UnavailableSlotSyncInterface anInterface) {
-            ServerPlayNetworking.send(thisPlayer, new UnavailableSlotSyncS2CPacket(screenHandler.syncId, anInterface.from(), anInterface.to()));
+            ServerPlayNetworking.send(thisPlayer, new UnavailableSlotSyncS2CPacket(screenHandler.containerId, anInterface.from(), anInterface.to()));
         }
         // 同步槽位背景纹理
         if (screenHandler instanceof BackgroundSpriteSyncServer anInterface) {
             anInterface.getBackgroundSprite().forEach((index, identifier) ->
-                    ServerPlayNetworking.send(thisPlayer, new BackgroundSpriteSyncS2CPacket(screenHandler.syncId, index, identifier)));
+                    ServerPlayNetworking.send(thisPlayer, new BackgroundSpriteSyncS2CPacket(screenHandler.containerId, index, identifier)));
         }
     }
 }

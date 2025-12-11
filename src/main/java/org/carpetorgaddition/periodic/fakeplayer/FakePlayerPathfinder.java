@@ -1,8 +1,8 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +36,7 @@ public interface FakePlayerPathfinder {
     /**
      * @return 当前节点
      */
-    Vec3d getCurrentNode();
+    Vec3 getCurrentNode();
 
     /**
      * @return 玩家是否到达了任意一个节点
@@ -56,7 +56,7 @@ public interface FakePlayerPathfinder {
     /**
      * @return 获取所有路径点，用于在客户端渲染位置
      */
-    List<Vec3d> getRenderNodes();
+    List<Vec3> getRenderNodes();
 
     /**
      * @return 当前正在寻路的实体的ID

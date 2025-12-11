@@ -1,10 +1,10 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.exception.TaskExecutionException;
 import org.carpetorgaddition.periodic.task.ServerTask;
@@ -19,10 +19,10 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public abstract class AbstractTradeSearchTask extends ServerTask {
-    protected final World world;
+    protected final Level world;
     protected final BlockPosTraverser blockPosTraverser;
     protected final BlockPos sourcePos;
-    protected Iterator<MerchantEntity> iterator;
+    protected Iterator<AbstractVillager> iterator;
     private final PagedCollection pagedCollection;
     private FindState findState;
     protected final ArrayList<Result> results = new ArrayList<>();
@@ -35,7 +35,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      */
     protected int tradeCount;
 
-    public AbstractTradeSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ServerCommandSource source) {
+    public AbstractTradeSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, CommandSourceStack source) {
         super(source);
         this.world = world;
         this.blockPosTraverser = blockPosTraverser;
@@ -69,13 +69,13 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
     // 查找周围的村民
     private void searchVillager() {
         if (this.iterator == null) {
-            this.iterator = this.world.getNonSpectatingEntities(MerchantEntity.class, this.blockPosTraverser.toBox()).iterator();
+            this.iterator = this.world.getEntitiesOfClass(AbstractVillager.class, this.blockPosTraverser.toBox()).iterator();
         }
         while (this.iterator.hasNext()) {
             if (this.isTimeExpired()) {
                 return;
             }
-            MerchantEntity merchant = this.iterator.next();
+            AbstractVillager merchant = this.iterator.next();
             // 检查每一只村民交易
             this.searchVillager(merchant);
         }
@@ -87,11 +87,11 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.findState = FindState.SORT;
     }
 
-    protected abstract void searchVillager(MerchantEntity merchant);
+    protected abstract void searchVillager(AbstractVillager merchant);
 
     protected abstract void notFound();
 
-    protected abstract Text getTradeName();
+    protected abstract Component getTradeName();
 
     // 对结果进行排序
     private void sort() {
@@ -142,7 +142,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         return FinderCommand.TIME_SLICE;
     }
 
-    public interface Result extends Comparator<Result>, Supplier<Text> {
+    public interface Result extends Comparator<Result>, Supplier<Component> {
         BlockPos villagerPos();
     }
 

@@ -1,7 +1,7 @@
 package org.carpetorgaddition.util;
 
 import com.google.gson.JsonArray;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
 
 public class JsonUtils {
     private JsonUtils() {

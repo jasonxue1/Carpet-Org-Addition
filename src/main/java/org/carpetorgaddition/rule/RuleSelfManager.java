@@ -7,7 +7,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.IOUtils;
@@ -39,7 +39,7 @@ public class RuleSelfManager {
     /**
      * @return 指定规则是否已启用
      */
-    public boolean isEnabled(ServerPlayerEntity player, String rule) {
+    public boolean isEnabled(ServerPlayer player, String rule) {
         if (this.rules.isEmpty()) {
             return false;
         }
@@ -50,7 +50,7 @@ public class RuleSelfManager {
         return rules.contains(rule);
     }
 
-    public boolean isEnabled(ServerPlayerEntity player, CustomRuleControl<?> control) {
+    public boolean isEnabled(ServerPlayer player, CustomRuleControl<?> control) {
         Optional<CustomRuleEntry> optional = get(control);
         return optional.filter(entry -> this.isEnabled(player, entry.getName())).isPresent();
     }
@@ -58,7 +58,7 @@ public class RuleSelfManager {
     /**
      * 设置规则是否对自己生效
      */
-    public void setEnabled(ServerPlayerEntity player, String rule, boolean enabled) {
+    public void setEnabled(ServerPlayer player, String rule, boolean enabled) {
         String playerName = FetcherUtils.getPlayerName(player);
         HashSet<String> rules = this.rules.get(playerName);
         if (rules == null) {

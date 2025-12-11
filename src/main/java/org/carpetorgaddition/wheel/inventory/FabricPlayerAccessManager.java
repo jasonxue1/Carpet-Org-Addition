@@ -2,8 +2,8 @@ package org.carpetorgaddition.wheel.inventory;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 
 import java.util.Map;
 import java.util.Set;
@@ -14,21 +14,21 @@ public class FabricPlayerAccessManager {
     /**
      * 正在操作物品栏的玩家，键表示被打开物品栏玩家的配置文件，值表示正在打开物品栏的玩家集合
      */
-    private final Map<PlayerConfigEntry, Set<ServerPlayerEntity>> viewers = new ConcurrentHashMap<>();
+    private final Map<NameAndId, Set<ServerPlayer>> viewers = new ConcurrentHashMap<>();
     /**
      * 配置文件对应的Fabric玩家访问器
      */
-    private final Map<PlayerConfigEntry, FabricPlayerAccessor> accessors = new ConcurrentHashMap<>();
+    private final Map<NameAndId, FabricPlayerAccessor> accessors = new ConcurrentHashMap<>();
 
     public FabricPlayerAccessManager(MinecraftServer server) {
         this.server = server;
     }
 
     public FabricPlayerAccessor getOrCreate(GameProfile gameProfile) {
-        return getOrCreate(new PlayerConfigEntry(gameProfile));
+        return getOrCreate(new NameAndId(gameProfile));
     }
 
-    public FabricPlayerAccessor getOrCreate(PlayerConfigEntry entry) {
+    public FabricPlayerAccessor getOrCreate(NameAndId entry) {
         return this.accessors.computeIfAbsent(entry, profile -> new FabricPlayerAccessor(this.server, profile, this));
     }
 
@@ -42,20 +42,20 @@ public class FabricPlayerAccessManager {
     /**
      * 获取所有正在查看指定离线玩家物品栏的玩家
      */
-    public Set<ServerPlayerEntity> getViewers(PlayerConfigEntry entry) {
-        Set<ServerPlayerEntity> set = this.viewers.get(entry);
+    public Set<ServerPlayer> getViewers(NameAndId entry) {
+        Set<ServerPlayer> set = this.viewers.get(entry);
         return set == null ? Set.of() : set;
     }
 
-    public void addViewers(PlayerConfigEntry entry, Set<ServerPlayerEntity> viewers) {
+    public void addViewers(NameAndId entry, Set<ServerPlayer> viewers) {
         this.viewers.put(entry, viewers);
     }
 
-    public void removeAccessor(PlayerConfigEntry entry) {
+    public void removeAccessor(NameAndId entry) {
         this.accessors.remove(entry);
     }
 
-    public void removeViewer(PlayerConfigEntry entry) {
+    public void removeViewer(NameAndId entry) {
         this.viewers.remove(entry);
     }
 }

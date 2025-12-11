@@ -1,8 +1,8 @@
 package org.carpetorgaddition.periodic;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.server.ServerTickManager;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.ServerTickRateManager;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -20,15 +20,15 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void tick() {
         super.tick();
-        ServerTickManager tickManager = FetcherUtils.getServer(this.getPlayer()).getTickManager();
-        if (tickManager.shouldTick()) {
+        ServerTickRateManager tickManager = FetcherUtils.getServer(this.getPlayer()).tickRateManager();
+        if (tickManager.runsNormally()) {
             this.fakePlayerActionManager.tick();
         }
         this.blockExcavator.tick();
     }
 
     @Override
-    public void copyFrom(ServerPlayerEntity oldPlayer) {
+    public void copyFrom(ServerPlayer oldPlayer) {
         super.copyFrom(oldPlayer);
         if (this.fakePlayerActionManager != null) {
             this.fakePlayerActionManager.setActionFromOldPlayer((EntityPlayerMPFake) oldPlayer);

@@ -2,11 +2,11 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -26,17 +26,17 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
 
     @Override
     protected void tick() {
-        ScreenHandler screenHandler = getFakePlayer().currentScreenHandler;
-        if (screenHandler == null || screenHandler instanceof PlayerScreenHandler) {
+        AbstractContainerMenu screenHandler = getFakePlayer().containerMenu;
+        if (screenHandler instanceof InventoryMenu) {
             return;
         }
         for (int index = 0; index < screenHandler.slots.size(); index++) {
             // 如果遍历到了玩家物品栏槽位，直接结束循环，因为后面一般不会再有容器槽位了
             // 合成器的输出槽位虽然在玩家物品栏槽位后面，但是这个槽位的物品无法取出，因此可以忽略
-            if (screenHandler.getSlot(index).inventory instanceof PlayerInventory) {
+            if (screenHandler.getSlot(index).container instanceof Inventory) {
                 break;
             }
-            ItemStack itemStack = screenHandler.getSlot(index).getStack();
+            ItemStack itemStack = screenHandler.getSlot(index).getItem();
             if (itemStack.isEmpty() || InventoryUtils.isGcaItem(itemStack)) {
                 continue;
             }
@@ -46,7 +46,7 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
             }
         }
         // 物品全部丢出后自动关闭容器
-        getFakePlayer().closeHandledScreen();
+        getFakePlayer().closeContainer();
     }
 
     @Override
@@ -57,16 +57,16 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
-        ArrayList<Text> list = new ArrayList<>();
-        Text text = this.predicate.toText();
-        Text playerName = this.getFakePlayer().getDisplayName();
+    public List<Component> info() {
+        ArrayList<Component> list = new ArrayList<>();
+        Component text = this.predicate.toText();
+        Component playerName = this.getFakePlayer().getDisplayName();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
         return list;
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.clean");
     }
 

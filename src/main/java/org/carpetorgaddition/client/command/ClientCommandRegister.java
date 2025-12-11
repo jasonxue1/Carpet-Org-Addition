@@ -3,7 +3,7 @@ package org.carpetorgaddition.client.command;
 import com.mojang.brigadier.CommandDispatcher;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.command.CommandRegistryAccess;
+import net.minecraft.commands.CommandBuildContext;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,7 +15,7 @@ public class ClientCommandRegister {
         ClientCommandRegistrationCallback.EVENT.register(ClientCommandRegister::register);
     }
 
-    private static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+    private static void register(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext access) {
         // 字典命令
         register(new DictionaryCommand(dispatcher, access));
         // 高亮路径点命令

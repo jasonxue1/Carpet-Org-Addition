@@ -4,13 +4,13 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.OperationTimeoutException;
@@ -24,39 +24,39 @@ import org.carpetorgaddition.wheel.provider.TextProvider;
 import java.math.BigInteger;
 
 public class XpTransferCommand extends AbstractServerCommand {
-    public XpTransferCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public XpTransferCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandXpTransfer))
-                .then(CommandManager.argument("from", EntityArgumentType.player())
-                        .then(CommandManager.argument("to", EntityArgumentType.player())
-                                .then(CommandManager.literal("all")
+                .then(Commands.argument("from", EntityArgument.player())
+                        .then(Commands.argument("to", EntityArgument.player())
+                                .then(Commands.literal("all")
                                         .executes(this::transferAll))
-                                .then(CommandManager.literal("half")
+                                .then(Commands.literal("half")
                                         .executes(this::transferHalf))
-                                .then(CommandManager.literal("points")
-                                        .then(CommandManager.argument("number", IntegerArgumentType.integer(1))
+                                .then(Commands.literal("points")
+                                        .then(Commands.argument("number", IntegerArgumentType.integer(1))
                                                 .executes(this::transferSpecifyPoint)))
-                                .then(CommandManager.literal("level")
-                                        .then(CommandManager.argument("level", IntegerArgumentType.integer(1))
+                                .then(Commands.literal("level")
+                                        .then(Commands.argument("level", IntegerArgumentType.integer(1))
                                                 .executes(this::transferSpecifyLevel)))
-                                .then(CommandManager.literal("upgrade")
-                                        .then(CommandManager.argument("level", IntegerArgumentType.integer(1))
+                                .then(Commands.literal("upgrade")
+                                        .then(Commands.argument("level", IntegerArgumentType.integer(1))
                                                 .executes(this::transferUpgrade)))
-                                .then(CommandManager.literal("upgradeto")
-                                        .then(CommandManager.argument("level", IntegerArgumentType.integer(1))
+                                .then(Commands.literal("upgradeto")
+                                        .then(Commands.argument("level", IntegerArgumentType.integer(1))
                                                 .executes(this::transferUpgradeTo))))));
     }
 
     /**
      * 转移所有经验
      */
-    private int transferAll(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int transferAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         ExperienceTransfer from = new ExperienceTransfer(getFromPlayer(context));
         ExperienceTransfer to = new ExperienceTransfer(getToPlayer(context));
         // 输出经验的玩家必须是假玩家或者是命令执行者自己
@@ -79,7 +79,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                     number.toString(),
                     to.player().getDisplayName()
             );
-            Text hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
+            Component hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
             writeLog(source, to.player(), from.player(), number);
@@ -93,8 +93,8 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移一半经验
      */
-    private int transferHalf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int transferHalf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         ExperienceTransfer from = new ExperienceTransfer(getFromPlayer(context));
         ExperienceTransfer to = new ExperienceTransfer(getToPlayer(context));
         if (from.isSpecifiedOrFakePlayer(CommandUtils.getSourcePlayer(context))) {
@@ -110,7 +110,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
-            Text hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
+            Component hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             TextBuilder builder = TextBuilder.of(
                     "carpet.commands.xpTransfer.half",
                     from.player().getDisplayName(),
@@ -130,7 +130,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移指定数量的经验
      */
-    private int transferSpecifyPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferSpecifyPoint(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int count = IntegerArgumentType.getInteger(context, "number");
         return this.transfer(context, BigInteger.valueOf(count));
     }
@@ -138,7 +138,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移从0级升级到指定等级所需的经验
      */
-    private int transferSpecifyLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferSpecifyLevel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int level = IntegerArgumentType.getInteger(context, "level");
         BigInteger count;
         try {
@@ -152,7 +152,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移从当前等级<b>升级</b>指定等级所需的经验
      */
-    private int transferUpgrade(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferUpgrade(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int level = getToPlayer(context).experienceLevel;
         int upgrade = level + IntegerArgumentType.getInteger(context, "level");
         BigInteger count;
@@ -167,7 +167,7 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移从当前等级<b>升级到</b>指定等级所需的经验
      */
-    private int transferUpgradeTo(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int transferUpgradeTo(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int level = getToPlayer(context).experienceLevel;
         int upgrade = IntegerArgumentType.getInteger(context, "level");
         BigInteger count;
@@ -186,8 +186,8 @@ public class XpTransferCommand extends AbstractServerCommand {
     /**
      * 转移指定数量的经验
      */
-    private int transfer(CommandContext<ServerCommandSource> context, BigInteger count) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int transfer(CommandContext<CommandSourceStack> context, BigInteger count) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         ExperienceTransfer from = new ExperienceTransfer(getFromPlayer(context));
         ExperienceTransfer to = new ExperienceTransfer(getToPlayer(context));
         // 只能操作自己或假玩家
@@ -215,7 +215,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                     from.player().getDisplayName(),
                     count.toString(),
                     to.player().getDisplayName());
-            Text hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
+            Component hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
             writeLog(source, to.player(), from.player(), count);
@@ -227,34 +227,34 @@ public class XpTransferCommand extends AbstractServerCommand {
     }
 
     // 获取要输出经验的玩家
-    private ServerPlayerEntity getFromPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return EntityArgumentType.getPlayer(context, "from");
+    private ServerPlayer getFromPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        return EntityArgument.getPlayer(context, "from");
     }
 
     // 获取要输入经验的玩家
-    private ServerPlayerEntity getToPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        return EntityArgumentType.getPlayer(context, "to");
+    private ServerPlayer getToPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        return EntityArgument.getPlayer(context, "to");
     }
 
     // 记录日志
     private void writeLog(
-            ServerCommandSource source,
-            ServerPlayerEntity inputPlayer,
-            ServerPlayerEntity outputPlayer,
+            CommandSourceStack source,
+            ServerPlayer inputPlayer,
+            ServerPlayer outputPlayer,
             BigInteger point
     ) {
-        ServerPlayerEntity player = source.getPlayer();
+        ServerPlayer player = source.getPlayer();
         String output = player == outputPlayer ? "自己" : FetcherUtils.getPlayerName(outputPlayer);
         String input = player == inputPlayer ? "自己" : FetcherUtils.getPlayerName(inputPlayer);
-        CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getName(), output, point.toString(), input);
+        CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getTextName(), output, point.toString(), input);
     }
 
     // 获取悬停提示
-    private Text getHover(
-            ServerPlayerEntity inputPlayer,
+    private Component getHover(
+            ServerPlayer inputPlayer,
             int inputCurrentLevel,
             int inputBeforeLevel,
-            ServerPlayerEntity outputPlayer,
+            ServerPlayer outputPlayer,
             int outputBeforeLevel,
             int outputCurrentLevel
     ) {
@@ -264,7 +264,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                                 inputCurrentLevel - inputBeforeLevel,
                                 inputBeforeLevel,
                                 inputCurrentLevel)
-                        .setColor(Formatting.GREEN).build(),
+                        .setColor(ChatFormatting.GREEN).build(),
                 TextProvider.NEW_LINE,
                 TextBuilder.of(
                                 "carpet.commands.xpTransfer.degrade",
@@ -272,7 +272,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                                 outputBeforeLevel - outputCurrentLevel,
                                 outputBeforeLevel,
                                 outputCurrentLevel)
-                        .setColor(Formatting.RED).build()
+                        .setColor(ChatFormatting.RED).build()
         );
     }
 

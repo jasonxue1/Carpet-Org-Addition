@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.server.PlayerConfigEntry;
+import net.minecraft.server.players.NameAndId;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.util.IOUtils;
@@ -103,8 +103,8 @@ public class GameProfileCache {
         return optional.map(name -> new GameProfile(uuid, name));
     }
 
-    public Optional<PlayerConfigEntry> getPlayerConfigEntry(UUID uuid) {
-        return this.getGameProfile(uuid).map(PlayerConfigEntry::new);
+    public Optional<NameAndId> getPlayerConfigEntry(UUID uuid) {
+        return this.getGameProfile(uuid).map(NameAndId::new);
     }
 
     /**
@@ -129,7 +129,7 @@ public class GameProfileCache {
         this.put(gameProfile.id(), gameProfile.name());
     }
 
-    public void put(PlayerConfigEntry entry) {
+    public void put(NameAndId entry) {
         this.put(entry.id(), entry.name());
     }
 

@@ -1,14 +1,14 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
 
-public class BeaconRangeBox extends Box {
-    public BeaconRangeBox(Box box) {
+public class BeaconRangeBox extends AABB {
+    public BeaconRangeBox(AABB box) {
         super(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
 
@@ -45,7 +45,7 @@ public class BeaconRangeBox extends Box {
      * @author 文心一言
      */
     @Deprecated(forRemoval = true)
-    public void show(ServerPlayerEntity player) {
+    public void show(ServerPlayer player) {
         // 定义顶点
         double[] vertices = {
                 minX, minY, minZ,
@@ -80,8 +80,8 @@ public class BeaconRangeBox extends Box {
     }
 
     // 将信标范围调整为整个世界高度
-    public BeaconRangeBox worldHeight(World world) {
-        int topY = world.getBottomY() + world.getHeight();
-        return new BeaconRangeBox(minX, world.getBottomY(), minZ, maxX, topY, maxZ);
+    public BeaconRangeBox worldHeight(Level world) {
+        int topY = world.getMinY() + world.getHeight();
+        return new BeaconRangeBox(minX, world.getMinY(), minZ, maxX, topY, maxZ);
     }
 }

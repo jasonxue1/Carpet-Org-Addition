@@ -1,15 +1,15 @@
 package org.carpetorgaddition.util;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
@@ -30,12 +30,12 @@ public class FetcherUtils {
      * @param player 要获取字符串形式玩家名的玩家
      * @return 玩家名的字符串形式
      */
-    public static String getPlayerName(PlayerEntity player) {
+    public static String getPlayerName(Player player) {
         return player.getGameProfile().name();
     }
 
     @Contract("_ -> !null")
-    public static MinecraftServer getServer(ServerPlayerEntity player) {
+    public static MinecraftServer getServer(ServerPlayer player) {
         return getWorld(player).getServer();
     }
 
@@ -44,28 +44,28 @@ public class FetcherUtils {
         return getWorld(entity).getServer();
     }
 
-    public static ServerWorld getWorld(ServerPlayerEntity player) {
-        return player.getEntityWorld();
+    public static ServerLevel getWorld(ServerPlayer player) {
+        return player.level();
     }
 
-    public static World getWorld(Entity entity) {
-        return entity.getEntityWorld();
+    public static Level getWorld(Entity entity) {
+        return entity.level();
     }
 
-    public static ServerWorld getWorld(ServerCommandSource source) {
-        return source.getWorld();
+    public static ServerLevel getWorld(CommandSourceStack source) {
+        return source.getLevel();
     }
 
-    public static World getWorld(BlockEntity blockEntity) {
-        return blockEntity.getWorld();
+    public static Level getWorld(BlockEntity blockEntity) {
+        return blockEntity.getLevel();
     }
 
-    public static Vec3d getFootPos(Entity entity) {
-        return entity.getEntityPos();
+    public static Vec3 getFootPos(Entity entity) {
+        return entity.position();
     }
 
-    public static Vec3d getEyePos(Entity entity) {
-        return entity.getEyePos();
+    public static Vec3 getEyePos(Entity entity) {
+        return entity.getEyePosition();
     }
 
     /**
@@ -87,7 +87,7 @@ public class FetcherUtils {
         return ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
     }
 
-    public static RuleSelfManager getRuleSelfManager(ServerPlayerEntity player) {
+    public static RuleSelfManager getRuleSelfManager(ServerPlayer player) {
         return getRuleSelfManager(FetcherUtils.getServer(player));
     }
 

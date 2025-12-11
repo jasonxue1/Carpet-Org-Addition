@@ -5,23 +5,23 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.BlockPosArgumentType;
-import net.minecraft.command.argument.BlockPredicateArgumentType;
-import net.minecraft.command.argument.ItemPredicateArgumentType;
-import net.minecraft.command.argument.RegistryEntryReferenceArgumentType;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.RegistryKeys;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.ResourceArgument;
+import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.commands.arguments.item.ItemPredicateArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -62,83 +62,83 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 村民的游戏内名称
      */
-    public static final Text VILLAGER = TextBuilder.translate("entity.minecraft.villager");
+    public static final Component VILLAGER = TextBuilder.translate("entity.minecraft.villager");
     public static final String FINDER_BLOCK = "finder.block";
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
 
-    public FinderCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public FinderCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandFinder))
-                .then(CommandManager.literal("block")
+                .then(Commands.literal("block")
                         .requires(PermissionManager.register(FINDER_BLOCK, PermissionLevel.PASS))
-                        .then(CommandManager.argument("blockState", BlockPredicateArgumentType.blockPredicate(this.access))
+                        .then(Commands.argument("blockState", BlockPredicateArgument.blockPredicate(this.access))
                                 .executes(context -> blockFinder(context, 64))
-                                .then(CommandManager.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
+                                .then(Commands.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> blockFinder(context, IntegerArgumentType.getInteger(context, "range"))))
-                                .then(CommandManager.literal("from")
-                                        .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
-                                                .then(CommandManager.literal("to")
-                                                        .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
+                                .then(Commands.literal("from")
+                                        .then(Commands.argument("from", BlockPosArgument.blockPos())
+                                                .then(Commands.literal("to")
+                                                        .then(Commands.argument("to", BlockPosArgument.blockPos())
                                                                 .executes(this::areaBlockSearch)))))))
-                .then(CommandManager.literal("item")
+                .then(Commands.literal("item")
                         .requires(PermissionManager.register(FINDER_ITEM, PermissionLevel.PASS))
-                        .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(this.access))
+                        .then(Commands.argument("itemStack", ItemPredicateArgument.itemPredicate(this.access))
                                 .executes(context -> searchItem(context, 64))
-                                .then(CommandManager.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
+                                .then(Commands.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> searchItem(context, IntegerArgumentType.getInteger(context, "range"))))
-                                .then(CommandManager.literal("from")
-                                        .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
-                                                .then(CommandManager.literal("to")
-                                                        .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
+                                .then(Commands.literal("from")
+                                        .then(Commands.argument("from", BlockPosArgument.blockPos())
+                                                .then(Commands.literal("to")
+                                                        .then(Commands.argument("to", BlockPosArgument.blockPos())
                                                                 .executes(this::areaItemFinder))))
-                                        .then(CommandManager.literal("offline_player")
+                                        .then(Commands.literal("offline_player")
                                                 .requires(PermissionManager.register(FINDER_ITEM_FROM_OFFLINE_PLAYER, PermissionLevel.PASS))
                                                 .executes(this::searchItemFromOfflinePlayer)))))
-                .then(CommandManager.literal("trade")
+                .then(Commands.literal("trade")
                         .requires(PermissionManager.register("finder.trade", PermissionLevel.PASS))
-                        .then(CommandManager.literal("item")
-                                .then(CommandManager.argument("itemStack", ItemPredicateArgumentType.itemPredicate(this.access))
+                        .then(Commands.literal("item")
+                                .then(Commands.argument("itemStack", ItemPredicateArgument.itemPredicate(this.access))
                                         .executes(context -> searchTradeItem(context, 64))
-                                        .then(CommandManager.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
+                                        .then(Commands.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchTradeItem(context, IntegerArgumentType.getInteger(context, "range"))))))
-                        .then(CommandManager.literal("enchanted_book")
-                                .then(CommandManager.argument("enchantment", RegistryEntryReferenceArgumentType.registryEntry(this.access, RegistryKeys.ENCHANTMENT))
+                        .then(Commands.literal("enchanted_book")
+                                .then(Commands.argument("enchantment", ResourceArgument.resource(this.access, Registries.ENCHANTMENT))
                                         .executes(context -> searchEnchantedBookTrade(context, 64))
-                                        .then(CommandManager.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
+                                        .then(Commands.argument("range", IntegerArgumentType.integer(0, MAX_HORIZONTAL_RANGE))
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
-                .then(CommandManager.literal("worldEater")
-                        .requires(((Predicate<ServerCommandSource>) source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                .then(Commands.literal("worldEater")
+                        .requires(((Predicate<CommandSourceStack>) source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .and(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS)))
-                        .then(CommandManager.argument("from", BlockPosArgumentType.blockPos())
-                                .then(CommandManager.argument("to", BlockPosArgumentType.blockPos())
+                        .then(Commands.argument("from", BlockPosArgument.blockPos())
+                                .then(Commands.argument("to", BlockPosArgument.blockPos())
                                         .executes(this::mayAffectWorldEater)))));
     }
 
-    private SuggestionProvider<ServerCommandSource> suggestionDefaultDistance() {
-        return (context, builder) -> CommandSource.suggestMatching(new String[]{"64", "128", "256"}, builder);
+    private SuggestionProvider<CommandSourceStack> suggestionDefaultDistance() {
+        return (context, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
     }
 
     /**
      * 物品查找
      */
-    private int searchItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private int searchItem(CommandContext<CommandSourceStack> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 获取玩家所在的位置，这是命令开始执行的坐标
-        BlockPos sourceBlockPos = player.getBlockPos();
+        BlockPos sourceBlockPos = player.blockPosition();
         // 查找周围容器中的物品
-        World world = FetcherUtils.getWorld(player);
+        Level world = FetcherUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
         ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
@@ -149,14 +149,14 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 区域查找物品
      */
-    private int areaItemFinder(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
-        BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
+    private int areaItemFinder(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        BlockPos from = BlockPosArgument.getBlockPos(context, "from");
+        BlockPos to = BlockPosArgument.getBlockPos(context, "to");
         // 获取要查找的物品
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
-        World world = FetcherUtils.getWorld(player);
+        Level world = FetcherUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, from, to);
         this.checkBoxSize(traverser);
         ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
@@ -167,8 +167,8 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 从离线玩家身上查找物品
      */
-    private int searchItemFromOfflinePlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int searchItemFromOfflinePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
@@ -178,12 +178,12 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 方块查找
      */
-    private int blockFinder(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private int blockFinder(CommandContext<CommandSourceStack> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取命令执行时的方块坐标
-        final BlockPos sourceBlockPos = player.getBlockPos();
-        ServerWorld world = FetcherUtils.getWorld(player);
+        final BlockPos sourceBlockPos = player.blockPosition();
+        ServerLevel world = FetcherUtils.getWorld(player);
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
@@ -195,14 +195,14 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 查找可能影响世吞运行的方块
      */
-    private int mayAffectWorldEater(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int mayAffectWorldEater(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         // 获取执行命令的玩家并非空判断
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
-        BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        BlockPos from = BlockPosArgument.getBlockPos(context, "from");
+        BlockPos to = BlockPosArgument.getBlockPos(context, "to");
         // 获取命令执行时的方块坐标
-        final BlockPos sourceBlockPos = player.getBlockPos();
-        ServerWorld world = FetcherUtils.getWorld(player);
+        final BlockPos sourceBlockPos = player.blockPosition();
+        ServerLevel world = FetcherUtils.getWorld(player);
         BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
@@ -214,16 +214,16 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 区域方块查找
      */
-    private int areaBlockSearch(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        BlockPos from = BlockPosArgumentType.getBlockPos(context, "from");
-        BlockPos to = BlockPosArgumentType.getBlockPos(context, "to");
+    private int areaBlockSearch(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        BlockPos from = BlockPosArgument.getBlockPos(context, "from");
+        BlockPos to = BlockPosArgument.getBlockPos(context, "to");
         // 计算要查找的区域
         BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.getBlockPos(), traverser, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.blockPosition(), traverser, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -231,14 +231,14 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 准备根据物品查找交易项
      */
-    private int searchTradeItem(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private int searchTradeItem(CommandContext<CommandSourceStack> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家对象
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取要匹配的物品
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 获取玩家所在的坐标
-        BlockPos sourcePos = player.getBlockPos();
-        World world = FetcherUtils.getWorld(player);
+        BlockPos sourcePos = player.blockPosition();
+        Level world = FetcherUtils.getWorld(player);
         // 查找范围
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
         this.checkBoxSize(traverser);
@@ -251,17 +251,17 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 准备查找出售指定附魔书的村民
      */
-    private int searchEnchantedBookTrade(CommandContext<ServerCommandSource> context, int range) throws CommandSyntaxException {
+    private int searchEnchantedBookTrade(CommandContext<CommandSourceStack> context, int range) throws CommandSyntaxException {
         // 获取执行命令的玩家
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取需要查找的附魔
-        Enchantment enchantment = RegistryEntryReferenceArgumentType.getEnchantment(context, "enchantment").value();
-        ServerCommandSource source = context.getSource();
+        Enchantment enchantment = ResourceArgument.getEnchantment(context, "enchantment").value();
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         EnchantedBookPredicate predicate = new EnchantedBookPredicate(server, enchantment);
         // 获取玩家所在的位置
-        BlockPos sourcePos = player.getBlockPos();
-        World world = FetcherUtils.getWorld(player);
+        BlockPos sourcePos = player.blockPosition();
+        Level world = FetcherUtils.getWorld(player);
         // 查找范围
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
         this.checkBoxSize(traverser);
@@ -281,8 +281,8 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 将物品数量转换为“多少组多少个”的形式
      */
-    public static Text showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
-        TextBuilder builder = new TextBuilder(TextProvider.itemCount(count, itemStack.getMaxCount()));
+    public static Component showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
+        TextBuilder builder = new TextBuilder(TextProvider.itemCount(count, itemStack.getMaxStackSize()));
         // 如果包含在潜影盒内找到的物品，在数量上添加斜体效果
         return inTheShulkerBox ? builder.setItalic().build() : builder.build();
     }

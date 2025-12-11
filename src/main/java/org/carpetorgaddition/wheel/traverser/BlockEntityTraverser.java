@@ -1,10 +1,10 @@
 package org.carpetorgaddition.wheel.traverser;
 
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
@@ -12,14 +12,14 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public class BlockEntityTraverser extends WorldTraverser<BlockEntity> {
-    private final World world;
+    private final Level world;
 
-    public BlockEntityTraverser(World world, BlockPos sourcePos, int range) {
+    public BlockEntityTraverser(Level world, BlockPos sourcePos, int range) {
         super(world, sourcePos, range);
         this.world = world;
     }
 
-    public BlockEntityTraverser(World world, BlockPos from, BlockPos to) {
+    public BlockEntityTraverser(Level world, BlockPos from, BlockPos to) {
         super(from, to);
         this.world = world;
     }
@@ -33,7 +33,7 @@ public class BlockEntityTraverser extends WorldTraverser<BlockEntity> {
         private BlockEntity next;
         private Iterator<BlockEntity> current;
         private boolean alreadyNext = false;
-        private final Iterator<Optional<Chunk>> chunkIterator;
+        private final Iterator<Optional<ChunkAccess>> chunkIterator;
 
         private Itr() {
             ChunkTraverser traverser = new ChunkTraverser(world, from, to);
@@ -49,9 +49,9 @@ public class BlockEntityTraverser extends WorldTraverser<BlockEntity> {
             // this.current != null用来在this.chunkIterator.hasNext()耗尽时处理未完成的迭代器
             while (this.current != null || this.chunkIterator.hasNext()) {
                 if (this.current == null) {
-                    Optional<WorldChunk> optional = this.chunkIterator.next()
-                            .filter(chunk -> chunk instanceof WorldChunk)
-                            .map(chunk -> (WorldChunk) chunk);
+                    Optional<LevelChunk> optional = this.chunkIterator.next()
+                            .filter(chunk -> chunk instanceof LevelChunk)
+                            .map(chunk -> (LevelChunk) chunk);
                     // 区块可能未加载
                     if (optional.isEmpty()) {
                         continue;
@@ -60,7 +60,7 @@ public class BlockEntityTraverser extends WorldTraverser<BlockEntity> {
                 }
                 while (this.current.hasNext()) {
                     BlockEntity blockEntity = this.current.next();
-                    if (BlockEntityTraverser.this.contains(blockEntity.getPos())) {
+                    if (BlockEntityTraverser.this.contains(blockEntity.getBlockPos())) {
                         this.next = blockEntity;
                         return true;
                     }

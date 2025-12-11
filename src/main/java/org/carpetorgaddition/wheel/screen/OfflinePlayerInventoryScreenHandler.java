@@ -1,23 +1,24 @@
 package org.carpetorgaddition.wheel.screen;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
+import org.jspecify.annotations.NonNull;
 
 public class OfflinePlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenHandler<OfflinePlayerInventory> {
-    public OfflinePlayerInventoryScreenHandler(int syncId, PlayerInventory playerInventory, OfflinePlayerInventory inventory) {
+    public OfflinePlayerInventoryScreenHandler(int syncId, Inventory playerInventory, OfflinePlayerInventory inventory) {
         super(syncId, playerInventory, inventory);
-        this.inventory.onOpen(playerInventory.player);
+        this.inventory.startOpen(playerInventory.player);
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        super.onClosed(player);
-        this.inventory.onClose(player);
+    public void removed(@NonNull Player player) {
+        super.removed(player);
+        this.inventory.stopOpen(player);
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         return true;
     }
 }

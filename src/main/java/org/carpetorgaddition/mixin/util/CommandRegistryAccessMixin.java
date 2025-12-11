@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.util;
 
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.server.command.CommandManager;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.Commands;
 import org.carpetorgaddition.wheel.CommandRegistryAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -9,19 +9,19 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(CommandManager.class)
+@Mixin(Commands.class)
 public class CommandRegistryAccessMixin implements CommandRegistryAccessor {
     @Unique
-    private CommandRegistryAccess commandRegistryAccess;
+    private CommandBuildContext commandRegistryAccess;
 
     @Inject(method = "<init>", at = @At("RETURN"))
-    private void init(CommandManager.RegistrationEnvironment environment, CommandRegistryAccess commandRegistryAccess, CallbackInfo ci) {
+    private void init(Commands.CommandSelection environment, CommandBuildContext commandRegistryAccess, CallbackInfo ci) {
         this.commandRegistryAccess = commandRegistryAccess;
     }
 
 
     @Override
-    public CommandRegistryAccess carpet_Org_Addition$getAccess() {
+    public CommandBuildContext carpet_Org_Addition$getAccess() {
         return this.commandRegistryAccess;
     }
 }

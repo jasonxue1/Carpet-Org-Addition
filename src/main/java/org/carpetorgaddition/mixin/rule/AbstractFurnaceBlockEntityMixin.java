@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(AbstractFurnaceBlockEntity.class)
 public class AbstractFurnaceBlockEntityMixin {
-    @Inject(method = "dropExperience", at = @At("HEAD"), cancellable = true)
-    private static void dropExperience(ServerWorld world, Vec3d pos, int multiplier, float experience, CallbackInfo ci) {
+    @Inject(method = "createExperience", at = @At("HEAD"), cancellable = true)
+    private static void dropExperience(ServerLevel world, Vec3 pos, int multiplier, float experience, CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.disableFurnaceDropExperience.get()) {
             ci.cancel();
         }

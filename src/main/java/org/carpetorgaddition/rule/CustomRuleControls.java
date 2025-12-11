@@ -1,6 +1,6 @@
 package org.carpetorgaddition.rule;
 
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.BlockDropsDirectlyEnterInventory;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -8,7 +8,7 @@ import org.carpetorgaddition.util.FetcherUtils;
 public class CustomRuleControls {
     public static final CustomRuleControl<Boolean> BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY = new CustomRuleControl<>() {
         @Override
-        public Boolean getRuleValue(ServerPlayerEntity player) {
+        public Boolean getRuleValue(ServerPlayer player) {
             if (player == null) {
                 return false;
             }
@@ -30,7 +30,7 @@ public class CustomRuleControls {
 
     public static final CustomRuleControl<Integer> ITEM_PICKUP_RANGE_EXPAND = new CustomRuleControl<>() {
         @Override
-        public Integer getRuleValue(ServerPlayerEntity player) {
+        public Integer getRuleValue(ServerPlayer player) {
             int range = CarpetOrgAdditionSettings.itemPickupRangeExpand.get();
             if (range == 0) {
                 return 0;

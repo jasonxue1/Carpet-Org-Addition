@@ -1,11 +1,11 @@
 package org.carpetorgaddition.wheel.predicate;
 
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
 import org.carpetorgaddition.util.EnchantmentUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -27,7 +27,7 @@ public class EnchantedBookPredicate implements Predicate<ItemStack> {
 
     @Override
     public boolean test(ItemStack itemStack) {
-        return itemStack.isOf(Items.ENCHANTED_BOOK) && getLevel(itemStack) > 0;
+        return itemStack.is(Items.ENCHANTED_BOOK) && getLevel(itemStack) > 0;
     }
 
     public int getLevel(ItemStack itemStack) {
@@ -38,13 +38,13 @@ public class EnchantedBookPredicate implements Predicate<ItemStack> {
         return -1;
     }
 
-    public Text getWithLevel(int level) {
+    public Component getWithLevel(int level) {
         TextBuilder builder = new TextBuilder(EnchantmentUtils.getName(this.enchantment, level));
         builder.setStringHover(this.id);
         return builder.build();
     }
 
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         // 获取附魔名称，不带等级
         TextBuilder builder = new TextBuilder(EnchantmentUtils.getName(enchantment));
         builder.setStringHover(this.id);

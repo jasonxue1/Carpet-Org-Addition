@@ -1,12 +1,12 @@
 package org.carpetorgaddition.wheel.provider;
 
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.text.Text;
-import net.minecraft.text.Texts;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentUtils;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -19,9 +19,9 @@ public class TextProvider {
     /**
      * 换行
      */
-    public static final Text NEW_LINE = TextBuilder.create("\n");
+    public static final Component NEW_LINE = TextBuilder.create("\n");
     @Deprecated(forRemoval = true)
-    public static final Text INDENT_SYMBOL = TextBuilder.create("    ");
+    public static final Component INDENT_SYMBOL = TextBuilder.create("    ");
 
     private TextProvider() {
     }
@@ -29,42 +29,42 @@ public class TextProvider {
     /**
      * 主世界
      */
-    public static final Text OVERWORLD = TextBuilder.translate("carpet.command.dimension.overworld");
+    public static final Component OVERWORLD = TextBuilder.translate("carpet.command.dimension.overworld");
     /**
      * 下界
      */
-    public static final Text THE_NETHER = TextBuilder.translate("carpet.command.dimension.the_nether");
+    public static final Component THE_NETHER = TextBuilder.translate("carpet.command.dimension.the_nether");
     /**
      * 末地
      */
-    public static final Text THE_END = TextBuilder.translate("carpet.command.dimension.the_end");
-    public static final Text TRUE = TextBuilder.translate("carpet.command.boolean.true");
-    public static final Text FALSE = TextBuilder.translate("carpet.command.boolean.false");
+    public static final Component THE_END = TextBuilder.translate("carpet.command.dimension.the_end");
+    public static final Component TRUE = TextBuilder.translate("carpet.command.boolean.true");
+    public static final Component FALSE = TextBuilder.translate("carpet.command.boolean.false");
     /**
      * [这里]
      */
-    public static final Text CLICK_HERE = TextBuilder.translate("carpet.command.text.click.here");
+    public static final Component CLICK_HERE = TextBuilder.translate("carpet.command.text.click.here");
     /**
      * 物品
      */
-    public static final Text ITEM = TextBuilder.translate("carpet.command.item.item");
+    public static final Component ITEM = TextBuilder.translate("carpet.command.item.item");
     /**
      * 单击复制到剪贴板
      *
      * @apiNote 玩家客户端中一定有这条消息，不需要回调
      */
-    public static final Text COPY_CLICK = Text.translatable("chat.copy.click");
+    public static final Component COPY_CLICK = Component.translatable("chat.copy.click");
     /**
      * 自己
      */
-    public static final Text SELF = TextBuilder.translate("carpet.command.text.self");
+    public static final Component SELF = TextBuilder.translate("carpet.command.text.self");
 
-    public static Text getBoolean(boolean value) {
+    public static Component getBoolean(boolean value) {
         return value ? TRUE : FALSE;
     }
 
-    public static Text blockPos(BlockPos blockPos) {
-        return blockPos(blockPos, Formatting.GREEN);
+    public static Component blockPos(BlockPos blockPos) {
+        return blockPos(blockPos, ChatFormatting.GREEN);
     }
 
     /**
@@ -72,7 +72,7 @@ public class TextProvider {
      *
      * @param color 文本的颜色，如果为null，不修改颜色
      */
-    public static Text blockPos(BlockPos blockPos, @Nullable Formatting color) {
+    public static Component blockPos(BlockPos blockPos, @Nullable ChatFormatting color) {
         TextBuilder builder = new TextBuilder(simpleBlockPos(blockPos));
         // 添加单击事件，复制方块坐标
         builder.setCopyToClipboard(WorldUtils.toPosString(blockPos));
@@ -94,12 +94,12 @@ public class TextProvider {
     /**
      * 返回一个简单的没有任何样式的方块坐标可变文本对象
      */
-    public static Text simpleBlockPos(BlockPos blockPos) {
-        return Texts.bracketed(Text.translatable("chat.coordinates", blockPos.getX(), blockPos.getY(), blockPos.getZ()));
+    public static Component simpleBlockPos(BlockPos blockPos) {
+        return ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", blockPos.getX(), blockPos.getY(), blockPos.getZ()));
     }
 
     @SuppressWarnings("unused")
-    public static Text dimensionBlockPos(World world, BlockPos blockPos) {
+    public static Component dimensionBlockPos(Level world, BlockPos blockPos) {
         return TextBuilder.translate("carpet.command.block_pos.dimension", dimension(world), simpleBlockPos(blockPos));
     }
 
@@ -107,7 +107,7 @@ public class TextProvider {
      * 单击输入命令
      */
     @SuppressWarnings("unused")
-    public static Text clickInput(String command) {
+    public static Component clickInput(String command) {
         return TextBuilder.translate("carpet.command.text.click.input", command);
     }
 
@@ -116,11 +116,11 @@ public class TextProvider {
      *
      * @param command 要执行的命令
      */
-    public static Text clickRun(String command) {
+    public static Component clickRun(String command) {
         TextBuilder builder = new TextBuilder(CLICK_HERE);
         builder.setCommand(command);
         builder.setHover("carpet.command.text.click.run", command);
-        builder.setColor(Formatting.AQUA);
+        builder.setColor(ChatFormatting.AQUA);
         return builder.build();
     }
 
@@ -129,7 +129,7 @@ public class TextProvider {
      *
      * @return {@code 物品组数}组{@code 物品个数}个
      */
-    public static Text itemCount(int count, int maxCount) {
+    public static Component itemCount(int count, int maxCount) {
         // 计算物品有多少组
         int group = count / maxCount;
         // 计算物品余几个
@@ -150,15 +150,15 @@ public class TextProvider {
      * @param base 原始的文本对象
      * @return 获取物品栏中物品的名称和堆叠数量并用“*”连接，每个物品独占一行
      */
-    public static Text inventory(Text base, Inventory inventory) {
+    public static Component inventory(Component base, Container inventory) {
         TextBuilder builder = new TextBuilder(base);
-        ArrayList<Text> list = new ArrayList<>();
-        for (int i = 0; i < inventory.size(); i++) {
-            ItemStack itemStack = inventory.getStack(i);
+        ArrayList<Component> list = new ArrayList<>();
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack itemStack = inventory.getItem(i);
             if (itemStack.isEmpty()) {
                 continue;
             }
-            list.add(TextBuilder.combineAll(itemStack.getName(), "*", String.valueOf(itemStack.getCount())));
+            list.add(TextBuilder.combineAll(itemStack.getHoverName(), "*", String.valueOf(itemStack.getCount())));
         }
         return builder.setHover(TextBuilder.joinList(list)).build();
     }
@@ -168,7 +168,7 @@ public class TextProvider {
      *
      * @param tick 游戏刻时间
      */
-    public static Text tickToTime(long tick) {
+    public static Component tickToTime(long tick) {
         // 游戏刻
         if (tick < 20L) {
             return TextBuilder.translate("carpet.command.time.tick", tick);
@@ -199,7 +199,7 @@ public class TextProvider {
      * @param offset 时间偏移的游戏刻数
      * @return 指定游戏刻之后的时间
      */
-    public static Text tickToRealTime(long offset) {
+    public static Component tickToRealTime(long offset) {
         LocalDateTime time = LocalDateTime.now().plusSeconds(offset / 20);
         return TextBuilder.translate("carpet.command.time.format",
                 time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),
@@ -212,7 +212,7 @@ public class TextProvider {
      * @param world 要获取维度名称的世界对象
      * @return 如果是原版的3个维度，返回本Mod翻译后的名称，否则自己返回维度ID
      */
-    public static Text dimension(World world) {
+    public static Component dimension(Level world) {
         String dimension = WorldUtils.getDimensionId(world);
         return switch (dimension) {
             case WorldUtils.OVERWORLD -> OVERWORLD;
@@ -222,7 +222,7 @@ public class TextProvider {
         };
     }
 
-    public static Text dimension(String dimension) {
+    public static Component dimension(String dimension) {
         return switch (dimension) {
             case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> OVERWORLD;
             case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER -> THE_NETHER;

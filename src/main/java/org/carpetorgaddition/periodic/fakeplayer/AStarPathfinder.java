@@ -1,12 +1,12 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.ai.pathing.NavigationType;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 public class AStarPathfinder implements FakePlayerPathfinder {
     private final Supplier<EntityPlayerMPFake> supplier;
     private final Supplier<Optional<BlockPos>> target;
-    private final List<Vec3d> nodes = new ArrayList<>();
+    private final List<Vec3> nodes = new ArrayList<>();
 
     public AStarPathfinder(Supplier<EntityPlayerMPFake> supplier, Supplier<Optional<BlockPos>> target) {
         this.supplier = supplier;
@@ -42,7 +42,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         if (optional.isEmpty()) {
             return;
         }
-        BlockPos startPos = fakePlayer.getBlockPos();
+        BlockPos startPos = fakePlayer.blockPosition();
         BlockPos targetPos = optional.get();
         TreeSet<SearchNode> opens = new TreeSet<>();
         HashSet<BlockPos> clones = new HashSet<>();
@@ -70,12 +70,12 @@ public class AStarPathfinder implements FakePlayerPathfinder {
             opens.remove(first);
             openCaches.remove(first.blockPos);
             clones.add(first.blockPos);
-            World world = FetcherUtils.getWorld(this.getFakePlayer());
+            Level world = FetcherUtils.getWorld(this.getFakePlayer());
             this.addSearchNode(world, first, target, opens, openCaches, clones);
         }
     }
 
-    private void addSearchNode(World world, SearchNode current, BlockPos target, TreeSet<SearchNode> opens, HashMap<BlockPos, SearchNode> openCaches, HashSet<BlockPos> clones) {
+    private void addSearchNode(Level world, SearchNode current, BlockPos target, TreeSet<SearchNode> opens, HashMap<BlockPos, SearchNode> openCaches, HashSet<BlockPos> clones) {
         BlockPos center = current.blockPos;
         for (BlockPos blockPos : around(center)) {
             if (clones.contains(blockPos)) {
@@ -99,11 +99,11 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         }
     }
 
-    private boolean isValidBlockPos(World world, BlockPos blockPos) {
-        if (world.getBlockState(blockPos.down()).isSideSolidFullSquare(world, blockPos, Direction.UP)) {
+    private boolean isValidBlockPos(Level world, BlockPos blockPos) {
+        if (world.getBlockState(blockPos.below()).isFaceSturdy(world, blockPos, Direction.UP)) {
             for (int i : List.of(0, 1)) {
-                BlockState up = world.getBlockState(blockPos.up(i));
-                if (up.canPathfindThrough(NavigationType.LAND)) {
+                BlockState up = world.getBlockState(blockPos.above(i));
+                if (up.isPathfindable(PathComputationType.LAND)) {
                     continue;
                 }
                 return false;
@@ -120,14 +120,14 @@ public class AStarPathfinder implements FakePlayerPathfinder {
     private List<BlockPos> around(BlockPos blockPos) {
         ArrayList<BlockPos> list = new ArrayList<>();
         for (int i : List.of(-1, 0, 1)) {
-            list.add(blockPos.add(1, i, -1));
-            list.add(blockPos.add(1, i, 0));
-            list.add(blockPos.add(1, i, 1));
-            list.add(blockPos.add(0, i, 1));
-            list.add(blockPos.add(-1, i, 1));
-            list.add(blockPos.add(-1, i, 0));
-            list.add(blockPos.add(-1, i, -1));
-            list.add(blockPos.add(0, i, -1));
+            list.add(blockPos.offset(1, i, -1));
+            list.add(blockPos.offset(1, i, 0));
+            list.add(blockPos.offset(1, i, 1));
+            list.add(blockPos.offset(0, i, 1));
+            list.add(blockPos.offset(-1, i, 1));
+            list.add(blockPos.offset(-1, i, 0));
+            list.add(blockPos.offset(-1, i, -1));
+            list.add(blockPos.offset(0, i, -1));
         }
         return list;
     }
@@ -159,12 +159,12 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         SearchNode node;
         while ((node = end.parent) != null) {
             end = node;
-            this.nodes.add(node.blockPos.toBottomCenterPos());
+            this.nodes.add(node.blockPos.getBottomCenter());
         }
     }
 
     @Override
-    public Vec3d getCurrentNode() {
+    public Vec3 getCurrentNode() {
         return this.nodes.getFirst();
     }
 
@@ -184,7 +184,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public List<Vec3d> getRenderNodes() {
+    public List<Vec3> getRenderNodes() {
         return this.nodes;
     }
 

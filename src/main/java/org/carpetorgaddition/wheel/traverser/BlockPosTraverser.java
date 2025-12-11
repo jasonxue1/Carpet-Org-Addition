@@ -1,8 +1,8 @@
 package org.carpetorgaddition.wheel.traverser;
 
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.carpetorgaddition.util.WorldUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,7 +18,7 @@ public class BlockPosTraverser extends WorldTraverser<BlockPos> {
         super(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    public BlockPosTraverser(World world, BlockPos sourcePos, int range) {
+    public BlockPosTraverser(Level world, BlockPos sourcePos, int range) {
         super(world, sourcePos, range);
     }
 
@@ -26,11 +26,11 @@ public class BlockPosTraverser extends WorldTraverser<BlockPos> {
         super(from, to);
     }
 
-    public BlockPosTraverser(Box box) {
+    public BlockPosTraverser(AABB box) {
         super(box);
     }
 
-    public BlockPosTraverser clamp(World world) {
+    public BlockPosTraverser clamp(Level world) {
         int minY = Math.max(this.minY, WorldUtils.getMinArchitectureAltitude(world));
         int maxY = Math.min(this.maxY, WorldUtils.getMaxArchitectureAltitude(world));
         return new BlockPosTraverser(this.minX, minY, this.minZ, this.maxX, maxY, this.maxZ);

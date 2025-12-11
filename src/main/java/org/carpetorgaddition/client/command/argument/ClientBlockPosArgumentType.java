@@ -7,11 +7,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.CoordinateArgument;
-import net.minecraft.command.argument.Vec3ArgumentType;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.commands.arguments.coordinates.WorldCoordinate;
+import net.minecraft.core.BlockPos;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,11 +44,11 @@ public class ClientBlockPosArgumentType implements ArgumentType<BlockPos> {
                 return new BlockPos(x, y, z);
             } else {
                 reader.setCursor(i);
-                throw Vec3ArgumentType.INCOMPLETE_EXCEPTION.createWithContext(reader);
+                throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(reader);
             }
         } else {
             reader.setCursor(i);
-            throw Vec3ArgumentType.INCOMPLETE_EXCEPTION.createWithContext(reader);
+            throw Vec3Argument.ERROR_NOT_COMPLETE.createWithContext(reader);
         }
     }
 
@@ -56,16 +56,16 @@ public class ClientBlockPosArgumentType implements ArgumentType<BlockPos> {
         if (reader.canRead() && reader.peek() != ' ') {
             return (int) Math.round(reader.readDouble());
         }
-        throw CoordinateArgument.MISSING_BLOCK_POSITION.create();
+        throw WorldCoordinate.ERROR_EXPECTED_INT.create();
     }
 
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        if (context.getSource() instanceof CommandSource) {
+        if (context.getSource() instanceof SharedSuggestionProvider) {
             String string = builder.getRemaining();
-            Collection<CommandSource.RelativePosition> collection;
-            collection = ((CommandSource) context.getSource()).getBlockPositionSuggestions();
-            return CommandSource.suggestPositions(string, collection, builder, CommandManager.getCommandValidator(this::parse));
+            Collection<SharedSuggestionProvider.TextCoordinates> collection;
+            collection = ((SharedSuggestionProvider) context.getSource()).getRelevantCoordinates();
+            return SharedSuggestionProvider.suggestCoordinates(string, collection, builder, Commands.createValidator(this::parse));
         } else {
             return Suggestions.empty();
         }

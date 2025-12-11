@@ -1,18 +1,18 @@
 package org.carpetorgaddition.mixin.accessor;
 
-import net.minecraft.screen.HorseScreenHandler;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.inventory.HorseInventoryMenu;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(HorseScreenHandler.class)
+@Mixin(HorseInventoryMenu.class)
 public interface HorseScreenHandlerAccessor {
-    @Accessor("EMPTY_SADDLE_SLOT_TEXTURE")
+    @Accessor("SADDLE_SLOT_SPRITE")
     static Identifier getEmptySaddleSlotTexture() {
         throw new AssertionError();
     }
 
-    @Accessor("EMPTY_HORSE_ARMOR_SLOT_TEXTURE")
+    @Accessor("ARMOR_SLOT_SPRITE")
     static Identifier getEmptyHorseArmorSlotTexture() {
         throw new AssertionError();
     }

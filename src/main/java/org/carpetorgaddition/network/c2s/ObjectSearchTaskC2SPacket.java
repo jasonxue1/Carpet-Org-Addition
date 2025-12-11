@@ -1,47 +1,51 @@
 package org.carpetorgaddition.network.c2s;
 
 import com.google.gson.JsonObject;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.carpetorgaddition.network.PacketUtils;
 import org.carpetorgaddition.util.IOUtils;
+import org.jspecify.annotations.NonNull;
 
-public record ObjectSearchTaskC2SPacket(Type type, JsonObject json) implements CustomPayload {
+public record ObjectSearchTaskC2SPacket(org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type key,
+                                        JsonObject json) implements CustomPacketPayload {
     public static final int CURRENT_VERSION = 1;
-    public static final Id<ObjectSearchTaskC2SPacket> ID = PacketUtils.createId("object_search_task");
-    public static final PacketCodec<RegistryByteBuf, ObjectSearchTaskC2SPacket> CODEC = new PacketCodec<>() {
+    public static final CustomPacketPayload.Type<ObjectSearchTaskC2SPacket> ID = PacketUtils.createId("object_search_task");
+    public static final StreamCodec<RegistryFriendlyByteBuf, ObjectSearchTaskC2SPacket> CODEC = new StreamCodec<>() {
         @Override
-        public void encode(RegistryByteBuf buf, ObjectSearchTaskC2SPacket value) {
+        public void encode(RegistryFriendlyByteBuf buf, ObjectSearchTaskC2SPacket value) {
             // 数据包版本
             buf.writeInt(CURRENT_VERSION);
             // 搜索类型
-            buf.writeString(value.type.toString());
-            buf.writeString(IOUtils.jsonAsString(value.json));
+            buf.writeUtf(value.key.toString());
+            buf.writeUtf(IOUtils.jsonAsString(value.json));
         }
 
         @Override
-        public ObjectSearchTaskC2SPacket decode(RegistryByteBuf buf) {
+        public ObjectSearchTaskC2SPacket decode(RegistryFriendlyByteBuf buf) {
             int version = buf.readInt();
             if (version > CURRENT_VERSION) {
-                return new ObjectSearchTaskC2SPacket(Type.INVALID, null);
+                return new ObjectSearchTaskC2SPacket(org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.INVALID, null);
             }
-            Type type = switch (buf.readString()) {
-                case "item" -> Type.ITEM;
-                case "offline_player_item" -> Type.OFFLINE_PLAYER_ITEM;
-                case "block" -> Type.BLOCK;
-                case "trade_item" -> Type.TRADE_ITEM;
-                case "trade_enchanted_book" -> Type.TRADE_ENCHANTED_BOOK;
-                default -> Type.INVALID;
+            org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type type = switch (buf.readUtf()) {
+                case "item" -> org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.ITEM;
+                case "offline_player_item" ->
+                        org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.OFFLINE_PLAYER_ITEM;
+                case "block" -> org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.BLOCK;
+                case "trade_item" -> org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.TRADE_ITEM;
+                case "trade_enchanted_book" ->
+                        org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.TRADE_ENCHANTED_BOOK;
+                default -> org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket.Type.INVALID;
             };
-            String jsonString = buf.readString();
+            String jsonString = buf.readUtf();
             JsonObject json = IOUtils.stringAsJson(jsonString);
             return new ObjectSearchTaskC2SPacket(type, json);
         }
     };
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public CustomPacketPayload.@NonNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 

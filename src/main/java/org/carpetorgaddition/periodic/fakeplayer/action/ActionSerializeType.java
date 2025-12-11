@@ -3,8 +3,8 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.item.Item;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.util.JsonUtils;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
@@ -25,13 +25,13 @@ public enum ActionSerializeType {
         String item = json.get(ItemCategorizeAction.ITEM).getAsString();
         ItemStackPredicate predicate = ItemStackPredicate.parse(item);
         JsonArray thisVecArray = json.get(ItemCategorizeAction.THIS_VEC).getAsJsonArray();
-        Vec3d thisVec = new Vec3d(
+        Vec3 thisVec = new Vec3(
                 thisVecArray.get(0).getAsDouble(),
                 thisVecArray.get(1).getAsDouble(),
                 thisVecArray.get(2).getAsDouble()
         );
         JsonArray otherVecArray = json.get(ItemCategorizeAction.OTHER_VEC).getAsJsonArray();
-        Vec3d otherVec = new Vec3d(
+        Vec3 otherVec = new Vec3(
                 otherVecArray.get(0).getAsDouble(),
                 otherVecArray.get(1).getAsDouble(),
                 otherVecArray.get(2).getAsDouble()

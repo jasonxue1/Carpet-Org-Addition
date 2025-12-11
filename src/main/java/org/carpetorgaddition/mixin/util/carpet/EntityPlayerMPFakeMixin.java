@@ -6,12 +6,12 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
-import net.minecraft.network.ClientConnection;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
+import net.minecraft.network.Connection;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.Relative;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
@@ -67,8 +67,8 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @Inject(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/entity/player/PlayerAbilities;"))
-    private static void spawn(CallbackInfo ci, @Local EntityPlayerMPFake fakePlayer) {
+    @Inject(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
+    private static void spawn(CallbackInfo ci, @Local(name = "instance") EntityPlayerMPFake fakePlayer) {
         Consumer<EntityPlayerMPFake> consumer = GenericUtils.INTERNAL_FAKE_PLAYER_SPAWNING.get();
         if (consumer == null) {
             return;
@@ -76,8 +76,8 @@ public class EntityPlayerMPFakeMixin {
         consumer.accept(fakePlayer);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/PlayerManager;onPlayerConnect(Lnet/minecraft/network/ClientConnection;Lnet/minecraft/server/network/ServerPlayerEntity;Lnet/minecraft/server/network/ConnectedClientData;)V"))
-    private static void onPlayerConnect(PlayerManager instance, ClientConnection connection, ServerPlayerEntity player, ConnectedClientData clientData, Operation<Void> original, @Local EntityPlayerMPFake fakePlayer) {
+    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V"))
+    private static void onPlayerConnect(PlayerList instance, Connection connection, ServerPlayer player, CommonListenerCookie clientData, Operation<Void> original) {
         boolean internal = CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal();
         try {
             original.call(instance, connection, player, clientData);
@@ -105,8 +105,8 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleport(Lnet/minecraft/server/world/ServerWorld;DDDLjava/util/Set;FFZ)Z"))
-    private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerWorld serverWorld, double x, double y, double z, Set<PositionFlag> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
+    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
+    private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerLevel serverWorld, double x, double y, double z, Set<Relative> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
         if (ReLoginTask.INTERNAL_HOME_POSITION.get()) {
             return false;
         }

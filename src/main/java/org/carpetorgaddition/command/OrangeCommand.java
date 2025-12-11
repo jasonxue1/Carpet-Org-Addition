@@ -11,16 +11,16 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.UuidArgumentType;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.UuidArgument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -70,7 +70,7 @@ public class OrangeCommand extends AbstractServerCommand {
             new ThreadPoolExecutor.AbortPolicy()
     );
 
-    public OrangeCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public OrangeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
@@ -87,53 +87,53 @@ public class OrangeCommand extends AbstractServerCommand {
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
-                .then(CommandManager.literal("permission")
-                        .requires(CommandManager.requirePermissionLevel(CommandManager.OWNERS_CHECK))
-                        .then(CommandManager.argument("node", StringArgumentType.string())
+        this.dispatcher.register(Commands.literal(name)
+                .then(Commands.literal("permission")
+                        .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
+                        .then(Commands.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
-                                .then(CommandManager.argument("level", StringArgumentType.string())
-                                        .suggests((context, builder) -> CommandSource.suggestMatching(PermissionLevel.listPermission(), builder))
+                                .then(Commands.argument("level", StringArgumentType.string())
+                                        .suggests((context, builder) -> SharedSuggestionProvider.suggest(PermissionLevel.listPermission(), builder))
                                         .executes(this::setLevel))))
-                .then(CommandManager.literal("version")
+                .then(Commands.literal("version")
                         .executes(this::version))
-                .then(CommandManager.literal("ruleself")
-                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
-                                .then(CommandManager.argument("rule", StringArgumentType.string())
+                .then(Commands.literal("ruleself")
+                        .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
+                                .then(Commands.argument("rule", StringArgumentType.string())
                                         .suggests(suggestRule())
                                         .executes(this::infoRuleSelf)
-                                        .then(CommandManager.argument("value", BoolArgumentType.bool())
+                                        .then(Commands.argument("value", BoolArgumentType.bool())
                                                 .executes(this::setRuleSelf)))))
-                .then(CommandManager.literal("textclickevent")
-                        .then(CommandManager.literal("queryPlayerName")
-                                .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
+                .then(Commands.literal("textclickevent")
+                        .then(Commands.literal("queryPlayerName")
+                                .then(Commands.argument("uuid", UuidArgument.uuid())
                                         .executes(this::queryPlayerName)))
-                        .then(CommandManager.literal("pageturning")
-                                .then(CommandManager.argument("id", IntegerArgumentType.integer(0))
-                                        .then(CommandManager.argument("page", IntegerArgumentType.integer(1))
+                        .then(Commands.literal("pageturning")
+                                .then(Commands.argument("id", IntegerArgumentType.integer(0))
+                                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
                                                 .executes(this::pageTurning))))
-                        .then(CommandManager.literal("openInventory")
+                        .then(Commands.literal("openInventory")
                                 .requires(OpenPlayerInventory::isEnable)
-                                .then(CommandManager.argument("uuid", UuidArgumentType.uuid())
-                                        .then(CommandManager.literal("inventory")
+                                .then(Commands.argument("uuid", UuidArgument.uuid())
+                                        .then(Commands.literal("inventory")
                                                 .executes(context -> openPlayerInventory(context, true)))
-                                        .then(CommandManager.literal("enderChest")
+                                        .then(Commands.literal("enderChest")
                                                 .executes(context -> openPlayerInventory(context, false)))))));
     }
 
-    private @NotNull SuggestionProvider<ServerCommandSource> suggestRule() {
-        return (context, builder) -> CommandSource.suggestMatching(RuleSelfManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
+    private @NotNull SuggestionProvider<CommandSourceStack> suggestRule() {
+        return (context, builder) -> SharedSuggestionProvider.suggest(RuleSelfManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
     }
 
-    private SuggestionProvider<ServerCommandSource> suggestsNode() {
-        return (context, builder) -> CommandSource.suggestMatching(
+    private SuggestionProvider<CommandSourceStack> suggestsNode() {
+        return (context, builder) -> SharedSuggestionProvider.suggest(
                 PermissionManager.listNode().stream().map(StringArgumentType::escapeIfRequired),
                 builder
         );
     }
 
     // 设置子命令权限
-    private int setLevel(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setLevel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandPermission permission = PermissionManager.getPermission(StringArgumentType.getString(context, "node"));
         if (permission == null) {
             throw CommandUtils.createException("carpet.commands.orange.permission.node.not_found");
@@ -159,16 +159,16 @@ public class OrangeCommand extends AbstractServerCommand {
     /**
      * 显示模组版本
      */
-    private int version(CommandContext<ServerCommandSource> context) {
+    private int version(CommandContext<CommandSourceStack> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        Text version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
+        Component version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
         return 1;
     }
 
-    private int queryPlayerName(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int queryPlayerName(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         try {
-            UUID uuid = UuidArgumentType.getUuid(context, "uuid");
+            UUID uuid = UuidArgument.getUuid(context, "uuid");
             GameProfileCache cache = GameProfileCache.getInstance();
             Optional<String> optional = cache.get(uuid);
             if (optional.isPresent()) {
@@ -191,12 +191,12 @@ public class OrangeCommand extends AbstractServerCommand {
     /**
      * 在独立线程查询玩家名称
      */
-    private void queryPlayerName(CommandContext<ServerCommandSource> context, UUID uuid) {
+    private void queryPlayerName(CommandContext<CommandSourceStack> context, UUID uuid) {
         String name;
         try {
             name = queryPlayerNameFromMojangApi(uuid);
         } catch (CommandSyntaxException e) {
-            context.getSource().handleException(e, false, null);
+            context.getSource().handleError(e, false, null);
             return;
         }
         GameProfileCache cache = GameProfileCache.getInstance();
@@ -206,9 +206,9 @@ public class OrangeCommand extends AbstractServerCommand {
         server.execute(() -> sendFeekback(context, uuid.toString(), name));
     }
 
-    private void sendFeekback(CommandContext<ServerCommandSource> context, String playerUuid, String playerName) {
-        Text uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(Formatting.GRAY).build();
-        Text name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(Formatting.GRAY).build();
+    private void sendFeekback(CommandContext<CommandSourceStack> context, String playerUuid, String playerName) {
+        Component uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(ChatFormatting.GRAY).build();
+        Component name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(ChatFormatting.GRAY).build();
         MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
     }
 
@@ -257,8 +257,8 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     // 设置一条规则是否对自己生效
-    private int setRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+    private int setRuleSelf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
@@ -270,8 +270,8 @@ public class OrangeCommand extends AbstractServerCommand {
             CustomRuleControl<?> control = entry.getControl();
             boolean value = BoolArgumentType.getBool(context, "value");
             ruleSelfManager.setEnabled(player, ruleString, value);
-            Text ruleName = RuleUtils.simpleTranslationName(entry.getRule());
-            Text playerName = (player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName());
+            Component ruleName = RuleUtils.simpleTranslationName(entry.getRule());
+            Component playerName = (player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName());
             TextBuilder builder;
             if (value) {
                 builder = TextBuilder.of("carpet.commands.orange.ruleself.enable", ruleName, playerName);
@@ -288,8 +288,8 @@ public class OrangeCommand extends AbstractServerCommand {
         throw CommandUtils.createSelfOrFakePlayerException();
     }
 
-    private int infoRuleSelf(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getArgumentPlayer(context);
+    private int infoRuleSelf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
             String ruleString = StringArgumentType.getString(context, "rule");
@@ -302,7 +302,7 @@ public class OrangeCommand extends AbstractServerCommand {
             MessageUtils.sendEmptyMessage(context);
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.player", player.getDisplayName());
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
-            Text displayName = RuleUtils.simpleTranslationName(entry.getRule());
+            Component displayName = RuleUtils.simpleTranslationName(entry.getRule());
             MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
             TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
             if (control.isServerDecision()) {
@@ -315,7 +315,7 @@ public class OrangeCommand extends AbstractServerCommand {
         throw CommandUtils.createSelfOrFakePlayerException();
     }
 
-    private int pageTurning(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int pageTurning(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int id = IntegerArgumentType.getInteger(context, "id");
         int page = IntegerArgumentType.getInteger(context, "page");
         MinecraftServer server = context.getSource().getServer();
@@ -330,11 +330,11 @@ public class OrangeCommand extends AbstractServerCommand {
         }
     }
 
-    private int openPlayerInventory(CommandContext<ServerCommandSource> context, boolean isInventory) throws CommandSyntaxException {
-        UUID uuid = UuidArgumentType.getUuid(context, "uuid");
-        ServerCommandSource source = context.getSource();
+    private int openPlayerInventory(CommandContext<CommandSourceStack> context, boolean isInventory) throws CommandSyntaxException {
+        UUID uuid = UuidArgument.getUuid(context, "uuid");
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
-        ServerPlayerEntity player = server.getPlayerManager().getPlayer(uuid);
+        ServerPlayer player = server.getPlayerList().getPlayer(uuid);
         if (player != null) {
             throw CommandUtils.createException("carpet.commands.orange.textclickevent.openInventory.fail");
         }
@@ -344,7 +344,7 @@ public class OrangeCommand extends AbstractServerCommand {
                 throw PlayerCommandExtension.createNoFileFoundException();
             }
             GameProfile gameProfile = optional.get();
-            ServerPlayerEntity sourcePlayer = CommandUtils.getSourcePlayer(context);
+            ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
             if (isInventory) {
                 PlayerCommandExtension.openOfflinePlayerInventory(sourcePlayer, gameProfile);
             } else {

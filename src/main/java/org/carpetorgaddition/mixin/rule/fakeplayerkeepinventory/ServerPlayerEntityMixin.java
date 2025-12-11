@@ -3,25 +3,25 @@ package org.carpetorgaddition.mixin.rule.fakeplayerkeepinventory;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.rule.GameRule;
-import net.minecraft.world.rule.GameRuleType;
-import net.minecraft.world.rule.GameRules;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleType;
+import net.minecraft.world.level.gamerules.GameRules;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.RuleUtils;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public class ServerPlayerEntityMixin {
     @Unique
-    private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
+    private final ServerPlayer thisPlayer = (ServerPlayer) (Object) this;
 
     @SuppressWarnings("unchecked")
-    @WrapOperation(method = "copyFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/rule/GameRules;getValue(Lnet/minecraft/world/rule/GameRule;)Ljava/lang/Object;"))
+    @WrapOperation(method = "restoreFrom", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/gamerules/GameRules;get(Lnet/minecraft/world/level/gamerules/GameRule;)Ljava/lang/Object;"))
     private <T> T keepItem(GameRules instance, GameRule<T> rule, Operation<T> original) {
-        if (this.shouldKeepInventory() && rule.getType() == GameRuleType.BOOL) {
+        if (this.shouldKeepInventory() && rule.gameRuleType() == GameRuleType.BOOL) {
             return (T) Boolean.TRUE;
         }
         return original.call(instance, rule);

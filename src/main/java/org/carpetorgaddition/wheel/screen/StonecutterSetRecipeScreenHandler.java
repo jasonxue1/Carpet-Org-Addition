@@ -1,23 +1,24 @@
 package org.carpetorgaddition.wheel.screen;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandlerContext;
-import net.minecraft.screen.StonecutterScreenHandler;
-import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.StonecutterMenu;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import org.carpetorgaddition.periodic.fakeplayer.action.StonecuttingAction;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.jspecify.annotations.NonNull;
 
-public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler implements UnavailableSlotSyncInterface {
+public class StonecutterSetRecipeScreenHandler extends StonecutterMenu implements UnavailableSlotSyncInterface {
     private final EntityPlayerMPFake fakePlayer;
 
     public StonecutterSetRecipeScreenHandler(
             int syncId,
-            PlayerInventory playerInventory,
-            ScreenHandlerContext screenHandlerContext,
+            Inventory playerInventory,
+            ContainerLevelAccess screenHandlerContext,
             EntityPlayerMPFake fakePlayer
     ) {
         super(syncId, playerInventory, screenHandlerContext);
@@ -25,33 +26,33 @@ public class StonecutterSetRecipeScreenHandler extends StonecutterScreenHandler 
     }
 
     @Override
-    public void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player) {
+    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
         // 不能单击输出槽位
         if (slotIndex == 1) {
             return;
         }
-        super.onSlotClick(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, actionType, player);
     }
 
     @Override
-    public void onClosed(PlayerEntity player) {
-        ItemStack itemStack = this.input.getStack(0);
+    public void removed(@NonNull Player player) {
+        ItemStack itemStack = this.container.getItem(0);
         if (itemStack.isEmpty()) {
             return;
         }
         // 获取按钮索引
-        int button = this.getSelectedRecipe();
+        int button = this.getSelectedRecipeIndex();
         if (button != -1) {
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(this.fakePlayer);
             // 设置玩家动作
             actionManager.setAction(new StonecuttingAction(this.fakePlayer, itemStack.getItem(), button));
         }
         // 调用父类方法返还物品
-        super.onClosed(player);
+        super.removed(player);
     }
 
     @Override
-    public boolean canUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         return true;
     }
 

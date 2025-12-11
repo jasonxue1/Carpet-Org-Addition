@@ -7,8 +7,8 @@ import carpet.api.settings.SettingsManager;
 import com.google.gson.JsonObject;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
 import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.carpetorgaddition.dataupdate.CarpetConfDataUpdater;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -51,7 +51,7 @@ public abstract class SettingsManagerMixin {
     private final SettingsManager thisManager = (SettingsManager) (Object) this;
 
     @Inject(method = "setDefault", at = @At(value = "HEAD"), cancellable = true)
-    private void setDefault(ServerCommandSource source, CarpetRule<?> rule, String stringValue, CallbackInfoReturnable<Integer> cir) {
+    private void setDefault(CommandSourceStack source, CarpetRule<?> rule, String stringValue, CallbackInfoReturnable<Integer> cir) {
         if (rule instanceof OrgRule<?> && thisManager == CarpetOrgAdditionExtension.getSettingManager()) {
             if (locked() || !this.rules.containsKey(rule.name())) {
                 cir.setReturnValue(0);
@@ -76,7 +76,7 @@ public abstract class SettingsManagerMixin {
     }
 
     @Inject(method = "removeDefault", at = @At("HEAD"), cancellable = true)
-    private void removeDefault(ServerCommandSource source, CarpetRule<?> rule, CallbackInfoReturnable<Integer> cir) {
+    private void removeDefault(CommandSourceStack source, CarpetRule<?> rule, CallbackInfoReturnable<Integer> cir) {
         if (rule instanceof OrgRule<?> && thisManager == CarpetOrgAdditionExtension.getSettingManager()) {
             if (locked() || !this.rules.containsKey(rule.name())) {
                 cir.setReturnValue(0);

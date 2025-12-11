@@ -2,11 +2,11 @@ package org.carpetorgaddition.network.handler;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.network.c2s.ObjectSearchTaskC2SPacket;
 import org.carpetorgaddition.network.codec.ObjectSearchTaskCodecs;
@@ -19,29 +19,29 @@ import org.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import org.carpetorgaddition.periodic.task.search.TradeItemSearchTask;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.FetcherUtils;
-import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
-import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import org.carpetorgaddition.wheel.permission.CommandPermission;
 import org.carpetorgaddition.wheel.permission.PermissionManager;
 import org.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
+import org.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
+import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 
 public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayPayloadHandler<ObjectSearchTaskC2SPacket> {
     @Override
     public void receive(ObjectSearchTaskC2SPacket packet, ServerPlayNetworking.Context context) {
-        ServerPlayerEntity player = context.player();
+        ServerPlayer player = context.player();
         MinecraftServer server = FetcherUtils.getServer(player);
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        ServerWorld world = FetcherUtils.getWorld(player);
-        ServerCommandSource source = player.getCommandSource();
-        BlockPos blockPos = player.getBlockPos();
+        ServerLevel world = FetcherUtils.getWorld(player);
+        CommandSourceStack source = player.createCommandSourceStack();
+        BlockPos blockPos = player.blockPosition();
         try {
-            checkPermission(packet.type(), source);
+            checkPermission(packet.key(), source);
         } catch (CommandSyntaxException e) {
             CommandUtils.handlingException(e, source);
             return;
         }
-        ServerTask serverTask = switch (packet.type()) {
+        ServerTask serverTask = switch (packet.key()) {
             case ITEM -> {
                 ObjectSearchTaskCodecs.ItemSearchContext decode = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.decode(packet.json());
                 ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
@@ -73,7 +73,7 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
         CommandUtils.handlingException(() -> taskManager.addTask(serverTask), source);
     }
 
-    private void checkPermission(ObjectSearchTaskC2SPacket.Type type, ServerCommandSource source) throws CommandSyntaxException {
+    private void checkPermission(ObjectSearchTaskC2SPacket.Type type, CommandSourceStack source) throws CommandSyntaxException {
         CommandPermission permission = switch (type) {
             case ITEM -> PermissionManager.getPermission(FinderCommand.FINDER_ITEM);
             case OFFLINE_PLAYER_ITEM -> PermissionManager.getPermission(FinderCommand.FINDER_ITEM_FROM_OFFLINE_PLAYER);

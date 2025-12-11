@@ -1,7 +1,7 @@
 package org.carpetorgaddition.mixin.rule;
 
-import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,15 +10,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(MerchantEntity.class)
+@Mixin(AbstractVillager.class)
 public abstract class MerchantEntityMixin {
     @Shadow
-    public abstract @Nullable PlayerEntity getCustomer();
+    public abstract @Nullable Player getTradingPlayer();
 
-    @Inject(method = "canInteract", at = @At("HEAD"), cancellable = true)
-    private void canInteract(PlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)
+    private void canInteract(Player player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.villagerVoidTrading.get()) {
-            cir.setReturnValue(this.getCustomer() == player);
+            cir.setReturnValue(this.getTradingPlayer() == player);
         }
     }
 }

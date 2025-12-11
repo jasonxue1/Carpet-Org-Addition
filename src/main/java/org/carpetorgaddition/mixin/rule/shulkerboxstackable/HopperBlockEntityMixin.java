@@ -6,20 +6,20 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalBooleanRef;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.HopperBlock;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.block.entity.Hopper;
-import net.minecraft.block.entity.HopperBlockEntity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.util.DyeColor;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.HopperBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.entity.Hopper;
+import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.RuleUtils;
@@ -38,8 +38,8 @@ import java.util.function.BooleanSupplier;
 /**
  * 以下代码来自<a href="https://github.com/TISUnion/Carpet-TIS-Addition">{@code Carpet TIS Addition}</a>模组：
  * <ul>
- * <li>漏斗计数器无限速度实现：{@link HopperBlockEntityMixin#hopperCountersUnlimitedSpeed(World, BlockPos, HopperBlockEntity, BooleanSupplier)}</li>
- * <li>漏斗不消耗物品实现：{@link HopperBlockEntityMixin#hopperNoItemCost(World, BlockPos, HopperBlockEntity, int, ItemStack, int)}</li>
+ * <li>漏斗计数器无限速度实现：{@link HopperBlockEntityMixin#hopperCountersUnlimitedSpeed(Level, BlockPos, HopperBlockEntity, BooleanSupplier)}</li>
+ * <li>漏斗不消耗物品实现：{@link HopperBlockEntityMixin#hopperNoItemCost(Level, BlockPos, HopperBlockEntity, int, ItemStack, int)}</li>
  * </ul>
  * <br>
  * <p>
@@ -223,72 +223,72 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
     }
 
     @Shadow
-    private static boolean isInventoryFull(Inventory inventory, Direction direction) {
+    private static boolean isFullContainer(Container inventory, Direction direction) {
         return false;
     }
 
     @Shadow
     @Nullable
-    private static Inventory getOutputInventory(World world, BlockPos pos, HopperBlockEntity blockEntity) {
+    private static Container getAttachedContainer(Level world, BlockPos pos, HopperBlockEntity blockEntity) {
         return null;
     }
 
     @Shadow
-    public static ItemStack transfer(@Nullable Inventory from, Inventory to, ItemStack stack, @Nullable Direction side) {
+    public static ItemStack addItem(@Nullable Container from, Container to, ItemStack stack, @Nullable Direction side) {
         throw new AssertionError();
     }
 
     @Shadow
     @Nullable
-    private static Inventory getInputInventory(World world, Hopper hopper, BlockPos pos, BlockState state) {
+    private static Container getSourceContainer(Level world, Hopper hopper, BlockPos pos, BlockState state) {
         return null;
     }
 
     @Shadow
-    private static int[] getAvailableSlots(Inventory inventory, Direction side) {
+    private static int[] getSlots(Container inventory, Direction side) {
         return new int[]{};
     }
 
     @Shadow
-    private static boolean extract(Hopper hopper, Inventory inventory, int slot, Direction side) {
+    private static boolean tryTakeInItemFromSlot(Hopper hopper, Container inventory, int slot, Direction side) {
         return false;
     }
 
     @Shadow
-    public static List<ItemEntity> getInputItemEntities(World world, Hopper hopper) {
+    public static List<ItemEntity> getItemsAtAndAbove(Level world, Hopper hopper) {
         return List.of();
     }
 
     @Shadow
-    public static boolean extract(Inventory inventory, ItemEntity itemEntity) {
+    public static boolean addItem(Container inventory, ItemEntity itemEntity) {
         return false;
     }
 
     @Shadow
-    private static boolean insert(World world, BlockPos pos, HopperBlockEntity blockEntity) {
+    private static boolean ejectItems(Level world, BlockPos pos, HopperBlockEntity blockEntity) {
         return false;
     }
 
     @Shadow
-    protected abstract boolean needsCooldown();
+    protected abstract boolean isOnCooldown();
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     @Shadow
-    protected abstract boolean isFull();
+    protected abstract boolean inventoryFull();
 
     @Shadow
-    protected abstract void setTransferCooldown(int transferCooldown);
+    protected abstract void setCooldown(int transferCooldown);
 
-    @WrapOperation(method = "serverTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;insertAndExtract(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/block/entity/HopperBlockEntity;Ljava/util/function/BooleanSupplier;)Z"))
-    private static boolean insert(World world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, Operation<Boolean> original) {
+    @WrapOperation(method = "pushItemsTick", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;tryMoveItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/HopperBlockEntity;Ljava/util/function/BooleanSupplier;)Z"))
+    private static boolean insert(Level world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, Operation<Boolean> original) {
         if (CarpetOrgAddition.LITHIUM) {
             return original.call(world, pos, state, blockEntity, booleanSupplier);
         }
         return RuleUtils.shulkerBoxStackableWrap(() -> original.call(world, pos, state, blockEntity, booleanSupplier));
     }
 
-    @WrapOperation(method = "onEntityCollided", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;insertAndExtract(Lnet/minecraft/world/World;Lnet/minecraft/util/math/BlockPos;Lnet/minecraft/block/BlockState;Lnet/minecraft/block/entity/HopperBlockEntity;Ljava/util/function/BooleanSupplier;)Z"))
-    private static boolean onEntityCollided(World world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, Operation<Boolean> original) {
+    @WrapOperation(method = "entityInside", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;tryMoveItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/block/entity/HopperBlockEntity;Ljava/util/function/BooleanSupplier;)Z"))
+    private static boolean onEntityCollided(Level world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, Operation<Boolean> original) {
         if (CarpetOrgAddition.LITHIUM) {
             return original.call(world, pos, state, blockEntity, booleanSupplier);
         }
@@ -296,16 +296,16 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
     }
 
     // 让漏斗一次从一堆掉落物中只吸取一个潜影盒
-    @WrapOperation(method = "extract(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/entity/ItemEntity;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/block/entity/HopperBlockEntity;transfer(Lnet/minecraft/inventory/Inventory;Lnet/minecraft/inventory/Inventory;Lnet/minecraft/item/ItemStack;Lnet/minecraft/util/math/Direction;)Lnet/minecraft/item/ItemStack;"))
-    private static ItemStack extract(Inventory from, Inventory to, ItemStack stack, Direction side, Operation<ItemStack> original, @Local LocalBooleanRef bl) {
+    @WrapOperation(method = "addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/entity/item/ItemEntity;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/Container;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/item/ItemStack;"))
+    private static ItemStack extract(Container from, Container to, ItemStack stack, Direction side, Operation<ItemStack> original, @Local LocalBooleanRef bl) {
         if (CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get()) {
             return original.call(from, to, stack, side);
         }
         if (CarpetOrgAdditionSettings.shulkerBoxStackable.get() && InventoryUtils.isShulkerBoxItem(stack)) {
-            ItemStack split = stack.split(stack.getMaxCount());
+            ItemStack split = stack.split(stack.getMaxStackSize());
             int count = split.getCount();
             ItemStack result = original.call(from, to, split.copy(), side);
-            stack.increment(result.getCount());
+            stack.grow(result.getCount());
             if (count != result.getCount()) {
                 bl.set(true);
             }
@@ -330,41 +330,41 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
         }
     }
 
-    @Inject(method = "insertAndExtract", at = @At("HEAD"), cancellable = true)
-    private static void insertAndExtract(World world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "tryMoveItems", at = @At("HEAD"), cancellable = true)
+    private static void insertAndExtract(Level world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier, CallbackInfoReturnable<Boolean> cir) {
         compatible(() -> cir.setReturnValue(tryInsertAndExtract(world, pos, state, blockEntity, booleanSupplier)));
     }
 
-    @Inject(method = "insert", at = @At("HEAD"), cancellable = true)
-    private static void insert(World world, BlockPos pos, HopperBlockEntity blockEntity, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "ejectItems", at = @At("HEAD"), cancellable = true)
+    private static void insert(Level world, BlockPos pos, HopperBlockEntity blockEntity, CallbackInfoReturnable<Boolean> cir) {
         compatible(() -> cir.setReturnValue(tryInsert(world, pos, blockEntity)));
     }
 
-    @Inject(method = "extract(Lnet/minecraft/world/World;Lnet/minecraft/block/entity/Hopper;)Z", at = @At("HEAD"), cancellable = true)
-    private static void extract(World world, Hopper hopper, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "suckInItems(Lnet/minecraft/world/level/Level;Lnet/minecraft/world/level/block/entity/Hopper;)Z", at = @At("HEAD"), cancellable = true)
+    private static void extract(Level world, Hopper hopper, CallbackInfoReturnable<Boolean> cir) {
         compatible(() -> cir.setReturnValue(tryExtract(world, hopper)));
     }
 
     @Unique
-    private static boolean tryInsertAndExtract(World world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier) {
-        if (world.isClient()) {
+    private static boolean tryInsertAndExtract(Level world, BlockPos pos, BlockState state, HopperBlockEntity blockEntity, BooleanSupplier booleanSupplier) {
+        if (world.isClientSide()) {
             return false;
         }
         HopperBlockEntityMixin mixin = (HopperBlockEntityMixin) (Object) blockEntity;
         //noinspection DataFlowIssue
-        if (!mixin.needsCooldown() && state.get(HopperBlock.ENABLED)) {
+        if (!mixin.isOnCooldown() && state.getValue(HopperBlock.ENABLED)) {
             boolean bl = false;
             if (!blockEntity.isEmpty()) {
-                bl = insert(world, pos, blockEntity);
+                bl = ejectItems(world, pos, blockEntity);
             }
-            if (!mixin.isFull()) {
+            if (!mixin.inventoryFull()) {
                 bl |= booleanSupplier.getAsBoolean();
             }
             if (bl) {
-                mixin.setTransferCooldown(8);
+                mixin.setCooldown(8);
                 // 漏斗计数器无限速度相关逻辑
                 hopperCountersUnlimitedSpeed(world, pos, blockEntity, booleanSupplier);
-                markDirty(world, pos, state);
+                setChanged(world, pos, state);
                 return true;
             }
         }
@@ -372,29 +372,29 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
     }
 
     @Unique
-    private static boolean tryInsert(World world, BlockPos pos, HopperBlockEntity blockEntity) {
-        Inventory inventory = getOutputInventory(world, pos, blockEntity);
+    private static boolean tryInsert(Level world, BlockPos pos, HopperBlockEntity blockEntity) {
+        Container inventory = getAttachedContainer(world, pos, blockEntity);
         if (inventory == null) {
             return false;
         }
         Direction direction = ((HopperBlockEntityMixin) (Object) blockEntity).facing.getOpposite();
-        if (isInventoryFull(inventory, direction)) {
+        if (isFullContainer(inventory, direction)) {
             return false;
         }
-        for (int i = 0; i < blockEntity.size(); ++i) {
-            ItemStack itemStack = blockEntity.getStack(i);
+        for (int i = 0; i < blockEntity.getContainerSize(); ++i) {
+            ItemStack itemStack = blockEntity.getItem(i);
             if (!itemStack.isEmpty()) {
                 int prevCount = itemStack.getCount();
-                ItemStack itemStack2 = transfer(blockEntity, inventory, blockEntity.removeStack(i, 1), direction);
+                ItemStack itemStack2 = addItem(blockEntity, inventory, blockEntity.removeItem(i, 1), direction);
                 if (itemStack2.isEmpty()) {
-                    inventory.markDirty();
+                    inventory.setChanged();
                     // 漏斗不消耗物品相关逻辑
                     hopperNoItemCost(world, pos, blockEntity, i, itemStack, prevCount);
                     return true;
                 }
                 itemStack.setCount(prevCount);
                 if (prevCount == 1) {
-                    blockEntity.setStack(i, itemStack);
+                    blockEntity.setItem(i, itemStack);
                 }
             }
         }
@@ -407,10 +407,10 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
      * @see <a href="https://github.com/TISUnion/Carpet-TIS-Addition/tree/master/src/main/java/carpettisaddition/mixins/rule/hopperCountersUnlimitedSpeed">漏斗计数器无限速度</a>
      */
     @Unique
-    private static void hopperCountersUnlimitedSpeed(World world, BlockPos blockPos, HopperBlockEntity blockEntity, BooleanSupplier supplier) {
+    private static void hopperCountersUnlimitedSpeed(Level world, BlockPos blockPos, HopperBlockEntity blockEntity, BooleanSupplier supplier) {
         if (CarpetSettings.hopperCounters && RuleUtils.hopperCountersUnlimitedSpeed.get()) {
-            Direction direction = blockEntity.getCachedState().get(HopperBlock.FACING);
-            DyeColor color = WoolTool.getWoolColorAtPosition(world, blockPos.offset(direction));
+            Direction direction = blockEntity.getBlockState().getValue(HopperBlock.FACING);
+            DyeColor color = WoolTool.getWoolColorAtPosition(world, blockPos.relative(direction));
             if (color == null) {
                 return;
             }
@@ -418,9 +418,9 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
             for (int i = Short.MAX_VALUE - 1; i >= 0; i--) {
                 boolean flag = false;
                 if (!blockEntity.isEmpty()) {
-                    flag = insert(world, blockPos, blockEntity);
+                    flag = ejectItems(world, blockPos, blockEntity);
                 }
-                if (!mixin.isFull()) {
+                if (!mixin.inventoryFull()) {
                     flag |= supplier.getAsBoolean();
                 }
                 if (!flag) {
@@ -430,7 +430,7 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
                     CarpetOrgAddition.LOGGER.warn("Hopper at {} exceeded hopperCountersUnlimitedSpeed operation limit {}", blockEntity, Short.MAX_VALUE);
                 }
             }
-            mixin.setTransferCooldown(0);
+            mixin.setCooldown(0);
         }
     }
 
@@ -440,9 +440,9 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
      * @see <a href="https://github.com/TISUnion/Carpet-TIS-Addition/tree/master/src/main/java/carpettisaddition/mixins/rule/hopperNoItemCost">漏斗不消耗物品</a>
      */
     @Unique
-    private static void hopperNoItemCost(World world, BlockPos blockPos, HopperBlockEntity blockEntity, int index, ItemStack itemStack, int prevCount) {
+    private static void hopperNoItemCost(Level world, BlockPos blockPos, HopperBlockEntity blockEntity, int index, ItemStack itemStack, int prevCount) {
         if (RuleUtils.hopperNoItemCost.get()) {
-            DyeColor color = WoolTool.getWoolColorAtPosition(world, blockPos.offset(Direction.UP));
+            DyeColor color = WoolTool.getWoolColorAtPosition(world, blockPos.relative(Direction.UP));
             if (color == null) {
                 return;
             }
@@ -450,28 +450,28 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
             itemStack.setCount(prevCount);
             ItemStack prevStack = itemStack.copy();
             itemStack.setCount(currentCount);
-            blockEntity.setStack(index, prevStack);
+            blockEntity.setItem(index, prevStack);
         }
     }
 
     @Unique
-    private static boolean tryExtract(World world, Hopper hopper) {
-        BlockPos blockPos = BlockPos.ofFloored(hopper.getHopperX(), hopper.getHopperY() + 1.0, hopper.getHopperZ());
+    private static boolean tryExtract(Level world, Hopper hopper) {
+        BlockPos blockPos = BlockPos.containing(hopper.getLevelX(), hopper.getLevelY() + 1.0, hopper.getLevelZ());
         BlockState blockState = world.getBlockState(blockPos);
-        Inventory inventory = getInputInventory(world, hopper, blockPos, blockState);
+        Container inventory = getSourceContainer(world, hopper, blockPos, blockState);
         if (inventory != null) {
             Direction direction = Direction.DOWN;
-            int[] var11 = getAvailableSlots(inventory, direction);
+            int[] var11 = getSlots(inventory, direction);
             for (int i : var11) {
-                if (extract(hopper, inventory, i, direction)) {
+                if (tryTakeInItemFromSlot(hopper, inventory, i, direction)) {
                     return true;
                 }
             }
         } else {
-            boolean bl = hopper.canBlockFromAbove() && blockState.isFullCube(world, blockPos) && !blockState.isIn(BlockTags.DOES_NOT_BLOCK_HOPPERS);
+            boolean bl = hopper.isGridAligned() && blockState.isCollisionShapeFullBlock(world, blockPos) && !blockState.is(BlockTags.DOES_NOT_BLOCK_HOPPERS);
             if (!bl) {
-                for (ItemEntity itemEntity : getInputItemEntities(world, hopper)) {
-                    if (extract(hopper, itemEntity)) {
+                for (ItemEntity itemEntity : getItemsAtAndAbove(world, hopper)) {
+                    if (addItem(hopper, itemEntity)) {
                         return true;
                     }
                 }

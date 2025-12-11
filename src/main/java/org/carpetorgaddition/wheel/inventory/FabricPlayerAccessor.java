@@ -2,19 +2,19 @@ package org.carpetorgaddition.wheel.inventory;
 
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.FakePlayer;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.EnderChestInventory;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.network.Connection;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ConnectedClientData;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.storage.NbtReadView;
-import net.minecraft.storage.ReadView;
-import net.minecraft.util.ErrorReporter;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.PlayerEnderChestContainer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.mixin.accessor.PlayerManagerAccessor;
 
@@ -29,12 +29,12 @@ public class FabricPlayerAccessor {
     /**
      * 正在查看物品栏的玩家数
      */
-    private final Set<ServerPlayerEntity> viewers = new HashSet<>();
-    private final PlayerConfigEntry entry;
+    private final Set<ServerPlayer> viewers = new HashSet<>();
+    private final NameAndId entry;
 
-    public FabricPlayerAccessor(MinecraftServer server, PlayerConfigEntry entry, FabricPlayerAccessManager accessManager) {
+    public FabricPlayerAccessor(MinecraftServer server, NameAndId entry, FabricPlayerAccessManager accessManager) {
         this.server = server;
-        this.fabricPlayer = FakePlayer.get(server.getOverworld(), new GameProfile(entry.id(), entry.name()));
+        this.fabricPlayer = FakePlayer.get(server.overworld(), new GameProfile(entry.id(), entry.name()));
         this.entry = entry;
         this.initFakePlayer(server);
         this.accessManager = accessManager;
@@ -42,45 +42,45 @@ public class FabricPlayerAccessor {
     }
 
     /**
-     * @see PlayerManager#onPlayerConnect(ClientConnection, ServerPlayerEntity, ConnectedClientData)
+     * @see PlayerList#placeNewPlayer(Connection, ServerPlayer, CommonListenerCookie)
      */
     @SuppressWarnings("deprecation")
     private void initFakePlayer(MinecraftServer server) {
-        ErrorReporter.Logging logging = new ErrorReporter.Logging(CarpetOrgAddition.LOGGER);
+        ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(CarpetOrgAddition.LOGGER);
         try (logging) {
-            Optional<ReadView> optional = server.getPlayerManager()
-                    .loadPlayerData(this.fabricPlayer.getPlayerConfigEntry())
-                    .map(nbtCompound -> NbtReadView.create(logging, server.getRegistryManager(), nbtCompound));
-            ServerPlayerEntity.SavePos pos = optional
-                    .flatMap(nbt -> nbt.read(ServerPlayerEntity.SavePos.CODEC))
-                    .orElse(ServerPlayerEntity.SavePos.EMPTY);
-            optional.ifPresent(this.fabricPlayer::readData);
-            ServerWorld world = server.getWorld(pos.dimension().orElse(World.OVERWORLD));
+            Optional<ValueInput> optional = server.getPlayerList()
+                    .loadPlayerData(this.fabricPlayer.nameAndId())
+                    .map(nbtCompound -> TagValueInput.create(logging, server.registryAccess(), nbtCompound));
+            ServerPlayer.SavedPosition pos = optional
+                    .flatMap(nbt -> nbt.read(ServerPlayer.SavedPosition.MAP_CODEC))
+                    .orElse(ServerPlayer.SavedPosition.EMPTY);
+            optional.ifPresent(this.fabricPlayer::load);
+            ServerLevel world = server.getLevel(pos.dimension().orElse(Level.OVERWORLD));
             if (world != null) {
                 // 设置玩家所在维度
-                this.fabricPlayer.setServerWorld(world);
+                this.fabricPlayer.setServerLevel(world);
             }
         }
     }
 
-    public PlayerInventory getInventory() {
+    public Inventory getInventory() {
         return this.fabricPlayer.getInventory();
     }
 
-    public EnderChestInventory getEnderChest() {
+    public PlayerEnderChestContainer getEnderChest() {
         return this.fabricPlayer.getEnderChestInventory();
     }
 
-    public void onOpen(ServerPlayerEntity player) {
+    public void onOpen(ServerPlayer player) {
         this.viewers.add(player);
     }
 
-    public void onClose(ServerPlayerEntity player) {
+    public void onClose(ServerPlayer player) {
         this.viewers.remove(player);
         if (this.viewers.isEmpty()) {
             try {
                 // 保存玩家数据
-                PlayerManager playerManager = this.server.getPlayerManager();
+                PlayerList playerManager = this.server.getPlayerList();
                 PlayerManagerAccessor accessor = (PlayerManagerAccessor) playerManager;
                 accessor.savePlayerEntityData(this.fabricPlayer);
             } catch (RuntimeException e) {
@@ -92,7 +92,7 @@ public class FabricPlayerAccessor {
         }
     }
 
-    public PlayerConfigEntry getPlayerConfigEntry() {
+    public NameAndId getPlayerConfigEntry() {
         return this.entry;
     }
 }

@@ -7,11 +7,11 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ObjectShare;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityAnchorArgumentType;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.CarpetOrgAdditionClient;
 import org.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 public class HighlightCommand extends AbstractClientCommand {
     public static final String DEFAULT_COMMAND_NAME = "highlight";
 
-    public HighlightCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+    public HighlightCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
         ObjectShare share = FabricLoader.getInstance().getObjectShare();
         Supplier<String> supplier = () -> {
@@ -45,7 +45,7 @@ public class HighlightCommand extends AbstractClientCommand {
                 .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
                         .executes(context -> highlight(context, 60 * 20L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
                         .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
-                                .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"30", "60", "120"}, builder))
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[]{"30", "60", "120"}, builder))
                                 .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 20L, false)))
                         .then(ClientCommandManager.literal("continue")
                                 .executes(context -> highlight(context, 1L, true))))
@@ -55,8 +55,8 @@ public class HighlightCommand extends AbstractClientCommand {
 
     // 高亮路径点
     private int highlight(CommandContext<FabricClientCommandSource> context, long duration, boolean persistent) {
-        Vec3d vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").toCenterPos();
-        ClientWorld world = context.getSource().getWorld();
+        Vec3 vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").getCenter();
+        ClientLevel world = context.getSource().getWorld();
         WaypointRenderer instance = WaypointRenderer.getInstance();
         List<Waypoint> list = instance.listRenderers(Waypoint.HIGHLIGHT);
         Waypoint newWaypoint = new HighlightWaypoint(world, vec3d, duration, persistent);
@@ -67,7 +67,7 @@ public class HighlightCommand extends AbstractClientCommand {
             if (waypoint.equals(newWaypoint)) {
                 update = true;
                 // if语句结束后仍要设置新路径点，因为要重置持续时间
-                context.getSource().getEntity().lookAt(EntityAnchorArgumentType.EntityAnchor.EYES, vec3d);
+                context.getSource().getEntity().lookAt(EntityAnchorArgument.Anchor.EYES, vec3d);
                 break;
             }
         }

@@ -1,6 +1,6 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -27,8 +27,8 @@ public final class DummyPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public Vec3d getCurrentNode() {
-        return Vec3d.ZERO;
+    public Vec3 getCurrentNode() {
+        return Vec3.ZERO;
     }
 
     @Override
@@ -47,7 +47,7 @@ public final class DummyPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public List<Vec3d> getRenderNodes() {
+    public List<Vec3> getRenderNodes() {
         return List.of();
     }
 

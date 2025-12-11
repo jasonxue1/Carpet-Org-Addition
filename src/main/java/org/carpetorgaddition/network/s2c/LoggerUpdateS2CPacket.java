@@ -1,37 +1,39 @@
 package org.carpetorgaddition.network.s2c;
 
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.packet.CustomPayload;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.carpetorgaddition.network.PacketUtils;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 // 记录器更新数据包
-public record LoggerUpdateS2CPacket(String logName, @Nullable String option, boolean isRemove) implements CustomPayload {
-    public static final Id<LoggerUpdateS2CPacket> ID = PacketUtils.createId("logger_update");
-    public static final PacketCodec<RegistryByteBuf, LoggerUpdateS2CPacket> CODEC = new PacketCodec<>() {
+public record LoggerUpdateS2CPacket(String logName, @Nullable String option,
+                                    boolean isRemove) implements CustomPacketPayload {
+    public static final Type<LoggerUpdateS2CPacket> ID = PacketUtils.createId("logger_update");
+    public static final StreamCodec<RegistryFriendlyByteBuf, LoggerUpdateS2CPacket> CODEC = new StreamCodec<>() {
         @Override
-        public LoggerUpdateS2CPacket decode(RegistryByteBuf buf) {
-            String logName = buf.readString();
+        public LoggerUpdateS2CPacket decode(RegistryFriendlyByteBuf buf) {
+            String logName = buf.readUtf();
             boolean isRemove = buf.readBoolean();
-            String option = isRemove ? null : PacketUtils.readNullable(buf, PacketByteBuf::readString);
+            String option = isRemove ? null : PacketUtils.readNullable(buf, FriendlyByteBuf::readUtf);
             return new LoggerUpdateS2CPacket(logName, option, isRemove);
         }
 
         @Override
-        public void encode(RegistryByteBuf buf, LoggerUpdateS2CPacket value) {
-            buf.writeString(value.logName);
+        public void encode(RegistryFriendlyByteBuf buf, LoggerUpdateS2CPacket value) {
+            buf.writeUtf(value.logName);
             buf.writeBoolean(value.isRemove());
             if (value.isRemove()) {
                 return;
             }
-            PacketUtils.writeNullable(value.option, buf, () -> buf.writeString(value.option));
+            PacketUtils.writeNullable(value.option, buf, buf::writeUtf);
         }
     };
 
     @Override
-    public Id<? extends CustomPayload> getId() {
+    public @NonNull Type<? extends CustomPacketPayload> type() {
         return ID;
     }
 }

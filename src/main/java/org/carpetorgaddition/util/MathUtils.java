@@ -1,9 +1,9 @@
 package org.carpetorgaddition.util;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -232,11 +232,11 @@ public class MathUtils {
         return start + (target - start) * factor;
     }
 
-    public static Vec3d approach(Vec3d from, Vec3d to, double factor) {
-        double x = approach(from.getX(), to.getX(), factor);
-        double y = approach(from.getY(), to.getY(), factor);
-        double z = approach(from.getZ(), to.getZ(), factor);
-        return new Vec3d(x, y, z);
+    public static Vec3 approach(Vec3 from, Vec3 to, double factor) {
+        double x = approach(from.x(), to.x(), factor);
+        double y = approach(from.y(), to.y(), factor);
+        double z = approach(from.z(), to.z(), factor);
+        return new Vec3(x, y, z);
     }
 
     /**
@@ -253,7 +253,7 @@ public class MathUtils {
     /**
      * @return 返回两个坐标水平方向的距离
      */
-    public static double horizontalDistance(Vec3d a, Vec3d b) {
+    public static double horizontalDistance(Vec3 a, Vec3 b) {
         double x = a.x - b.x;
         double y = a.z - b.z;
         return Math.sqrt(x * x + y * y);
@@ -262,8 +262,8 @@ public class MathUtils {
     /**
      * @return 返回两个坐标垂直方向的距离
      */
-    public static double verticalDistance(Vec3d a, Vec3d b) {
-        return Math.abs(a.getY() - b.getY());
+    public static double verticalDistance(Vec3 a, Vec3 b) {
+        return Math.abs(a.y() - b.y());
     }
 
     /**
@@ -347,7 +347,7 @@ public class MathUtils {
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 for (int z = -1; z <= 1; z++) {
-                    consumer.accept(blockPos.add(x, y, z));
+                    consumer.accept(blockPos.offset(x, y, z));
                 }
             }
         }

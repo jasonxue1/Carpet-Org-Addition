@@ -2,13 +2,13 @@ package org.carpetorgaddition.util;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -26,9 +26,9 @@ public class MessageUtils {
      * @deprecated 使用玩家做为参数有误导性
      */
     @Deprecated(forRemoval = true)
-    public static void broadcastMessage(ServerPlayerEntity player, Text message) {
+    public static void broadcastMessage(ServerPlayer player, Component message) {
         MinecraftServer server = FetcherUtils.getServer(player);
-        PlayerManager playerManager = server.getPlayerManager();
+        PlayerList playerManager = server.getPlayerList();
         broadcastMessage(playerManager, message);
     }
 
@@ -40,18 +40,18 @@ public class MessageUtils {
      * @deprecated 使用服务器命令源作为参数有误导性
      */
     @Deprecated(forRemoval = true)
-    public static void broadcastMessage(ServerCommandSource source, Text message) {
-        PlayerManager playerManager = source.getServer().getPlayerManager();
+    public static void broadcastMessage(CommandSourceStack source, Component message) {
+        PlayerList playerManager = source.getServer().getPlayerList();
         broadcastMessage(playerManager, message);
     }
 
-    public static void broadcastMessage(MinecraftServer server, Text message) {
-        broadcastMessage(server.getPlayerManager(), message);
+    public static void broadcastMessage(MinecraftServer server, Component message) {
+        broadcastMessage(server.getPlayerList(), message);
     }
 
     @SuppressWarnings("unused")
     public static void broadcastMessage(MinecraftServer server, String key, Object... args) {
-        broadcastMessage(server.getPlayerManager(), TextBuilder.translate(key, args));
+        broadcastMessage(server.getPlayerList(), TextBuilder.translate(key, args));
     }
 
     /**
@@ -60,8 +60,8 @@ public class MessageUtils {
      * @param playerManager 通过这个玩家管理器对象发送消息
      * @param message       要广播消息的内容
      */
-    public static void broadcastMessage(PlayerManager playerManager, Text message) {
-        playerManager.broadcast(message, false);
+    public static void broadcastMessage(PlayerList playerManager, Component message) {
+        playerManager.broadcastSystemMessage(message, false);
     }
 
     /**
@@ -71,7 +71,7 @@ public class MessageUtils {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, obj);
         builder.setStringHover(error);
-        builder.setColor(Formatting.RED);
+        builder.setColor(ChatFormatting.RED);
         broadcastMessage(server, builder.build());
     }
 
@@ -81,8 +81,8 @@ public class MessageUtils {
      * @param player  要发送文本消息的玩家
      * @param message 发送文本消息的内容
      */
-    public static void sendMessage(ServerPlayerEntity player, Text message) {
-        player.sendMessage(message);
+    public static void sendMessage(ServerPlayer player, Component message) {
+        player.sendSystemMessage(message);
         writeLog(FetcherUtils.getPlayerName(player), message.getString());
     }
 
@@ -92,24 +92,24 @@ public class MessageUtils {
      * @param source  要发送文本消息的命令源
      * @param message 发送文本消息的内容
      */
-    public static void sendMessage(ServerCommandSource source, Text message) {
-        source.sendMessage(message);
-        writeLog(source.getName(), message.getString());
+    public static void sendMessage(CommandSourceStack source, Component message) {
+        source.sendSystemMessage(message);
+        writeLog(source.getTextName(), message.getString());
     }
 
 
     /**
      * 发送一条可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
      */
-    public static void sendMessage(CommandContext<ServerCommandSource> context, String key, Object... obj) {
+    public static void sendMessage(CommandContext<CommandSourceStack> context, String key, Object... obj) {
         MessageUtils.sendMessage(context.getSource(), key, obj);
     }
 
-    public static void sendMessage(ServerCommandSource source, String key, Object... obj) {
+    public static void sendMessage(CommandSourceStack source, String key, Object... obj) {
         MessageUtils.sendMessage(source, TextBuilder.translate(key, obj));
     }
 
-    public static void sendMessage(ServerPlayerEntity player, String key, Object... obj) {
+    public static void sendMessage(ServerPlayer player, String key, Object... obj) {
         MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
     }
 
@@ -120,19 +120,19 @@ public class MessageUtils {
     /**
      * 发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
      */
-    public static void sendErrorMessage(CommandContext<ServerCommandSource> context, String key, Object... obj) {
+    public static void sendErrorMessage(CommandContext<CommandSourceStack> context, String key, Object... obj) {
         MessageUtils.sendErrorMessage(context.getSource(), key, obj);
     }
 
-    public static void sendErrorMessage(ServerCommandSource source, String key, Object... obj) {
+    public static void sendErrorMessage(CommandSourceStack source, String key, Object... obj) {
         TextBuilder builder = TextBuilder.of(key, obj);
-        builder.setColor(Formatting.RED);
+        builder.setColor(ChatFormatting.RED);
         MessageUtils.sendMessage(source, builder.build());
     }
 
-    public static void sendErrorMessage(ServerCommandSource source, Text message) {
+    public static void sendErrorMessage(CommandSourceStack source, Component message) {
         TextBuilder builder = new TextBuilder(message);
-        builder.setColor(Formatting.RED);
+        builder.setColor(ChatFormatting.RED);
         MessageUtils.sendMessage(source, builder.build());
     }
 
@@ -145,16 +145,16 @@ public class MessageUtils {
      * @param key    消息的翻译键
      * @param obj    消息中替代占位符的内容
      */
-    public static void sendErrorMessage(ServerCommandSource source, Throwable e, String key, Object... obj) {
+    public static void sendErrorMessage(CommandSourceStack source, Throwable e, String key, Object... obj) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, obj);
         builder.setStringHover(error);
-        builder.setColor(Formatting.RED);
+        builder.setColor(ChatFormatting.RED);
         MessageUtils.sendMessage(source, builder.build());
     }
 
-    public static void sendVanillaErrorMessage(ServerCommandSource source, CommandSyntaxException e) {
-        source.sendError(TextBuilder.create(e.getRawMessage()));
+    public static void sendVanillaErrorMessage(CommandSourceStack source, CommandSyntaxException e) {
+        source.sendFailure(TextBuilder.create(e.getRawMessage()));
     }
 
     /**
@@ -163,15 +163,15 @@ public class MessageUtils {
      * @param player  要发送文本消息的玩家
      * @param message 发送文本消息的内容
      */
-    public static void sendMessageToHud(PlayerEntity player, Text message) {
-        player.sendMessage(message, true);
+    public static void sendMessageToHud(Player player, Component message) {
+        player.displayClientMessage(message, true);
     }
 
     /**
      * 如果是玩家，则向HUD发送消息
      */
-    public static void sendMessageToHudIfPlayer(ServerCommandSource source, Text message) {
-        ServerPlayerEntity player = source.getPlayer();
+    public static void sendMessageToHudIfPlayer(CommandSourceStack source, Component message) {
+        ServerPlayer player = source.getPlayer();
         if (player == null) {
             return;
         }
@@ -184,8 +184,8 @@ public class MessageUtils {
      * @param source 消息的发送者，消息内容仅发送者可见
      * @param list   存储所有要发送的消息的集合
      */
-    public static void sendListMessage(ServerCommandSource source, List<Text> list) {
-        for (Text message : list) {
+    public static void sendListMessage(CommandSourceStack source, List<Component> list) {
+        for (Component message : list) {
             sendMessage(source, message);
         }
     }
@@ -195,15 +195,15 @@ public class MessageUtils {
      *
      * @apiNote 用于在聊天栏中分隔消息内容
      */
-    public static void sendEmptyMessage(ServerPlayerEntity player) {
-        sendMessage(player, Text.empty());
+    public static void sendEmptyMessage(ServerPlayer player) {
+        sendMessage(player, Component.empty());
     }
 
-    public static void sendEmptyMessage(ServerCommandSource source) {
+    public static void sendEmptyMessage(CommandSourceStack source) {
         sendEmptyMessage(source.getPlayer());
     }
 
-    public static void sendEmptyMessage(CommandContext<ServerCommandSource> context) {
+    public static void sendEmptyMessage(CommandContext<CommandSourceStack> context) {
         sendEmptyMessage(context.getSource());
     }
 }

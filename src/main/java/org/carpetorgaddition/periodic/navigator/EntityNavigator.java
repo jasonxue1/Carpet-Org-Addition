@@ -1,11 +1,11 @@
 package org.carpetorgaddition.periodic.navigator;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
@@ -33,18 +33,18 @@ public class EntityNavigator extends AbstractNavigator {
      * 上一个坐标
      */
     @NotNull
-    private Vec3d prevPos;
+    private Vec3 prevPos;
     /**
      * 上一个维度
      */
     @NotNull
-    private World prevWorld;
+    private Level prevWorld;
 
-    public EntityNavigator(ServerPlayerEntity player, Entity entity, boolean isContinue) {
+    public EntityNavigator(ServerPlayer player, Entity entity, boolean isContinue) {
         super(player);
         this.entity = Objects.requireNonNull(entity);
         this.isContinue = isContinue;
-        this.prevPos = entity.getEyePos();
+        this.prevPos = entity.getEyePosition();
         this.prevWorld = FetcherUtils.getWorld(entity);
     }
 
@@ -56,34 +56,34 @@ public class EntityNavigator extends AbstractNavigator {
             this.clear();
             return;
         }
-        World world = FetcherUtils.getWorld(this.entity);
-        Text text;
+        Level world = FetcherUtils.getWorld(this.entity);
+        Component text;
         if (FetcherUtils.getWorld(this.player).equals(world)) {
             // 获取翻译后的文本信息
-            Text in = TextBuilder.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.getBlockPos()));
-            int distance = MathUtils.getBlockIntegerDistance(player.getBlockPos(), entity.getBlockPos());
+            Component in = TextBuilder.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.blockPosition()));
+            int distance = MathUtils.getBlockIntegerDistance(player.blockPosition(), entity.blockPosition());
             // 添加上下箭头
-            Vec3d eyePos = this.entity.getEyePos();
+            Vec3 eyePos = this.entity.getEyePosition();
             text = getHUDText(eyePos, in, distance);
         } else {
             text = TextBuilder.translate(IN, entity.getName(),
                     TextBuilder.combineAll(TextProvider.dimension(FetcherUtils.getWorld(this.entity)),
-                            TextProvider.simpleBlockPos(entity.getBlockPos())));
+                            TextProvider.simpleBlockPos(entity.blockPosition())));
         }
         MessageUtils.sendMessageToHud(this.player, text);
         this.syncWaypoint(false);
-        this.prevPos = this.entity.getEyePos();
+        this.prevPos = this.entity.getEyePosition();
         this.prevWorld = FetcherUtils.getWorld(this.entity);
     }
 
     @Override
     protected WaypointUpdateS2CPacket createPacket() {
-        return new WaypointUpdateS2CPacket(this.entity.getEyePos(), FetcherUtils.getWorld(this.entity));
+        return new WaypointUpdateS2CPacket(this.entity.getEyePosition(), FetcherUtils.getWorld(this.entity));
     }
 
     @Override
     protected boolean updateRequired() {
-        return !(this.prevPos.equals(this.entity.getEyePos()) && this.prevWorld.equals(FetcherUtils.getWorld(this.entity)));
+        return !(this.prevPos.equals(this.entity.getEyePosition()) && this.prevWorld.equals(FetcherUtils.getWorld(this.entity)));
     }
 
     /**
@@ -95,7 +95,7 @@ public class EntityNavigator extends AbstractNavigator {
             return false;
         }
         if (FetcherUtils.getWorld(this.player).equals(FetcherUtils.getWorld(this.entity))
-            && MathUtils.getBlockDistance(player.getBlockPos(), entity.getBlockPos()) <= 8) {
+            && MathUtils.getBlockDistance(player.blockPosition(), entity.blockPosition()) <= 8) {
             // 停止追踪
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();
@@ -111,13 +111,13 @@ public class EntityNavigator extends AbstractNavigator {
      */
     private boolean isFailure() {
         return switch (this.entity) {
-            case ServerPlayerEntity corpse -> {
+            case ServerPlayer corpse -> {
                 if (corpse.isRemoved()) {
                     // 如果目标实体是玩家，并且玩家已被删除
                     // 就从服务器的玩家管理器中查找新的玩家实体对象，如果找到了，设置目标为新玩家，如果找不到，玩家的追踪器对象不变
                     // 只要这个玩家在线，就不需要清除这个追踪器，因为玩家可以复活
-                    UUID uuid = corpse.getUuid();
-                    Optional<ServerPlayerEntity> optional = GenericUtils.getPlayer(this.server, uuid);
+                    UUID uuid = corpse.getUUID();
+                    Optional<ServerPlayer> optional = GenericUtils.getPlayer(this.server, uuid);
                     if (optional.isEmpty()) {
                         // 如果玩家已经下线，返回true
                         yield true;
@@ -126,7 +126,7 @@ public class EntityNavigator extends AbstractNavigator {
                 }
                 yield false;
             }
-            case LivingEntity corpse -> corpse.isDead() || isFailure(corpse);
+            case LivingEntity corpse -> corpse.isDeadOrDying() || isFailure(corpse);
             case Entity corpse -> isFailure(corpse);
         };
     }
@@ -140,14 +140,14 @@ public class EntityNavigator extends AbstractNavigator {
         // 目标实体被可逆的清除，就尝试在服务器重新找到目标实体
         // 如果找到，重新设置玩家的追踪实体对象
         // 否则，以实体消失的位置为目标继续导航，并在下一个游戏刻继续查找
-        UUID uuid = corpse.getUuid();
+        UUID uuid = corpse.getUUID();
         Optional<Entity> optional = GenericUtils.getEntity(this.server, uuid);
         optional.ifPresent(value -> this.entity = value);
         return false;
     }
 
     @Override
-    public EntityNavigator copy(ServerPlayerEntity player) {
+    public EntityNavigator copy(ServerPlayer player) {
         return new EntityNavigator(player, this.entity, this.isContinue);
     }
 }

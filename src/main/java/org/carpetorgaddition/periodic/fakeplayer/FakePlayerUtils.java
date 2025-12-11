@@ -3,18 +3,18 @@ package org.carpetorgaddition.periodic.fakeplayer;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.Direction;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -27,7 +27,7 @@ public class FakePlayerUtils {
     /**
      * 槽位外部的索引，相当于点击GUI外面，用来丢弃光标上的物品
      */
-    public static final int EMPTY_SPACE_SLOT_INDEX = ScreenHandler.EMPTY_SPACE_SLOT_INDEX;//-999
+    public static final int EMPTY_SPACE_SLOT_INDEX = AbstractContainerMenu.SLOT_CLICKED_OUTSIDE;//-999
     /**
      * 模拟左键单击槽位
      */
@@ -57,10 +57,10 @@ public class FakePlayerUtils {
      *
      * @param player    当前要丢弃物品的玩家
      * @param itemStack 要丢弃的物品堆栈对象
-     * @apiNote 此方法不应用于丢弃GUI中的物品，因为这不会触发{@link ScreenHandler#onSlotClick}的行为
+     * @apiNote 此方法不应用于丢弃GUI中的物品，因为这不会触发{@link AbstractContainerMenu#clicked}的行为
      */
     public static void dropItem(EntityPlayerMPFake player, ItemStack itemStack) {
-        player.dropItem(itemStack.copyAndEmpty(), false, false);
+        player.drop(itemStack.copyAndClear(), false, false);
     }
 
     /**
@@ -70,8 +70,8 @@ public class FakePlayerUtils {
      * @param slotIndex     假玩家当前操作槽位的索引，如果为0，表示按Ctrl+Q丢弃0索引槽位的物品
      * @param player        当前操作的假玩家
      */
-    public static void throwItem(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
-        screenHandler.onSlotClick(slotIndex, THROW_CTRL_Q, SlotActionType.THROW, player);
+    public static void throwItem(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
+        screenHandler.clicked(slotIndex, THROW_CTRL_Q, ClickType.THROW, player);
     }
 
     /**
@@ -81,7 +81,7 @@ public class FakePlayerUtils {
      * @param fakePlayer 要停止操作的假玩家
      * @param key        停止操作时在聊天栏输出的内容的翻译键
      */
-    public static void stopAction(ServerCommandSource source, EntityPlayerMPFake fakePlayer, String key, Object... obj) {
+    public static void stopAction(CommandSourceStack source, EntityPlayerMPFake fakePlayer, String key, Object... obj) {
         FetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(
                 source.getServer(),
@@ -96,20 +96,20 @@ public class FakePlayerUtils {
      * @param slotIndex     要操作的槽位的索引
      * @param player        当前操作的玩家
      */
-    public static ItemStack quickMove(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
-        return screenHandler.quickMove(player, slotIndex);
+    public static ItemStack quickMove(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
+        return screenHandler.quickMoveStack(player, slotIndex);
     }
 
     /**
-     * 模拟光标拾取并丢出物品，作用与{@link #throwItem(ScreenHandler, int, EntityPlayerMPFake)}模拟Ctrl+Q丢出物品类似
+     * 模拟光标拾取并丢出物品，作用与{@link #throwItem(AbstractContainerMenu, int, EntityPlayerMPFake)}模拟Ctrl+Q丢出物品类似
      *
      * @param screenHandler 玩家当前打开的GUI
      * @param slotIndex     玩家当前操作的索引
      * @param player        当前操作GUI的假玩家
      */
-    public static void pickupAndThrow(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
-        screenHandler.onSlotClick(slotIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
-        screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+    public static void pickupAndThrow(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
+        screenHandler.clicked(slotIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
+        screenHandler.clicked(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
     }
 
     /**
@@ -121,52 +121,52 @@ public class FakePlayerUtils {
      * @param player        当前操作GUI的假玩家
      * @return 物品是否可以移动
      */
-    public static boolean withKeepPickupAndMoveItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
-        ItemStack itemStack = screenHandler.getSlot(fromIndex).getStack();
+    public static boolean withKeepPickupAndMoveItemStack(AbstractContainerMenu screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
+        ItemStack itemStack = screenHandler.getSlot(fromIndex).getItem();
         // 如果假玩家合成保留物品启用，并且该物品的数量为1，并且该物品的最大堆叠数大于1
         // 认为这个物品需要保留，不移动物品
-        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && itemStack.getCount() == 1 && itemStack.getMaxCount() > 1) {
+        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && itemStack.getCount() == 1 && itemStack.getMaxStackSize() > 1) {
             return false;
         }
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
-        if (!screenHandler.getCursorStack().isEmpty()) {
-            screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        if (!screenHandler.getCarried().isEmpty()) {
+            screenHandler.clicked(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
         }
-        screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        screenHandler.clicked(fromIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
         // 如果规则假玩家合成保留物品启用，并且该物品的最大堆叠数大于1，就在该槽位上再放回一个物品
-        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && screenHandler.getCursorStack().getMaxCount() > 1) {
-            screenHandler.onSlotClick(fromIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
+        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && screenHandler.getCarried().getMaxStackSize() > 1) {
+            screenHandler.clicked(fromIndex, PICKUP_RIGHT_CLICK, ClickType.PICKUP, player);
         }
-        screenHandler.onSlotClick(toIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        screenHandler.clicked(toIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
         return true;
     }
 
-    public static void pickupAndMoveItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
+    public static void pickupAndMoveItemStack(AbstractContainerMenu screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
-        if (!screenHandler.getCursorStack().isEmpty()) {
-            screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        if (!screenHandler.getCarried().isEmpty()) {
+            screenHandler.clicked(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
         }
-        screenHandler.onSlotClick(fromIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
-        screenHandler.onSlotClick(toIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        screenHandler.clicked(fromIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
+        screenHandler.clicked(toIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
     }
 
     /**
-     * 功能与{@link FakePlayerUtils#pickupAndMoveItemStack(ScreenHandler, int, int, EntityPlayerMPFake)}基本一致，只是本方法使用右键拿取物品，即一次拿取一半的物品
+     * 功能与{@link FakePlayerUtils#pickupAndMoveItemStack(AbstractContainerMenu, int, int, EntityPlayerMPFake)}基本一致，只是本方法使用右键拿取物品，即一次拿取一半的物品
      *
      * @param screenHandler 玩家当前打开的GUI
      * @param fromIndex     从哪个槽位拿取物品
      * @param toIndex       将物品放在哪个槽位
      * @param player        操作GUI的假玩家
      */
-    public static void pickupAndMoveHalfItemStack(ScreenHandler screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
+    public static void pickupAndMoveHalfItemStack(AbstractContainerMenu screenHandler, int fromIndex, int toIndex, EntityPlayerMPFake player) {
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
-        if (!screenHandler.getCursorStack().isEmpty()) {
-            screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        if (!screenHandler.getCarried().isEmpty()) {
+            screenHandler.clicked(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
         }
         // 右击拾取物品
-        screenHandler.onSlotClick(fromIndex, PICKUP_RIGHT_CLICK, SlotActionType.PICKUP, player);
+        screenHandler.clicked(fromIndex, PICKUP_RIGHT_CLICK, ClickType.PICKUP, player);
         // 放置物品依然是左键单击
-        screenHandler.onSlotClick(toIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, player);
+        screenHandler.clicked(toIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, player);
     }
 
     /**
@@ -177,18 +177,18 @@ public class FakePlayerUtils {
      * @param player        当前操作该GUI的玩家
      */
     @SuppressWarnings("unused")
-    public static void loopThrowItem(ScreenHandler screenHandler, int slotIndex, EntityPlayerMPFake player) {
+    public static void loopThrowItem(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
         // 如果光标不为空，那么将无法丢弃槽位上的物品
-        InventoryUtils.assertEmptyStack(screenHandler.getCursorStack());
+        InventoryUtils.assertEmptyStack(screenHandler.getCarried());
         Slot slot = screenHandler.getSlot(slotIndex);
-        Item item = slot.getStack().getItem();
+        Item item = slot.getItem().getItem();
         while (true) {
-            ItemStack itemStack = slot.getStack();
+            ItemStack itemStack = slot.getItem();
             if (itemStack.isEmpty()) {
                 return;
             }
-            if (itemStack.isOf(item) && slot.canTakeItems(player)) {
-                screenHandler.onSlotClick(slotIndex, THROW_Q, SlotActionType.THROW, player);
+            if (itemStack.is(item) && slot.mayPickup(player)) {
+                screenHandler.clicked(slotIndex, THROW_Q, ClickType.THROW, player);
                 continue;
             }
             return;
@@ -203,11 +203,11 @@ public class FakePlayerUtils {
      * @see <a href="https://bugs.mojang.com/browse/MC-157977">MC-157977</a>
      * @see <a href="https://bugs.mojang.com/browse/MC-215441">MC-215441</a>
      */
-    public static void compareAndThrow(ScreenHandler screenHandler, int slotIndex, ItemStack itemStack, EntityPlayerMPFake player) {
-        InventoryUtils.assertEmptyStack(screenHandler.getCursorStack());
+    public static void compareAndThrow(AbstractContainerMenu screenHandler, int slotIndex, ItemStack itemStack, EntityPlayerMPFake player) {
+        InventoryUtils.assertEmptyStack(screenHandler.getCarried());
         Slot slot = screenHandler.getSlot(slotIndex);
-        while (slot.hasStack() && ItemStack.areItemsAndComponentsEqual(itemStack, slot.getStack()) && slot.canTakeItems(player)) {
-            screenHandler.onSlotClick(slotIndex, THROW_Q, SlotActionType.THROW, player);
+        while (slot.hasItem() && ItemStack.isSameItemSameComponents(itemStack, slot.getItem()) && slot.mayPickup(player)) {
+            screenHandler.clicked(slotIndex, THROW_Q, ClickType.THROW, player);
         }
     }
 
@@ -216,19 +216,19 @@ public class FakePlayerUtils {
      *
      * @throws IllegalStateException 如果调用时光标上存在物品
      */
-    public static void collectItem(ScreenHandler screenHandler, int slotIndex, AutoGrowInventory inventory, EntityPlayerMPFake fakePlayer) {
-        InventoryUtils.assertEmptyStack(screenHandler.getCursorStack(), () -> "光标上物品非空");
+    public static void collectItem(AbstractContainerMenu screenHandler, int slotIndex, AutoGrowInventory inventory, EntityPlayerMPFake fakePlayer) {
+        InventoryUtils.assertEmptyStack(screenHandler.getCarried(), () -> "光标上物品非空");
         // 取出物品的过程中，输出槽位的物品可能会随着输入物品的改变而改变
         // 物品改变后，应停止取出物品，避免合成错误的物品
-        Item item = screenHandler.getSlot(slotIndex).getStack().getItem();
+        Item item = screenHandler.getSlot(slotIndex).getItem().getItem();
         while (true) {
             Slot slot = screenHandler.getSlot(slotIndex);
-            if (slot.hasStack() && slot.canTakeItems(fakePlayer) && item == slot.getStack().getItem()) {
+            if (slot.hasItem() && slot.mayPickup(fakePlayer) && item == slot.getItem().getItem()) {
                 // 拿取槽位上的物品
-                screenHandler.onSlotClick(slotIndex, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+                screenHandler.clicked(slotIndex, PICKUP_LEFT_CLICK, ClickType.PICKUP, fakePlayer);
                 // 将槽位上的物品放入物品栏并清空光标上的物品
-                inventory.addStack(screenHandler.getCursorStack());
-                screenHandler.setCursorStack(ItemStack.EMPTY);
+                inventory.addStack(screenHandler.getCarried());
+                screenHandler.setCarried(ItemStack.EMPTY);
             } else {
                 break;
             }
@@ -242,12 +242,12 @@ public class FakePlayerUtils {
      * @param screenHandler 玩家当前打开的GUI
      * @param fakePlayer    当前操作该GUI的玩家
      */
-    public static void dropCursorStack(ScreenHandler screenHandler, EntityPlayerMPFake fakePlayer) {
-        ItemStack itemStack = screenHandler.getCursorStack();
+    public static void dropCursorStack(AbstractContainerMenu screenHandler, EntityPlayerMPFake fakePlayer) {
+        ItemStack itemStack = screenHandler.getCarried();
         if (itemStack.isEmpty()) {
             return;
         }
-        screenHandler.onSlotClick(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+        screenHandler.clicked(EMPTY_SPACE_SLOT_INDEX, PICKUP_LEFT_CLICK, ClickType.PICKUP, fakePlayer);
     }
 
     /**
@@ -258,8 +258,8 @@ public class FakePlayerUtils {
      * @param index         要放置物品的槽位索引
      * @param fakePlayer    当前操作该GUI的玩家
      */
-    public static void pickupCursorStack(ScreenHandler screenHandler, int index, EntityPlayerMPFake fakePlayer) {
-        screenHandler.onSlotClick(index, PICKUP_LEFT_CLICK, SlotActionType.PICKUP, fakePlayer);
+    public static void pickupCursorStack(AbstractContainerMenu screenHandler, int index, EntityPlayerMPFake fakePlayer) {
+        screenHandler.clicked(index, PICKUP_LEFT_CLICK, ClickType.PICKUP, fakePlayer);
     }
 
     /**
@@ -270,7 +270,7 @@ public class FakePlayerUtils {
         actionPack.look(direction);
     }
 
-    public static void click(EntityPlayerMPFake fakePlayer, Hand hand) {
+    public static void click(EntityPlayerMPFake fakePlayer, InteractionHand hand) {
         EntityPlayerActionPack actionPack = getActionPack(fakePlayer);
         EntityPlayerActionPack.ActionType type = switch (hand) {
             case MAIN_HAND -> EntityPlayerActionPack.ActionType.ATTACK;
@@ -288,21 +288,21 @@ public class FakePlayerUtils {
      */
     @SuppressWarnings("unused")
     public static void swapHand(EntityPlayerMPFake fakePlayer) {
-        ItemStack temp = fakePlayer.getStackInHand(Hand.OFF_HAND);
-        fakePlayer.setStackInHand(Hand.OFF_HAND, fakePlayer.getStackInHand(Hand.MAIN_HAND));
-        fakePlayer.setStackInHand(Hand.MAIN_HAND, temp);
+        ItemStack temp = fakePlayer.getItemInHand(InteractionHand.OFF_HAND);
+        fakePlayer.setItemInHand(InteractionHand.OFF_HAND, fakePlayer.getItemInHand(InteractionHand.MAIN_HAND));
+        fakePlayer.setItemInHand(InteractionHand.MAIN_HAND, temp);
     }
 
     /**
      * 获取物品堆栈的可变文本形式：物品名称*堆叠数量
      */
-    public static Text getWithCountHoverText(ItemStack itemStack) {
+    public static Component getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(Formatting.DARK_GRAY).build();
+            return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(ChatFormatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         String capitalizeFirstLetter = getInitial(itemStack);
-        Text hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
+        Component hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
         return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
     }
 
@@ -311,7 +311,7 @@ public class FakePlayerUtils {
      */
     public static String getInitial(ItemStack itemStack) {
         // 将物品名称的字符串切割为命名空间（如果有）和物品id
-        String name = Registries.ITEM.getId(itemStack.getItem()).toString();
+        String name = BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString();
         String[] split = name.split(":");
         // 获取数组的索引，如果有命名空间，返回1索引，否则返回0索引，即舍弃命名空间
         int index = (split.length == 1) ? 0 : 1;
@@ -338,7 +338,7 @@ public class FakePlayerUtils {
      * @param source       发送消息的消息源
      * @param playerMPFake 需要停止操作的假玩家
      */
-    public static void stopCraftAction(ServerCommandSource source, EntityPlayerMPFake playerMPFake) {
+    public static void stopCraftAction(CommandSourceStack source, EntityPlayerMPFake playerMPFake) {
         stopAction(source, playerMPFake, "carpet.commands.playerAction.craft");
     }
 }

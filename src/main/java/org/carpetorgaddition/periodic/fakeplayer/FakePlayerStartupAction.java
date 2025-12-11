@@ -1,8 +1,8 @@
 package org.carpetorgaddition.periodic.fakeplayer;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.text.Text;
-import net.minecraft.util.Hand;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -34,13 +34,13 @@ public enum FakePlayerStartupAction implements Consumer<EntityPlayerMPFake> {
 
     private Consumer<EntityPlayerMPFake> function() {
         return switch (this) {
-            case USE -> fakePlayer -> FakePlayerUtils.click(fakePlayer, Hand.OFF_HAND);
-            case ATTACK -> fakePlayer -> FakePlayerUtils.click(fakePlayer, Hand.MAIN_HAND);
+            case USE -> fakePlayer -> FakePlayerUtils.click(fakePlayer, InteractionHand.OFF_HAND);
+            case ATTACK -> fakePlayer -> FakePlayerUtils.click(fakePlayer, InteractionHand.MAIN_HAND);
             case KILL -> fakePlayer -> fakePlayer.kill(FetcherUtils.getWorld(fakePlayer));
         };
     }
 
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         String key = switch (this) {
             case USE -> "carpet.commands.playerManager.info.startup.use";
             case ATTACK -> "carpet.commands.playerManager.info.startup.attack";

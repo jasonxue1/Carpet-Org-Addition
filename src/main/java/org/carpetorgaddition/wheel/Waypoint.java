@@ -1,13 +1,13 @@
 package org.carpetorgaddition.wheel;
 
 import com.google.gson.JsonObject;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.dataupdate.DataUpdater;
 import org.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -25,14 +25,14 @@ public class Waypoint {
     private BlockPos blockPos;
     @Nullable
     private BlockPos anotherBlockPos;
-    private final World world;
+    private final Level world;
     @NotNull
     private MetaComment comment = new MetaComment();
     private final String creator;
     private final MinecraftServer server;
     private final String name;
 
-    public Waypoint(BlockPos blockPos, String name, World world, String creator, MinecraftServer server) {
+    public Waypoint(BlockPos blockPos, String name, Level world, String creator, MinecraftServer server) {
         this.name = name;
         this.blockPos = blockPos;
         this.world = world;
@@ -40,7 +40,7 @@ public class Waypoint {
         this.server = server;
     }
 
-    public Waypoint(BlockPos blockPos, String name, ServerPlayerEntity player) {
+    public Waypoint(BlockPos blockPos, String name, ServerPlayer player) {
         this(blockPos, name, FetcherUtils.getWorld(player), FetcherUtils.getPlayerName(player), FetcherUtils.getServer(player));
     }
 
@@ -91,7 +91,7 @@ public class Waypoint {
         String dimension = IOUtils.jsonHasElement(json, "dimension") ? json.get("dimension").getAsString() : WorldUtils.OVERWORLD;
         // 路径点的创建者
         String creator = IOUtils.jsonHasElement(json, "creator") ? json.get("creator").getAsString() : "#none";
-        ServerWorld world = WorldUtils.getWorld(server, dimension);
+        ServerLevel world = WorldUtils.getWorld(server, dimension);
         Waypoint waypoint = new Waypoint(blockPos, name, world, creator, server);
         // 添加路径点的另一个坐标
         if (json.has("another_pos")) {
@@ -109,29 +109,29 @@ public class Waypoint {
     }
 
     // 显示路径点
-    public Text line() {
+    public Component line() {
         return switch (getWorldAsString()) {
             case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
                     ? TextBuilder.translate("carpet.commands.locations.show.overworld",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN))
+                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN))
                     : TextBuilder.translate("carpet.commands.locations.show.overworld_and_the_nether",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.GREEN),
-                    TextProvider.blockPos(this.anotherBlockPos, Formatting.RED));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN),
+                    TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.RED));
             case WorldUtils.THE_NETHER -> this.anotherBlockPos == null
                     ? TextBuilder.translate("carpet.commands.locations.show.the_nether",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED))
+                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.RED))
                     : TextBuilder.translate("carpet.commands.locations.show.the_nether_and_overworld",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.RED),
-                    TextProvider.blockPos(this.anotherBlockPos, Formatting.GREEN));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.RED),
+                    TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.GREEN));
             case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.show.the_end",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, Formatting.DARK_PURPLE));
+                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.DARK_PURPLE));
             default -> TextBuilder.translate("carpet.commands.locations.show.custom_dimension",
-                    this.formatName(), getWorldAsString(), TextProvider.blockPos(this.blockPos, Formatting.GREEN));
+                    this.formatName(), getWorldAsString(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN));
         };
     }
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象
-    private Text formatName() {
+    private Component formatName() {
         TextBuilder builder = new TextBuilder("[" + this.name.split("\\.")[0] + "]");
         if (this.comment.isEmpty()) {
             return builder.build();
@@ -160,7 +160,7 @@ public class Waypoint {
         return this.anotherBlockPos;
     }
 
-    public World getWorld() {
+    public Level getWorld() {
         return this.world;
     }
 
@@ -174,6 +174,6 @@ public class Waypoint {
 
     // 是否可以添加对向坐标
     public boolean canAddAnother() {
-        return this.world.getRegistryKey() == World.OVERWORLD || this.world.getRegistryKey() == World.NETHER;
+        return this.world.dimension() == Level.OVERWORLD || this.world.dimension() == Level.NETHER;
     }
 }

@@ -1,7 +1,7 @@
 package org.carpetorgaddition.periodic.task;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerStartupAction;
 
 public class FakePlayerStartupActionTask extends ServerTask {
@@ -9,7 +9,7 @@ public class FakePlayerStartupActionTask extends ServerTask {
     private final FakePlayerStartupAction action;
     private int delay;
 
-    public FakePlayerStartupActionTask(ServerCommandSource source, EntityPlayerMPFake fakePlayer, FakePlayerStartupAction action, int delay) {
+    public FakePlayerStartupActionTask(CommandSourceStack source, EntityPlayerMPFake fakePlayer, FakePlayerStartupAction action, int delay) {
         super(source);
         this.fakePlayer = fakePlayer;
         this.action = action;

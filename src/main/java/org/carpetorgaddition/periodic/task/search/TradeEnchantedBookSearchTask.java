@@ -1,14 +1,14 @@
 package org.carpetorgaddition.periodic.task.search;
 
-import net.minecraft.entity.passive.MerchantEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.village.TradeOfferList;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.command.FinderCommand;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -24,18 +24,18 @@ import java.util.Map;
 public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final EnchantedBookPredicate predicate;
 
-    public TradeEnchantedBookSearchTask(World world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ServerCommandSource source, EnchantedBookPredicate predicate) {
+    public TradeEnchantedBookSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, CommandSourceStack source, EnchantedBookPredicate predicate) {
         super(world, blockPosTraverser, sourcePos, source);
         this.predicate = predicate;
     }
 
     @Override
-    protected void searchVillager(MerchantEntity merchant) {
-        TradeOfferList offers = merchant.getOffers();
+    protected void searchVillager(AbstractVillager merchant) {
+        MerchantOffers offers = merchant.getOffers();
         // 键：附魔书的等级，值：同一只村民出售的相同附魔书的索引集合
         HashMap<Integer, ArrayList<Integer>> hashMap = new HashMap<>();
         for (int index = 0; index < offers.size(); index++) {
-            ItemStack enchantedBook = offers.get(index).getSellItem();
+            ItemStack enchantedBook = offers.get(index).getResult();
             // 获取每个交易结果槽上的附魔书附魔等级
             int level = getBookEnchantment(enchantedBook);
             if (level == -1) {
@@ -64,7 +64,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     }
 
     private int getBookEnchantment(ItemStack book) {
-        if (book.isOf(Items.ENCHANTED_BOOK)) {
+        if (book.is(Items.ENCHANTED_BOOK)) {
             return this.predicate.getLevel(book);
         }
         return -1;
@@ -78,7 +78,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected Text getTradeName() {
+    protected Component getTradeName() {
         return this.predicate.getDisplayName();
     }
 
@@ -88,31 +88,31 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     }
 
     public class EnchantedBookFindResult implements Result {
-        private final MerchantEntity merchant;
+        private final AbstractVillager merchant;
         private final ArrayList<Integer> list;
         private final int level;
 
-        private EnchantedBookFindResult(MerchantEntity merchant, ArrayList<Integer> list, int level) {
+        private EnchantedBookFindResult(AbstractVillager merchant, ArrayList<Integer> list, int level) {
             this.merchant = merchant;
             this.list = list;
             this.level = level;
         }
 
         @Override
-        public Text get() {
+        public Component get() {
             String key = "carpet.commands.finder.trade.enchanted_book.each";
-            Text pos = TextProvider.blockPos(this.villagerPos(), Formatting.GREEN);
+            Component pos = TextProvider.blockPos(this.villagerPos(), ChatFormatting.GREEN);
             // 村民或流浪商人的名称
-            Text villagerName = merchant.getName();
+            Component villagerName = merchant.getName();
             String indices = getIndexArray(this.list);
             // 获取交易名称
-            Text enchantName = predicate.getWithLevel(level);
+            Component enchantName = predicate.getWithLevel(level);
             return TextBuilder.translate(key, pos, villagerName, indices, enchantName);
         }
 
         @Override
         public BlockPos villagerPos() {
-            return this.merchant.getBlockPos();
+            return this.merchant.blockPosition();
         }
 
         @Override

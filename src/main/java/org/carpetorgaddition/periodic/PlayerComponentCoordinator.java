@@ -1,23 +1,23 @@
 package org.carpetorgaddition.periodic;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.periodic.navigator.NavigatorManager;
 import org.jetbrains.annotations.NotNull;
 
 public class PlayerComponentCoordinator {
-    private final ServerPlayerEntity player;
+    private final ServerPlayer player;
     private final NavigatorManager navigatorManager;
 
-    public PlayerComponentCoordinator(ServerPlayerEntity player) {
+    public PlayerComponentCoordinator(ServerPlayer player) {
         this.player = player;
         this.navigatorManager = new NavigatorManager(player);
     }
 
-    public static PlayerComponentCoordinator of(ServerPlayerEntity serverPlayerEntity) {
+    public static PlayerComponentCoordinator of(ServerPlayer serverPlayerEntity) {
         return switch (serverPlayerEntity) {
             case EntityPlayerMPFake fakePlayer -> new FakePlayerComponentCoordinator(fakePlayer);
-            case ServerPlayerEntity player -> new PlayerComponentCoordinator(player);
+            case ServerPlayer player -> new PlayerComponentCoordinator(player);
             case null -> throw new NullPointerException("player may not be null");
         };
     }
@@ -31,13 +31,13 @@ public class PlayerComponentCoordinator {
     }
 
     @NotNull
-    public static PlayerComponentCoordinator getManager(ServerPlayerEntity player) {
+    public static PlayerComponentCoordinator getManager(ServerPlayer player) {
         return ((PeriodicTaskManagerInterface) player).carpet_Org_Addition$getPlayerPeriodicTaskManager();
     }
 
     @NotNull
     public static FakePlayerComponentCoordinator getManager(EntityPlayerMPFake fakePlayer) {
-        return (FakePlayerComponentCoordinator) getManager((ServerPlayerEntity) fakePlayer);
+        return (FakePlayerComponentCoordinator) getManager((ServerPlayer) fakePlayer);
     }
 
     /**
@@ -48,11 +48,11 @@ public class PlayerComponentCoordinator {
      * 在{@code 1.21}中通过调试发现这个方法并没有在玩家进入返回传送门时执行，传送逻辑已经被修改了吗？
      * </p>
      */
-    public void copyFrom(ServerPlayerEntity oldPlayer) {
+    public void copyFrom(ServerPlayer oldPlayer) {
         this.navigatorManager.setNavigatorFromOldPlayer(oldPlayer);
     }
 
-    protected ServerPlayerEntity getPlayer() {
+    protected ServerPlayer getPlayer() {
         return this.player;
     }
 }

@@ -1,21 +1,21 @@
 package org.carpetorgaddition.mixin.debug.accessor;
 
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.slot.Slot;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 import org.carpetorgaddition.debug.OnlyDeveloped;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
 @OnlyDeveloped
-@Mixin(HandledScreen.class)
+@Mixin(AbstractContainerScreen.class)
 public interface HandledScreenAccessor {
-    @Accessor("x")
+    @Accessor("leftPos")
     int getX();
 
-    @Accessor("y")
+    @Accessor("topPos")
     int getY();
 
-    @Invoker("getSlotAt")
+    @Invoker("getHoveredSlot")
     Slot invokerGetSlotAt(double x, double y);
 }

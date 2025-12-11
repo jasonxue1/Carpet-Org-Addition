@@ -1,16 +1,21 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.mob.EndermanEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Colors;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.CommonColors;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.WorldUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -34,14 +39,14 @@ public abstract class Waypoint {
      * 路径点剩余持续时间
      */
     private long remaining;
-    private Vec3d target;
+    private Vec3 target;
     @NotNull
-    protected Vec3d lastTarget;
+    protected Vec3 lastTarget;
     /**
      * 路径点所在时间的注册表项
      */
     @NotNull
-    protected RegistryKey<World> registryKey;
+    protected ResourceKey<Level> registryKey;
     /**
      * 该路径点是否永久显示
      */
@@ -52,10 +57,10 @@ public abstract class Waypoint {
      * 路径点消失时间
      */
     private static final long VANISHING_TIME = 4L;
-    public static final Identifier HIGHLIGHT = Identifier.ofVanilla("textures/map/decorations/red_x.png");
-    public static final Identifier NAVIGATOR = Identifier.ofVanilla("textures/map/decorations/target_x.png");
+    public static final Identifier HIGHLIGHT = Identifier.withDefaultNamespace("textures/map/decorations/red_x.png");
+    public static final Identifier NAVIGATOR = Identifier.withDefaultNamespace("textures/map/decorations/target_x.png");
 
-    public Waypoint(@NotNull RegistryKey<World> registryKey, @NotNull Vec3d target, Identifier icon, long duration, boolean persistent) {
+    public Waypoint(@NotNull ResourceKey<Level> registryKey, @NotNull Vec3 target, Identifier icon, long duration, boolean persistent) {
         this.registryKey = registryKey;
         this.target = target;
         this.lastTarget = target;
@@ -64,70 +69,70 @@ public abstract class Waypoint {
         this.persistent = persistent;
     }
 
-    public Waypoint(World world, Vec3d target, Identifier icon, long duration, boolean persistent) {
-        this(world.getRegistryKey(), target, icon, duration, persistent);
+    public Waypoint(Level world, Vec3 target, Identifier icon, long duration, boolean persistent) {
+        this(world.dimension(), target, icon, duration, persistent);
     }
 
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, Camera camera, RenderTickCounter tickCounter) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, Camera camera, DeltaTracker tickCounter) {
         if (this.isDone()) {
             return;
         }
-        Vec3d revised = this.getRevisedPos();
+        Vec3 revised = this.getRevisedPos();
         if (revised == null) {
             return;
         }
-        float tickDelta = tickCounter.getTickProgress(false);
+        float tickDelta = tickCounter.getGameTimeDeltaPartialTick(false);
         if (this.tickDelta > tickDelta) {
             this.tick();
         }
         this.lastTickDelta = this.tickDelta;
         this.tickDelta = tickDelta;
         // 获取摄像机位置
-        Vec3d cameraPos = camera.getCameraPos();
+        Vec3 cameraPos = camera.position();
         // 玩家距离目标的位置
-        Vec3d offset = revised.subtract(cameraPos);
+        Vec3 offset = revised.subtract(cameraPos);
         // 获取客户端渲染距离
-        int renderDistance = ClientUtils.getGameOptions().getViewDistance().getValue() * 16;
+        int renderDistance = ClientUtils.getGameOptions().renderDistance().get() * 16;
         // 修正路径点渲染位置
-        Vec3d correction = new Vec3d(offset.getX(), offset.getY(), offset.getZ());
+        Vec3 correction = new Vec3(offset.x(), offset.y(), offset.z());
         if (correction.length() > renderDistance) {
             // 将路径点位置限制在渲染距离内
-            correction = correction.normalize().multiply(renderDistance);
+            correction = correction.normalize().scale(renderDistance);
         }
-        matrixStack.push();
+        matrixStack.pushPose();
         this.transform(matrixStack, camera, correction);
         this.render(matrixStack, consumers);
         // 如果准星正在指向路径点，显示文本
         if (isWatching(camera, revised)) {
             drawDistance(matrixStack, consumers, offset);
         }
-        matrixStack.pop();
+        matrixStack.popPose();
     }
 
-    private void render(MatrixStack matrixStack, VertexConsumerProvider consumers) {
-        RenderLayer renderLayer = RenderLayers.fireScreenEffect(this.icon);
-        Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
+    private void render(PoseStack matrixStack, MultiBufferSource consumers) {
+        RenderType renderLayer = RenderTypes.fireScreenEffect(this.icon);
+        Matrix4f matrix4f = matrixStack.last().pose();
         VertexConsumer vertexConsumer = consumers.getBuffer(renderLayer);
-        vertexConsumer.vertex(matrix4f, -1F, -1F, 0F).texture(0F, 0F).color(-1);
-        vertexConsumer.vertex(matrix4f, -1F, 1F, 0F).texture(0F, 1F).color(-1);
-        vertexConsumer.vertex(matrix4f, 1F, 1F, 0F).texture(1F, 1F).color(-1);
-        vertexConsumer.vertex(matrix4f, 1F, -1F, 0F).texture(1F, 0F).color(-1);
+        vertexConsumer.addVertex(matrix4f, -1F, -1F, 0F).setUv(0F, 0F).setColor(-1);
+        vertexConsumer.addVertex(matrix4f, -1F, 1F, 0F).setUv(0F, 1F).setColor(-1);
+        vertexConsumer.addVertex(matrix4f, 1F, 1F, 0F).setUv(1F, 1F).setColor(-1);
+        vertexConsumer.addVertex(matrix4f, 1F, -1F, 0F).setUv(1F, 0F).setColor(-1);
     }
 
     /**
      * 变换矩阵
      */
-    protected void transform(MatrixStack matrixStack, Camera camera, Vec3d correction) {
+    protected void transform(PoseStack matrixStack, Camera camera, Vec3 correction) {
         // 将路径点平移到方块位置
-        matrixStack.translate(correction.getX(), correction.getY(), correction.getZ());
+        matrixStack.translate(correction.x(), correction.y(), correction.z());
         float scale = this.getScale(correction.length());
         // 路径点大小
         matrixStack.scale(scale, scale, scale);
         // 翻转路径点
-        matrixStack.multiply(new Quaternionf(-1, 0, 0, 0));
+        matrixStack.mulPose(new Quaternionf(-1, 0, 0, 0));
         // 让路径点始终对准玩家
-        matrixStack.multiply(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.getYaw() - 180F))));
-        matrixStack.multiply(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.getPitch()))));
+        matrixStack.mulPose(new Quaternionf().rotateY((float) ((Math.PI / 180.0) * (camera.yRot() - 180F))));
+        matrixStack.mulPose(new Quaternionf().rotateX((float) ((Math.PI / 180.0) * (-camera.xRot()))));
     }
 
     protected void tick() {
@@ -138,27 +143,27 @@ public abstract class Waypoint {
     }
 
     @Nullable
-    protected Vec3d getRevisedPos() {
+    protected Vec3 getRevisedPos() {
         // 获取玩家所在维度ID
-        RegistryKey<World> key = ClientUtils.getWorld().getRegistryKey();
+        ResourceKey<Level> key = ClientUtils.getWorld().dimension();
         // 玩家和路径点在同一维度
-        Vec3d interpolation = getInterpolation();
+        Vec3 interpolation = getInterpolation();
         if (this.registryKey.equals(key)) {
             return interpolation;
         }
         Camera camera = ClientUtils.getCamera();
         // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
         if (WorldUtils.isOverworld(key) && WorldUtils.isTheNether(this.registryKey)) {
-            return new Vec3d(interpolation.getX() * 8, camera.getCameraPos().getY(), interpolation.getZ() * 8);
+            return new Vec3(interpolation.x() * 8, camera.position().y(), interpolation.z() * 8);
         }
         // 玩家在下界，路径点在主世界，将路径点坐标换算成下界坐标
         if (WorldUtils.isTheNether(key) && WorldUtils.isOverworld(this.registryKey)) {
-            return new Vec3d(interpolation.getX() / 8, camera.getCameraPos().getY(), interpolation.getZ() / 8);
+            return new Vec3(interpolation.x() / 8, camera.position().y(), interpolation.z() / 8);
         }
         return null;
     }
 
-    protected Vec3d getInterpolation() {
+    protected Vec3 getInterpolation() {
         return this.target;
     }
 
@@ -205,50 +210,50 @@ public abstract class Waypoint {
 
     /**
      * @return 光标是否指向路径点
-     * @see EndermanEntity#isPlayerStaring(PlayerEntity)
+     * @see EnderMan#isBeingStaredBy(Player)
      */
     @SuppressWarnings("JavadocReference")
-    private boolean isWatching(Camera camera, Vec3d target) {
-        float f = camera.getPitch() * (float) (Math.PI / 180.0);
-        float g = -camera.getYaw() * (float) (Math.PI / 180.0);
-        float h = MathHelper.cos(g);
-        float i = MathHelper.sin(g);
-        float j = MathHelper.cos(f);
-        float k = MathHelper.sin(f);
-        Vec3d vec3d = new Vec3d(i * j, -k, h * j).normalize();
-        Vec3d vec3d2 = new Vec3d(target.getX() - camera.getCameraPos().getX(), target.getY() - camera.getCameraPos().getY(), target.getZ() - camera.getCameraPos().getZ());
+    private boolean isWatching(Camera camera, Vec3 target) {
+        float f = camera.xRot() * (float) (Math.PI / 180.0);
+        float g = -camera.yRot() * (float) (Math.PI / 180.0);
+        float h = Mth.cos(g);
+        float i = Mth.sin(g);
+        float j = Mth.cos(f);
+        float k = Mth.sin(f);
+        Vec3 vec3d = new Vec3(i * j, -k, h * j).normalize();
+        Vec3 vec3d2 = new Vec3(target.x() - camera.position().x(), target.y() - camera.position().y(), target.z() - camera.position().z());
         double d = vec3d2.length();
         vec3d2 = vec3d2.normalize();
-        double e = vec3d.dotProduct(vec3d2);
+        double e = vec3d.dot(vec3d2);
         return e > 0.999 - (0.025 / d);
     }
 
     /**
      * 绘制距离文本
      */
-    private void drawDistance(MatrixStack matrixStack, VertexConsumerProvider consumers, Vec3d offset) {
-        TextRenderer textRenderer = ClientUtils.getTextRenderer();
+    private void drawDistance(PoseStack matrixStack, MultiBufferSource consumers, Vec3 offset) {
+        Font textRenderer = ClientUtils.getTextRenderer();
         // 计算距离
         double distance = offset.length();
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
         TextBuilder builder = new TextBuilder(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
-        if (!this.registryKey.equals(ClientUtils.getWorld().getRegistryKey())) {
+        if (!this.registryKey.equals(ClientUtils.getWorld().dimension())) {
             builder.setItalic();
         }
         // 获取文本宽度
-        int width = textRenderer.getWidth(formatted);
+        int width = textRenderer.width(formatted);
         // 获取背景不透明度
-        float backgroundOpacity = ClientUtils.getGameOptions().getTextBackgroundOpacity(0.25F);
+        float backgroundOpacity = ClientUtils.getGameOptions().getBackgroundOpacity(0.25F);
         int opacity = (int) (backgroundOpacity * 255.0F) << 24;
-        matrixStack.push();
+        matrixStack.pushPose();
         // 缩小文字
         matrixStack.scale(0.15F, 0.15F, 0.15F);
         // 渲染文字
-        textRenderer.draw(builder.build(), -width / 2F, 8, Colors.WHITE, false,
-                matrixStack.peek().getPositionMatrix(), consumers,
-                TextRenderer.TextLayerType.SEE_THROUGH, opacity, 1);
-        matrixStack.pop();
+        textRenderer.drawInBatch(builder.build(), -width / 2F, 8, CommonColors.WHITE, false,
+                matrixStack.last().pose(), consumers,
+                Font.DisplayMode.SEE_THROUGH, opacity, 1);
+        matrixStack.popPose();
     }
 
     /**
@@ -281,11 +286,11 @@ public abstract class Waypoint {
         return this.icon;
     }
 
-    public final Vec3d getTarget() {
+    public final Vec3 getTarget() {
         return this.target;
     }
 
-    public void setTarget(RegistryKey<World> registryKey, Vec3d vec3d) {
+    public void setTarget(ResourceKey<Level> registryKey, Vec3 vec3d) {
         this.target = vec3d;
         this.registryKey = registryKey;
     }

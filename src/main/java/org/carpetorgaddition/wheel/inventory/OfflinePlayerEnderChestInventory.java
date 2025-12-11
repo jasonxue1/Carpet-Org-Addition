@@ -1,6 +1,6 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import net.minecraft.inventory.Inventory;
+import net.minecraft.world.Container;
 
 public class OfflinePlayerEnderChestInventory extends OfflinePlayerInventory {
     public OfflinePlayerEnderChestInventory(FabricPlayerAccessor accessor) {
@@ -8,12 +8,12 @@ public class OfflinePlayerEnderChestInventory extends OfflinePlayerInventory {
     }
 
     @Override
-    public int size() {
-        return this.accessor.getEnderChest().size();
+    public int getContainerSize() {
+        return this.accessor.getEnderChest().getContainerSize();
     }
 
     @Override
-    protected Inventory getInventory() {
+    protected Container getInventory() {
         return this.accessor.getEnderChest();
     }
 }

@@ -3,9 +3,9 @@ package org.carpetorgaddition.mixin.rule;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.command.KillCommand;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.commands.KillCommand;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.CommandUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -20,7 +20,7 @@ import java.util.List;
 @Mixin(KillCommand.class)
 public class KillCommandMixin {
     // 创造玩家免疫kill
-    @Inject(method = "execute", at = @At(value = "HEAD"))
+    @Inject(method = "kill", at = @At(value = "HEAD"))
     private static void execute(CallbackInfoReturnable<Integer> cir, @Local(argsOnly = true) LocalRef<Collection<? extends Entity>> reference) throws CommandSyntaxException {
         if (CarpetOrgAdditionSettings.creativeImmuneKill.get()) {
             Collection<? extends Entity> entities = reference.get();
@@ -35,7 +35,7 @@ public class KillCommandMixin {
     // 指定玩家是否是创造或旁观模式的玩家
     @Unique
     private static boolean isCreativePlayer(Entity entity) {
-        if (entity instanceof ServerPlayerEntity player) {
+        if (entity instanceof ServerPlayer player) {
             return player.isCreative() || player.isSpectator();
         }
         return false;

@@ -2,17 +2,17 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.input.CraftingRecipeInput;
-import net.minecraft.screen.CraftingScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.world.World;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.CraftingMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
@@ -57,27 +57,27 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                 // 存在非物品谓词，无法推断输出物品
                 return ItemStack.EMPTY;
             }
-            list.add(optional.get().getDefaultStack());
+            list.add(optional.get().getDefaultInstance());
         }
-        CraftingRecipeInput input = CraftingRecipeInput.create(widthHeight, widthHeight, list);
-        World world = FetcherUtils.getWorld(fakePlayer);
-        Optional<RecipeEntry<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getFirstMatch(RecipeType.CRAFTING, input, world);
-        return optional.map(recipe -> recipe.value().craft(input, world.getRegistryManager())).orElse(ItemStack.EMPTY);
+        CraftingInput input = CraftingInput.of(widthHeight, widthHeight, list);
+        Level world = FetcherUtils.getWorld(fakePlayer);
+        Optional<RecipeHolder<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, world);
+        return optional.map(recipe -> recipe.value().assemble(input, world.registryAccess())).orElse(ItemStack.EMPTY);
     }
 
     @Override
     protected void tick() {
-        if (this.getFakePlayer().currentScreenHandler instanceof CraftingScreenHandler craftingScreenHandler) {
+        if (this.getFakePlayer().containerMenu instanceof CraftingMenu craftingScreenHandler) {
             AutoGrowInventory inventory = new AutoGrowInventory();
             this.craftingTableCraft(inventory, craftingScreenHandler);
             // 丢弃合成输出
             for (ItemStack itemStack : inventory) {
-                this.getFakePlayer().dropItem(itemStack, false, true);
+                this.getFakePlayer().drop(itemStack, false, true);
             }
         }
     }
 
-    private void craftingTableCraft(AutoGrowInventory inventory, CraftingScreenHandler craftingScreenHandler) {
+    private void craftingTableCraft(AutoGrowInventory inventory, CraftingMenu craftingScreenHandler) {
         // 定义变量记录成功完成合成的次数
         int craftCount = 0;
         // 记录循环次数用来在游戏可能进入死循环时抛出异常
@@ -96,8 +96,8 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                 ItemStackPredicate predicate = this.predicates[index - 1];
                 Slot slot = craftingScreenHandler.getSlot(index);
                 // 如果合成格的指定槽位不是所需要合成材料，则丢出该物品
-                if (slot.hasStack()) {
-                    ItemStack itemStack = slot.getStack();
+                if (slot.hasItem()) {
+                    ItemStack itemStack = slot.getItem();
                     if (predicate.test(itemStack)) {
                         // 合成表格上已经有正确的合成材料，找到正确的合成材料次数自增
                         successCount++;
@@ -113,7 +113,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                     // 遍历物品栏找到需要的合成材料
                     int size = craftingScreenHandler.slots.size();
                     for (int inventoryIndex = 10; inventoryIndex < size; inventoryIndex++) {
-                        ItemStack itemStack = craftingScreenHandler.getSlot(inventoryIndex).getStack();
+                        ItemStack itemStack = craftingScreenHandler.getSlot(inventoryIndex).getItem();
                         if (predicate.test(itemStack)) {
                             // 光标拾取和移动物品
                             if (FakePlayerUtils.withKeepPickupAndMoveItemStack(craftingScreenHandler,
@@ -128,7 +128,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                                 // 丢弃光标上的物品（如果有）
                                 FakePlayerUtils.dropCursorStack(craftingScreenHandler, getFakePlayer());
                                 // 将光标上的物品设置为从潜影盒中取出来的物品
-                                craftingScreenHandler.setCursorStack(contentItemStack);
+                                craftingScreenHandler.setCarried(contentItemStack);
                                 // 将光标上的物品放在合成方格的槽位上
                                 FakePlayerUtils.pickupCursorStack(craftingScreenHandler, index, getFakePlayer());
                                 successCount++;
@@ -146,7 +146,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             // 正确材料找到的次数等于9说明全部找到，可以合成
             if (successCount == 9) {
                 // 工作台输出槽里有物品，说明配方正确并且前面的合成没有问题，可以取出合成的物品
-                if (craftingScreenHandler.getSlot(0).hasStack()) {
+                if (craftingScreenHandler.getSlot(0).hasItem()) {
                     FakePlayerUtils.collectItem(craftingScreenHandler, 0, inventory, this.getFakePlayer());
                     // 合成成功，合成计数器自增
                     craftCount++;
@@ -156,7 +156,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 如果没有输出物品，说明之前的合成步骤有误，停止合成
-                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().getCommandSource(), this.getFakePlayer());
+                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer());
                     return;
                 }
             } else {
@@ -173,7 +173,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
 
     @Override
-    public List<Text> info() {
+    public List<Component> info() {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
         TextJoiner joiner = new TextJoiner();
         joiner.unsetBullet();
@@ -181,11 +181,11 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
+        Component itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
         joiner.append("carpet.commands.playerAction.info.craft.result", this.getFakePlayer().getDisplayName(), itemText);
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 判断假玩家是否打开了一个工作台
-        if (this.getFakePlayer().currentScreenHandler instanceof CraftingScreenHandler currentScreenHandler) {
+        if (this.getFakePlayer().containerMenu instanceof CraftingMenu currentScreenHandler) {
             // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
             joiner.append("carpet.commands.playerAction.info.craft.state", this.getFakePlayer().getDisplayName());
             // 如果打开了，将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
@@ -229,30 +229,30 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     }
 
     // 添加当前合成方格的状态
-    private void addCraftGridState(CraftingScreenHandler screenHandler, TextJoiner joiner) {
+    private void addCraftGridState(CraftingMenu screenHandler, TextJoiner joiner) {
         // 合成格第一排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getStack()));
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()));
         // 合成格第二排和输出槽
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(5).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(5).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(6).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(6).getItem()))
                 .literal(" -> ")
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getStack()));
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
         // 合成格第三排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(7).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(7).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(8).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(8).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(9).getStack()));
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(9).getItem()));
     }
 
     @Override
@@ -265,7 +265,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.crafting_table_craft");
     }
 

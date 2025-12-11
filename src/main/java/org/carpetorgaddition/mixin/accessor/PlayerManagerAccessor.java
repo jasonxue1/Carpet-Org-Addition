@@ -1,12 +1,12 @@
 package org.carpetorgaddition.mixin.accessor;
 
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(PlayerManager.class)
+@Mixin(PlayerList.class)
 public interface PlayerManagerAccessor {
-    @Invoker("savePlayerData")
-    void savePlayerEntityData(ServerPlayerEntity player);
+    @Invoker("save")
+    void savePlayerEntityData(ServerPlayer player);
 }

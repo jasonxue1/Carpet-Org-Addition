@@ -1,12 +1,12 @@
 package org.carpetorgaddition.mixin.rule.quickshulker;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.screen.slot.SlotActionType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import org.carpetorgaddition.util.InventoryUtils;
@@ -20,26 +20,26 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(ScreenHandler.class)
+@Mixin(AbstractContainerMenu.class)
 public abstract class ScreenHandlerMixin {
     @Shadow
     @Final
-    public DefaultedList<Slot> slots;
+    public NonNullList<Slot> slots;
 
     @Shadow
     public abstract Slot getSlot(int index);
 
     @Shadow
-    public abstract ItemStack getCursorStack();
+    public abstract ItemStack getCarried();
 
-    @Inject(method = "onSlotClick", at = @At("HEAD"), cancellable = true)
-    private void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.quickShulker.get() && MathUtils.isInRange(0, this.slots.size(), slotIndex) && actionType == SlotActionType.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
-            ItemStack stack = this.getSlot(slotIndex).getStack();
-            if (this.canOpenShulker() && InventoryUtils.isOperableSulkerBox(stack) && this.getCursorStack().isEmpty()) {
+    @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
+    private void onSlotClick(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
+        if (CarpetOrgAdditionSettings.quickShulker.get() && MathUtils.isInRange(0, this.slots.size(), slotIndex) && actionType == ClickType.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
+            ItemStack stack = this.getSlot(slotIndex).getItem();
+            if (this.canOpenShulker() && InventoryUtils.isOperableSulkerBox(stack) && this.getCarried().isEmpty()) {
                 // 创造模式物品栏是一个客户端屏幕，因此点击潜影盒不会打开物品栏
-                if (player instanceof ServerPlayerEntity) {
-                    ScreenUtils.openShulkerScreenHandler((ServerPlayerEntity) player, stack);
+                if (player instanceof ServerPlayer) {
+                    ScreenUtils.openShulkerScreenHandler((ServerPlayer) player, stack);
                 }
                 ci.cancel();
             }

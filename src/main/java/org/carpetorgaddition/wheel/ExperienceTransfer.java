@@ -1,7 +1,7 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.Mth;
 import org.carpetorgaddition.exception.OperationTimeoutException;
 import org.carpetorgaddition.util.CommandUtils;
 import org.carpetorgaddition.util.MathUtils;
@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-public record ExperienceTransfer(ServerPlayerEntity player) {
+public record ExperienceTransfer(ServerPlayer player) {
     /**
      * {@code int}的最大值
      */
@@ -29,7 +29,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @return 获取玩家的经验值数
      */
     private int getPoint() {
-        int result = MathHelper.floor(this.player.experienceProgress * (float) this.player.getNextLevelExperience());
+        int result = Mth.floor(this.player.experienceProgress * (float) this.player.getXpNeededForNextLevel());
         // 避免数值溢出
         return Math.max(result, 0);
     }
@@ -38,7 +38,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * 清除玩家的所有经验
      */
     private void clearExperience() {
-        this.player.setExperienceLevel(0);
+        this.player.setExperienceLevels(0);
         this.player.setExperiencePoints(0);
     }
 
@@ -95,7 +95,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
         try {
             return supplier.get();
         } catch (OperationTimeoutException e) {
-            this.player.setExperienceLevel(level);
+            this.player.setExperienceLevels(level);
             this.player.setExperiencePoints(point);
             throw e;
         }
@@ -104,7 +104,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
     /**
      * @return 当前玩家是否是假玩家或指定玩家
      */
-    public boolean isSpecifiedOrFakePlayer(ServerPlayerEntity specified) {
+    public boolean isSpecifiedOrFakePlayer(ServerPlayer specified) {
         return CommandUtils.isSpecifiedOrFakePlayer(this.player, specified);
     }
 
@@ -114,7 +114,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
      * @param experience 添加经验的数量
      */
     private void addExperience(int experience) {
-        this.player.addExperience(experience);
+        this.player.giveExperiencePoints(experience);
     }
 
     private void addExperience(BigInteger bigInteger) {
@@ -148,7 +148,7 @@ public record ExperienceTransfer(ServerPlayerEntity player) {
             transfer.addExperience(experience.intValue());
         } catch (OperationTimeoutException e) {
             // 操作超时，回退经验
-            transfer.player.setExperienceLevel(level);
+            transfer.player.setExperienceLevels(level);
             transfer.player.setExperiencePoints(point);
             throw e;
         }

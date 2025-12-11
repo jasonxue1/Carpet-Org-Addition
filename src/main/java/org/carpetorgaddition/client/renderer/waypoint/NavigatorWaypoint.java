@@ -1,12 +1,12 @@
 package org.carpetorgaddition.client.renderer.waypoint;
 
-import net.minecraft.client.render.Camera;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.provider.CommandProvider;
@@ -17,12 +17,12 @@ public class NavigatorWaypoint extends Waypoint {
      */
     private double progress = 0d;
 
-    public NavigatorWaypoint(RegistryKey<World> registryKey, Vec3d vec3d) {
+    public NavigatorWaypoint(ResourceKey<Level> registryKey, Vec3 vec3d) {
         super(registryKey, vec3d, Waypoint.NAVIGATOR, 1, true);
     }
 
     @Override
-    public void render(MatrixStack matrixStack, VertexConsumerProvider consumers, Camera camera, RenderTickCounter tickCounter) {
+    public void render(PoseStack matrixStack, MultiBufferSource consumers, Camera camera, DeltaTracker tickCounter) {
         // 计算帧间时间增量
         double delta = this.tickDelta - this.lastTickDelta;
         if (delta < 0) {
@@ -34,7 +34,7 @@ public class NavigatorWaypoint extends Waypoint {
     }
 
     @Override
-    protected Vec3d getInterpolation() {
+    protected Vec3 getInterpolation() {
         if (this.progress >= 1d) {
             return super.getInterpolation();
         }
@@ -42,7 +42,7 @@ public class NavigatorWaypoint extends Waypoint {
     }
 
     @Override
-    public void setTarget(RegistryKey<World> registryKey, Vec3d vec3d) {
+    public void setTarget(ResourceKey<Level> registryKey, Vec3 vec3d) {
         if (registryKey.equals(this.registryKey)) {
             this.lastTarget = this.getTarget();
             this.progress = 0d;

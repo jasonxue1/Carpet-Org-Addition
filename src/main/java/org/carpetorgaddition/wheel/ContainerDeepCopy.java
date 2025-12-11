@@ -1,7 +1,7 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 public interface ContainerDeepCopy {
-    ContainerComponent carpet_Org_Addition$copy();
+    ItemContainerContents carpet_Org_Addition$copy();
 }

@@ -1,15 +1,15 @@
 package org.carpetorgaddition.util;
 
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.ShulkerBoxBlock;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.level.block.ShulkerBoxBlock;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.wheel.ContainerDeepCopy;
 import org.carpetorgaddition.wheel.Counter;
@@ -84,9 +84,9 @@ public class InventoryUtils {
         if (container.isEmpty() || itemStack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        if (isOperableSulkerBox(container) && itemStack.getItem().canBeNested()) {
+        if (isOperableSulkerBox(container) && itemStack.getItem().canFitInsideContainerItems()) {
             ContainerComponentInventory inventory = new ContainerComponentInventory(container);
-            return inventory.addStack(itemStack);
+            return inventory.addItem(itemStack);
         }
         return itemStack;
     }
@@ -95,22 +95,22 @@ public class InventoryUtils {
      * @return 潜影盒中可以插入多少个物品
      */
     public static int shulkerCanInsertItemCount(ItemStack container, ItemStack itemStack) {
-        ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
-        if (component == null || component == ContainerComponent.DEFAULT) {
-            return itemStack.getMaxCount() * ContainerComponentInventory.CONTAINER_SIZE;
+        ItemContainerContents component = container.get(DataComponents.CONTAINER);
+        if (component == null || component == ItemContainerContents.EMPTY) {
+            return itemStack.getMaxStackSize() * ContainerComponentInventory.CONTAINER_SIZE;
         }
-        List<ItemStack> list = component.streamNonEmpty().toList();
+        List<ItemStack> list = component.nonEmptyStream().toList();
         int count = 0;
         for (ItemStack stack : list) {
-            if (stack.getCount() == stack.getMaxCount()) {
+            if (stack.getCount() == stack.getMaxStackSize()) {
                 continue;
             }
-            if (ItemStack.areItemsAndComponentsEqual(stack, itemStack)) {
-                count += (stack.getMaxCount() - stack.getCount());
+            if (ItemStack.isSameItemSameComponents(stack, itemStack)) {
+                count += (stack.getMaxStackSize() - stack.getCount());
             }
         }
         int emptySlotCount = ContainerComponentInventory.CONTAINER_SIZE - list.size();
-        count += emptySlotCount * itemStack.getMaxCount();
+        count += emptySlotCount * itemStack.getMaxStackSize();
         return count;
     }
 
@@ -120,11 +120,11 @@ public class InventoryUtils {
     @Contract(pure = true)
     public static ItemStack getFirstItemStack(ItemStack container) {
         if (isOperableSulkerBox(container)) {
-            ContainerComponent component = container.get(DataComponentTypes.CONTAINER);
-            if (component == null || component == ContainerComponent.DEFAULT) {
+            ItemContainerContents component = container.get(DataComponents.CONTAINER);
+            if (component == null || component == ItemContainerContents.EMPTY) {
                 return ItemStack.EMPTY;
             }
-            Iterator<ItemStack> iterator = component.streamNonEmpty().iterator();
+            Iterator<ItemStack> iterator = component.nonEmptyStream().iterator();
             return iterator.hasNext() ? iterator.next() : ItemStack.EMPTY;
         }
         return ItemStack.EMPTY;
@@ -142,11 +142,11 @@ public class InventoryUtils {
         if (shulkerBox.getCount() != 1) {
             return true;
         }
-        ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        if (component == null || component == ContainerComponent.DEFAULT) {
+        ItemContainerContents component = shulkerBox.get(DataComponents.CONTAINER);
+        if (component == null || component == ItemContainerContents.EMPTY) {
             return true;
         }
-        return !component.iterateNonEmpty().iterator().hasNext();
+        return !component.nonEmptyItems().iterator().hasNext();
     }
 
     /**
@@ -174,10 +174,10 @@ public class InventoryUtils {
         if (isEmptyShulkerBox(shulkerBox)) {
             return ImmutableInventory.EMPTY;
         }
-        ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
+        ItemContainerContents component = shulkerBox.get(DataComponents.CONTAINER);
         // 因为有空潜影盒的判断，shulkerBox.get(DataComponentTypes.CONTAINER)不会返回null
         //noinspection DataFlowIssue
-        return new ImmutableInventory(component.streamNonEmpty().toList());
+        return new ImmutableInventory(component.nonEmptyStream().toList());
     }
 
 
@@ -188,12 +188,12 @@ public class InventoryUtils {
      * @see <a href="https://bugs.mojang.com/browse/MC-271123">MC-271123</a>
      */
     public static void deepCopyContainer(ItemStack shulkerBox) {
-        ContainerComponent component = shulkerBox.get(DataComponentTypes.CONTAINER);
-        if (component == null || component == ContainerComponent.DEFAULT) {
+        ItemContainerContents component = shulkerBox.get(DataComponents.CONTAINER);
+        if (component == null || component == ItemContainerContents.EMPTY) {
             return;
         }
-        ContainerComponent copy = ((ContainerDeepCopy) (Object) component).carpet_Org_Addition$copy();
-        shulkerBox.set(DataComponentTypes.CONTAINER, copy);
+        ItemContainerContents copy = ((ContainerDeepCopy) (Object) component).carpet_Org_Addition$copy();
+        shulkerBox.set(DataComponents.CONTAINER, copy);
     }
 
     /**
@@ -203,7 +203,7 @@ public class InventoryUtils {
      * @return 指定物品是否是潜影盒
      */
     public static boolean isShulkerBoxItem(ItemStack shulkerBox) {
-        if (shulkerBox.isOf(Items.SHULKER_BOX)) {
+        if (shulkerBox.is(Items.SHULKER_BOX)) {
             return true;
         }
         if (shulkerBox.getItem() instanceof BlockItem blockItem) {
@@ -241,7 +241,7 @@ public class InventoryUtils {
      * @return 物品是否已经堆叠满
      */
     public static boolean isItemStackFull(ItemStack itemStack) {
-        return itemStack.isStackable() && itemStack.getMaxCount() <= itemStack.getCount();
+        return itemStack.isStackable() && itemStack.getMaxStackSize() <= itemStack.getCount();
     }
 
     /**
@@ -255,7 +255,7 @@ public class InventoryUtils {
     }
 
     public static boolean canMerge(ItemStack stack, ItemStack otherStack) {
-        return ItemStack.areItemsAndComponentsEqual(stack, otherStack);
+        return ItemStack.isSameItemSameComponents(stack, otherStack);
     }
 
     /**
@@ -266,9 +266,9 @@ public class InventoryUtils {
             if (isItemStackFull(retain)) {
                 return;
             }
-            int shortage = Math.min(retain.getMaxCount() - retain.getCount(), sacrifice.getCount());
-            retain.increment(shortage);
-            sacrifice.decrement(shortage);
+            int shortage = Math.min(retain.getMaxStackSize() - retain.getCount(), sacrifice.getCount());
+            retain.grow(shortage);
+            sacrifice.shrink(shortage);
         } else {
             throw new IllegalArgumentException("Attempting to merge two items that are not completely identical");
         }
@@ -289,7 +289,7 @@ public class InventoryUtils {
         if (right.isEmpty()) {
             return -1;
         }
-        if (left.isOf(right.getItem())) {
+        if (left.is(right.getItem())) {
             // 两个物品都是潜影盒
             if (InventoryUtils.isShulkerBoxItem(left)) {
                 return new ContainerComponentInventory(left).compareTo(new ContainerComponentInventory(right));
@@ -303,7 +303,7 @@ public class InventoryUtils {
             if (compareCount != 0) {
                 return compareComponent;
             }
-            return Integer.compare(ItemStack.hashCode(left), ItemStack.hashCode(right));
+            return Integer.compare(ItemStack.hashItemAndComponents(left), ItemStack.hashItemAndComponents(right));
         } else {
             // 潜影盒放在普通物品后面，忽略潜影盒颜色
             if (isShulkerBoxItem(left) && !isShulkerBoxItem(right)) {
@@ -324,10 +324,10 @@ public class InventoryUtils {
     /**
      * 根据条件获取物品栏中数量最多的物品
      */
-    public static ItemStack findMostAbundantStack(Inventory inventory, Predicate<ItemStack> predicate) {
+    public static ItemStack findMostAbundantStack(Container inventory, Predicate<ItemStack> predicate) {
         Counter<Counter.Wrapper<ItemStack>> counter = new Counter<>();
-        for (int i = 0; i < inventory.size(); i++) {
-            ItemStack itemStack = inventory.getStack(i);
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack itemStack = inventory.getItem(i);
             if (itemStack.isEmpty()) {
                 continue;
             }
@@ -343,22 +343,22 @@ public class InventoryUtils {
      * @return 潜影盒中是否有且只有一种物品，并且要插入的物品与潜影盒中的物品相同
      */
     public static boolean canAcceptAsSingleItemType(ItemStack shulker, ItemStack target, boolean acceptEmptyShulker) {
-        ContainerComponent component = shulker.get(DataComponentTypes.CONTAINER);
-        if (component == null || component == ContainerComponent.DEFAULT) {
+        ItemContainerContents component = shulker.get(DataComponents.CONTAINER);
+        if (component == null || component == ItemContainerContents.EMPTY) {
             return acceptEmptyShulker;
         }
-        return component.streamNonEmpty().allMatch(itemStack -> canMerge(itemStack, target));
+        return component.nonEmptyStream().allMatch(itemStack -> canMerge(itemStack, target));
     }
 
     /**
      * @return 潜影盒是否包含多种物品
      */
     public static boolean isJunkBox(ItemStack shulker) {
-        ContainerComponent component = shulker.get(DataComponentTypes.CONTAINER);
-        if (component == null || component == ContainerComponent.DEFAULT) {
+        ItemContainerContents component = shulker.get(DataComponents.CONTAINER);
+        if (component == null || component == ItemContainerContents.EMPTY) {
             return false;
         }
-        List<ItemStack> list = component.streamNonEmpty().toList();
+        List<ItemStack> list = component.nonEmptyStream().toList();
         // 潜影盒为空或只有一个物品
         if (list.size() < 2) {
             return false;
@@ -383,10 +383,10 @@ public class InventoryUtils {
     /**
      * 统计物品栏内指定物品的数量
      */
-    public static int count(Inventory inventory, Predicate<ItemStack> predicate) {
+    public static int count(Container inventory, Predicate<ItemStack> predicate) {
         int count = 0;
-        for (int i = 0; i < inventory.size(); i++) {
-            ItemStack itemStack = inventory.getStack(i);
+        for (int i = 0; i < inventory.getContainerSize(); i++) {
+            ItemStack itemStack = inventory.getItem(i);
             if (predicate.test(itemStack)) {
                 count += itemStack.getCount();
             }
@@ -399,11 +399,11 @@ public class InventoryUtils {
     }
 
     public static boolean isFoodItem(ItemStack itemStack) {
-        return itemStack.contains(DataComponentTypes.FOOD);
+        return itemStack.has(DataComponents.FOOD);
     }
 
     public static boolean isToolItem(ItemStack itemStack) {
-        return itemStack.contains(DataComponentTypes.TOOL);
+        return itemStack.has(DataComponents.TOOL);
     }
 
     /**
@@ -411,11 +411,11 @@ public class InventoryUtils {
      */
     public static boolean isGcaItem(ItemStack itemStack) {
         if (GCA_LOADED || CarpetOrgAddition.isDebugDevelopment()) {
-            NbtComponent component = itemStack.get(DataComponentTypes.CUSTOM_DATA);
+            CustomData component = itemStack.get(DataComponents.CUSTOM_DATA);
             if (component == null) {
                 return false;
             }
-            return component.copyNbt().get("GcaClear") != null;
+            return component.copyTag().get("GcaClear") != null;
         }
         return false;
     }
@@ -437,7 +437,7 @@ public class InventoryUtils {
 
         @Override
         public int valueHashCode(ItemStack value) {
-            return ItemStack.hashCode(value);
+            return ItemStack.hashItemAndComponents(value);
         }
     }
 }

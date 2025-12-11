@@ -4,17 +4,17 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
-import net.minecraft.entity.Entity;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.particle.ParticleEffect;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.ServerComponentCoordinator;
 import org.carpetorgaddition.periodic.task.DrawParticleLineTask;
@@ -26,38 +26,38 @@ import org.carpetorgaddition.util.WorldUtils;
 
 @Deprecated(forRemoval = true)
 public class ParticleLineCommand {
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
-        dispatcher.register(CommandManager.literal("particleLine")
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
+        dispatcher.register(Commands.literal("particleLine")
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandParticleLine))
-                .then(CommandManager.argument("from", Vec3ArgumentType.vec3())
-                        .then(CommandManager.argument("to", Vec3ArgumentType.vec3())
+                .then(Commands.argument("from", Vec3Argument.vec3())
+                        .then(Commands.argument("to", Vec3Argument.vec3())
                                 .executes(context -> draw(context, false)))
-                        .then(CommandManager.argument("uuid", StringArgumentType.string())
+                        .then(Commands.argument("uuid", StringArgumentType.string())
                                 .executes(context -> draw(context, true)))));
     }
 
     // 准备绘制粒子线
-    public static int draw(CommandContext<ServerCommandSource> context, boolean isUuid) throws CommandSyntaxException {
+    public static int draw(CommandContext<CommandSourceStack> context, boolean isUuid) throws CommandSyntaxException {
         // 获取玩家对象
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取粒子线的起始和结束点
-        Vec3d from = Vec3ArgumentType.getVec3(context, "from");
-        Vec3d to;
-        ServerCommandSource source = context.getSource();
+        Vec3 from = Vec3Argument.getVec3(context, "from");
+        Vec3 to;
+        CommandSourceStack source = context.getSource();
         if (isUuid) {
             String uuid = StringArgumentType.getString(context, "uuid");
             Entity entity = WorldUtils.getEntityFromUUID(source.getServer(), CommandUtils.parseUuidFromString(uuid));
             if (entity == null) {
-                throw EntityArgumentType.ENTITY_NOT_FOUND_EXCEPTION.create();
+                throw EntityArgument.NO_ENTITIES_FOUND.create();
             }
-            to = new Vec3d(entity.getX(), entity.getBodyY(0.618), entity.getZ());
+            to = new Vec3(entity.getX(), entity.getY(0.618), entity.getZ());
         } else {
-            to = Vec3ArgumentType.getVec3(context, "to");
+            to = Vec3Argument.getVec3(context, "to");
         }
         // 获取粒子的效果类型
-        ParticleEffect mainParticle = new DustParticleEffect(0x000000, 1);
+        ParticleOptions mainParticle = new DustParticleOptions(0x000000, 1);
         // 计算粒子线的长度（平方）
-        double distanceTo = from.squaredDistanceTo(to);
+        double distanceTo = from.distanceToSqr(to);
         // 计算粒子线长度
         int distance = (int) Math.round(Math.sqrt(distanceTo));
         if (distance == 0) {
@@ -75,23 +75,23 @@ public class ParticleLineCommand {
     /**
      * 发送箭头文本用来指示方向
      *
-     * @see net.minecraft.client.gui.hud.SubtitlesHud#render(DrawContext)
+     * @see net.minecraft.client.gui.components.SubtitleOverlay#render(GuiGraphics)
      */
-    private static void sendArrow(ServerPlayerEntity player, Vec3d to) {
+    private static void sendArrow(ServerPlayer player, Vec3 to) {
         // 获取玩家眼睛的位置
-        Vec3d eyePos = player.getEyePos();
-        Vec3d vec3d2 = new Vec3d(0.0, 0.0, -1.0).rotateX(-player.getPitch() * ((float) Math.PI / 180)).rotateY(-player.getYaw() * ((float) Math.PI / 180));
-        Vec3d vec3d3 = new Vec3d(0.0, 1.0, 0.0).rotateX(-player.getPitch() * ((float) Math.PI / 180)).rotateY(-player.getYaw() * ((float) Math.PI / 180));
-        Vec3d vec3d4 = vec3d2.crossProduct(vec3d3);
-        Vec3d vec3d5 = to.subtract(eyePos).normalize();
+        Vec3 eyePos = player.getEyePosition();
+        Vec3 vec3d2 = new Vec3(0.0, 0.0, -1.0).xRot(-player.getXRot() * ((float) Math.PI / 180)).yRot(-player.getYRot() * ((float) Math.PI / 180));
+        Vec3 vec3d3 = new Vec3(0.0, 1.0, 0.0).xRot(-player.getXRot() * ((float) Math.PI / 180)).yRot(-player.getYRot() * ((float) Math.PI / 180));
+        Vec3 vec3d4 = vec3d2.cross(vec3d3);
+        Vec3 vec3d5 = to.subtract(eyePos).normalize();
         // 视线与垂直方向的夹角
-        double verticalAngle = -vec3d4.dotProduct(vec3d5);
-        double f = -vec3d2.dotProduct(vec3d5);
+        double verticalAngle = -vec3d4.dot(vec3d5);
+        double f = -vec3d2.dot(vec3d5);
         if (f <= 0.5) {
             if (verticalAngle > 0.0) {
-                MessageUtils.sendMessageToHud(player, Text.literal("-->"));
+                MessageUtils.sendMessageToHud(player, Component.literal("-->"));
             } else if (verticalAngle < 0.0) {
-                MessageUtils.sendMessageToHud(player, Text.literal("<--"));
+                MessageUtils.sendMessageToHud(player, Component.literal("<--"));
             }
         }
     }

@@ -5,13 +5,12 @@ import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.fabricmc.fabric.impl.networking.AbstractChanneledNetworkAddon;
 import net.fabricmc.fabric.impl.networking.AbstractNetworkAddon;
 import net.fabricmc.fabric.impl.networking.GlobalReceiverRegistry;
-import net.minecraft.network.ClientConnection;
+import net.minecraft.network.Connection;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.fabricapi.AbstractChanneledNetworkAddonAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
-@SuppressWarnings("UnstableApiUsage")
 @Mixin(value = AbstractNetworkAddon.class, priority = 998, remap = false)
 public abstract class AbstractNetworkAddonMixin {
     /**
@@ -23,7 +22,7 @@ public abstract class AbstractNetworkAddonMixin {
     @WrapWithCondition(method = "lateInit", at = @At(value = "INVOKE", target = "Lnet/fabricmc/fabric/impl/networking/GlobalReceiverRegistry;startSession(Lnet/fabricmc/fabric/impl/networking/AbstractNetworkAddon;)V"))
     private boolean notStartSession_ifFakeClientConnection(GlobalReceiverRegistry<?> instance, AbstractNetworkAddon<?> addon) {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get() && addon instanceof AbstractChanneledNetworkAddon<?>) {
-            ClientConnection connection = ((AbstractChanneledNetworkAddonAccessor) addon).getConnection();
+            Connection connection = ((AbstractChanneledNetworkAddonAccessor) addon).getConnection();
             if (connection instanceof FakeClientConnection) {
                 return false;
             }

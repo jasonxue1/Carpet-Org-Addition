@@ -1,6 +1,6 @@
 package org.util;
 
-import net.minecraft.util.Uuids;
+import net.minecraft.core.UUIDUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -87,7 +87,7 @@ public class OfflinePlayerUuidBruteForce implements Iterator<String> {
                 break;
             }
             String name = iterator.next();
-            UUID uuid = Uuids.getOfflinePlayerUuid(name);
+            UUID uuid = UUIDUtil.createOfflinePlayerUUID(name);
             if (list.contains(uuid)) {
                 System.out.println(name + ",   " + uuid);
                 list.remove(uuid);

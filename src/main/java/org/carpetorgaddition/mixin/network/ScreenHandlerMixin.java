@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.network;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.slot.SlotActionType;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ClickType;
 import org.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
@@ -14,18 +14,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = ScreenHandler.class, priority = 1001)
+@Mixin(value = AbstractContainerMenu.class, priority = 1001)
 public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     @Shadow
     @Final
-    public int syncId;
+    public int containerId;
     @Unique
     private int from = 0;
     @Unique
     private int to = -1;
 
-    @Inject(method = "onSlotClick", at = @At("HEAD"), cancellable = true)
-    private void onSlotClick(int slotIndex, int button, SlotActionType actionType, PlayerEntity player, CallbackInfo ci) {
+    @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
+    private void onSlotClick(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
         if (MathUtils.isInRange(this.from, this.to, slotIndex)) {
             ci.cancel();
         }
@@ -33,7 +33,7 @@ public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
 
     @Override
     public void carpet_Org_Addition$sync(UnavailableSlotSyncS2CPacket pack) {
-        if (this.syncId == pack.syncId()) {
+        if (this.containerId == pack.syncId()) {
             this.from = pack.from();
             this.to = pack.to();
         }

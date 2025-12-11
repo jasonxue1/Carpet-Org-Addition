@@ -1,39 +1,39 @@
 package org.carpetorgaddition.debug.client.render;
 
+import com.mojang.blaze3d.platform.Window;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ComparatorBlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.Mouse;
-import net.minecraft.client.gui.screen.ChatScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.util.Window;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.predicate.entity.EntityPredicates;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.server.integrated.IntegratedServer;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.world.chunk.WorldChunk;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
+import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySelector;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.ComparatorBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import org.carpetorgaddition.client.renderer.Tooltip;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.debug.DebugSettings;
@@ -69,8 +69,8 @@ public class HudDebugRendererRegister {
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    ClientPlayerEntity player = ClientUtils.getPlayer();
-                    ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
+                    LocalPlayer player = ClientUtils.getPlayer();
+                    ServerLevel world = getServer().getLevel(FetcherUtils.getWorld(player).dimension());
                     if (world == null) {
                         return;
                     }
@@ -78,7 +78,7 @@ public class HudDebugRendererRegister {
                     if (blockState.isAir()) {
                         return;
                     }
-                    float speed = player.getBlockBreakingSpeed(blockState);
+                    float speed = player.getDestroySpeed(blockState);
                     String formatted = "%.2f".formatted(speed);
                     if (formatted.endsWith(".00")) {
                         formatted = formatted.substring(0, formatted.length() - 3);
@@ -98,12 +98,12 @@ public class HudDebugRendererRegister {
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    ClientPlayerEntity player = ClientUtils.getPlayer();
-                    ServerWorld world = getServer().getWorld(FetcherUtils.getWorld(player).getRegistryKey());
+                    LocalPlayer player = ClientUtils.getPlayer();
+                    ServerLevel world = getServer().getLevel(FetcherUtils.getWorld(player).dimension());
                     if (world == null) {
                         return;
                     }
-                    BlockEntity blockEntity = world.getWorldChunk(blockPos).getBlockEntity(blockPos, WorldChunk.CreationType.IMMEDIATE);
+                    BlockEntity blockEntity = world.getChunkAt(blockPos).getBlockEntity(blockPos, LevelChunk.EntityCreationType.IMMEDIATE);
                     if (blockEntity instanceof ComparatorBlockEntity comparator) {
                         int level = comparator.getOutputSignal();
                         if (level == 0) {
@@ -123,17 +123,17 @@ public class HudDebugRendererRegister {
                 }
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
-                    ServerWorld world = getPlayerWorld();
+                    ServerLevel world = getPlayerWorld();
                     BlockState blockState = world.getBlockState(blockPos);
                     if (blockState.isAir()) {
                         return;
                     }
-                    if (blockState.isOf(Blocks.SOUL_SAND)) {
-                        Box box = new Box(blockPos.up());
+                    if (blockState.is(Blocks.SOUL_SAND)) {
+                        AABB box = new AABB(blockPos.above());
                         List<Entity> itemEntities;
                         try {
                             // 方法可能被多个线程调用
-                            itemEntities = world.getEntitiesByClass(Entity.class, box, EntityPredicates.VALID_ENTITY);
+                            itemEntities = world.getEntitiesOfClass(Entity.class, box, EntitySelector.ENTITY_STILL_ALIVE);
                         } catch (ConcurrentModificationException e) {
                             return;
                         }
@@ -146,10 +146,10 @@ public class HudDebugRendererRegister {
                         for (Entity entity : itemEntities) {
                             switch (entity) {
                                 case ItemEntity itemEntity -> {
-                                    ItemStack itemStack = itemEntity.getStack();
+                                    ItemStack itemStack = itemEntity.getItem();
                                     counter.add(itemStack.getItem(), itemStack.getCount());
                                 }
-                                case ExperienceOrbEntity experienceOrb -> {
+                                case ExperienceOrb experienceOrb -> {
                                     experienceOrbEntityCount++;
                                     ExperienceOrbEntityAccessor accessor = (ExperienceOrbEntityAccessor) experienceOrb;
                                     experienceOrbTotalValue += accessor.getPickingCount() * experienceOrb.getValue();
@@ -158,7 +158,7 @@ public class HudDebugRendererRegister {
                                 }
                             }
                         }
-                        List<Text> list = new ArrayList<>();
+                        List<Component> list = new ArrayList<>();
                         for (Item item : counter) {
                             int count = counter.getCount(item);
                             list.add(TextBuilder.combineAll(item.getName(), "*", count));
@@ -175,7 +175,7 @@ public class HudDebugRendererRegister {
         // 渲染当前HUD信息
         renders.add((context, tickCounter) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
-                MinecraftClient client = ClientUtils.getClient();
+                Minecraft client = ClientUtils.getClient();
                 Screen screen = ClientUtils.getCurrentScreen();
                 if (screen == null) {
                     return;
@@ -183,15 +183,15 @@ public class HudDebugRendererRegister {
                 ArrayList<String> list = new ArrayList<>();
                 String name = screen.getClass().getSimpleName();
                 list.add("类名：" + name);
-                Mouse mouse = ClientUtils.getMouse();
-                double mouseX = mouse.getX();
-                double mouseY = mouse.getY();
+                MouseHandler mouse = ClientUtils.getMouse();
+                double mouseX = mouse.xpos();
+                double mouseY = mouse.ypos();
                 list.add("鼠标X：" + (int) mouseX);
                 list.add("鼠标Y：" + (int) mouseY);
-                if (screen instanceof HandledScreen<?> handledScreen) {
+                if (screen instanceof AbstractContainerScreen<?> handledScreen) {
                     try {
-                        ScreenHandlerType<?> type = handledScreen.getScreenHandler().getType();
-                        Identifier id = Registries.SCREEN_HANDLER.getId(type);
+                        MenuType<?> type = handledScreen.getMenu().getType();
+                        Identifier id = BuiltInRegistries.MENU.getKey(type);
                         if (id != null) {
                             list.add("屏幕类型id：" + id);
                         }
@@ -201,15 +201,15 @@ public class HudDebugRendererRegister {
                     HandledScreenAccessor accessor = (HandledScreenAccessor) handledScreen;
                     Window window = client.getWindow();
                     Slot slot = accessor.invokerGetSlotAt(
-                            mouseX * (double) window.getScaledWidth() / (double) window.getWidth(),
-                            mouseY * (double) window.getScaledHeight() / (double) window.getHeight()
+                            mouseX * (double) window.getGuiScaledWidth() / (double) window.getScreenWidth(),
+                            mouseY * (double) window.getGuiScaledHeight() / (double) window.getScreenHeight()
                     );
                     if (slot != null) {
-                        list.add("槽位索引：" + slot.id);
-                        list.add("槽位物品栏：" + slot.inventory.getClass().getSimpleName());
+                        list.add("槽位索引：" + slot.index);
+                        list.add("槽位物品栏：" + slot.container.getClass().getSimpleName());
                     }
                 }
-                context.drawTooltip(ClientUtils.getTextRenderer(), list.stream().map(Text::of).toList(), 3, 25);
+                context.setComponentTooltipForNextFrame(ClientUtils.getTextRenderer(), list.stream().map(Component::nullToEmpty).toList(), 3, 25);
             }
         });
     }
@@ -217,15 +217,15 @@ public class HudDebugRendererRegister {
     public static void register() {
         HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renders.forEach(renderer -> renderer.render(drawContext, tickCounter)));
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (DebugSettings.HUDInformationDisplay.get() && screen instanceof HandledScreen<?> handledScreen) {
-                DefaultedList<Slot> slots = handledScreen.getScreenHandler().slots;
+            if (DebugSettings.HUDInformationDisplay.get() && screen instanceof AbstractContainerScreen<?> handledScreen) {
+                NonNullList<Slot> slots = handledScreen.getMenu().slots;
                 slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, mouseX, mouseY, delta) -> {
                     HandledScreenAccessor accessor = (HandledScreenAccessor) handledScreen;
                     int x = accessor.getX();
                     int y = accessor.getY();
-                    context.drawText(
+                    context.drawString(
                             Screens.getTextRenderer(screen),
-                            String.valueOf(slot.id),
+                            String.valueOf(slot.index),
                             slot.x + x + 1,
                             slot.y + y,
                             0xFFFE9900,
@@ -251,13 +251,13 @@ public class HudDebugRendererRegister {
     }
 
     @Contract("-> !null")
-    private static ClientWorld getClientWorld() {
+    private static ClientLevel getClientWorld() {
         return ClientUtils.getWorld();
     }
 
     @Contract("-> !null")
-    private static ServerWorld getPlayerWorld() {
-        return getServer().getWorld(getClientWorld().getRegistryKey());
+    private static ServerLevel getPlayerWorld() {
+        return getServer().getLevel(getClientWorld().dimension());
     }
 
     @Contract("-> !null")

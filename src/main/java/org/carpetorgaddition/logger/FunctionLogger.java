@@ -1,7 +1,7 @@
 package org.carpetorgaddition.logger;
 
 import carpet.logging.Logger;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
 
@@ -15,7 +15,7 @@ public class FunctionLogger extends Logger {
         super(acceleratorField, logName, def, options, strictOptions);
     }
 
-    public boolean isSubscribed(ServerPlayerEntity player) {
+    public boolean isSubscribed(ServerPlayer player) {
         return this.onlinePlayers.containsKey(FetcherUtils.getPlayerName(player));
     }
 }

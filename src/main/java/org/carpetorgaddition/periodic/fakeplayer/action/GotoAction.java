@@ -2,14 +2,14 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 public class GotoAction extends AbstractPlayerAction {
     private final FakePlayerPathfinder pathfinder;
     private final TargetType targetType;
-    private final Text displayName;
+    private final Component displayName;
     private final Supplier<Optional<BlockPos>> target;
 
     public GotoAction(@NotNull EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
@@ -54,8 +54,8 @@ public class GotoAction extends AbstractPlayerAction {
                 }
                 case ENTITY -> this.target.get().ifPresent(blockPos -> {
                     EntityTracker tracker = (EntityTracker) this.target;
-                    Vec3d pos = FetcherUtils.getFootPos(tracker.entity);
-                    if (blockPos.toBottomCenterPos().distanceTo(pos) > 3) {
+                    Vec3 pos = FetcherUtils.getFootPos(tracker.entity);
+                    if (blockPos.getBottomCenter().distanceTo(pos) > 3) {
                         tracker.update();
                         pathfinder.pathfinding();
                     }
@@ -66,11 +66,11 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
-        Text name = this.getFakePlayer().getDisplayName();
+    public List<Component> info() {
+        Component name = this.getFakePlayer().getDisplayName();
         String key = this.targetType.getTranslateKey();
-        Text text = TextBuilder.translate(key, name, displayName);
-        ArrayList<Text> list = new ArrayList<>();
+        Component text = TextBuilder.translate(key, name, displayName);
+        ArrayList<Component> list = new ArrayList<>();
         list.add(text);
         return list;
     }
@@ -82,7 +82,7 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.goto");
     }
 
@@ -145,12 +145,12 @@ public class GotoAction extends AbstractPlayerAction {
          */
         private long lastUpdateTime;
 
-        private EntityTracker(Supplier<EntityPlayerMPFake> supplier, World world, Entity entity) {
+        private EntityTracker(Supplier<EntityPlayerMPFake> supplier, Level world, Entity entity) {
             this.supplier = supplier;
             this.entity = entity;
-            this.entityUuid = entity.getUuid();
-            this.target = entity.getBlockPos();
-            this.lastUpdateTime = world.getTime();
+            this.entityUuid = entity.getUUID();
+            this.target = entity.blockPosition();
+            this.lastUpdateTime = world.getGameTime();
         }
 
         @Override
@@ -161,19 +161,19 @@ public class GotoAction extends AbstractPlayerAction {
                 return Optional.empty();
             }
             // 每隔3秒更新一次
-            long time = this.getWorld().getTime();
+            long time = this.getWorld().getGameTime();
             if (time - this.lastUpdateTime < 60) {
                 // 不到3秒，返回之前的位置
                 return Optional.of(this.target);
             }
             this.lastUpdateTime = time;
-            this.target = this.entity.getBlockPos();
+            this.target = this.entity.blockPosition();
             MinecraftServer server = FetcherUtils.getServer(fakePlayer);
             // 实体已被删除
             if (this.entity.isRemoved()) {
                 switch (this.entity) {
-                    case ServerPlayerEntity player -> {
-                        ServerPlayerEntity entity = server.getPlayerManager().getPlayer(player.getUuid());
+                    case ServerPlayer player -> {
+                        ServerPlayer entity = server.getPlayerList().getPlayer(player.getUUID());
                         if (entity == null) {
                             // 玩家退出了游戏
                             this.isEntityDestroy = true;
@@ -185,7 +185,7 @@ public class GotoAction extends AbstractPlayerAction {
                     }
                     case LivingEntity livingEntity -> {
                         // 实体已死亡
-                        if (livingEntity.isDead()) {
+                        if (livingEntity.isDeadOrDying()) {
                             this.isEntityDestroy = true;
                             return Optional.empty();
                         }
@@ -217,10 +217,10 @@ public class GotoAction extends AbstractPlayerAction {
         }
 
         private void update() {
-            this.target = this.entity.getBlockPos();
+            this.target = this.entity.blockPosition();
         }
 
-        private World getWorld() {
+        private Level getWorld() {
             return FetcherUtils.getWorld(this.entity);
         }
     }

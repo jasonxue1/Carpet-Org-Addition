@@ -6,7 +6,7 @@ import carpet.helpers.EntityPlayerActionPack.Action;
 import carpet.helpers.EntityPlayerActionPack.ActionType;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.carpetorgaddition.wheel.TextJoiner;
@@ -80,7 +80,7 @@ public class EntityPlayerActionPackSerial {
     /**
      * 将动作转换为文本
      */
-    public Text toText() {
+    public Component toText() {
         TextJoiner joiner = new TextJoiner();
         // 左键行为
         Action attack = this.actionMap.get(ActionType.ATTACK);

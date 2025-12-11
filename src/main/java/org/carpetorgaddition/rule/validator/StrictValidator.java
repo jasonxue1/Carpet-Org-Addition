@@ -2,7 +2,7 @@ package org.carpetorgaddition.rule.validator;
 
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.rule.ValidatorFeedbacks;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +19,7 @@ public class StrictValidator<T> implements Validator<T> {
     }
 
     @Override
-    public @NotNull Text errorMessage() {
+    public @NotNull Component errorMessage() {
         return ValidatorFeedbacks.validOptions(this.rule);
     }
 }

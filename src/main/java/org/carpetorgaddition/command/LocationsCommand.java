@@ -5,17 +5,17 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.util.*;
@@ -35,53 +35,53 @@ import java.util.function.Supplier;
 
 //路径点管理器
 public class LocationsCommand extends AbstractServerCommand {
-    public LocationsCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public LocationsCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandLocations))
-                .then(CommandManager.literal("add")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("add")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .executes(context -> addWayPoint(context, null))
-                                .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-                                        .executes(context -> addWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
-                .then(CommandManager.literal("list")
+                                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                        .executes(context -> addWayPoint(context, BlockPosArgument.getBlockPos(context, "pos"))))))
+                .then(Commands.literal("list")
                         .executes(context -> listWayPoint(context, null))
-                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                        .then(Commands.argument("filter", StringArgumentType.string())
                                 .executes(context -> listWayPoint(context, StringArgumentType.getString(context, "filter")))))
-                .then(CommandManager.literal("supplement")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("supplement")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
-                                .then(CommandManager.literal("comment")
+                                .then(Commands.literal("comment")
                                         .executes(context -> addIllustrateText(context, null))
-                                        .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .then(Commands.argument("comment", StringArgumentType.string())
                                                 .executes(context -> addIllustrateText(context, StringArgumentType.getString(context, "comment")))))
-                                .then(CommandManager.literal("another_pos")
+                                .then(Commands.literal("another_pos")
                                         .executes(context -> addAnotherPos(context, null))
-                                        .then(CommandManager.argument("anotherPos", BlockPosArgumentType.blockPos())
-                                                .executes(context -> addAnotherPos(context, BlockPosArgumentType.getBlockPos(context, "anotherPos")))))))
-                .then(CommandManager.literal("remove")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                                        .then(Commands.argument("anotherPos", BlockPosArgument.blockPos())
+                                                .executes(context -> addAnotherPos(context, BlockPosArgument.getBlockPos(context, "anotherPos")))))))
+                .then(Commands.literal("remove")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
                                 .executes(this::deleteWayPoint)))
-                .then(CommandManager.literal("set")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("set")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(suggestion())
                                 .executes(context -> setWayPoint(context, null))
-                                .then(CommandManager.argument("pos", BlockPosArgumentType.blockPos())
-                                        .executes(context -> setWayPoint(context, BlockPosArgumentType.getBlockPos(context, "pos"))))))
-                .then(CommandManager.literal("here")
+                                .then(Commands.argument("pos", BlockPosArgument.blockPos())
+                                        .executes(context -> setWayPoint(context, BlockPosArgument.getBlockPos(context, "pos"))))))
+                .then(Commands.literal("here")
                         .executes(this::sendSelfLocation)));
     }
 
     // 用来自动补全路径点名称
-    public static SuggestionProvider<ServerCommandSource> suggestion() {
+    public static SuggestionProvider<CommandSourceStack> suggestion() {
         return (context, builder) -> {
             WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
-            return CommandSource.suggestMatching(worldFormat.toImmutableFileList()
+            return SharedSuggestionProvider.suggest(worldFormat.toImmutableFileList()
                     .stream()
                     .map(File::getName)
                     .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION))
@@ -91,15 +91,15 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 添加路径点
-    private int addWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int addWayPoint(CommandContext<CommandSourceStack> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
         if (IOUtils.isValidFileName(name)) {
             throw CommandUtils.createException("carpet.command.file.name.valid");
         }
         if (blockPos == null) {
-            blockPos = player.getBlockPos();
+            blockPos = player.blockPosition();
         }
         // 获取服务器对象
         MinecraftServer server = context.getSource().getServer();
@@ -122,7 +122,7 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 列出所有路径点
-    private int listWayPoint(CommandContext<ServerCommandSource> context, @Nullable String filter) throws CommandSyntaxException {
+    private int listWayPoint(CommandContext<CommandSourceStack> context, @Nullable String filter) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.toImmutableFileList();
@@ -132,7 +132,7 @@ public class LocationsCommand extends AbstractServerCommand {
         }
         PageManager pageManager = FetcherUtils.getPageManager(server);
         PagedCollection collection = pageManager.newPagedCollection(context.getSource());
-        ArrayList<Supplier<Text>> messages = new ArrayList<>();
+        ArrayList<Supplier<Component>> messages = new ArrayList<>();
         int count = 0;
         // 遍历文件夹下的所有文件
         for (File file : list) {
@@ -162,8 +162,8 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 添加说明文本
-    private int addIllustrateText(CommandContext<ServerCommandSource> context, @Nullable String comment) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int addIllustrateText(CommandContext<CommandSourceStack> context, @Nullable String comment) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = context.getSource().getServer();
         // 获取路径点的名称
         String name = StringArgumentType.getString(context, "name");
@@ -194,12 +194,12 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 添加另一个坐标
-    private int addAnotherPos(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ServerCommandSource source = context.getSource();
+    private int addAnotherPos(CommandContext<CommandSourceStack> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        CommandSourceStack source = context.getSource();
         // 路径点的另一个坐标
         if (blockPos == null) {
-            blockPos = player.getBlockPos();
+            blockPos = player.blockPosition();
         }
         MinecraftServer server = context.getSource().getServer();
         // 路径点的名称
@@ -225,8 +225,8 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 删除路径点
-    private int deleteWayPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int deleteWayPoint(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         //获取路径点文件名
         String name = StringArgumentType.getString(context, "name");
         //获取路径点文件对象
@@ -245,11 +245,11 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     // 修改路径点
-    private int setWayPoint(CommandContext<ServerCommandSource> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ServerCommandSource source = context.getSource();
+    private int setWayPoint(CommandContext<CommandSourceStack> context, @Nullable BlockPos blockPos) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        CommandSourceStack source = context.getSource();
         if (blockPos == null) {
-            blockPos = player.getBlockPos();
+            blockPos = player.blockPosition();
         }
         String fileName = StringArgumentType.getString(context, "name");
         try {
@@ -266,23 +266,23 @@ public class LocationsCommand extends AbstractServerCommand {
     }
 
     //发送自己的位置
-    private int sendSelfLocation(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        BlockPos blockPos = player.getBlockPos();
-        World world = FetcherUtils.getWorld(player);
-        Text text = switch (WorldUtils.getDimensionId(world)) {
+    private int sendSelfLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        BlockPos blockPos = player.blockPosition();
+        Level world = FetcherUtils.getWorld(player);
+        Component text = switch (WorldUtils.getDimensionId(world)) {
             case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
                     player.getDisplayName(),
-                    TextProvider.blockPos(blockPos, Formatting.GREEN),
-                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), Formatting.RED)
+                    TextProvider.blockPos(blockPos, ChatFormatting.GREEN),
+                    TextProvider.blockPos(MathUtils.getTheNetherPos(player), ChatFormatting.RED)
             );
             case WorldUtils.THE_NETHER -> TextBuilder.translate("carpet.commands.locations.here.the_nether",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, Formatting.RED),
-                    TextProvider.blockPos(MathUtils.getOverworldPos(player), Formatting.GREEN)
+                    player.getDisplayName(), TextProvider.blockPos(blockPos, ChatFormatting.RED),
+                    TextProvider.blockPos(MathUtils.getOverworldPos(player), ChatFormatting.GREEN)
             );
             case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.here.the_end",
                     player.getDisplayName(),
-                    TextProvider.blockPos(blockPos, Formatting.DARK_PURPLE)
+                    TextProvider.blockPos(blockPos, ChatFormatting.DARK_PURPLE)
             );
             default -> TextBuilder.translate("carpet.commands.locations.here.default",
                     player.getDisplayName(),

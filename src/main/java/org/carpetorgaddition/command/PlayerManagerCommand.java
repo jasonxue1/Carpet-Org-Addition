@@ -13,21 +13,21 @@ import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.CommandSource;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.TimeArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.TimeArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.NameToIdCache;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.server.players.UserNameToIdResolver;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.CommandExecuteIOException;
@@ -70,165 +70,165 @@ import java.util.stream.Stream;
 public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
 
-    public PlayerManagerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public PlayerManagerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
         // 延迟登录节点
-        RequiredArgumentBuilder<ServerCommandSource, Integer> loginNode = CommandManager.argument("delayed", IntegerArgumentType.integer(1));
+        RequiredArgumentBuilder<CommandSourceStack, Integer> loginNode = Commands.argument("delayed", IntegerArgumentType.integer(1));
         for (TimeUnit unit : TimeUnit.values()) {
             // 添加时间单位
-            loginNode.then(CommandManager.literal(unit.getName())
+            loginNode.then(Commands.literal(unit.getName())
                     .executes(context -> addDelayedLoginTask(context, unit)));
         }
         // 延迟登出节点
-        RequiredArgumentBuilder<ServerCommandSource, Integer> logoutNode = CommandManager.argument("delayed", IntegerArgumentType.integer(1));
+        RequiredArgumentBuilder<CommandSourceStack, Integer> logoutNode = Commands.argument("delayed", IntegerArgumentType.integer(1));
         for (TimeUnit unit : TimeUnit.values()) {
-            logoutNode.then(CommandManager.literal(unit.getName())
+            logoutNode.then(Commands.literal(unit.getName())
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
         // 玩家启动任务节点
-        RequiredArgumentBuilder<ServerCommandSource, String> startupNameNode = CommandManager.argument("name", StringArgumentType.string())
+        RequiredArgumentBuilder<CommandSourceStack, String> startupNameNode = Commands.argument("name", StringArgumentType.string())
                 .suggests(defaultSuggests());
         for (FakePlayerStartupAction action : FakePlayerStartupAction.values()) {
-            startupNameNode.then(CommandManager.literal(action.toString())
+            startupNameNode.then(Commands.literal(action.toString())
                     .executes(context -> this.addStartupFunction(context, action, 1))
-                    .then(CommandManager.argument("delay", TimeArgumentType.time(1))
-                            .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"1t", "3t", "5t"}, builder))
+                    .then(Commands.argument("delay", TimeArgument.time(1))
+                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
                             .executes(context -> this.addStartupFunction(context, action, IntegerArgumentType.getInteger(context, "delay"))))
-                    .then(CommandManager.literal("clear")
+                    .then(Commands.literal("clear")
                             .executes(context -> this.addStartupFunction(context, action, -1))));
         }
-        LiteralArgumentBuilder<ServerCommandSource> startupNode = CommandManager.literal("startup");
+        LiteralArgumentBuilder<CommandSourceStack> startupNode = Commands.literal("startup");
         startupNode.then(startupNameNode);
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandPlayerManager))
-                .then(CommandManager.literal("save")
-                        .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                .then(Commands.literal("save")
+                        .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                 .executes(context -> savePlayerData(context, false))
-                                .then(CommandManager.argument("comment", StringArgumentType.string())
+                                .then(Commands.argument("comment", StringArgumentType.string())
                                         .executes(context -> savePlayerData(context, true)))))
-                .then(CommandManager.literal("spawn")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("spawn")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .executes(this::spawnPlayer)))
-                .then(CommandManager.literal("modify")
-                        .then(CommandManager.literal("comment")
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("modify")
+                        .then(Commands.literal("comment")
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
                                         .executes(context -> setComment(context, true))
-                                        .then(CommandManager.argument("comment", StringArgumentType.string())
+                                        .then(Commands.argument("comment", StringArgumentType.string())
                                                 .executes(context -> setComment(context, false)))))
-                        .then(CommandManager.literal("resave")
-                                .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(Commands.literal("resave")
+                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                         .executes(this::modifyPlayer)))
                         .then(startupNode))
-                .then(CommandManager.literal("group")
-                        .then(CommandManager.literal("add")
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("group")
+                        .then(Commands.literal("add")
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
-                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                                        .then(Commands.argument("group", StringArgumentType.string())
                                                 .suggests(groupSuggests())
                                                 .executes(this::addToGroup))))
-                        .then(CommandManager.literal("remove")
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                        .then(Commands.literal("remove")
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
-                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                                        .then(Commands.argument("group", StringArgumentType.string())
                                                 .suggests(groupSuggests())
                                                 .executes(this::removeFromGroup))))
-                        .then(CommandManager.literal("list")
-                                .then(CommandManager.literal("group")
-                                        .then(CommandManager.argument("group", StringArgumentType.string())
+                        .then(Commands.literal("list")
+                                .then(Commands.literal("group")
+                                        .then(Commands.argument("group", StringArgumentType.string())
                                                 .suggests(groupSuggests())
                                                 .executes(context -> listGroup(context, serializer -> true))
-                                                .then(CommandManager.argument("filter", StringArgumentType.string())
+                                                .then(Commands.argument("filter", StringArgumentType.string())
                                                         .executes(context -> listGroup(context, serializerPredicate(context))))))
-                                .then(CommandManager.literal("ungrouped")
+                                .then(Commands.literal("ungrouped")
                                         .executes(context -> listUngrouped(context, serializer -> true))
-                                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                                        .then(Commands.argument("filter", StringArgumentType.string())
                                                 .executes(context -> listUngrouped(context, serializerPredicate(context)))))
-                                .then(CommandManager.literal("all")
+                                .then(Commands.literal("all")
                                         .executes(context -> listAll(context, serializer -> true))
-                                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                                        .then(Commands.argument("filter", StringArgumentType.string())
                                                 .executes(context -> listAll(context, serializerPredicate(context)))))))
-                .then(CommandManager.literal("reload")
+                .then(Commands.literal("reload")
                         .executes(this::reload))
-                .then(CommandManager.literal("autologin")
+                .then(Commands.literal("autologin")
                         .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
-                                .then(CommandManager.argument("autologin", BoolArgumentType.bool())
+                                .then(Commands.argument("autologin", BoolArgumentType.bool())
                                         .executes(this::setAutoLogin))))
-                .then(CommandManager.literal("list")
+                .then(Commands.literal("list")
                         .executes(context -> list(context, null))
-                        .then(CommandManager.argument("filter", StringArgumentType.string())
+                        .then(Commands.argument("filter", StringArgumentType.string())
                                 .executes(context -> list(context, StringArgumentType.getString(context, "filter")))))
-                .then(CommandManager.literal("remove")
-                        .then(CommandManager.argument("name", StringArgumentType.string())
+                .then(Commands.literal("remove")
+                        .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .executes(this::remove)))
-                .then(CommandManager.literal("schedule")
-                        .then(CommandManager.literal("relogin")
+                .then(Commands.literal("schedule")
+                        .then(Commands.literal("relogin")
                                 .requires(PermissionManager.register("playerManager.schedule.relogin", PermissionLevel.PASS))
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(reLoginTaskSuggests())
-                                        .then(CommandManager.argument("interval", IntegerArgumentType.integer(1))
-                                                .suggests((context, builder) -> CommandSource.suggestMatching(new String[]{"1", "3", "5"}, builder))
+                                        .then(Commands.argument("interval", IntegerArgumentType.integer(1))
+                                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[]{"1", "3", "5"}, builder))
                                                 .executes(this::setReLogin))
-                                        .then(CommandManager.literal("stop")
+                                        .then(Commands.literal("stop")
                                                 .executes(this::stopReLogin))))
-                        .then(CommandManager.literal("login")
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                        .then(Commands.literal("login")
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
                                         .then(loginNode)))
-                        .then(CommandManager.literal("logout")
-                                .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(Commands.literal("logout")
+                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                         .then(logoutNode)))
-                        .then(CommandManager.literal("cancel")
-                                .then(CommandManager.argument("name", StringArgumentType.string())
+                        .then(Commands.literal("cancel")
+                                .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(cancelSuggests())
                                         .executes(this::cancelScheduleTask)))
-                        .then(CommandManager.literal("list")
+                        .then(Commands.literal("list")
                                 .executes(this::listScheduleTask)))
-                .then(CommandManager.literal("safeafk")
-                        .then(CommandManager.literal("set")
-                                .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                .then(Commands.literal("safeafk")
+                        .then(Commands.literal("set")
+                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                         .executes(context -> safeAfk(context, 5F, false))
-                                        .then(CommandManager.argument("threshold", FloatArgumentType.floatArg())
+                                        .then(Commands.argument("threshold", FloatArgumentType.floatArg())
                                                 .executes(context -> safeAfk(context, FloatArgumentType.getFloat(context, "threshold"), false))
-                                                .then(CommandManager.argument("save", BoolArgumentType.bool())
+                                                .then(Commands.argument("save", BoolArgumentType.bool())
                                                         .executes(context -> safeAfk(context, FloatArgumentType.getFloat(context, "threshold"), BoolArgumentType.getBool(context, "save")))))))
-                        .then(CommandManager.literal("list")
+                        .then(Commands.literal("list")
                                 .executes(this::listSafeAfk))
-                        .then(CommandManager.literal("cancel")
-                                .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(Commands.literal("cancel")
+                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                         .executes(context -> cancelSafeAfk(context, false))
-                                        .then(CommandManager.argument("save", BoolArgumentType.bool())
+                                        .then(Commands.argument("save", BoolArgumentType.bool())
                                                 .executes(context -> cancelSafeAfk(context, true)))))
-                        .then(CommandManager.literal("query")
-                                .then(CommandManager.argument(CommandUtils.PLAYER, EntityArgumentType.player())
+                        .then(Commands.literal("query")
+                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
                                         .executes(this::querySafeAfk))))
-                .then(CommandManager.literal("batch")
-                        .then(CommandManager.argument("prefix", StringArgumentType.word())
-                                .then(CommandManager.argument("start", IntegerArgumentType.integer(1))
-                                        .then(CommandManager.argument("end", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
-                                                .then(CommandManager.literal("spawn")
+                .then(Commands.literal("batch")
+                        .then(Commands.argument("prefix", StringArgumentType.word())
+                                .then(Commands.argument("start", IntegerArgumentType.integer(1))
+                                        .then(Commands.argument("end", IntegerArgumentType.integer(1, Integer.MAX_VALUE))
+                                                .then(Commands.literal("spawn")
                                                         .executes(context -> batchSpawn(context, false))
-                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                        .then(Commands.argument("at", Vec3Argument.vec3())
                                                                 .executes(context -> batchSpawn(context, true))))
-                                                .then(CommandManager.literal("kill")
+                                                .then(Commands.literal("kill")
                                                         .executes(this::batchKill))
-                                                .then(CommandManager.literal("drop")
+                                                .then(Commands.literal("drop")
                                                         .executes(this::batchDrop))
-                                                .then(CommandManager.literal("trial")
+                                                .then(Commands.literal("trial")
                                                         .executes(context -> batchTrial(context, false))
-                                                        .then(CommandManager.argument("at", Vec3ArgumentType.vec3())
+                                                        .then(Commands.argument("at", Vec3Argument.vec3())
                                                                 .executes(context -> batchTrial(context, true)))))))));
     }
 
-    private int listGroup(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+    private int listGroup(CommandContext<CommandSourceStack> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         String group = StringArgumentType.getString(context, "group");
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
@@ -238,7 +238,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (set == null) {
             throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", group);
         }
-        List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
+        List<Supplier<Component>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
@@ -247,16 +247,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return collection.length();
     }
 
-    private int listUngrouped(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+    private int listUngrouped(CommandContext<CommandSourceStack> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
         HashSet<FakePlayerSerializer> set = map.get(null);
         if (set == null) {
-            Text translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
+            Component translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
             throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", translate);
         }
-        List<Supplier<Text>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
+        List<Supplier<Component>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
@@ -265,10 +265,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return collection.length();
     }
 
-    private int listAll(CommandContext<ServerCommandSource> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
+    private int listAll(CommandContext<CommandSourceStack> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
-        List<Supplier<Text>> list = manager.list().stream().filter(predicate).map(FakePlayerSerializer::toTextSupplier).toList();
+        List<Supplier<Component>> list = manager.list().stream().filter(predicate).map(FakePlayerSerializer::toTextSupplier).toList();
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
@@ -277,7 +277,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return collection.length();
     }
 
-    private int addToGroup(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int addToGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         String group = StringArgumentType.getString(context, "group");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -286,7 +286,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
-    private int removeFromGroup(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int removeFromGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         String group = StringArgumentType.getString(context, "group");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -301,7 +301,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 重新加载玩家数据
      */
-    private int reload(CommandContext<ServerCommandSource> context) {
+    private int reload(CommandContext<CommandSourceStack> context) {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         manager.reload();
@@ -309,7 +309,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
-    private Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<ServerCommandSource> context) {
+    private Predicate<FakePlayerSerializer> serializerPredicate(CommandContext<CommandSourceStack> context) {
         return serializer -> serializerPredicate(serializer, StringArgumentType.getString(context, "filter"));
     }
 
@@ -327,27 +327,27 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // cancel子命令自动补全
     @NotNull
-    private SuggestionProvider<ServerCommandSource> cancelSuggests() {
+    private SuggestionProvider<CommandSourceStack> cancelSuggests() {
         return (context, builder) -> {
             ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
             Stream<String> stream = manager.stream(PlayerScheduleTask.class).map(PlayerScheduleTask::getPlayerName);
-            return CommandSource.suggestMatching(stream, builder);
+            return SharedSuggestionProvider.suggest(stream, builder);
         };
     }
 
     // 自动补全玩家名
-    private SuggestionProvider<ServerCommandSource> defaultSuggests() {
+    private SuggestionProvider<CommandSourceStack> defaultSuggests() {
         return (context, builder) -> {
             Stream<String> stream = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer())
                     .list()
                     .stream()
                     .map(FakePlayerSerializer::getFakePlayerName)
                     .map(StringArgumentType::escapeIfRequired);
-            return CommandSource.suggestMatching(stream, builder);
+            return SharedSuggestionProvider.suggest(stream, builder);
         };
     }
 
-    private SuggestionProvider<ServerCommandSource> groupSuggests() {
+    private SuggestionProvider<CommandSourceStack> groupSuggests() {
         return (context, builder) -> {
             PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
             Stream<String> stream = manager.listGroup(serializer -> true)
@@ -355,33 +355,33 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .stream()
                     .filter(Objects::nonNull)
                     .map(StringArgumentType::escapeIfRequired);
-            return CommandSource.suggestMatching(stream, builder);
+            return SharedSuggestionProvider.suggest(stream, builder);
         };
     }
 
     // relogin子命令自动补全
     @NotNull
-    private SuggestionProvider<ServerCommandSource> reLoginTaskSuggests() {
+    private SuggestionProvider<CommandSourceStack> reLoginTaskSuggests() {
         return (context, builder) -> {
             MinecraftServer server = context.getSource().getServer();
             ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
             // 所有正在周期性上下线的玩家
             List<String> taskList = manager.stream(ReLoginTask.class).map(ReLoginTask::getPlayerName).toList();
             // 所有在线玩家
-            List<String> onlineList = server.getPlayerManager()
-                    .getPlayerList()
+            List<String> onlineList = server.getPlayerList()
+                    .getPlayers()
                     .stream()
                     .map(FetcherUtils::getPlayerName)
                     .toList();
             HashSet<String> players = new HashSet<>();
             players.addAll(taskList);
             players.addAll(onlineList);
-            return CommandSource.suggestMatching(players.stream(), builder);
+            return SharedSuggestionProvider.suggest(players.stream(), builder);
         };
     }
 
     // 安全挂机
-    private int safeAfk(CommandContext<ServerCommandSource> context, float threshold, boolean save) throws CommandSyntaxException {
+    private int safeAfk(CommandContext<CommandSourceStack> context, float threshold, boolean save) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 假玩家安全挂机阈值必须小于玩家最大生命值
         if (threshold >= fakePlayer.getMaxHealth()) {
@@ -414,16 +414,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出所有设置了安全挂机的在线假玩家
-    private int listSafeAfk(CommandContext<ServerCommandSource> context) {
-        List<ServerPlayerEntity> list = context.getSource().getServer()
-                .getPlayerManager()
+    private int listSafeAfk(CommandContext<CommandSourceStack> context) {
+        List<ServerPlayer> list = context.getSource().getServer()
                 .getPlayerList()
+                .getPlayers()
                 .stream()
                 .filter(player -> player instanceof EntityPlayerMPFake)
                 .toList();
         int count = 0;
         // 遍历所有在线并且设置了安全挂机的假玩家
-        for (ServerPlayerEntity player : list) {
+        for (ServerPlayer player : list) {
             float threshold = ((FakePlayerSafeAfkInterface) player).carpet_Org_Addition$getHealthThreshold();
             if (threshold < 0) {
                 continue;
@@ -440,7 +440,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 取消假玩家的安全挂机
-    private int cancelSafeAfk(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
+    private int cancelSafeAfk(CommandContext<CommandSourceStack> context, boolean remove) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 设置安全挂机阈值
         FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) fakePlayer;
@@ -453,14 +453,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             }
         } else {
             String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
-            Text command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
+            Component command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
             MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
         }
         return 1;
     }
 
     // 查询指定玩家的安全挂机阈值
-    private int querySafeAfk(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int querySafeAfk(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).carpet_Org_Addition$getHealthThreshold();
         String key = "carpet.commands.playerManager.safeafk.list.each";
@@ -469,7 +469,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 保存或删除安全挂机阈值
-    private void saveSafeAfkThreshold(CommandContext<ServerCommandSource> context, float threshold, EntityPlayerMPFake fakePlayer) throws IOException {
+    private void saveSafeAfkThreshold(CommandContext<CommandSourceStack> context, float threshold, EntityPlayerMPFake fakePlayer) throws IOException {
         String playerName = FetcherUtils.getPlayerName(fakePlayer);
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), null);
         File file = worldFormat.file(SAFEAFK_PROPERTIES);
@@ -499,7 +499,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 加载安全挂机阈值
      */
-    public static void loadSafeAfk(ServerPlayerEntity player) {
+    public static void loadSafeAfk(ServerPlayer player) {
         if (player instanceof EntityPlayerMPFake) {
             WorldFormat worldFormat = new WorldFormat(FetcherUtils.getServer(player), null);
             File file = worldFormat.file(SAFEAFK_PROPERTIES);
@@ -537,7 +537,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出每一个玩家
-    private int list(CommandContext<ServerCommandSource> context, @Nullable String filter) throws CommandSyntaxException {
+    private int list(CommandContext<CommandSourceStack> context, @Nullable String filter) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(serializerPredicate(filter));
@@ -549,7 +549,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (map.size() == 1) {
             // 只有一个组，直接展示玩家
             Map.Entry<String, HashSet<FakePlayerSerializer>> entry = map.entrySet().iterator().next();
-            List<Supplier<Text>> list = entry.getValue()
+            List<Supplier<Component>> list = entry.getValue()
                     .stream()
                     .sorted(Comparator.naturalOrder())
                     .map(FakePlayerSerializer::toTextSupplier)
@@ -562,7 +562,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             collection.print();
             return list.size();
         } else {
-            ArrayList<Text> list = new ArrayList<>();
+            ArrayList<Component> list = new ArrayList<>();
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.expand");
             // 未分组，在倒数第二个展示
             TextBuilder ungrouped = null;
@@ -583,20 +583,20 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.group.name.all");
             setStyle(builder, manager.size(), CommandProvider.listAllPlayer(filter));
             list.add(builder.build());
-            Text message = TextBuilder.joinList(list, TextBuilder.create(" "));
+            Component message = TextBuilder.joinList(list, TextBuilder.create(" "));
             MessageUtils.sendMessage(context.getSource(), message);
             return list.size();
         }
     }
 
     private void setStyle(TextBuilder builder, int size, String command) {
-        builder.setColor(Formatting.AQUA);
+        builder.setColor(ChatFormatting.AQUA);
         builder.setHover("carpet.commands.playerManager.group.player", size);
         builder.setCommand(command);
     }
 
     // 设置注释
-    private int setComment(CommandContext<ServerCommandSource> context, boolean remove) throws CommandSyntaxException {
+    private int setComment(CommandContext<CommandSourceStack> context, boolean remove) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         // 修改注释
         String comment = remove ? null : StringArgumentType.getString(context, "comment");
@@ -614,7 +614,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 设置自动登录
-    private int setAutoLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setAutoLogin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -630,7 +630,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 保存玩家
-    private int savePlayerData(CommandContext<ServerCommandSource> context, boolean hasComment) throws CommandSyntaxException {
+    private int savePlayerData(CommandContext<CommandSourceStack> context, boolean hasComment) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
@@ -643,7 +643,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
             // 单击执行命令
-            Text clickResave = TextProvider.clickRun(command);
+            Component clickResave = TextProvider.clickRun(command);
             MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
             return 0;
         } else {
@@ -660,7 +660,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 修改玩家数据
-    private int modifyPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int modifyPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         String name = FetcherUtils.getPlayerName(fakePlayer);
         FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
@@ -672,7 +672,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 生成假玩家
-    private int spawnPlayer(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int spawnPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         try {
             // 生成假玩家
@@ -688,7 +688,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
-    private FakePlayerSerializer getFakePlayerSerializer(CommandContext<ServerCommandSource> context, String name) throws CommandSyntaxException {
+    private FakePlayerSerializer getFakePlayerSerializer(CommandContext<CommandSourceStack> context, String name) throws CommandSyntaxException {
         PlayerSerializationManager manager = getSerializationManager(context);
         Optional<FakePlayerSerializer> optional = manager.get(name);
         if (optional.isEmpty()) {
@@ -698,7 +698,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 删除玩家信息
-    private int remove(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int remove(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         PlayerSerializationManager manager = getSerializationManager(context);
         Optional<FakePlayerSerializer> optional = manager.get(name);
@@ -713,7 +713,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
     }
 
-    private int addStartupFunction(CommandContext<ServerCommandSource> context, FakePlayerStartupAction action, int delay) throws CommandSyntaxException {
+    private int addStartupFunction(CommandContext<CommandSourceStack> context, FakePlayerStartupAction action, int delay) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         serializer.addStartupFunction(action, delay);
@@ -721,7 +721,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 设置不断重新上线下线
-    private int setReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int setReLogin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         // 强制启用内存泄漏修复
         if (fixMemoryLeak(context)) {
             // 获取目标假玩家名
@@ -735,7 +735,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .findFirst();
             if (optional.isEmpty()) {
                 // 添加任务
-                ServerPlayerEntity player = server.getPlayerManager().getPlayer(name);
+                ServerPlayer player = server.getPlayerList().getPlayerByName(name);
                 if (player == null) {
                     // 玩家不存在
                     throw CommandUtils.createException("argument.entity.notfound.player");
@@ -757,23 +757,23 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchSpawn(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
+    private int batchSpawn(CommandContext<CommandSourceStack> context, boolean at) throws CommandSyntaxException {
         return batchSpawn(context, at, GenericUtils::pass);
     }
 
     /**
      * 批量生成玩家并踢出玩家
      */
-    private int batchTrial(CommandContext<ServerCommandSource> context, boolean at) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int batchTrial(CommandContext<CommandSourceStack> context, boolean at) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         // 异常由服务器命令源进行处理
-        ServerCommandSource serverSource = server.getCommandSource();
+        CommandSourceStack serverSource = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(source, fakePlayer, 30)), serverSource));
     }
 
-    private static int batchSpawn(CommandContext<ServerCommandSource> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
+    private static int batchSpawn(CommandContext<CommandSourceStack> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         // 交换最大最小值，玩家可能将end和start参数反向输入
@@ -788,35 +788,31 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String prefix = StringArgumentType.getString(context, "prefix");
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
-        NameToIdCache cache = server.getApiServices().nameToIdCache();
-        if (cache == null) {
-            CarpetOrgAddition.LOGGER.warn("Server user cache is null");
-            return 0;
-        }
+        UserNameToIdResolver cache = server.services().nameToIdCache();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        Vec3d vec3d = at ? Vec3ArgumentType.getVec3(context, "at") : source.getPosition();
-        Optional<ServerPlayerEntity> optional = CommandUtils.getSourcePlayerNullable(source);
+        Vec3 vec3d = at ? Vec3Argument.getVec3(context, "at") : source.getPosition();
+        Optional<ServerPlayer> optional = CommandUtils.getSourcePlayerNullable(source);
         FakePlayerCreateContext fakePlayerCreateContext;
         if (optional.isEmpty()) {
             fakePlayerCreateContext = new FakePlayerCreateContext(
                     vec3d,
                     0,
                     0,
-                    FetcherUtils.getWorld(source).getRegistryKey(),
-                    GameMode.SURVIVAL,
+                    FetcherUtils.getWorld(source).dimension(),
+                    GameType.SURVIVAL,
                     false,
                     consumer
             );
         } else {
-            ServerPlayerEntity player = optional.get();
+            ServerPlayer player = optional.get();
             fakePlayerCreateContext = new FakePlayerCreateContext(
                     vec3d,
-                    player.getYaw(),
-                    player.getPitch(),
-                    FetcherUtils.getWorld(player).getRegistryKey(),
-                    player.interactionManager.getGameMode(),
+                    player.getYRot(),
+                    player.getXRot(),
+                    FetcherUtils.getWorld(player).dimension(),
+                    player.gameMode.getGameModeForPlayer(),
                     player.getAbilities().flying,
                     consumer
             );
@@ -828,7 +824,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchKill(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int batchKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         int temp = Math.min(start, end);
@@ -836,7 +832,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
-        ServerCommandSource source = context.getSource();
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         taskManager.addTask(new BatchKillFakePlayer(server, source, prefix, start, end));
@@ -846,7 +842,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     /**
      * 批量生成玩家
      */
-    private int batchDrop(CommandContext<ServerCommandSource> context) {
+    private int batchDrop(CommandContext<CommandSourceStack> context) {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         int temp = Math.min(start, end);
@@ -856,9 +852,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         prefix = prefix.endsWith("_") ? prefix : prefix + "_";
         MinecraftServer server = context.getSource().getServer();
         int count = 0;
-        PlayerManager playerManager = server.getPlayerManager();
+        PlayerList playerManager = server.getPlayerList();
         for (int i = start; i <= end; i++) {
-            ServerPlayerEntity player = playerManager.getPlayer(prefix + i);
+            ServerPlayer player = playerManager.getPlayerByName(prefix + i);
             if (player instanceof EntityPlayerMPFake fakePlayer) {
                 EntityPlayerActionPack actionPack = ((ServerPlayerInterface) fakePlayer).getActionPack();
                 actionPack.drop(-2, true);
@@ -869,16 +865,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 启用内存泄漏修复
-    private boolean fixMemoryLeak(CommandContext<ServerCommandSource> context) {
+    private boolean fixMemoryLeak(CommandContext<CommandSourceStack> context) {
         if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
             return true;
         }
         // 单击后输入的命令
         String command = CommandProvider.setCarpetRule("fakePlayerSpawnMemoryLeakFix", "true");
         // 文本内容：[这里]
-        Text here = TextBuilder.of("carpet.command.text.click.here")
+        Component here = TextBuilder.of("carpet.command.text.click.here")
                 .setSuggest(command)
-                .setColor(Formatting.AQUA)
+                .setColor(ChatFormatting.AQUA)
                 .setHover("carpet.command.text.click.input", command)
                 .build();
         MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.condition", here);
@@ -886,7 +882,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 停止重新上线下线
-    private int stopReLogin(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int stopReLogin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         // 获取目标假玩家名
         String name = StringArgumentType.getString(context, "name");
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
@@ -901,8 +897,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 延时上线
-    private int addDelayedLoginTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int addDelayedLoginTask(CommandContext<CommandSourceStack> context, TimeUnit unit) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
@@ -911,12 +907,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        Text time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Component time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         if (optional.isEmpty()) {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
             taskManager.addTask(new DelayedLoginTask(server, source, serializer, tick));
-            String key = server.getPlayerManager().getPlayer(name) == null
+            String key = server.getPlayerList().getPlayerByName(name) == null
                     // <玩家>将于<时间>后上线
                     ? "carpet.commands.playerManager.schedule.login"
                     // <玩家>将于<时间>后再次尝试上线
@@ -936,13 +932,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 延迟下线
-    private int addDelayedLogoutTask(CommandContext<ServerCommandSource> context, TimeUnit unit) throws CommandSyntaxException {
-        ServerCommandSource source = context.getSource();
+    private int addDelayedLogoutTask(CommandContext<CommandSourceStack> context, TimeUnit unit) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        Text time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Component time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))
@@ -961,7 +957,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 取消任务
-    private int cancelScheduleTask(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
+    private int cancelScheduleTask(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         // 获取符合条件的任务列表
@@ -976,7 +972,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 列出所有任务
-    private int listScheduleTask(CommandContext<ServerCommandSource> context) {
+    private int listScheduleTask(CommandContext<CommandSourceStack> context) {
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
@@ -991,7 +987,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return FetcherUtils.getFakePlayerSerializationManager(server);
     }
 
-    private PlayerSerializationManager getSerializationManager(CommandContext<ServerCommandSource> context) {
+    private PlayerSerializationManager getSerializationManager(CommandContext<CommandSourceStack> context) {
         return getSerializationManager(context.getSource().getServer());
     }
 
@@ -1032,7 +1028,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
 
         // 将游戏刻转化为对应单位
-        private long getDelayed(CommandContext<ServerCommandSource> context) {
+        private long getDelayed(CommandContext<CommandSourceStack> context) {
             int delayed = IntegerArgumentType.getInteger(context, "delayed");
             return switch (this) {
                 case TICK -> delayed;

@@ -2,10 +2,10 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
@@ -38,13 +38,13 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         this.inventoryCraft(inventory);
         // 丢弃合成输出
         for (ItemStack itemStack : inventory) {
-            this.getFakePlayer().dropItem(itemStack, false, true);
+            this.getFakePlayer().drop(itemStack, false, true);
         }
     }
 
 
     private void inventoryCraft(AutoGrowInventory inventory) {
-        PlayerScreenHandler playerScreenHandler = getFakePlayer().playerScreenHandler;
+        InventoryMenu playerScreenHandler = getFakePlayer().inventoryMenu;
         // 定义变量记录成功完成合成的次数
         int craftCount = 0;
         // 记录循环次数用来在游戏可能进入死循环时抛出异常
@@ -63,9 +63,9 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                 ItemStackPredicate matcher = this.predicates[craftIndex - 1];
                 Slot slot = playerScreenHandler.getSlot(craftIndex);
                 // 检查合成格上是否已经有物品
-                if (slot.hasStack()) {
+                if (slot.hasItem()) {
                     // 如果有并且物品是正确的合成材料，直接结束本轮循环，即跳过该物品
-                    if (matcher.test(slot.getStack())) {
+                    if (matcher.test(slot.getItem())) {
                         successCount++;
                         continue;
                     } else {
@@ -79,7 +79,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                 int size = playerScreenHandler.slots.size();
                 // 遍历物品栏，包括盔甲槽和副手槽
                 for (int inventoryIndex = 5; inventoryIndex < size; inventoryIndex++) {
-                    ItemStack itemStack = playerScreenHandler.getSlot(inventoryIndex).getStack();
+                    ItemStack itemStack = playerScreenHandler.getSlot(inventoryIndex).getItem();
                     // 如果该槽位是正确的合成材料，将该物品移动到合成格，然后增加找到正确合成材料的次数
                     if (matcher.test(itemStack)) {
                         if (FakePlayerUtils.withKeepPickupAndMoveItemStack(playerScreenHandler,
@@ -93,7 +93,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                             // 丢弃光标上的物品（如果有）
                             FakePlayerUtils.dropCursorStack(playerScreenHandler, this.getFakePlayer());
                             // 将光标上的物品设置为从潜影盒中取出来的物品
-                            playerScreenHandler.setCursorStack(contentItemStack);
+                            playerScreenHandler.setCarried(contentItemStack);
                             // 将光标上的物品放在合成方格的槽位上
                             FakePlayerUtils.pickupCursorStack(playerScreenHandler, craftIndex, this.getFakePlayer());
                             successCount++;
@@ -109,7 +109,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
             // 如果找到正确合成材料的次数为4，认为找到了所有的合成材料，尝试输出物品
             if (successCount == 4) {
                 // 如果输出槽有物品，则丢出该物品
-                if (playerScreenHandler.getSlot(0).hasStack()) {
+                if (playerScreenHandler.getSlot(0).hasItem()) {
                     FakePlayerUtils.collectItem(playerScreenHandler, 0, inventory, this.getFakePlayer());
                     // 合成成功，合成计数器自增
                     craftCount++;
@@ -119,7 +119,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 如果输出槽没有物品，认为前面的合成操作有误，停止合成
-                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().getCommandSource(), this.getFakePlayer());
+                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer());
                     return;
                 }
             } else {
@@ -135,23 +135,23 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
+    public List<Component> info() {
         // 创建一个集合用来存储可变文本对象，这个集合用来在聊天栏输出多行聊天信息，集合中的每个元素单独占一行
         TextJoiner joiner = new TextJoiner();
         joiner.unsetBullet();
         joiner.setIndent(4);
         // 获取假玩家的显示名称
-        Text name = this.getFakePlayer().getDisplayName();
+        Component name = this.getFakePlayer().getDisplayName();
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = CraftingTableCraftAction.getCraftOutput(this.predicates, 2, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Text itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
+        Component itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
         joiner.append("carpet.commands.playerAction.info.craft.result", name, itemText);
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
         joiner.append("carpet.commands.playerAction.info.craft.state", name);
         // 获取玩家的生存模式物品栏对象
-        PlayerScreenHandler playerScreenHandler = this.getFakePlayer().playerScreenHandler;
+        InventoryMenu playerScreenHandler = this.getFakePlayer().inventoryMenu;
         // 将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
         joiner.enter(() -> this.addCraftGridState(joiner, playerScreenHandler));
         return joiner.collect();
@@ -175,19 +175,19 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     // 合成方格内的物品状态
-    private void addCraftGridState(TextJoiner joiner, PlayerScreenHandler screenHandler) {
+    private void addCraftGridState(TextJoiner joiner, InventoryMenu screenHandler) {
         // 合成格第一排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getStack()));
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()));
         // 合成格第二排和输出槽
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()))
                 .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getStack()))
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
                 .literal(" -> ")
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getStack()));
+                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
     }
 
     @Override
@@ -200,7 +200,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.inventory_craft");
     }
 

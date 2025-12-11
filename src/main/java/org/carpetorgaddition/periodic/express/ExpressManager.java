@@ -1,15 +1,15 @@
 package org.carpetorgaddition.periodic.express;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.PlayerManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.PlayerList;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.*;
 import org.carpetorgaddition.wheel.Counter;
@@ -39,7 +39,7 @@ public class ExpressManager {
         this.worldFormat = new WorldFormat(server, "express");
         // 从文件读取快递信息
         for (File file : this.worldFormat.toImmutableFileList()) {
-            NbtCompound nbt;
+            CompoundTag nbt;
             try {
                 nbt = NbtIo.read(file.toPath());
             } catch (IOException e) {
@@ -62,7 +62,7 @@ public class ExpressManager {
     /**
      * 提示玩家接收快递
      */
-    public void promptToReceive(ServerPlayerEntity player) {
+    public void promptToReceive(ServerPlayer player) {
         List<Express> list = this.expresses.stream()
                 .filter(express -> express.isRecipient(player))
                 .filter(express -> !express.isCancel())
@@ -70,16 +70,16 @@ public class ExpressManager {
         if (list.isEmpty()) {
             return;
         }
-        ArrayList<Supplier<Text>> messages = new ArrayList<>();
+        ArrayList<Supplier<Component>> messages = new ArrayList<>();
         for (Express express : list) {
             messages.add(() -> {
-                Text clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), false));
+                Component clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), false));
                 ItemStack stack = express.getExpress();
-                return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.toHoverableText(), clickRun);
+                return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.getDisplayName(), clickRun);
             });
         }
         PageManager pageManager = FetcherUtils.getPageManager(this.server);
-        ServerCommandSource source = player.getCommandSource();
+        CommandSourceStack source = player.createCommandSourceStack();
         PagedCollection collection = pageManager.newPagedCollection(source);
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(source);
@@ -125,7 +125,7 @@ public class ExpressManager {
         return this.expresses.stream();
     }
 
-    public int receiveAll(ServerPlayerEntity player) throws IOException, CommandSyntaxException {
+    public int receiveAll(ServerPlayer player) throws IOException, CommandSyntaxException {
         List<Express> list = this.stream()
                 .filter(express -> express.isRecipient(player))
                 .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
@@ -172,11 +172,11 @@ public class ExpressManager {
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            PlayerManager playerManager = FetcherUtils.getServer(player).getPlayerManager();
+            PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
-                Text message = getReceiveNotice(player, entry.getValue());
-                ServerPlayerEntity playerEntity = playerManager.getPlayer(entry.getKey());
+                Component message = getReceiveNotice(player, entry.getValue());
+                ServerPlayer playerEntity = playerManager.getPlayerByName(entry.getKey());
                 if (playerEntity == null) {
                     continue;
                 }
@@ -186,7 +186,7 @@ public class ExpressManager {
         return receive;
     }
 
-    public int cancelAll(ServerPlayerEntity player) throws IOException, CommandSyntaxException {
+    public int cancelAll(ServerPlayer player) throws IOException, CommandSyntaxException {
         List<Express> list = this.stream()
                 .filter(express -> express.isSender(player))
                 .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
@@ -226,10 +226,10 @@ public class ExpressManager {
             Express.playItemPickupSound(player);
             TextBuilder builder = TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName());
             builder.setGrayItalic();
-            Text message = builder.build();
+            Component message = builder.build();
             for (String name : players) {
-                PlayerManager playerManager = FetcherUtils.getServer(player).getPlayerManager();
-                ServerPlayerEntity receivePlayer = playerManager.getPlayer(name);
+                PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
+                ServerPlayer receivePlayer = playerManager.getPlayerByName(name);
                 if (receivePlayer == null) {
                     continue;
                 }
@@ -242,8 +242,8 @@ public class ExpressManager {
     /**
      * @return 获取快递发送者的快递被接收者接收的消息
      */
-    public static Text getReceiveNotice(ServerPlayerEntity player, Counter<Item> counter) {
-        ArrayList<Text> list = new ArrayList<>();
+    public static Component getReceiveNotice(ServerPlayer player, Counter<Item> counter) {
+        ArrayList<Component> list = new ArrayList<>();
         for (Item item : counter) {
             list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));
         }

@@ -5,8 +5,8 @@ import carpet.api.settings.RuleCategory;
 import carpet.api.settings.RuleHelper;
 import carpet.api.settings.SettingsManager;
 import carpet.utils.CommandHelper;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.CarpetOrgAdditionExtension;
 import org.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
 import org.carpetorgaddition.rule.validator.StrictValidator;
@@ -79,7 +79,7 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private RuleValueParser<T> createParser() {
-        Map.Entry<Text, Function<String, T>> entry = switch (this.defaultValue) {
+        Map.Entry<Component, Function<String, T>> entry = switch (this.defaultValue) {
             case String ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"),
                     this.type::cast);
             case Boolean ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"),
@@ -99,11 +99,11 @@ public class OrgRule<T> implements CarpetRule<T> {
                     .formatted(this.getClass().getSimpleName(), type));
         };
         return str -> {
-            Text dataType = entry.getKey();
+            Component dataType = entry.getKey();
             try {
                 return entry.getValue().apply(str);
             } catch (RuntimeException e) {
-                Text stringType = TextBuilder.translate("carpet.generic.data.type.string");
+                Component stringType = TextBuilder.translate("carpet.generic.data.type.string");
                 TextBuilder builder = TextBuilder.of("carpet.rule.org.pause", stringType, str, dataType);
                 builder.setHover(e);
                 throw new TranslatableInvalidRuleValueException(builder.build());
@@ -130,7 +130,7 @@ public class OrgRule<T> implements CarpetRule<T> {
     }
 
     @Override
-    public List<Text> extraInfo() {
+    public List<Component> extraInfo() {
         return RuleUtils.ruleExtraInfo(this);
     }
 
@@ -175,16 +175,16 @@ public class OrgRule<T> implements CarpetRule<T> {
     }
 
     @Override
-    public void set(@Nullable ServerCommandSource source, String value) throws TranslatableInvalidRuleValueException {
+    public void set(@Nullable CommandSourceStack source, String value) throws TranslatableInvalidRuleValueException {
         this.set(source, this.parser.pause(value), value);
     }
 
     @Override
-    public void set(@Nullable ServerCommandSource source, T value) throws TranslatableInvalidRuleValueException {
+    public void set(@Nullable CommandSourceStack source, T value) throws TranslatableInvalidRuleValueException {
         this.set(source, value, RuleHelper.toRuleString(value));
     }
 
-    private void set(@Nullable ServerCommandSource source, T value, String userInput) throws TranslatableInvalidRuleValueException {
+    private void set(@Nullable CommandSourceStack source, T value, String userInput) throws TranslatableInvalidRuleValueException {
         for (Validator<T> validator : this.validators) {
             if (validator.validate(value)) {
                 continue;

@@ -1,32 +1,33 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import org.jspecify.annotations.NonNull;
 
 public class ServerPlayerInventory extends AbstractCustomSizeInventory {
-    private final ServerPlayerEntity player;
-    private final PlayerInventory inventory;
+    private final ServerPlayer player;
+    private final Inventory inventory;
 
-    public ServerPlayerInventory(ServerPlayerEntity player) {
+    public ServerPlayerInventory(ServerPlayer player) {
         this.player = player;
         this.inventory = player.getInventory();
     }
 
     @Override
-    public int size() {
+    public int getContainerSize() {
         return 54;
     }
 
     @Override
-    protected Inventory getInventory() {
+    protected Container getInventory() {
         return this.inventory;
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         // 玩家活着，并且玩家没有被删除
-        return !this.player.isDead() && !this.player.isRemoved();
+        return !this.player.isDeadOrDying() && !this.player.isRemoved();
     }
 }

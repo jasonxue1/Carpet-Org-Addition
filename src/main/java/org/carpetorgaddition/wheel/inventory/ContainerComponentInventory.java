@@ -1,22 +1,23 @@
 package org.carpetorgaddition.wheel.inventory;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import org.carpetorgaddition.util.InventoryUtils;
 import org.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
-public class ContainerComponentInventory extends SimpleInventory implements Comparable<ContainerComponentInventory> {
+public class ContainerComponentInventory extends SimpleContainer implements Comparable<ContainerComponentInventory> {
     private final ItemStack itemStack;
     public static final int CONTAINER_SIZE = 27;
 
@@ -24,25 +25,25 @@ public class ContainerComponentInventory extends SimpleInventory implements Comp
         super(CONTAINER_SIZE);
         InventoryUtils.deepCopyContainer(itemStack);
         this.itemStack = itemStack;
-        ContainerComponent component = this.itemStack.get(DataComponentTypes.CONTAINER);
+        ItemContainerContents component = this.itemStack.get(DataComponents.CONTAINER);
         if (component != null) {
-            component.copyTo(this.getHeldStacks());
+            component.copyInto(this.getItems());
         }
     }
 
     @Override
-    public void markDirty() {
-        super.markDirty();
-        DefaultedList<ItemStack> stacks = this.getHeldStacks();
-        this.itemStack.set(DataComponentTypes.CONTAINER, ContainerComponent.fromStacks(stacks));
+    public void setChanged() {
+        super.setChanged();
+        NonNullList<ItemStack> stacks = this.getItems();
+        this.itemStack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(stacks));
     }
 
     @Override
-    public boolean canPlayerUse(PlayerEntity player) {
+    public boolean stillValid(@NonNull Player player) {
         if (this.itemStack.isEmpty()) {
             return false;
         }
-        return this.itemStack.getCount() == 1 && super.canPlayerUse(player);
+        return this.itemStack.getCount() == 1 && super.stillValid(player);
     }
 
     /**
@@ -50,11 +51,11 @@ public class ContainerComponentInventory extends SimpleInventory implements Comp
      */
     @CheckReturnValue
     public ItemStack pinkStack(Predicate<ItemStack> predicate) {
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack stack = this.getStack(i);
+        for (int i = 0; i < this.getContainerSize(); i++) {
+            ItemStack stack = this.getItem(i);
             if (predicate.test(stack)) {
                 ItemStack result = stack.copy();
-                this.setStack(i, ItemStack.EMPTY);
+                this.setItem(i, ItemStack.EMPTY);
                 return result;
             }
         }
@@ -66,10 +67,10 @@ public class ContainerComponentInventory extends SimpleInventory implements Comp
      */
     @CheckReturnValue
     public ItemStack pinkStack(Predicate<ItemStack> predicate, int count) {
-        for (int i = 0; i < this.size(); i++) {
-            ItemStack stack = this.getStack(i);
+        for (int i = 0; i < this.getContainerSize(); i++) {
+            ItemStack stack = this.getItem(i);
             if (predicate.test(stack)) {
-                return this.removeStack(i, count);
+                return this.removeItem(i, count);
             }
         }
         return ItemStack.EMPTY;
@@ -99,20 +100,20 @@ public class ContainerComponentInventory extends SimpleInventory implements Comp
 
     @Override
     public int hashCode() {
-        return ItemStack.hashCode(this.itemStack);
+        return ItemStack.hashItemAndComponents(this.itemStack);
     }
 
     @Override
-    public String toString() {
+    public @NonNull String toString() {
         if (this.isEmpty()) {
-            return "{Size: %s[]}".formatted(this.size());
+            return "{Size: %s[]}".formatted(this.getContainerSize());
         }
-        StringJoiner joiner = new StringJoiner(", ", "{Size: %s[".formatted(this.size()), "]}");
+        StringJoiner joiner = new StringJoiner(", ", "{Size: %s[".formatted(this.getContainerSize()), "]}");
         for (ItemStack itemStack : this) {
             if (itemStack.isEmpty()) {
                 continue;
             }
-            joiner.add(itemStack.getItem().toString() + "*" + itemStack.getCount());
+            joiner.add(itemStack.getItem() + "*" + itemStack.getCount());
         }
         return joiner.toString();
     }

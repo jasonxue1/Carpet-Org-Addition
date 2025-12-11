@@ -3,19 +3,23 @@ package org.carpetorgaddition.util;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.SharedConstants;
-import net.minecraft.block.Block;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
-import net.minecraft.item.Item;
-import net.minecraft.registry.*;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.wheel.FakePlayerCreateContext;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +33,7 @@ public class GenericUtils {
      */
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
     /**
-     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3d, double, double, RegistryKey, GameMode, boolean)}内部的lambda表达式执行时，调用次函数
+     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3, double, double, ResourceKey, GameType, boolean)}内部的lambda表达式执行时，调用次函数
      */
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
     /**
@@ -44,7 +48,7 @@ public class GenericUtils {
      * 根据UUID获取实体
      */
     public static Optional<Entity> getEntity(MinecraftServer server, UUID uuid) {
-        for (ServerWorld world : server.getWorlds()) {
+        for (ServerLevel world : server.getAllLevels()) {
             Entity entity = world.getEntity(uuid);
             if (entity != null) {
                 return Optional.of(entity);
@@ -56,46 +60,46 @@ public class GenericUtils {
     /**
      * 根据UUID获取玩家
      */
-    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, UUID uuid) {
-        return Optional.ofNullable(server.getPlayerManager().getPlayer(uuid));
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, UUID uuid) {
+        return Optional.ofNullable(server.getPlayerList().getPlayer(uuid));
     }
 
     /**
      * 根据名称获取玩家
      */
-    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, String name) {
-        return Optional.ofNullable(server.getPlayerManager().getPlayer(name));
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, String name) {
+        return Optional.ofNullable(server.getPlayerList().getPlayerByName(name));
     }
 
-    public static Optional<ServerPlayerEntity> getPlayer(MinecraftServer server, GameProfile gameProfile) {
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, GameProfile gameProfile) {
         return getPlayer(server, gameProfile.name());
     }
 
     public static Identifier getId(Item item) {
-        return Registries.ITEM.getId(item);
+        return BuiltInRegistries.ITEM.getKey(item);
     }
 
     public static Identifier getId(Block block) {
-        return Registries.BLOCK.getId(block);
+        return BuiltInRegistries.BLOCK.getKey(block);
     }
 
-    public static Optional<Identifier> getId(World world, Enchantment enchantment) {
-        RegistryEntry<Enchantment> entry = RegistryEntry.of(enchantment);
-        entry.getKey().map(RegistryKey::getValue);
-        return getId(world.getRegistryManager(), enchantment);
+    public static Optional<Identifier> getId(Level world, Enchantment enchantment) {
+        Holder<Enchantment> entry = Holder.direct(enchantment);
+        entry.unwrapKey().map(ResourceKey::identifier);
+        return getId(world.registryAccess(), enchantment);
     }
 
     public static Optional<Identifier> getId(MinecraftServer server, Enchantment enchantment) {
-        return getId(server.getRegistryManager(), enchantment);
+        return getId(server.registryAccess(), enchantment);
     }
 
-    public static Optional<Identifier> getId(DynamicRegistryManager registryManager, Enchantment enchantment) {
-        Optional<Registry<Enchantment>> optional = registryManager.getOptional(RegistryKeys.ENCHANTMENT);
+    public static Optional<Identifier> getId(RegistryAccess registryManager, Enchantment enchantment) {
+        Optional<Registry<Enchantment>> optional = registryManager.lookup(Registries.ENCHANTMENT);
         if (optional.isEmpty()) {
             return Optional.empty();
         }
         Registry<Enchantment> enchantments = optional.get();
-        return Optional.ofNullable(enchantments.getId(enchantment));
+        return Optional.ofNullable(enchantments.getKey(enchantment));
     }
 
 
@@ -112,18 +116,18 @@ public class GenericUtils {
      * 将字符串ID转换为物品
      */
     public static Item getItem(String id) {
-        return Registries.ITEM.get(Identifier.of(id));
+        return BuiltInRegistries.ITEM.getValue(Identifier.parse(id));
     }
 
     /**
      * 将字符串ID转换为方块
      */
     public static Block getBlock(String id) {
-        return Registries.BLOCK.get(Identifier.of(id));
+        return BuiltInRegistries.BLOCK.getValue(Identifier.parse(id));
     }
 
-    public static RegistryKey<World> getWorld(String worldId) {
-        return RegistryKey.of(RegistryKeys.WORLD, Identifier.of(worldId));
+    public static ResourceKey<Level> getWorld(String worldId) {
+        return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
     }
 
     /**
@@ -149,7 +153,7 @@ public class GenericUtils {
      *
      * @param consumer 玩家生成时执行的函数
      */
-    public static void createFakePlayer(String username, MinecraftServer server, Vec3d pos, double yaw, double pitch, RegistryKey<World> dimension, GameMode gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
+    public static void createFakePlayer(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimension, GameType gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
         try {
             FAKE_PLAYER_SPAWNING.set(consumer);
             EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying);
@@ -172,7 +176,7 @@ public class GenericUtils {
      * @return 当前游戏的NBT数据版本
      */
     public static int getNbtDataVersion() {
-        return SharedConstants.getGameVersion().dataVersion().id();
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     /**

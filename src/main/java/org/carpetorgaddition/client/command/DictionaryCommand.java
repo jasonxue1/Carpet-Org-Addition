@@ -6,22 +6,22 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.block.Block;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.item.Item;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.rule.GameRule;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.gamerules.GameRule;
 import org.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import org.carpetorgaddition.client.util.ClientMessageUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
@@ -36,7 +36,7 @@ public class DictionaryCommand extends AbstractClientCommand {
     public static final String DEFAULT_COMMAND_NAME = "dictionary";
     private static final String UNREGISTERED = "[<unregistered>]";
 
-    public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandRegistryAccess access) {
+    public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
@@ -73,7 +73,7 @@ public class DictionaryCommand extends AbstractClientCommand {
     }
 
     // 发送命令反馈
-    private void sendFeedback(Text text, String id) {
+    private void sendFeedback(Component text, String id) {
         ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.id", text, canCopyId(id));
     }
 
@@ -87,11 +87,11 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     // 将字符串id转换成可以单击复制的形式
     @NotNull
-    private Text canCopyId(String id) {
+    private Component canCopyId(String id) {
         return new TextBuilder(id)
                 .setCopyToClipboard(id)
                 .setHover(TextProvider.COPY_CLICK)
-                .setColor(Formatting.GREEN)
+                .setColor(ChatFormatting.GREEN)
                 .build();
     }
 
@@ -141,52 +141,52 @@ public class DictionaryCommand extends AbstractClientCommand {
 
         // 获取对象id
         private String id(Object obj) {
-            ClientPlayerEntity player = ClientUtils.getPlayer();
-            DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
+            LocalPlayer player = ClientUtils.getPlayer();
+            RegistryAccess.Frozen registry = player.connection.registryAccess();
             return switch (this) {
-                case ITEM -> Registries.ITEM.getId((Item) obj).toString();
-                case BLOCK -> Registries.BLOCK.getId((Block) obj).toString();
-                case ENTITY -> Registries.ENTITY_TYPE.getId((EntityType<?>) obj).toString();
-                case ENCHANTMENT -> registry.getOptional(RegistryKeys.ENCHANTMENT)
-                        .map(enchantment -> enchantment.getId((Enchantment) obj))
+                case ITEM -> BuiltInRegistries.ITEM.getKey((Item) obj).toString();
+                case BLOCK -> BuiltInRegistries.BLOCK.getKey((Block) obj).toString();
+                case ENTITY -> BuiltInRegistries.ENTITY_TYPE.getKey((EntityType<?>) obj).toString();
+                case ENCHANTMENT -> registry.lookup(Registries.ENCHANTMENT)
+                        .map(enchantment -> enchantment.getKey((Enchantment) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
-                case STATUS_EFFECT -> registry.getOptional(RegistryKeys.STATUS_EFFECT)
-                        .map(effect -> effect.getId((StatusEffect) obj))
+                case STATUS_EFFECT -> registry.lookup(Registries.MOB_EFFECT)
+                        .map(effect -> effect.getKey((MobEffect) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
-                case BIOME -> registry.getOptional(RegistryKeys.BIOME)
-                        .map(biome -> biome.getId((Biome) obj))
+                case BIOME -> registry.lookup(Registries.BIOME)
+                        .map(biome -> biome.getKey((Biome) obj))
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
-                case GAME_MODE -> ((GameMode) obj).asString();
+                case GAME_MODE -> ((GameType) obj).getSerializedName();
                 // TODO /gamerule命令中的参数是不带命名空间的
-                case GAME_RULE -> registry.getOptional(RegistryKeys.GAME_RULE)
-                        .map(rules -> rules.getId((GameRule<?>) obj))
+                case GAME_RULE -> registry.lookup(Registries.GAME_RULE)
+                        .map(rules -> rules.getKey((GameRule<?>) obj))
                         .map(Identifier::toString)
                         .orElse("[<unregistered>]");
             };
         }
 
         // 获取对象名称
-        private Text name(Object obj) {
+        private Component name(Object obj) {
             // 获取客户端玩家
-            ClientPlayerEntity player = ClientUtils.getPlayer();
+            LocalPlayer player = ClientUtils.getPlayer();
             // 获取注册管理器
-            DynamicRegistryManager.Immutable registry = player.networkHandler.getRegistryManager();
+            RegistryAccess.Frozen registry = player.connection.registryAccess();
             return switch (this) {
                 case ITEM -> ((Item) obj).getName();
                 case BLOCK -> ((Block) obj).getName();
-                case ENTITY -> ((EntityType<?>) obj).getName();
+                case ENTITY -> ((EntityType<?>) obj).getDescription();
                 case ENCHANTMENT -> EnchantmentUtils.getName((Enchantment) obj);
-                case STATUS_EFFECT -> ((StatusEffect) obj).getName();
-                case BIOME -> registry.getOptional(RegistryKeys.BIOME)
-                        .map(biome -> biome.getId((Biome) obj))
-                        .map(identifier -> identifier.toTranslationKey("biome"))
+                case STATUS_EFFECT -> ((MobEffect) obj).getDisplayName();
+                case BIOME -> registry.lookup(Registries.BIOME)
+                        .map(biome -> biome.getKey((Biome) obj))
+                        .map(identifier -> identifier.toLanguageKey("biome"))
                         .map(TextBuilder::translate)
                         .orElse(TextBuilder.create(UNREGISTERED));
-                case GAME_MODE -> ((GameMode) obj).getTranslatableName();
-                case GAME_RULE -> TextBuilder.translate(((GameRule<?>) obj).getTranslationKey());
+                case GAME_MODE -> ((GameType) obj).getLongDisplayName();
+                case GAME_RULE -> TextBuilder.translate(((GameRule<?>) obj).getDescriptionId());
             };
         }
 

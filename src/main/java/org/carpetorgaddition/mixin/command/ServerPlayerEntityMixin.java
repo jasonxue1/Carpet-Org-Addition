@@ -3,16 +3,16 @@ package org.carpetorgaddition.mixin.command;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageTracker;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.CombatTracker;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import org.carpetorgaddition.util.FetcherUtils;
@@ -29,23 +29,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.ArrayList;
 import java.util.Optional;
 
-@Mixin(ServerPlayerEntity.class)
+@Mixin(ServerPlayer.class)
 public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterface {
     @Unique
-    private final ServerPlayerEntity thisPlayer = (ServerPlayerEntity) (Object) this;
+    private final ServerPlayer thisPlayer = (ServerPlayer) (Object) this;
 
     @Unique
     private float safeAfkThreshold = -1F;
 
-    @Inject(method = "damage", at = @At(value = "RETURN"))
-    private void damage(ServerWorld world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "hurtServer", at = @At(value = "RETURN"))
+    private void damage(ServerLevel world, DamageSource source, float amount, CallbackInfoReturnable<Boolean> cir) {
         if (this.safeAfkThreshold > 0 && thisPlayer instanceof EntityPlayerMPFake) {
             safeAfk(source, amount);
         }
     }
 
-    @WrapOperation(method = "onDeath", at = @At(value = "INVOKE", target = "Lnet/minecraft/entity/damage/DamageTracker;getDeathMessage()Lnet/minecraft/text/Text;"))
-    private Text getDeathMessage(DamageTracker instance, Operation<Text> original) {
+    @WrapOperation(method = "die", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;getDeathMessage()Lnet/minecraft/network/chat/Component;"))
+    private Component getDeathMessage(CombatTracker instance, Operation<Component> original) {
         if (CarpetOrgAdditionSettings.committingSuicide.get()) {
             return TextBuilder.translate("carpet.commands.killMe.suicide", thisPlayer.getDisplayName());
         }
@@ -65,7 +65,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             // 设置为斜体
             builder.setItalic();
             // 设置为红色
-            builder.setColor(Formatting.RED);
+            builder.setColor(ChatFormatting.RED);
             // 添加悬停提示
             builder.setHover(report(source, amount));
             MessageUtils.broadcastMessage(FetcherUtils.getServer(thisPlayer), builder.build());
@@ -82,23 +82,23 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
             // 广播触发消息，斜体淡灰色
             MessageUtils.broadcastMessage(FetcherUtils.getServer(thisPlayer), builder.build());
             // 恢复饥饿值
-            thisPlayer.getHungerManager().setFoodLevel(20);
+            thisPlayer.getFoodData().setFoodLevel(20);
             // 退出假人
-            thisPlayer.kill(thisPlayer.getEntityWorld());
+            thisPlayer.kill(thisPlayer.level());
         }
     }
 
     // 反馈中的悬停提示
     @Unique
-    private Text report(DamageSource damageSource, float amount) {
-        ArrayList<Text> list = new ArrayList<>();
+    private Component report(DamageSource damageSource, float amount) {
+        ArrayList<Component> list = new ArrayList<>();
         // 获取攻击者
-        Object attacker = Optional.ofNullable(damageSource.getAttacker()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
+        Object attacker = Optional.ofNullable(damageSource.getEntity()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
         // 获取伤害来源
-        Object source = Optional.ofNullable(damageSource.getSource()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
+        Object source = Optional.ofNullable(damageSource.getDirectEntity()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
         list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.attacker", attacker));
         list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.source", source));
-        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getName()));
+        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getMsgId()));
         list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.amount", String.valueOf(amount)));
         return TextBuilder.joinList(list);
     }
@@ -107,35 +107,35 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
     @Unique
     private boolean canTriggerTotemOfUndying(DamageSource source) {
         // 无法触发不死图腾的伤害类型
-        if (source.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         }
         switch (CarpetOrgAdditionSettings.betterTotemOfUndying.get()) {
             case VANILLA: {
                 // 主手或副手有不死图腾
-                if (thisPlayer.getMainHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                if (thisPlayer.getMainHandItem().is(Items.TOTEM_OF_UNDYING)) {
                     return true;
                 }
-                if (thisPlayer.getOffHandStack().isOf(Items.TOTEM_OF_UNDYING)) {
+                if (thisPlayer.getOffhandItem().is(Items.TOTEM_OF_UNDYING)) {
                     return true;
                 }
                 break;
             }
             case INVENTORY_WITH_SHULKER_BOX: {
                 // 检查潜影盒中是否有不死图腾
-                PlayerInventory inventory = thisPlayer.getInventory();
-                for (int i = 0; i < inventory.size(); i++) {
-                    ItemStack itemStack = inventory.getStack(i);
-                    if (InventoryUtils.contains(itemStack, stack -> stack.isOf(Items.TOTEM_OF_UNDYING))) {
+                Inventory inventory = thisPlayer.getInventory();
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                    ItemStack itemStack = inventory.getItem(i);
+                    if (InventoryUtils.contains(itemStack, stack -> stack.is(Items.TOTEM_OF_UNDYING))) {
                         return true;
                     }
                 }
             }
             case INVENTORY: {
                 // 物品栏中有不死图腾
-                PlayerInventory inventory = thisPlayer.getInventory();
-                for (int i = 0; i < inventory.size(); i++) {
-                    if (inventory.getStack(i).isOf(Items.TOTEM_OF_UNDYING)) {
+                Inventory inventory = thisPlayer.getInventory();
+                for (int i = 0; i < inventory.getContainerSize(); i++) {
+                    if (inventory.getItem(i).is(Items.TOTEM_OF_UNDYING)) {
                         return true;
                     }
                 }

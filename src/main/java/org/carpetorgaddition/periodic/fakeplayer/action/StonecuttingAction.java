@@ -2,18 +2,18 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.StonecuttingRecipe;
-import net.minecraft.recipe.display.CuttingRecipeDisplay;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.Registries;
-import net.minecraft.screen.StonecutterScreenHandler;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
-import net.minecraft.world.World;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.StonecutterMenu;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.SelectableRecipe;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.StonecutterRecipe;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.exception.InfiniteLoopException;
 import org.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
@@ -59,12 +59,12 @@ public class StonecuttingAction extends AbstractPlayerAction {
         this.stonecutting(inventory);
         // 丢弃合成输出
         for (ItemStack itemStack : inventory) {
-            this.getFakePlayer().dropItem(itemStack, false, true);
+            this.getFakePlayer().drop(itemStack, false, true);
         }
     }
 
     private void stonecutting(AutoGrowInventory inventory) {
-        if (getFakePlayer().currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
+        if (getFakePlayer().containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
             // 定义变量记录成功完成合成的次数
             int craftCount = 0;
             // 用于循环次数过多时抛出异常结束循环
@@ -79,10 +79,10 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 // 获取切石机输入槽对象
                 Slot inputSlot = stonecutterScreenHandler.getSlot(0);
                 // 判断切石机输入槽是否有物品
-                if (inputSlot.hasStack()) {
+                if (inputSlot.hasItem()) {
                     // 如果有物品，并且是指定物品，设置不需要遍历物品栏
-                    ItemStack itemStack = inputSlot.getStack();
-                    if (itemStack.isOf(this.item)) {
+                    ItemStack itemStack = inputSlot.getItem();
+                    if (itemStack.is(this.item)) {
                         needToTraverseInventory = false;
                     } else {
                         // 如果不是指定物品，丢出该物品
@@ -97,11 +97,11 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 }
                 // 模拟单击切石机按钮
-                stonecutterScreenHandler.onButtonClick(this.getFakePlayer(), this.button);
+                stonecutterScreenHandler.clickMenuButton(this.getFakePlayer(), this.button);
                 // 获取切石机输出槽对象
                 Slot outputSlot = stonecutterScreenHandler.getSlot(1);
                 // 如果输出槽有物品
-                if (outputSlot.hasStack()) {
+                if (outputSlot.hasItem()) {
                     // 收集产物
                     FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.getFakePlayer());
                     craftCount++;
@@ -112,7 +112,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 否则，认为前面的操作有误，停止合成，结束方法
-                    FakePlayerUtils.stopAction(this.getFakePlayer().getCommandSource(), this.getFakePlayer(), "carpet.commands.playerAction.stone_cutting");
+                    FakePlayerUtils.stopAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer(), "carpet.commands.playerAction.stone_cutting");
                     return;
                 }
             }
@@ -124,17 +124,17 @@ public class StonecuttingAction extends AbstractPlayerAction {
      *
      * @return 是否已经所有材料用完
      */
-    private boolean tryMoveItem(StonecutterScreenHandler screenHandler, Item item) {
+    private boolean tryMoveItem(StonecutterMenu screenHandler, Item item) {
         for (int index = 2; index < screenHandler.slots.size(); index++) {
             // 如果找到，移动到切石机输入槽，然后结束循环
-            ItemStack itemStack = screenHandler.getSlot(index).getStack();
-            if (itemStack.isOf(item)) {
+            ItemStack itemStack = screenHandler.getSlot(index).getItem();
+            if (itemStack.is(item)) {
                 if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.getFakePlayer())) {
                     return false;
                 }
             } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get() && InventoryUtils.isOperableSulkerBox(itemStack)) {
                 // 从潜影盒中查找指定物品
-                ItemStack stack = InventoryUtils.pickItemFromShulkerBox(itemStack, content -> content.isOf(this.item));
+                ItemStack stack = InventoryUtils.pickItemFromShulkerBox(itemStack, content -> content.is(this.item));
                 // 未找到指定物品
                 if (stack.isEmpty()) {
                     continue;
@@ -143,7 +143,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 // 丢弃光标上的物品（如果有）
                 FakePlayerUtils.dropCursorStack(screenHandler, this.getFakePlayer());
                 // 将光标上的物品设置为从潜影盒中取出来的物品
-                screenHandler.setCursorStack(stack);
+                screenHandler.setCarried(stack);
                 // 将光标上的物品放在切石机输入槽位上
                 FakePlayerUtils.pickupCursorStack(screenHandler, 0, this.getFakePlayer());
                 return false;
@@ -154,11 +154,11 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public List<Text> info() {
+    public List<Component> info() {
         // 创建一个物品栏对象用来获取配方的输出物品
-        SingleStackRecipeInput input = new SingleStackRecipeInput(this.item.getDefaultStack());
+        SingleRecipeInput input = new SingleRecipeInput(this.item.getDefaultInstance());
         // 获取假玩家所在的世界对象
-        World world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = FetcherUtils.getWorld(this.getFakePlayer());
         ItemStack outputItemStack;
         try {
             // 获取与配方对应的物品
@@ -168,25 +168,25 @@ public class StonecuttingAction extends AbstractPlayerAction {
             outputItemStack = ItemStack.EMPTY;
         }
         // 获取输出物品的名称
-        Text itemName;
+        Component itemName;
         if (outputItemStack.isEmpty()) {
             // 如果物品为EMPTY，设置物品名称为空气的物品悬停文本
-            itemName = Items.AIR.getDefaultStack().toHoverableText();
+            itemName = Items.AIR.getDefaultInstance().getDisplayName();
         } else {
-            itemName = outputItemStack.toHoverableText();
+            itemName = outputItemStack.getDisplayName();
         }
-        ArrayList<Text> list = new ArrayList<>();
+        ArrayList<Component> list = new ArrayList<>();
         list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.item",
                 this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName(),
-                this.item.getDefaultStack().toHoverableText(), itemName));
-        if (getFakePlayer().currentScreenHandler instanceof StonecutterScreenHandler stonecutterScreenHandler) {
+                this.item.getDefaultInstance().getDisplayName(), itemName));
+        if (getFakePlayer().containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
             // 将按钮索引的信息添加到集合，按钮在之前减去了1，这里再加回来
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.button",
                     (this.button + 1)));
             // 将切石机当前的状态的信息添加到集合
             list.add(TextBuilder.combineAll("    ",
-                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getStack()), " -> ",
-                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getStack())));
+                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getItem()), " -> ",
+                    FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getItem())));
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
             list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",
@@ -196,15 +196,15 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     // 获取切石机配方输出
-    private ItemStack getRecipeResult(EntityPlayerMPFake fakePlayer, World world, SingleStackRecipeInput input) {
-        for (CuttingRecipeDisplay.GroupEntry<StonecuttingRecipe> entry : world.getRecipeManager().getStonecutterRecipes().entries()) {
-            Optional<RecipeEntry<StonecuttingRecipe>> optional = entry.recipe().recipe();
+    private ItemStack getRecipeResult(EntityPlayerMPFake fakePlayer, Level world, SingleRecipeInput input) {
+        for (SelectableRecipe.SingleInputEntry<StonecutterRecipe> entry : world.recipeAccess().stonecutterRecipes().entries()) {
+            Optional<RecipeHolder<StonecutterRecipe>> optional = entry.recipe().recipe();
             if (optional.isEmpty()) {
                 continue;
             }
-            StonecuttingRecipe recipe = optional.get().value();
-            if (recipe.matches(input, fakePlayer.getEntityWorld())) {
-                return recipe.craft(input, world.getRegistryManager());
+            StonecutterRecipe recipe = optional.get().value();
+            if (recipe.matches(input, fakePlayer.level())) {
+                return recipe.assemble(input, world.registryAccess());
             }
         }
         return ItemStack.EMPTY;
@@ -213,13 +213,13 @@ public class StonecuttingAction extends AbstractPlayerAction {
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        json.addProperty(ITEM, Registries.ITEM.getId(this.item).toString());
+        json.addProperty(ITEM, BuiltInRegistries.ITEM.getKey(this.item).toString());
         json.addProperty(BUTTON, this.button);
         return json;
     }
 
     @Override
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return TextBuilder.translate("carpet.commands.playerAction.action.stonecutting");
     }
 

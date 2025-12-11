@@ -1,9 +1,9 @@
 package org.carpetorgaddition.periodic.navigator;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.util.MessageUtils;
@@ -12,21 +12,21 @@ import org.carpetorgaddition.wheel.provider.TextProvider;
 import org.jetbrains.annotations.NotNull;
 
 public class HasNamePosNavigator extends BlockPosNavigator {
-    private final Text name;
+    private final Component name;
 
-    public HasNamePosNavigator(@NotNull ServerPlayerEntity player, BlockPos blockPos, World world, Text name) {
+    public HasNamePosNavigator(@NotNull ServerPlayer player, BlockPos blockPos, Level world, Component name) {
         super(player, blockPos, world);
         this.name = name;
     }
 
     @Override
     public void tick() {
-        Text text;
-        Text posText = TextProvider.simpleBlockPos(this.blockPos);
+        Component text;
+        Component posText = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
-            int distance = MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.blockPos);
-            text = getHUDText(this.blockPos.toCenterPos(), TextBuilder.translate(IN, this.name, posText), distance);
+            int distance = MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos);
+            text = getHUDText(this.blockPos.getCenter(), TextBuilder.translate(IN, this.name, posText), distance);
         } else {
             text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(TextProvider.dimension(this.world), posText));
         }
@@ -34,7 +34,7 @@ public class HasNamePosNavigator extends BlockPosNavigator {
     }
 
     @Override
-    public HasNamePosNavigator copy(ServerPlayerEntity player) {
+    public HasNamePosNavigator copy(ServerPlayer player) {
         return new HasNamePosNavigator(player, this.blockPos, this.world, this.name);
     }
 }

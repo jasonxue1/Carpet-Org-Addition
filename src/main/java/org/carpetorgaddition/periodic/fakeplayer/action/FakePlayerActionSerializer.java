@@ -2,7 +2,7 @@ package org.carpetorgaddition.periodic.fakeplayer.action;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.wheel.TextJoiner;
@@ -61,7 +61,7 @@ public class FakePlayerActionSerializer {
         return !this.action.isStop();
     }
 
-    public Text toText() {
+    public Component toText() {
         TextJoiner joiner = new TextJoiner();
         joiner.append("carpet.commands.playerManager.info.action");
         joiner.enter(this.action.getDisplayName());

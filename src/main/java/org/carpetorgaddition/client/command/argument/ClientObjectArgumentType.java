@@ -7,19 +7,19 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.block.Block;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.command.CommandSource;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.effect.StatusEffect;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.rule.GameRule;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.gamerules.GameRule;
 import org.carpetorgaddition.client.util.ClientCommandUtils;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.carpetorgaddition.util.CommandUtils;
@@ -104,7 +104,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
      */
     @Override
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
-        if (context.getSource() instanceof CommandSource) {
+        if (context.getSource() instanceof SharedSuggestionProvider) {
             String[] array = getRegistry()
                     .map(this::objectToString)
                     .map(s -> s.contains(" ") ? "\"" + s + "\"" : s)
@@ -178,7 +178,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<Item> getRegistry() {
-            return Registries.ITEM.stream();
+            return BuiltInRegistries.ITEM.stream();
         }
     }
 
@@ -197,7 +197,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<Block> getRegistry() {
-            return Registries.BLOCK.stream();
+            return BuiltInRegistries.BLOCK.stream();
         }
     }
 
@@ -207,13 +207,13 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     public static class ClientEntityArgumentType extends ClientObjectArgumentType<EntityType<?>> {
         @Override
         protected String objectToString(EntityType<?> entityType) {
-            return entityType.getName().getString();
+            return entityType.getDescription().getString();
         }
 
         @Override
         protected Stream<EntityType<?>> getRegistry() {
-            ClientPlayerEntity player = ClientUtils.getPlayer();
-            return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENTITY_TYPE).stream();
+            LocalPlayer player = ClientUtils.getPlayer();
+            return player.connection.registryAccess().lookupOrThrow(Registries.ENTITY_TYPE).stream();
         }
     }
 
@@ -228,7 +228,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected Stream<Enchantment> getRegistry() {
-            Registry<Enchantment> registry = ClientUtils.getPlayer().networkHandler.getRegistryManager().getOrThrow(RegistryKeys.ENCHANTMENT);
+            Registry<Enchantment> registry = ClientUtils.getPlayer().connection.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             return registry.stream();
         }
     }
@@ -236,46 +236,46 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     /**
      * 状态效果参数
      */
-    public static class ClientStatusEffectArgumentType extends ClientObjectArgumentType<StatusEffect> {
+    public static class ClientStatusEffectArgumentType extends ClientObjectArgumentType<MobEffect> {
         @Override
-        protected String objectToString(StatusEffect statusEffect) {
-            return statusEffect.getName().getString();
+        protected String objectToString(MobEffect statusEffect) {
+            return statusEffect.getDisplayName().getString();
         }
 
         @Override
-        protected Stream<StatusEffect> getRegistry() {
-            ClientPlayerEntity player = ClientUtils.getPlayer();
-            return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.STATUS_EFFECT).stream();
+        protected Stream<MobEffect> getRegistry() {
+            LocalPlayer player = ClientUtils.getPlayer();
+            return player.connection.registryAccess().lookupOrThrow(Registries.MOB_EFFECT).stream();
         }
     }
 
     public static class ClientBiomeArgumentType extends ClientObjectArgumentType<Biome> {
         @Override
         protected String objectToString(Biome biome) {
-            Registry<Biome> biomes = ClientUtils.getPlayer().networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME);
-            return TextBuilder.translate(Objects.requireNonNull(biomes.getId(biome)).toTranslationKey("biome")).getString();
+            Registry<Biome> biomes = ClientUtils.getPlayer().connection.registryAccess().lookupOrThrow(Registries.BIOME);
+            return TextBuilder.translate(Objects.requireNonNull(biomes.getKey(biome)).toLanguageKey("biome")).getString();
 
         }
 
         @Override
         protected Stream<Biome> getRegistry() {
-            ClientPlayerEntity player = ClientUtils.getPlayer();
-            return player.networkHandler.getRegistryManager().getOrThrow(RegistryKeys.BIOME).stream();
+            LocalPlayer player = ClientUtils.getPlayer();
+            return player.connection.registryAccess().lookupOrThrow(Registries.BIOME).stream();
         }
     }
 
     /**
      * 游戏模式参数
      */
-    public static class ClientGameModeArgumentType extends ClientObjectArgumentType<GameMode> {
+    public static class ClientGameModeArgumentType extends ClientObjectArgumentType<GameType> {
         @Override
-        protected String objectToString(GameMode gameMode) {
-            return gameMode.getTranslatableName().getString();
+        protected String objectToString(GameType gameMode) {
+            return gameMode.getLongDisplayName().getString();
         }
 
         @Override
-        protected Stream<GameMode> getRegistry() {
-            return Stream.of(GameMode.values());
+        protected Stream<GameType> getRegistry() {
+            return Stream.of(GameType.values());
         }
     }
 
@@ -285,13 +285,13 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRule<?>> {
         @Override
         protected String objectToString(GameRule<?> gameRule) {
-            return TextBuilder.translate(gameRule.getTranslationKey()).getString();
+            return TextBuilder.translate(gameRule.getDescriptionId()).getString();
         }
 
         @Override
         protected Stream<GameRule<?>> getRegistry() {
-            ClientPlayerEntity player = ClientUtils.getPlayer();
-            Optional<Registry<GameRule<?>>> optional = player.networkHandler.getRegistryManager().getOptional(RegistryKeys.GAME_RULE);
+            LocalPlayer player = ClientUtils.getPlayer();
+            Optional<Registry<GameRule<?>>> optional = player.connection.registryAccess().lookup(Registries.GAME_RULE);
             if (optional.isEmpty()) {
                 return Stream.empty();
             }

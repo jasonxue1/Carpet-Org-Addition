@@ -1,9 +1,9 @@
 package org.carpetorgaddition.debug.client.render;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.gui.GuiGraphics;
 
 @FunctionalInterface
 public interface HudDebugRenderer {
-    void render(DrawContext context, RenderTickCounter tickCounter);
+    void render(GuiGraphics context, DeltaTracker tickCounter);
 }

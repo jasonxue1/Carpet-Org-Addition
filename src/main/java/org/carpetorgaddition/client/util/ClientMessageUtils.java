@@ -1,8 +1,8 @@
 package org.carpetorgaddition.client.util;
 
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
 
@@ -13,9 +13,9 @@ public class ClientMessageUtils {
     /**
      * 向客户端玩家发送一条聊天消息
      */
-    public static void sendMessage(Text message) {
-        ClientPlayerEntity player = ClientUtils.getPlayer();
-        player.sendMessage(message, false);
+    public static void sendMessage(Component message) {
+        LocalPlayer player = ClientUtils.getPlayer();
+        player.displayClientMessage(message, false);
     }
 
     /**
@@ -28,15 +28,15 @@ public class ClientMessageUtils {
     /**
      * 向客户端玩家发送一条红色的聊天消息
      */
-    public static void sendErrorMessage(Text message) {
-        sendMessage(new TextBuilder(message).setColor(Formatting.RED).build());
+    public static void sendErrorMessage(Component message) {
+        sendMessage(new TextBuilder(message).setColor(ChatFormatting.RED).build());
     }
 
     public static void sendErrorMessage(Throwable e, String key, Object... args) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, args);
         builder.setStringHover(error);
-        builder.setColor(Formatting.RED);
+        builder.setColor(ChatFormatting.RED);
         sendErrorMessage(builder.build());
     }
 }

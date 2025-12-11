@@ -3,7 +3,7 @@ package org.carpetorgaddition.mixin.util.carpet;
 import carpet.CarpetServer;
 import carpet.logging.LoggerRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.network.s2c.LoggerUpdateS2CPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -18,7 +18,7 @@ public class LoggerRegistryMixin {
         if (CarpetServer.scriptServer == null) {
             return;
         }
-        ServerPlayerEntity player = CarpetServer.minecraft_server.getPlayerManager().getPlayer(playerName);
+        ServerPlayer player = CarpetServer.minecraft_server.getPlayerList().getPlayerByName(playerName);
         if (player != null) {
             ServerPlayNetworking.send(player, new LoggerUpdateS2CPacket(logName, null, true));
         }

@@ -2,8 +2,8 @@ package org.carpetorgaddition.wheel.provider;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import org.carpetorgaddition.client.command.AbstractClientCommand;
 import org.carpetorgaddition.client.command.ClientCommandRegister;
 import org.carpetorgaddition.client.command.HighlightCommand;
@@ -197,7 +197,7 @@ public class CommandProvider {
     /**
      * 打开玩家物品栏
      */
-    public static String openPlayerInventory(PlayerEntity player) {
+    public static String openPlayerInventory(Player player) {
         return openPlayerInventory(FetcherUtils.getPlayerName(player));
     }
 
@@ -206,7 +206,7 @@ public class CommandProvider {
     }
 
     @SuppressWarnings("unused")
-    public static String openPlayerEnderChest(PlayerEntity player) {
+    public static String openPlayerEnderChest(Player player) {
         return openPlayerEnderChest(FetcherUtils.getPlayerName(player));
     }
 

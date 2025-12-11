@@ -1,8 +1,8 @@
 package org.carpetorgaddition.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 
 import java.util.HashMap;
 
@@ -10,7 +10,7 @@ public class CommandRegister {
     private static final HashMap<Class<? extends AbstractServerCommand>, AbstractServerCommand> commands = new HashMap<>();
 
     // 注册Carpet命令
-    public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         // 物品分身命令
         register(new ItemShadowingCommand(dispatcher, access));
         // 苦力怕音效命令

@@ -4,9 +4,16 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
-import net.minecraft.client.render.*;
-import net.minecraft.client.util.ObjectAllocator;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.framegraph.FrameGraphBuilder;
+import com.mojang.blaze3d.framegraph.FramePass;
+import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Camera;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.LevelTargetBundle;
+import net.minecraft.client.renderer.RenderBuffers;
+import net.minecraft.client.renderer.culling.Frustum;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import org.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
@@ -20,44 +27,44 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(WorldRenderer.class)
+@Mixin(LevelRenderer.class)
 public class WorldRendererMixin {
     @Shadow
     @Final
-    private BufferBuilderStorage bufferBuilders;
+    private RenderBuffers renderBuffers;
     @Shadow
     @Final
-    private DefaultFramebufferSet framebufferSet;
+    private LevelTargetBundle targets;
     @Unique
     private WorldRenderContext context;
     @Unique
-    private MatrixStack matrixStack;
+    private PoseStack matrixStack;
 
-    @Inject(method = "render", at = @At("HEAD"))
+    @Inject(method = "renderLevel", at = @At("HEAD"))
     private void onStart(CallbackInfo ci) {
         WorldRenderEvents.START.invoker().onStart();
     }
 
-    @WrapOperation(method = "method_62214", at = @At(value = "NEW", target = "()Lnet/minecraft/client/util/math/MatrixStack;"))
-    private MatrixStack setMatrixStack(Operation<MatrixStack> original) {
-        MatrixStack result = original.call();
+    @WrapOperation(method = "method_62214", at = @At(value = "NEW", target = "()Lcom/mojang/blaze3d/vertex/PoseStack;"))
+    private PoseStack setMatrixStack(Operation<PoseStack> original) {
+        PoseStack result = original.call();
         this.matrixStack = result;
         return result;
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/FramePass;setRenderer(Ljava/lang/Runnable;)V"))
-    private void setContext(ObjectAllocator allocator, RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f matrix4f, Matrix4f projectionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci, @Local Frustum frustum) {
-        this.context = new WorldRenderContext(this.matrixStack, tickCounter, frustum, this.bufferBuilders.getEntityVertexConsumers());
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/framegraph/FramePass;executes(Ljava/lang/Runnable;)V"))
+    private void setContext(GraphicsResourceAllocator allocator, DeltaTracker tickCounter, boolean renderBlockOutline, Camera camera, Matrix4f positionMatrix, Matrix4f matrix4f, Matrix4f projectionMatrix, GpuBufferSlice fogBuffer, Vector4f fogColor, boolean renderSky, CallbackInfo ci, @Local Frustum frustum) {
+        this.context = new WorldRenderContext(this.matrixStack, tickCounter, frustum, this.renderBuffers.bufferSource());
     }
 
-    @Inject(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/option/GameOptions;getCloudRenderModeValue()Lnet/minecraft/client/option/CloudRenderMode;"))
+    @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getCloudsType()Lnet/minecraft/client/CloudStatus;"))
     private void onAfterTranslucent(CallbackInfo ci, @Local FrameGraphBuilder frameGraphBuilder) {
-        FramePass pass = frameGraphBuilder.createPass(CarpetOrgAddition.MOD_ID + ":afterTranslucent");
-        this.framebufferSet.mainFramebuffer = pass.transfer(this.framebufferSet.mainFramebuffer);
-        pass.setRenderer(() -> WorldRenderEvents.AFTER_TRANSLUCENT.invoker().render(this.context));
+        FramePass pass = frameGraphBuilder.addPass(CarpetOrgAddition.MOD_ID + ":afterTranslucent");
+        this.targets.main = pass.readsAndWrites(this.targets.main);
+        pass.executes(() -> WorldRenderEvents.AFTER_TRANSLUCENT.invoker().render(this.context));
     }
 
-    @Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/command/RenderDispatcher;render()V"))
+    @Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderAllFeatures()V"))
     private void onDebug(CallbackInfo ci) {
         WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().render(this.context);
     }

@@ -1,14 +1,14 @@
 package org.carpetorgaddition.command;
 
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 
 public abstract class AbstractServerCommand extends AbstractCommand {
-    protected final CommandDispatcher<ServerCommandSource> dispatcher;
-    protected final CommandRegistryAccess access;
+    protected final CommandDispatcher<CommandSourceStack> dispatcher;
+    protected final CommandBuildContext access;
 
-    public AbstractServerCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public AbstractServerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         this.dispatcher = dispatcher;
         this.access = access;
     }

@@ -6,12 +6,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.dataupdate.DataUpdater;
@@ -50,7 +50,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 位置
      */
     @NotNull
-    private final Vec3d playerPos;
+    private final Vec3 playerPos;
     /**
      * 偏航角
      */
@@ -68,7 +68,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 游戏模式
      */
     @NotNull
-    private final GameMode gameMode;
+    private final GameType gameMode;
     /**
      * 是否飞行
      */
@@ -105,12 +105,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.fakePlayerName = FetcherUtils.getPlayerName(fakePlayer);
         this.playerPos = FetcherUtils.getFootPos(fakePlayer);
-        this.yaw = fakePlayer.getYaw();
-        this.pitch = fakePlayer.getPitch();
+        this.yaw = fakePlayer.getYRot();
+        this.pitch = fakePlayer.getXRot();
         this.dimension = WorldUtils.getDimensionId(FetcherUtils.getWorld(fakePlayer));
-        this.gameMode = fakePlayer.interactionManager.getGameMode();
+        this.gameMode = fakePlayer.gameMode.getGameModeForPlayer();
         this.flying = fakePlayer.getAbilities().flying;
-        this.sneaking = fakePlayer.isSneaking();
+        this.sneaking = fakePlayer.isShiftKeyDown();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
         this.file = new WorldFormat(FetcherUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
@@ -143,7 +143,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.fakePlayerName = file.getName().split("\\.")[0];
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
-        this.playerPos = new Vec3d(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
+        this.playerPos = new Vec3(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
         // 获取朝向
         JsonObject direction = json.get("direction").getAsJsonObject();
         this.yaw = direction.get("yaw").getAsFloat();
@@ -151,7 +151,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 维度
         this.dimension = json.get("dimension").getAsString();
         // 游戏模式
-        this.gameMode = GameMode.byId(json.get("gamemode").getAsString());
+        this.gameMode = GameType.byName(json.get("gamemode").getAsString());
         // 是否飞行
         this.flying = json.get("flying").getAsBoolean();
         // 是否潜行
@@ -214,13 +214,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     // 从json加载并生成假玩家
     public void spawn(MinecraftServer server) throws CommandSyntaxException {
-        if (server.getPlayerManager().getPlayer(this.fakePlayerName) != null) {
+        if (server.getPlayerList().getPlayerByName(this.fakePlayerName) != null) {
             throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
         }
-        ServerCommandSource source = server.getCommandSource();
+        CommandSourceStack source = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Consumer<EntityPlayerMPFake> consumer = fakePlayer -> {
-            fakePlayer.setSneaking(this.sneaking);
+            fakePlayer.setShiftKeyDown(this.sneaking);
             // 设置玩家动作
             this.interactiveAction.startAction(fakePlayer);
             this.autoAction.clearPlayer();
@@ -245,12 +245,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     // 显示文本信息
-    public Text info() {
+    public Component info() {
         TextJoiner joiner = new TextJoiner();
         // 玩家位置
-        String pos = MathUtils.numberToTwoDecimalString(this.playerPos.getX()) + " "
-                     + MathUtils.numberToTwoDecimalString(this.playerPos.getY()) + " "
-                     + MathUtils.numberToTwoDecimalString(this.playerPos.getZ());
+        String pos = MathUtils.numberToTwoDecimalString(this.playerPos.x()) + " "
+                     + MathUtils.numberToTwoDecimalString(this.playerPos.y()) + " "
+                     + MathUtils.numberToTwoDecimalString(this.playerPos.z());
         joiner.append("carpet.commands.playerManager.info.pos", pos);
         // 获取朝向
         joiner.append("carpet.commands.playerManager.info.direction",
@@ -259,7 +259,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 维度
         joiner.append("carpet.commands.playerManager.info.dimension", TextProvider.dimension(this.dimension));
         // 游戏模式
-        joiner.append("carpet.commands.playerManager.info.gamemode", this.gameMode.getTranslatableName());
+        joiner.append("carpet.commands.playerManager.info.gamemode", this.gameMode.getLongDisplayName());
         // 是否飞行
         joiner.append("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
         // 是否潜行
@@ -308,7 +308,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 维度
         json.addProperty("dimension", this.dimension);
         // 游戏模式
-        json.addProperty("gamemode", this.gameMode.getId());
+        json.addProperty("gamemode", this.gameMode.getName());
         // 是否飞行
         json.addProperty("flying", this.flying);
         // 是否潜行
@@ -378,23 +378,23 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     // 获取显示名称
-    public Text getDisplayName() {
+    public Component getDisplayName() {
         return new TextBuilder(this.fakePlayerName).setHover(this.info()).build();
     }
 
-    public Supplier<Text> toTextSupplier() {
+    public Supplier<Component> toTextSupplier() {
         return this::toText;
     }
 
-    private Text toText() {
-        Text loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
-        Text logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
+    private Component toText() {
+        Component loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
+        Component logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
         String name = this.getFakePlayerName();
         String logonCommand = CommandProvider.playerManagerSpawn(name);
         String logoutCommand = CommandProvider.killFakePlayer(name);
-        Text login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(Formatting.GREEN).build();
-        Text logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(Formatting.RED).build();
-        Text info = new TextBuilder("[?]").setHover(this.info()).setColor(Formatting.GRAY).build();
+        Component login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(ChatFormatting.GREEN).build();
+        Component logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(ChatFormatting.RED).build();
+        Component info = new TextBuilder("[?]").setHover(this.info()).setColor(ChatFormatting.GRAY).build();
         TextJoiner joiner = new TextJoiner();
         joiner.then(login)
                 .literal()
@@ -418,10 +418,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         try {
             List<FakePlayerSerializer> list = FetcherUtils.getFakePlayerSerializationManager(server).list();
-            int count = server.getCurrentPlayerCount();
+            int count = server.getPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    manager.addTask(new DelayedLoginTask(server, server.getCommandSource(), serializer, 1) {
+                    manager.addTask(new DelayedLoginTask(server, server.createCommandSourceStack(), serializer, 1) {
                         @Override
                         public void tick() {
                             try {
@@ -435,7 +435,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                     });
                     count++;
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
-                    if (count >= server.getMaxPlayerCount() - 1) {
+                    if (count >= server.getMaxPlayers() - 1) {
                         CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");
                         break;
                     }

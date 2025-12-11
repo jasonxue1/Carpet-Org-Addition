@@ -1,8 +1,8 @@
 package org.carpetorgaddition.mixin.rule.client.carpet;
 
 import carpet.api.settings.SettingsManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.integrated.IntegratedServer;
+import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.client.util.ClientUtils;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class SettingsManagerMixin {
     // 开放/carpet命令权限，仅单人游戏
     @Inject(method = "lambda$registerCommand$11", at = @At("HEAD"), cancellable = true)
-    private void carpet(ServerCommandSource player, CallbackInfoReturnable<Boolean> cir) {
+    private void carpet(CommandSourceStack player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.openCarpetPermission.get()) {
             IntegratedServer clientServer = ClientUtils.getServer();
             if (clientServer != null) {

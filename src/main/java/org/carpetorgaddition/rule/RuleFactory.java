@@ -1,7 +1,7 @@
 package org.carpetorgaddition.rule;
 
 import carpet.api.settings.CarpetRule;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.validator.Validator;
@@ -129,7 +129,7 @@ public class RuleFactory {
             return this;
         }
 
-        public Builder<T> addValidator(Predicate<T> predicate, Supplier<Text> supplier) {
+        public Builder<T> addValidator(Predicate<T> predicate, Supplier<Component> supplier) {
             return this.addValidators(Validator.of(predicate, supplier));
         }
 

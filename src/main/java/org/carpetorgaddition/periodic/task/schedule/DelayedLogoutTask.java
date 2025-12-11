@@ -2,10 +2,10 @@ package org.carpetorgaddition.periodic.task.schedule;
 
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.server.level.ServerPlayer;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MessageUtils;
 import org.carpetorgaddition.wheel.TextBuilder;
@@ -17,7 +17,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     private final EntityPlayerMPFake fakePlayer;
     private long delayed;
 
-    public DelayedLogoutTask(MinecraftServer server, ServerCommandSource source, EntityPlayerMPFake fakePlayer, long delayed) {
+    public DelayedLogoutTask(MinecraftServer server, CommandSourceStack source, EntityPlayerMPFake fakePlayer, long delayed) {
         super(source);
         this.server = server;
         this.fakePlayer = fakePlayer;
@@ -29,12 +29,12 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
         if (this.delayed == 0L) {
             if (this.fakePlayer.isRemoved()) {
                 // 假玩家可能被真玩家顶替，或者假玩家穿过了末地返回传送门，或者假玩家退出游戏后重新上线
-                ServerPlayerEntity player = this.server.getPlayerManager().getPlayer(this.fakePlayer.getUuid());
+                ServerPlayer player = this.server.getPlayerList().getPlayer(this.fakePlayer.getUUID());
                 if (player instanceof EntityPlayerMPFake) {
-                    player.kill(player.getEntityWorld());
+                    player.kill(player.level());
                 }
             } else {
-                this.fakePlayer.kill(fakePlayer.getEntityWorld());
+                this.fakePlayer.kill(fakePlayer.level());
             }
             this.delayed = -1L;
         } else {
@@ -56,7 +56,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     }
 
     @Override
-    public void onCancel(CommandContext<ServerCommandSource> context) {
+    public void onCancel(CommandContext<CommandSourceStack> context) {
         this.markRemove();
         MessageUtils.sendMessage(
                 context,
@@ -66,14 +66,14 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
         );
     }
 
-    private @NotNull Text getDisplayTime() {
+    private @NotNull Component getDisplayTime() {
         TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
         builder.setHover(TextProvider.tickToRealTime(this.delayed));
         return builder.build();
     }
 
     @Override
-    public void sendEachMessage(ServerCommandSource source) {
+    public void sendEachMessage(CommandSourceStack source) {
         MessageUtils.sendMessage(
                 source,
                 "carpet.commands.playerManager.schedule.logout",

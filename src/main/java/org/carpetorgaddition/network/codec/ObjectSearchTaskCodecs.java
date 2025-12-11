@@ -3,8 +3,8 @@ package org.carpetorgaddition.network.codec;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import org.carpetorgaddition.util.GenericUtils;
 import org.jetbrains.annotations.NotNull;
 

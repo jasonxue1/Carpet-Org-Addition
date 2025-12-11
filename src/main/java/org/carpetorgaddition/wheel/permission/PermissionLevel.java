@@ -1,11 +1,11 @@
 package org.carpetorgaddition.wheel.permission;
 
-import net.minecraft.server.command.ServerCommandSource;
+import net.minecraft.commands.CommandSourceStack;
 import org.carpetorgaddition.util.CommandUtils;
 
 import java.util.function.Predicate;
 
-public enum PermissionLevel implements Predicate<ServerCommandSource> {
+public enum PermissionLevel implements Predicate<CommandSourceStack> {
     /**
      * 允许任何玩家执行
      */
@@ -32,11 +32,11 @@ public enum PermissionLevel implements Predicate<ServerCommandSource> {
     REJECT;
 
     @Override
-    public boolean test(ServerCommandSource source) {
+    public boolean test(CommandSourceStack source) {
         return switch (this) {
             case REJECT -> false;
             case MODERATORS, OPS, ADMINS, OWNERS ->
-                    source.getPermissions().hasPermission(CommandUtils.parsePermission(this.ordinal()));
+                    source.permissions().hasPermission(CommandUtils.parsePermission(this.ordinal()));
             case PASS -> true;
         };
     }

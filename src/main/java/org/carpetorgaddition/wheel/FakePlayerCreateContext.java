@@ -1,11 +1,11 @@
 package org.carpetorgaddition.wheel;
 
 import carpet.patches.EntityPlayerMPFake;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.GameMode;
-import net.minecraft.world.World;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.GenericUtils;
 import org.jetbrains.annotations.NotNull;
@@ -13,25 +13,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Consumer;
 
 public record FakePlayerCreateContext(
-        Vec3d pos,
+        Vec3 pos,
         double yaw,
         double pitch,
-        RegistryKey<World> dimension,
-        GameMode gamemode,
+        ResourceKey<Level> dimension,
+        GameType gamemode,
         boolean flying,
         Consumer<EntityPlayerMPFake> consumer
 ) {
     @SuppressWarnings("unused")
-    public FakePlayerCreateContext(ServerPlayerEntity player) {
+    public FakePlayerCreateContext(ServerPlayer player) {
         this(player, GenericUtils::pass);
     }
 
-    public FakePlayerCreateContext(ServerPlayerEntity player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
+    public FakePlayerCreateContext(ServerPlayer player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
         this(FetcherUtils.getFootPos(player),
-                player.getYaw(),
-                player.getPitch(),
-                FetcherUtils.getWorld(player).getRegistryKey(),
-                player.interactionManager.getGameMode(),
+                player.getYRot(),
+                player.getXRot(),
+                FetcherUtils.getWorld(player).dimension(),
+                player.gameMode.getGameModeForPlayer(),
                 player.getAbilities().flying,
                 consumer
         );

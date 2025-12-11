@@ -1,17 +1,17 @@
 package org.carpetorgaddition.mixin.util;
 
-import net.minecraft.server.PlayerConfigEntry;
-import net.minecraft.util.UserCache;
+import net.minecraft.server.players.CachedUserNameToIdResolver;
+import net.minecraft.server.players.NameAndId;
 import org.carpetorgaddition.wheel.GameProfileCache;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(UserCache.class)
+@Mixin(CachedUserNameToIdResolver.class)
 public class UserCacheMixin {
-    @Inject(method = "add(Lnet/minecraft/server/PlayerConfigEntry;)V", at = @At("HEAD"))
-    private void add(PlayerConfigEntry entry, CallbackInfo ci) {
+    @Inject(method = "add(Lnet/minecraft/server/players/NameAndId;)V", at = @At("HEAD"))
+    private void add(NameAndId entry, CallbackInfo ci) {
         GameProfileCache.getInstance().put(entry);
     }
 }

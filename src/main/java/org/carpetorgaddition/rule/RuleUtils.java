@@ -6,22 +6,23 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.TranslationKeys;
 import carpet.utils.Translations;
 import com.mojang.serialization.MapCodec;
-import net.minecraft.command.permission.PermissionCheck;
-import net.minecraft.command.permission.PermissionPredicate;
-import net.minecraft.command.permission.PermissionSource;
-import net.minecraft.command.permission.PermissionSourcePredicate;
-import net.minecraft.entity.damage.DamageRecord;
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.damage.DamageTracker;
-import net.minecraft.registry.tag.DamageTypeTags;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionCheck;
+import net.minecraft.server.permissions.PermissionProviderCheck;
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.server.permissions.PermissionSetSupplier;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.CombatEntry;
+import net.minecraft.world.damagesource.CombatTracker;
+import net.minecraft.world.damagesource.DamageSource;
 import org.carpetorgaddition.CarpetOrgAddition;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -100,22 +101,22 @@ public class RuleUtils {
      * @param supplier  命令权限对应规则的开关
      * @param predicate 原版的权限谓词
      */
-    public static <T extends PermissionSource> PermissionSourcePredicate<T> requireOrOpenPermissionLevel(
+    public static <T extends PermissionSetSupplier> PermissionProviderCheck<T> requireOrOpenPermissionLevel(
             Supplier<Boolean> supplier,
-            PermissionSourcePredicate<T> predicate
+            PermissionProviderCheck<T> predicate
     ) {
-        return new PermissionSourcePredicate<>(new PermissionCheck() {
+        return new PermissionProviderCheck<>(new PermissionCheck() {
             @Override
-            public boolean allows(PermissionPredicate permissions) {
+            public boolean check(@NonNull PermissionSet permissions) {
                 if (supplier.get()) {
                     return true;
                 }
-                return predicate.test().allows(permissions);
+                return predicate.test().check(permissions);
             }
 
             @Override
-            public MapCodec<? extends PermissionCheck> getCodec() {
-                return predicate.test().getCodec();
+            public @NonNull MapCodec<? extends PermissionCheck> codec() {
+                return predicate.test().codec();
             }
         });
     }
@@ -123,7 +124,7 @@ public class RuleUtils {
     /**
      * 获取规则的名称
      */
-    public static Text simpleTranslationName(CarpetRule<?> rule) {
+    public static Component simpleTranslationName(CarpetRule<?> rule) {
         String key = String.format(TranslationKeys.RULE_NAME_PATTERN, rule.settingsManager().identifier(), rule.name());
         TextBuilder builder = TextBuilder.of(key);
         if (Translations.hasTranslation(key)) {
@@ -132,7 +133,7 @@ public class RuleUtils {
         return TextBuilder.create(rule.name());
     }
 
-    public static List<Text> ruleExtraInfo(CarpetRule<?> rule) {
+    public static List<Component> ruleExtraInfo(CarpetRule<?> rule) {
         String key = String.format(TranslationKeys.RULE_EXTRA_PREFIX_PATTERN, rule.settingsManager().identifier(), rule.name());
         List<String> list = new ArrayList<>();
         for (int i = 0; Translations.hasTranslation(key + i); i++) {
@@ -140,7 +141,7 @@ public class RuleUtils {
         }
         return list.stream()
                 .map(TextBuilder::of)
-                .map(builder -> builder.setColor(Formatting.GRAY))
+                .map(builder -> builder.setColor(ChatFormatting.GRAY))
                 .map(TextBuilder::build)
                 .toList();
     }
@@ -154,23 +155,23 @@ public class RuleUtils {
             case UNCONDITIONAL -> true;
             // 被玩家杀死或落入虚空时保留物品栏
             case KILLED_BY_PLAYER_OR_THE_VOID -> {
-                DamageTracker damageTracker = fakePlayer.getDamageTracker();
-                List<DamageRecord> records = ((DamageTrackerAccessor) damageTracker).getRecentDamage();
-                DamageSource directCause = records.getLast().damageSource();
+                CombatTracker damageTracker = fakePlayer.getCombatTracker();
+                List<CombatEntry> records = ((DamageTrackerAccessor) damageTracker).getRecentDamage();
+                DamageSource directCause = records.getLast().source();
                 // 伤害的源发实体为玩家时不掉落（例如玩家射出的箭）
-                if (directCause.getSource() instanceof ServerPlayerEntity) {
+                if (directCause.getDirectEntity() instanceof ServerPlayer) {
                     yield true;
                 }
                 // 伤害的直接实体为玩家时不掉落
-                if (directCause.getAttacker() instanceof ServerPlayerEntity) {
+                if (directCause.getEntity() instanceof ServerPlayer) {
                     yield true;
                 }
                 // 假玩家最近一段时间曾受到来自玩家的伤害
-                if (fakePlayer.getPrimeAdversary() instanceof ServerPlayerEntity) {
+                if (fakePlayer.getKillCredit() instanceof ServerPlayer) {
                     yield true;
                 }
                 // 假玩家落入虚空时不掉落
-                yield directCause.isIn(DamageTypeTags.BYPASSES_INVULNERABILITY);
+                yield directCause.is(DamageTypeTags.BYPASSES_INVULNERABILITY);
             }
         };
     }

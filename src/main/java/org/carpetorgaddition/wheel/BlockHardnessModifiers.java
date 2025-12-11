@@ -1,9 +1,9 @@
 package org.carpetorgaddition.wheel;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 
 import java.util.List;
@@ -117,7 +117,7 @@ public class BlockHardnessModifiers {
     );
 
     // 获取方块硬度
-    public static Optional<Float> getHardness(Block block, BlockView world, BlockPos pos) {
+    public static Optional<Float> getHardness(Block block, BlockGetter world, BlockPos pos) {
         // 设置基岩硬度
         if (block == Blocks.BEDROCK) {
             float hardness = CarpetOrgAdditionSettings.setBedrockHardness.get();
@@ -129,31 +129,31 @@ public class BlockHardnessModifiers {
         if (CarpetOrgAdditionSettings.softDeepslate.get()) {
             // 深板岩
             if (DEEPSLATE.contains(block)) {
-                return Optional.of(Blocks.STONE.getHardness());
+                return Optional.of(Blocks.STONE.defaultDestroyTime());
             }
             // 深板岩圆石
             if (COBBLED_DEEPSLATE.contains(block)) {
-                return Optional.of(Blocks.COBBLESTONE.getHardness());
+                return Optional.of(Blocks.COBBLESTONE.defaultDestroyTime());
             }
         }
         // 易碎黑曜石
         if (CarpetOrgAdditionSettings.softObsidian.get() && (block == Blocks.OBSIDIAN || block == Blocks.CRYING_OBSIDIAN)) {
-            return Optional.of(Blocks.END_STONE.getHardness());
+            return Optional.of(Blocks.END_STONE.defaultDestroyTime());
         }
         // 易碎矿石
         if (CarpetOrgAdditionSettings.softOres.get()) {
             // 普通矿石
             if (ORE.contains(block)) {
-                return Optional.of(Blocks.STONE.getHardness());
+                return Optional.of(Blocks.STONE.defaultDestroyTime());
             }
             // 深层矿石
             if (DEEPSLATE_ORE.contains(block)) {
                 // 让深板岩矿石硬度随着深板岩硬度的改变而改变，其他方块硬度不需要做此处理
-                return Optional.of(Blocks.DEEPSLATE.getDefaultState().getHardness(world, pos));
+                return Optional.of(Blocks.DEEPSLATE.defaultBlockState().getDestroySpeed(world, pos));
             }
             // 下界矿石
             if (NETHER_ORE.contains(block)) {
-                return Optional.of(Blocks.NETHERRACK.getHardness());
+                return Optional.of(Blocks.NETHERRACK.defaultDestroyTime());
             }
         }
         return Optional.empty();

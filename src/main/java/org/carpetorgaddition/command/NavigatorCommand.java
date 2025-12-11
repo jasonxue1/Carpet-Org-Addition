@@ -5,20 +5,20 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.BlockPosArgumentType;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.entity.Entity;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.GlobalPos;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldProperties;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelData;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import org.carpetorgaddition.util.CommandUtils;
@@ -42,50 +42,50 @@ public class NavigatorCommand extends AbstractServerCommand {
      */
     private static final String START_NAVIGATION = "carpet.commands.navigate.start_navigation";
 
-    public NavigatorCommand(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess access) {
+    public NavigatorCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(CommandManager.literal(name)
+        this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandNavigate))
-                .then(CommandManager.literal("entity")
-                        .then(CommandManager.argument("entity", EntityArgumentType.entity())
+                .then(Commands.literal("entity")
+                        .then(Commands.argument("entity", EntityArgument.entity())
                                 .executes(context -> navigateToEntity(context, false, "entity"))
-                                .then(CommandManager.literal("continue")
+                                .then(Commands.literal("continue")
                                         .executes(context -> navigateToEntity(context, true, "entity")))))
-                .then(CommandManager.literal("player")
-                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                .then(Commands.literal("player")
+                        .then(Commands.argument("player", EntityArgument.player())
                                 .executes(context -> navigateToEntity(context, false, "player"))
-                                .then(CommandManager.literal("continue")
+                                .then(Commands.literal("continue")
                                         .executes(context -> navigateToEntity(context, true, "player")))))
-                .then(CommandManager.literal("waypoint")
+                .then(Commands.literal("waypoint")
                         .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandLocations))
-                        .then(CommandManager.argument("waypoint", StringArgumentType.string())
+                        .then(Commands.argument("waypoint", StringArgumentType.string())
                                 .suggests(LocationsCommand.suggestion())
                                 .executes(this::navigateToWaypoint)))
-                .then(CommandManager.literal("stop")
+                .then(Commands.literal("stop")
                         .executes(this::stopNavigate))
-                .then(CommandManager.literal("uuid")
-                        .then(CommandManager.argument("uuid", StringArgumentType.string())
+                .then(Commands.literal("uuid")
+                        .then(Commands.argument("uuid", StringArgumentType.string())
                                 .executes(this::navigateToEntityForUUID)))
-                .then(CommandManager.literal("blockPos")
-                        .then(CommandManager.argument("blockPos", BlockPosArgumentType.blockPos())
+                .then(Commands.literal("blockPos")
+                        .then(Commands.argument("blockPos", BlockPosArgument.blockPos())
                                 .executes(this::navigateToBlock)))
-                .then(CommandManager.literal("spawnpoint")
+                .then(Commands.literal("spawnpoint")
                         .executes(this::navigateToSpawnPoint))
-                .then(CommandManager.literal("death")
+                .then(Commands.literal("death")
                         .requires(PermissionManager.register("navigate.death", PermissionLevel.PASS))
                         .executes(context -> navigateToLastDeathLocation(context, true))
-                        .then(CommandManager.argument("player", EntityArgumentType.player())
+                        .then(Commands.argument("player", EntityArgument.player())
                                 .executes(context -> navigateToLastDeathLocation(context, false)))));
     }
 
     // 开始导航实体
-    private int navigateToEntity(CommandContext<ServerCommandSource> context, boolean isContinue, String arguments) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        Entity entity = EntityArgumentType.getEntity(context, arguments);
+    private int navigateToEntity(CommandContext<CommandSourceStack> context, boolean isContinue, String arguments) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        Entity entity = EntityArgument.getEntity(context, arguments);
         // 如果目标是玩家，广播消息
         TextBuilder builder = TextBuilder.of(START_NAVIGATION, player.getDisplayName(), entity.getDisplayName());
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(entity, isContinue);
@@ -100,8 +100,8 @@ public class NavigatorCommand extends AbstractServerCommand {
     }
 
     // 开始导航到路径点
-    private int navigateToWaypoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int navigateToWaypoint(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = context.getSource().getServer();
         String waypointArgument = StringArgumentType.getString(context, "waypoint");
         try {
@@ -115,8 +115,8 @@ public class NavigatorCommand extends AbstractServerCommand {
     }
 
     // 根据UUID获取实体并导航
-    private int navigateToEntityForUUID(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int navigateToEntityForUUID(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         UUID uuid;
         try {
             // 解析UUID
@@ -126,7 +126,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         }
         // 从服务器寻找这个UUID的实体
         MinecraftServer server = context.getSource().getServer();
-        for (ServerWorld world : server.getWorlds()) {
+        for (ServerLevel world : server.getAllLevels()) {
             Entity entity = world.getEntity(uuid);
             if (entity == null) {
                 continue;
@@ -143,30 +143,30 @@ public class NavigatorCommand extends AbstractServerCommand {
             return 1;
         }
         // 未找到实体
-        throw EntityArgumentType.ENTITY_NOT_FOUND_EXCEPTION.create();
+        throw EntityArgument.NO_ENTITIES_FOUND.create();
     }
 
     // 是否应该广播导航消息
-    private boolean shouldBeBroadcast(Entity entity, ServerPlayerEntity player) {
+    private boolean shouldBeBroadcast(Entity entity, ServerPlayer player) {
         if (entity == player || entity instanceof EntityPlayerMPFake) {
             return false;
         }
-        return entity instanceof ServerPlayerEntity;
+        return entity instanceof ServerPlayer;
     }
 
     // 停止导航
-    private int stopNavigate(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
+    private int stopNavigate(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().clearNavigator();
         MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.commands.navigate.hud.stop"));
         return 1;
     }
 
     // 导航到指定坐标
-    private int navigateToBlock(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        BlockPos blockPos = BlockPosArgumentType.getBlockPos(context, "blockPos");
-        World world = FetcherUtils.getWorld(player);
+    private int navigateToBlock(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        BlockPos blockPos = BlockPosArgument.getBlockPos(context, "blockPos");
+        Level world = FetcherUtils.getWorld(player);
         // 设置导航器，维度为玩家当前所在维度
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈
@@ -176,13 +176,13 @@ public class NavigatorCommand extends AbstractServerCommand {
     }
 
     // 导航到重生点
-    private int navigateToSpawnPoint(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        Text spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
+    private int navigateToSpawnPoint(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        Component spawnPoint = TextBuilder.translate("carpet.commands.navigate.name.spawnpoint");
         try {
-            WorldProperties.SpawnPoint respawnData = Objects.requireNonNull(player.getRespawn()).respawnData();
-            BlockPos respawnPos = respawnData.getPos();
-            ServerWorld world = FetcherUtils.getServer(player).getWorld(respawnData.getDimension());
+            LevelData.RespawnData respawnData = Objects.requireNonNull(player.getRespawnConfig()).respawnData();
+            BlockPos respawnPos = respawnData.pos();
+            ServerLevel world = FetcherUtils.getServer(player).getLevel(respawnData.dimension());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", player.getDisplayName(), spawnPoint);
@@ -192,21 +192,21 @@ public class NavigatorCommand extends AbstractServerCommand {
     }
 
     // 导航到上一次死亡位置
-    private int navigateToLastDeathLocation(CommandContext<ServerCommandSource> context, boolean self) throws CommandSyntaxException {
-        ServerPlayerEntity player = CommandUtils.getSourcePlayer(context);
-        ServerPlayerEntity target = self ? player : CommandUtils.getArgumentPlayer(context);
-        Optional<GlobalPos> lastDeathPos = target.getLastDeathPos();
+    private int navigateToLastDeathLocation(CommandContext<CommandSourceStack> context, boolean self) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        ServerPlayer target = self ? player : CommandUtils.getArgumentPlayer(context);
+        Optional<GlobalPos> lastDeathPos = target.getLastDeathLocation();
         // 导航器目标的名称
-        Text death = TextBuilder.translate("carpet.commands.navigate.name.last_death_location");
+        Component death = TextBuilder.translate("carpet.commands.navigate.name.last_death_location");
         // 非空判断
         if (lastDeathPos.isEmpty()) {
             throw CommandUtils.createException("carpet.commands.navigate.unable_to_find", target.getDisplayName(), death);
         }
-        Text name = self ? death : TextBuilder.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
+        Component name = self ? death : TextBuilder.translate("carpet.commands.navigate.hud.of", target.getDisplayName(), death);
         // 获取死亡坐标和死亡维度
         GlobalPos globalPos = lastDeathPos.get();
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(globalPos.pos(),
-                context.getSource().getServer().getWorld(globalPos.dimension()), name);
+                context.getSource().getServer().getLevel(globalPos.dimension()), name);
         TextBuilder builder = TextBuilder.of(START_NAVIGATION, player.getDisplayName(), name);
         if (self || player == target) {
             MessageUtils.sendMessage(player, builder.build());

@@ -1,16 +1,16 @@
 package org.carpetorgaddition.mixin.accessor;
 
-import net.minecraft.entity.SpawnGroup;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.SpawnHelper;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.NaturalSpawner;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(SpawnHelper.Info.class)
+@Mixin(NaturalSpawner.SpawnState.class)
 public interface SpawnHelperInfoAccessor {
-    @Invoker("isBelowCap")
-    boolean invokerIsBelowCap(SpawnGroup group);
+    @Invoker("canSpawnForCategoryGlobal")
+    boolean invokerIsBelowCap(MobCategory group);
 
-    @Invoker("canSpawn")
-    boolean invokerCanSpawn(SpawnGroup group, ChunkPos chunkPos);
+    @Invoker("canSpawnForCategoryLocal")
+    boolean invokerCanSpawn(MobCategory group, ChunkPos chunkPos);
 }

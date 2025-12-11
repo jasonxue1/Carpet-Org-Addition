@@ -1,9 +1,9 @@
 package org.carpetorgaddition.periodic.navigator;
 
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import org.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
@@ -21,22 +21,22 @@ public class WaypointNavigator extends AbstractNavigator {
     /**
      * 路径点所在维度的ID
      */
-    private final World world;
+    private final Level world;
     /**
      * 玩家所在的世界
      */
     @NotNull
-    private World playerWorld;
+    private Level playerWorld;
     /**
      * 玩家所在的上一个维度
      */
     @NotNull
-    private World prevPlayerWorld;
+    private Level prevPlayerWorld;
     private final BlockPos target;
     @Nullable
     private final BlockPos secondTarget;
 
-    public WaypointNavigator(@NotNull ServerPlayerEntity player, Waypoint waypoint) {
+    public WaypointNavigator(@NotNull ServerPlayer player, Waypoint waypoint) {
         super(player);
         this.waypoint = waypoint;
         BlockPos blockPos = this.waypoint.getBlockPos();
@@ -54,13 +54,13 @@ public class WaypointNavigator extends AbstractNavigator {
     public void tick() {
         this.playerWorld = FetcherUtils.getWorld(this.player);
         // 玩家所在的方块位置
-        BlockPos playerPos = this.player.getBlockPos();
+        BlockPos playerPos = this.player.blockPosition();
         // 玩家所在维度
         if (this.world.equals(this.playerWorld)) {
             // 玩家和路径点在相同的维度
-            Text display = TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(this.target));
+            Component display = TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(this.target));
             int distance = MathUtils.getBlockIntegerDistance(playerPos, this.target);
-            Text text = this.getHUDText(this.target.toCenterPos(), display, distance);
+            Component text = this.getHUDText(this.target.getCenter(), display, distance);
             MessageUtils.sendMessageToHud(this.player, text);
         } else {
             if (this.canMapping(this.secondTarget)) {
@@ -68,14 +68,14 @@ public class WaypointNavigator extends AbstractNavigator {
                 TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(this.secondTarget));
                 // 将坐标设置为斜体
                 builder.setItalic();
-                Text in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
+                Component in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
                 int distance = MathUtils.getBlockIntegerDistance(playerPos, this.secondTarget);
-                Text text = this.getHUDText(this.secondTarget.toCenterPos(), in, distance);
+                Component text = this.getHUDText(this.secondTarget.getCenter(), in, distance);
                 MessageUtils.sendMessageToHud(this.player, text);
             } else {
                 // 玩家和路径点在不同维度
-                Text dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
-                Text in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(this.target)));
+                Component dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
+                Component in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(this.target)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
         }
@@ -106,7 +106,7 @@ public class WaypointNavigator extends AbstractNavigator {
 
     @Override
     public boolean isArrive() {
-        if (this.playerWorld.equals(this.world) && MathUtils.getBlockIntegerDistance(this.player.getBlockPos(), this.waypoint.getBlockPos()) <= 8) {
+        if (this.playerWorld.equals(this.world) && MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪
             MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
             this.clear();
@@ -116,7 +116,7 @@ public class WaypointNavigator extends AbstractNavigator {
     }
 
     @Override
-    public WaypointNavigator copy(ServerPlayerEntity player) {
+    public WaypointNavigator copy(ServerPlayer player) {
         if (this.waypoint.getBlockPos() == null) {
             return null;
         }

@@ -1,16 +1,16 @@
 package org.carpetorgaddition.periodic.task;
 
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.CreeperEntity;
-import net.minecraft.server.command.ServerCommandSource;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.TeleportTarget;
-import net.minecraft.world.World;
-import net.minecraft.world.event.GameEvent;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.carpetorgaddition.util.FetcherUtils;
 import org.carpetorgaddition.util.MathUtils;
 import org.carpetorgaddition.wheel.traverser.BlockPosTraverser;
@@ -20,10 +20,10 @@ import java.util.ArrayList;
 public class CreeperExplosionTask extends ServerTask {
     // 苦力怕爆炸延迟
     private int countdown = 30;
-    private final ServerPlayerEntity player;
-    private final CreeperEntity creeper;
+    private final ServerPlayer player;
+    private final Creeper creeper;
 
-    public CreeperExplosionTask(ServerCommandSource source, ServerPlayerEntity player) {
+    public CreeperExplosionTask(CommandSourceStack source, ServerPlayer player) {
         super(source);
         this.player = player;
         // 传送到玩家周围
@@ -31,42 +31,42 @@ public class CreeperExplosionTask extends ServerTask {
     }
 
     // 将苦力怕传送到合适位置
-    private static CreeperEntity teleport(ServerPlayerEntity player) {
-        CreeperEntity creeper = new CreeperEntity(EntityType.CREEPER, FetcherUtils.getWorld(player));
-        BlockPos playerPos = player.getBlockPos();
-        Vec3d fromPos = new Vec3d(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
-        Vec3d toPos = new Vec3d(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
+    private static Creeper teleport(ServerPlayer player) {
+        Creeper creeper = new Creeper(EntityType.CREEPER, FetcherUtils.getWorld(player));
+        BlockPos playerPos = player.blockPosition();
+        Vec3 fromPos = new Vec3(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
+        Vec3 toPos = new Vec3(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
         ArrayList<BlockPos> list = new ArrayList<>();
-        World world = FetcherUtils.getWorld(player);
+        Level world = FetcherUtils.getWorld(player);
         // 获取符合条件的坐标
-        for (BlockPos blockPos : new BlockPosTraverser(new Box(fromPos, toPos))) {
+        for (BlockPos blockPos : new BlockPosTraverser(new AABB(fromPos, toPos))) {
             // 当前方块是空气
             if (world.getBlockState(blockPos).isAir()
                 // 下方方块是实心方块
-                && world.getBlockState(blockPos.down()).isSolidBlock(world, blockPos.down())
+                && world.getBlockState(blockPos.below()).isRedstoneConductor(world, blockPos.below())
                 // 上方方块是空气
-                && world.getBlockState(blockPos.up()).isAir()) {
+                && world.getBlockState(blockPos.above()).isAir()) {
                 list.add(blockPos);
             }
         }
         // 将苦力怕传送到随机坐标
         BlockPos randomPos = list.isEmpty() ? playerPos : list.get(MathUtils.randomInt(1, list.size()) - 1);
-        TeleportTarget target = new TeleportTarget(FetcherUtils.getWorld(player), randomPos.toBottomCenterPos(), Vec3d.ZERO, 0F, 0F, TeleportTarget.NO_OP);
-        return (CreeperEntity) creeper.teleportTo(target);
+        TeleportTransition target = new TeleportTransition(FetcherUtils.getWorld(player), randomPos.getBottomCenter(), Vec3.ZERO, 0F, 0F, TeleportTransition.DO_NOTHING);
+        return (Creeper) creeper.teleport(target);
     }
 
     @Override
     public void tick() {
         if (this.countdown == 30) {
             // 播放爆炸引线音效
-            this.creeper.playSound(SoundEvents.ENTITY_CREEPER_PRIMED, 1.0f, 0.5f);
-            this.creeper.emitGameEvent(GameEvent.PRIME_FUSE);
+            this.creeper.playSound(SoundEvents.CREEPER_PRIMED, 1.0f, 0.5f);
+            this.creeper.gameEvent(GameEvent.PRIME_FUSE);
         }
         this.countdown--;
         if (this.countdown == 0) {
             // 产生爆炸
-            FetcherUtils.getWorld(this.player).createExplosion(creeper, this.creeper.getX(), this.player.getY(),
-                    this.player.getZ(), 3F, false, World.ExplosionSourceType.NONE);
+            FetcherUtils.getWorld(this.player).explode(creeper, this.creeper.getX(), this.player.getY(),
+                    this.player.getZ(), 3F, false, Level.ExplosionInteraction.NONE);
         }
     }
 
