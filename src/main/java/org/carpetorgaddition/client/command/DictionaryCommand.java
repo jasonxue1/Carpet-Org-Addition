@@ -160,7 +160,6 @@ public class DictionaryCommand extends AbstractClientCommand {
                         .map(Identifier::toString)
                         .orElse(UNREGISTERED);
                 case GAME_MODE -> ((GameType) obj).getSerializedName();
-                // TODO /gamerule命令中的参数是不带命名空间的
                 case GAME_RULE -> registry.lookup(Registries.GAME_RULE)
                         .map(rules -> rules.getKey((GameRule<?>) obj))
                         .map(Identifier::toString)

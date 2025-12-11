@@ -9,7 +9,6 @@ import com.llamalad7.mixinextras.sugar.Local;
 import com.llamalad7.mixinextras.sugar.ref.LocalRef;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.util.Tuple;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -17,11 +16,12 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DeathProtection;
+import net.minecraft.world.level.block.state.BlockState;
 import org.carpetorgaddition.CarpetOrgAdditionSettings;
 import org.carpetorgaddition.rule.value.BetterTotemOfUndying;
 import org.carpetorgaddition.util.InventoryUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
@@ -38,9 +38,12 @@ public abstract class LivingEntityMixin {
     @Unique
     private final LivingEntity self = (LivingEntity) (Object) this;
 
+    /**
+     * 在 {@link PlayerEntityMixin#getBlockBreakingSpeed(BlockState, CallbackInfoReturnable)}中被使用
+     */
     @Shadow
     @Nullable
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings("all")
     protected abstract Map<EquipmentSlot, ItemStack> collectEquipmentChanges();
 
     // 禁用伤害免疫
@@ -72,54 +75,46 @@ public abstract class LivingEntityMixin {
             return false;
         }
         if (this.self instanceof Player player) {
-            Tuple<ItemStack, DeathProtection> pair = pickTotem(player);
-            if (pair == null || pair.getA().isEmpty()) {
+            ItemStack itemStack = pickTotem(player);
+            if (itemStack.isEmpty()) {
                 return false;
             }
-            stackRef.set(pair.getA());
-            componentRef.set(pair.getB());
+            stackRef.set(itemStack);
+            componentRef.set(itemStack.get(DataComponents.DEATH_PROTECTION));
             return true;
         }
         return false;
     }
 
     @Unique
-    @Nullable
+    @NotNull
     // 从物品栏获取不死图腾
-    private static Tuple<ItemStack, DeathProtection> pickTotem(Player playerEntity) {
-        NonNullList<ItemStack> mainInventory = playerEntity.getInventory().getNonEquipmentItems();
+    private static ItemStack pickTotem(Player player) {
+        NonNullList<ItemStack> mainInventory = player.getInventory().getNonEquipmentItems();
         // 无论规则值是true还是shulker_box，都需要从物品栏获取物品
-        for (ItemStack totemOfUndying : mainInventory) {
-            DeathProtection component = totemOfUndying.get(DataComponents.DEATH_PROTECTION);
-            if (component == null) {
+        for (ItemStack itemStack : mainInventory) {
+            if (itemStack.isEmpty()) {
                 continue;
             }
-            ItemStack itemStack = totemOfUndying.copy();
-            totemOfUndying.shrink(1);
-            return new Tuple<>(itemStack, component);
+            if (InventoryUtils.isTotemItem(itemStack)) {
+                return itemStack.split(1);
+            }
         }
         // 如果这里规则值为true，或者说规则值不是shulker_box，那就没有必要继续向下执行
         if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.INVENTORY) {
-            return null;
+            return ItemStack.EMPTY;
         }
         for (ItemStack shulkerBox : mainInventory) {
             if (InventoryUtils.isOperableSulkerBox(shulkerBox)) {
                 // 从潜影盒中拿取不死图腾
-                // TODO 检查物品组件而不是物品类型
-                ItemStack totemOfUndying = InventoryUtils.pickItemFromShulkerBox(shulkerBox, stack -> stack.is(Items.TOTEM_OF_UNDYING));
+                ItemStack itemStack = InventoryUtils.pickItemFromShulkerBox(shulkerBox, InventoryUtils::isTotemItem, 1);
                 // 潜影盒中可能没有不死图腾
-                if (totemOfUndying.isEmpty()) {
+                if (itemStack.isEmpty()) {
                     continue;
                 }
-                ItemStack itemStack = totemOfUndying.copy();
-                return new Tuple<>(itemStack, itemStack.get(DataComponents.DEATH_PROTECTION));
+                return itemStack.split(1);
             }
         }
-        return null;
-    }
-
-    @Unique
-    protected void onPlayerBreakBlock() {
-        this.collectEquipmentChanges();
+        return ItemStack.EMPTY;
     }
 }

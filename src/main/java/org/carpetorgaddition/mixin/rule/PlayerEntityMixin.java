@@ -163,7 +163,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Inject(method = "getDestroySpeed", at = @At(value = "HEAD"))
     private void getBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
         if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.get()) {
-            this.onPlayerBreakBlock();
+            this.collectEquipmentChanges();
         }
     }
 

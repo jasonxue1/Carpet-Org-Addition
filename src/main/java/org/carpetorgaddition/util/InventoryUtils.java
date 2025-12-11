@@ -398,12 +398,25 @@ public class InventoryUtils {
         return item.toString();
     }
 
+    /**
+     * @return 指定物品是否是食物
+     */
     public static boolean isFoodItem(ItemStack itemStack) {
         return itemStack.has(DataComponents.FOOD);
     }
 
+    /**
+     * @return 指定物品是否是工具
+     */
     public static boolean isToolItem(ItemStack itemStack) {
         return itemStack.has(DataComponents.TOOL);
+    }
+
+    /**
+     * @return 指定物品是否有不死图腾效果
+     */
+    public static boolean isTotemItem(ItemStack itemStack) {
+        return itemStack.has(DataComponents.DEATH_PROTECTION);
     }
 
     /**
