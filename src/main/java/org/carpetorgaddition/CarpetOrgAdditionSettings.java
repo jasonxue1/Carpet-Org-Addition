@@ -40,11 +40,11 @@ public class CarpetOrgAdditionSettings {
      * 当前正在使用铁砧附魔的玩家
      */
     public static final ThreadLocal<PlayerEntity> enchanter = new ThreadLocal<>();
-    private static final Set<RuleContext<?>> allRules = new LinkedHashSet<>();
+    private static final Set<RuleContext<?>> RULES = new LinkedHashSet<>();
     public static final String OPS = "ops";
-    public static final String TRUE = Boolean.TRUE.toString();
-    public static final String FALSE = Boolean.FALSE.toString();
-    private static final String[] COMMAND_OPTIONS = {TRUE, FALSE, OPS, "0", "1", "2", "3", "4"};
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
+    private static final List<String> COMMAND_OPTIONS = List.of(TRUE, FALSE, OPS, "0", "1", "2", "3", "4");
     public static final String ORG = "Org";
     public static final String HIDDEN = "Hidden";
 
@@ -1014,12 +1014,12 @@ public class CarpetOrgAdditionSettings {
     );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
-        allRules.add(context);
+        RULES.add(context);
         return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
     }
 
     public static void register() {
-        for (RuleContext<?> context : allRules) {
+        for (RuleContext<?> context : RULES) {
             if (context.shouldRegister()) {
                 CarpetRule<?> rule = context.rule();
                 try {
@@ -1036,6 +1036,6 @@ public class CarpetOrgAdditionSettings {
     }
 
     public static Set<RuleContext<?>> listRules() {
-        return allRules;
+        return RULES;
     }
 }
