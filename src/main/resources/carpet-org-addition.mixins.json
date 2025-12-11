@@ -122,8 +122,7 @@
     "rule.client.carpet.SettingsManagerMixin",
     "rule.disableanvilexpensive.client.AnvilScreenMixin",
     "rule.quickshulker.CreativeScreenHandlerMixin",
-    "substitute.WorldRendererMixin",
-    "util.ShaderProgramLayersAccessor"
+    "substitute.WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -2,7 +2,6 @@ package org.carpetorgaddition.wheel;
 
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 用来给一些功能添加注释
@@ -34,10 +33,6 @@ public class MetaComment {
             return "";
         }
         return this.comment;
-    }
-
-    public void setComment(@Nullable String comment) {
-        this.comment = comment == null ? "" : comment;
     }
 
     public Component getText() {

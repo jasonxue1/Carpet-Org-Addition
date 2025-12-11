@@ -20,6 +20,7 @@ import org.carpetorgaddition.wheel.page.PageManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+@SuppressWarnings("unused")
 public class FetcherUtils {
     private FetcherUtils() {
     }

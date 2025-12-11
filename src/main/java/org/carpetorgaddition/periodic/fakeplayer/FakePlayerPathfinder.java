@@ -4,7 +4,6 @@ import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -52,16 +51,6 @@ public interface FakePlayerPathfinder {
      * @return 是否到达了目标位置
      */
     boolean isFinished();
-
-    /**
-     * @return 获取所有路径点，用于在客户端渲染位置
-     */
-    List<Vec3> getRenderNodes();
-
-    /**
-     * @return 当前正在寻路的实体的ID
-     */
-    int getSyncEntityId();
 
     /**
      * 暂停寻路

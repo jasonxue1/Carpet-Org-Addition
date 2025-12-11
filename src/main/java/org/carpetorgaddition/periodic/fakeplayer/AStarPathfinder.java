@@ -184,16 +184,6 @@ public class AStarPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public List<Vec3> getRenderNodes() {
-        return this.nodes;
-    }
-
-    @Override
-    public int getSyncEntityId() {
-        return this.getFakePlayer().getId();
-    }
-
-    @Override
     public void pause(int time) {
     }
 

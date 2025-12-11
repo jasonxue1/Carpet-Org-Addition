@@ -173,11 +173,6 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     }
 
     @Override
-    public int getSyncEntityId() {
-        return this.getFakePlayer().getId();
-    }
-
-    @Override
     public void pause(int time) {
         this.pauseTime = time;
         EntityPlayerActionPack actionPack = ((ServerPlayerInterface) getFakePlayer()).getActionPack();
@@ -259,11 +254,6 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     @Override
     public boolean isFinished() {
         return this.currentIndex >= this.nodes.size();
-    }
-
-    @Override
-    public List<Vec3> getRenderNodes() {
-        return this.nodes.stream().map(vec3d -> vec3d.add(0.0, 0.1, 0.0)).toList();
     }
 
     @Override

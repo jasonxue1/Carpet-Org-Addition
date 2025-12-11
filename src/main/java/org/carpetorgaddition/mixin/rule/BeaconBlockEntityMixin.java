@@ -2,8 +2,6 @@ package org.carpetorgaddition.mixin.rule;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import com.llamalad7.mixinextras.sugar.Local;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BeaconBlockEntity;
@@ -19,7 +17,7 @@ import java.util.List;
 public abstract class BeaconBlockEntityMixin {
     // 大范围信标
     @WrapOperation(method = "applyEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;getEntitiesOfClass(Ljava/lang/Class;Lnet/minecraft/world/phys/AABB;)Ljava/util/List;"))
-    private static List<Player> box(Level world, Class<Player> aClass, AABB box, Operation<List<Player>> original, @Local(argsOnly = true) BlockPos pos) {
+    private static List<Player> box(Level world, Class<Player> aClass, AABB box, Operation<List<Player>> original) {
         BeaconRangeBox beaconRangeBox = new BeaconRangeBox(box);
         // 调整信标范围
         int range = CarpetOrgAdditionSettings.beaconRangeExpand.get();

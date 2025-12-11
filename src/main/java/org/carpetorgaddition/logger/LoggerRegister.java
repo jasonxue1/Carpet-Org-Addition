@@ -52,7 +52,6 @@ public class LoggerRegister {
         return switch (annotation.type()) {
             case STANDARD -> new Logger(field, name, defaultOption, options, strictOptions);
             case HUD -> new HUDLogger(field, name, defaultOption, options, strictOptions);
-            case NETWORK -> new NetworkPacketLogger(field, name, defaultOption, options, strictOptions);
             case FUNCTION -> new FunctionLogger(field, name, defaultOption, options, strictOptions);
         };
     }

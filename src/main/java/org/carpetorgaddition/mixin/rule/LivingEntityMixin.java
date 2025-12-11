@@ -40,6 +40,7 @@ public abstract class LivingEntityMixin {
 
     @Shadow
     @Nullable
+    @SuppressWarnings("UnusedReturnValue")
     protected abstract Map<EquipmentSlot, ItemStack> collectEquipmentChanges();
 
     // 禁用伤害免疫

@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class GenericUtils {
     /**
      * 当假玩家正在生成时，执行此函数

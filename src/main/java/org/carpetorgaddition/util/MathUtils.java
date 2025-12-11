@@ -8,6 +8,7 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unused")
 public class MathUtils {
     /**
      * 数学工具类，私有化构造方法

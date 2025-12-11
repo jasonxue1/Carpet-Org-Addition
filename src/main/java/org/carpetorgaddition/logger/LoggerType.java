@@ -9,9 +9,5 @@ public enum LoggerType {
      * HUD记录器
      */
     HUD,
-    /**
-     * 网络包记录器
-     */
-    NETWORK,
     FUNCTION
 }

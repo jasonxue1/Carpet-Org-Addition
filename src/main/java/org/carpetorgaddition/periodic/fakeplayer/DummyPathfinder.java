@@ -2,8 +2,6 @@ package org.carpetorgaddition.periodic.fakeplayer;
 
 import net.minecraft.world.phys.Vec3;
 
-import java.util.List;
-
 /**
  * {@link FakePlayerPathfinder}的空实现，这是一个单例
  */
@@ -44,16 +42,6 @@ public final class DummyPathfinder implements FakePlayerPathfinder {
     @Override
     public boolean isFinished() {
         return true;
-    }
-
-    @Override
-    public List<Vec3> getRenderNodes() {
-        return List.of();
-    }
-
-    @Override
-    public int getSyncEntityId() {
-        return -1;
     }
 
     @Override
