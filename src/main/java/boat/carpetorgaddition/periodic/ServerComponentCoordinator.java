@@ -52,6 +52,7 @@ public class ServerComponentCoordinator {
         ServerTickRateManager tickManager = this.server.tickRateManager();
         this.serverTaskManager.tick(tickManager);
         this.pageManager.tick();
+        this.accessManager.tick();
     }
 
     public ExpressManager getExpressManager() {
