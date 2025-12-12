@@ -1,0 +1,85 @@
+package boat.carpetorgaddition.periodic.navigator;
+
+import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.network.s2c.WaypointClearS2CPacket;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.Waypoint;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
+import org.jetbrains.annotations.Nullable;
+
+public class NavigatorManager {
+    @Nullable
+    private AbstractNavigator navigator;
+    private boolean isUpdated = false;
+    private final ServerPlayer player;
+
+    public NavigatorManager(ServerPlayer player) {
+        this.player = player;
+    }
+
+    public void tick() {
+        if (this.navigator == null) {
+            return;
+        }
+        try {
+            if (this.navigator.isArrive()) {
+                this.clearNavigator();
+            } else {
+                if (this.isUpdated) {
+                    this.isUpdated = false;
+                    this.navigator.onStart();
+                }
+                this.navigator.tick();
+            }
+        } catch (RuntimeException e) {
+            MessageUtils.sendErrorMessage(this.player.createCommandSourceStack(), e, "carpet.commands.navigate.exception");
+            CarpetOrgAddition.LOGGER.error("导航器没有按照预期工作", e);
+            // 清除导航器
+            this.clearNavigator();
+        }
+    }
+
+    @Nullable
+    public AbstractNavigator getNavigator() {
+        return this.navigator;
+    }
+
+    public void setNavigator(Entity entity, boolean isContinue) {
+        this.setNavigator(new EntityNavigator(this.player, entity, isContinue));
+    }
+
+    public void setNavigator(Waypoint waypoint) {
+        this.setNavigator(new WaypointNavigator(this.player, waypoint));
+    }
+
+    public void setNavigator(BlockPos blockPos, Level world) {
+        this.setNavigator(new BlockPosNavigator(this.player, blockPos, world));
+    }
+
+    public void setNavigator(BlockPos blockPos, Level world, Component name) {
+        this.setNavigator(new HasNamePosNavigator(this.player, blockPos, world, name));
+    }
+
+    private void setNavigator(@Nullable AbstractNavigator navigator) {
+        ServerPlayNetworking.send(this.player, WaypointClearS2CPacket.INSTANCE);
+        this.navigator = navigator;
+        this.isUpdated = true;
+    }
+
+    public void clearNavigator() {
+        this.setNavigator((AbstractNavigator) null);
+        ServerPlayNetworking.send(this.player, WaypointClearS2CPacket.INSTANCE);
+    }
+
+    public void setNavigatorFromOldPlayer(ServerPlayer oldPlayer) {
+        NavigatorManager manager = PlayerComponentCoordinator.getManager(oldPlayer).getNavigatorManager();
+        AbstractNavigator navigator = manager.getNavigator();
+        this.navigator = navigator == null ? null : navigator.copy(this.player);
+    }
+}

@@ -1,0 +1,66 @@
+package boat.carpetorgaddition.mixin.util;
+
+import boat.carpetorgaddition.network.s2c.BackgroundSpriteSyncS2CPacket;
+import boat.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
+import boat.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
+import boat.carpetorgaddition.wheel.screen.BackgroundSpriteSyncServer;
+import boat.carpetorgaddition.wheel.screen.UnavailableSlotSyncInterface;
+import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.authlib.GameProfile;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.OptionalInt;
+
+@Mixin(ServerPlayer.class)
+public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
+    @Unique
+    private final ServerPlayer thisPlayer = (ServerPlayer) (Object) this;
+    @Unique
+    private PlayerComponentCoordinator manager;
+
+    @Inject(method = "<init>", at = @At("RETURN"))
+    private void init(MinecraftServer server, ServerLevel world, GameProfile profile, ClientInformation clientOptions, CallbackInfo ci) {
+        this.manager = PlayerComponentCoordinator.of(thisPlayer);
+    }
+
+    @Override
+    public PlayerComponentCoordinator carpet_Org_Addition$getPlayerPeriodicTaskManager() {
+        return this.manager;
+    }
+
+    @Inject(method = "tick", at = @At("HEAD"))
+    private void tick(CallbackInfo ci) {
+        this.manager.tick();
+    }
+
+    @Inject(method = "restoreFrom", at = @At("HEAD"))
+    private void copyFrom(ServerPlayer oldPlayer, boolean alive, CallbackInfo ci) {
+        this.manager.copyFrom(oldPlayer);
+    }
+
+    @Inject(method = "openMenu", at = @At(value = "RETURN", ordinal = 2))
+    private void openHandledScreen(MenuProvider factory, CallbackInfoReturnable<OptionalInt> cir, @Local AbstractContainerMenu screenHandler) {
+        // 同步不可用槽位
+        if (screenHandler instanceof UnavailableSlotSyncInterface anInterface) {
+            ServerPlayNetworking.send(thisPlayer, new UnavailableSlotSyncS2CPacket(screenHandler.containerId, anInterface.from(), anInterface.to()));
+        }
+        // 同步槽位背景纹理
+        if (screenHandler instanceof BackgroundSpriteSyncServer anInterface) {
+            anInterface.getBackgroundSprite().forEach((index, identifier) ->
+                    ServerPlayNetworking.send(thisPlayer, new BackgroundSpriteSyncS2CPacket(screenHandler.containerId, index, identifier)));
+        }
+    }
+}

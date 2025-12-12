@@ -19,10 +19,10 @@
   "environment": "*",
   "entrypoints": {
     "client": [
-      "org.carpetorgaddition.client.CarpetOrgAdditionClient"
+      "boat.carpetorgaddition.client.CarpetOrgAdditionClient"
     ],
     "main": [
-      "org.carpetorgaddition.CarpetOrgAddition"
+      "boat.carpetorgaddition.CarpetOrgAddition"
     ]
   },
   "mixins": [

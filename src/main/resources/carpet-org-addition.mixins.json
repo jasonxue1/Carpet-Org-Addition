@@ -1,9 +1,9 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "org.carpetorgaddition.mixin",
+  "package": "boat.carpetorgaddition.mixin",
   "compatibilityLevel": "JAVA_21",
-  "plugin": "org.carpetorgaddition.debug.DebugIMixinConfigPlugin",
+  "plugin": "boat.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
     "accessor.AbstractHorseEntityAccessor",
     "accessor.ContainerComponentAccessor",

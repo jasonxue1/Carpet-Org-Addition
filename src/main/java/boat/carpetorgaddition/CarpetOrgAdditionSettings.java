@@ -1,0 +1,1041 @@
+package boat.carpetorgaddition;
+
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.navigator.AbstractNavigator;
+import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
+import boat.carpetorgaddition.rule.*;
+import boat.carpetorgaddition.rule.value.*;
+import boat.carpetorgaddition.wheel.ThreadContextPropagator;
+import carpet.api.settings.CarpetRule;
+import carpet.api.settings.RuleCategory;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Supplier;
+
+public class CarpetOrgAdditionSettings {
+    /**
+     * 控制玩家登录登出的消息是否显示
+     */
+    public static final ThreadContextPropagator<Boolean> hiddenLoginMessages = new ThreadContextPropagator<>(false);
+    /**
+     * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
+     */
+    public static final ThreadLocal<Boolean> shulkerBoxStackCountChanged = ThreadLocal.withInitial(() -> true);
+    /**
+     * 玩家是否正在执行{@code /killMe}命令
+     */
+    public static final ThreadLocal<Boolean> committingSuicide = ThreadLocal.withInitial(() -> false);
+    /**
+     * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
+     */
+    public static final ThreadLocal<ServerPlayer> blockBreaking = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayer> playerSummoner = new ThreadLocal<>();
+    public static final ThreadLocal<ServerPlayer> internalPlayerSummoner = new ThreadLocal<>();
+    /**
+     * 当前正在使用铁砧附魔的玩家
+     */
+    public static final ThreadLocal<Player> enchanter = new ThreadLocal<>();
+    private static final Set<RuleContext<?>> RULES = new LinkedHashSet<>();
+    public static final String OPS = "ops";
+    public static final String TRUE = "true";
+    public static final String FALSE = "false";
+    private static final List<String> COMMAND_OPTIONS = List.of(TRUE, FALSE, OPS, "0", "1", "2", "3", "4");
+    public static final String ORG = "Org";
+    public static final String HIDDEN = "Hidden";
+
+    private CarpetOrgAdditionSettings() {
+    }
+
+    /**
+     * 制作物品分身
+     */
+    public static final Supplier<String> commandItemShadowing = register(
+            RuleFactory.create(String.class, "commandItemShadowing", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 设置基岩硬度
+     */
+    public static final Supplier<Float> setBedrockHardness = register(
+            RuleFactory.create(Float.class, "setBedrockHardness", -1F)
+                    .setRemoved()
+                    .addValidator(
+                            value -> value >= 0F || value == -1F,
+                            () -> ValidatorFeedbacks.greaterOrEqualOrValue(0, -1)
+                    )
+                    .build()
+    );
+
+    /**
+     * 绑定诅咒无效化
+     */
+    public static final Supplier<Boolean> bindingCurseInvalidation = register(
+            RuleFactory.create(Boolean.class, "bindingCurseInvalidation", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 禁用钓鱼开阔水域检测
+     */
+    public static final Supplier<Boolean> disableOpenOrWaterDetection = register(
+            RuleFactory.create(Boolean.class, "disableOpenOrWaterDetection", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 创造玩家免疫/kill
+     */
+    public static final Supplier<Boolean> creativeImmuneKill = register(
+            RuleFactory.create(Boolean.class, "creativeImmuneKill", false)
+                    .addCategories(RuleCategory.CREATIVE)
+                    .build()
+    );
+
+    /**
+     * 盯着末影人眼睛看时不会激怒末影人
+     */
+    public static final Supplier<Boolean> staringEndermanNotAngry = register(
+            RuleFactory.create(Boolean.class, "staringEndermanNotAngry", false)
+                    .addCategories(RuleCategory.SURVIVAL, RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 耕地防踩踏
+     */
+    public static final Supplier<Boolean> farmlandPreventStepping = register(
+            RuleFactory.create(Boolean.class, "farmlandPreventStepping", false)
+                    .addCategories(RuleCategory.SURVIVAL, RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 最大方块交互距离
+     */
+    public static final Supplier<Double> maxBlockPlaceDistance = register(
+            RuleFactory.create(Double.class, "maxBlockPlaceDistance", -1.0)
+                    .addCategories(RuleCategory.SURVIVAL, RuleCategory.FEATURE)
+                    .addValidator(
+                            newValue -> (newValue >= 0.0 && newValue <= RuleUtils.MAX_DISTANCE) || newValue == -1.0,
+                            () -> ValidatorFeedbacks.rangeOrValue(0, (int) RuleUtils.MAX_DISTANCE, -1)
+                    )
+                    .build()
+    );
+
+    /**
+     * 简易更新跳略器
+     */
+    public static final Supplier<Boolean> simpleUpdateSkipper = register(
+            RuleFactory.create(Boolean.class, "simpleUpdateSkipper", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 强化引雷
+     */
+    public static final Supplier<Boolean> channelingIgnoreWeather = register(
+            RuleFactory.create(Boolean.class, "channelingIgnoreWeather", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 无伤末影珍珠
+     */
+    public static final Supplier<Boolean> notDamageEnderPearl = register(
+            RuleFactory.create(Boolean.class, "notDamageEnderPearl", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 禁用伤害免疫
+     */
+    public static final Supplier<Boolean> disableDamageImmunity = register(
+            RuleFactory.create(Boolean.class, "disableDamageImmunity", false)
+                    .setRemoved()
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 禁止蝙蝠生成
+     */
+    public static final Supplier<Boolean> disableBatCanSpawn = register(
+            RuleFactory.create(Boolean.class, "disableBatCanSpawn", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 海龟蛋快速孵化
+     */
+    public static final Supplier<Boolean> turtleEggFastHatch = register(
+            RuleFactory.create(Boolean.class, "turtleEggFastHatch", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 强制开启潜影盒
+     */
+    public static final Supplier<Boolean> openShulkerBoxForcibly = register(
+            RuleFactory.create(Boolean.class, "openShulkerBoxForcibly", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 村民无限交易
+     */
+    public static final Supplier<Boolean> villagerInfiniteTrade = register(
+            RuleFactory.create(Boolean.class, "villagerInfiniteTrade", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 烟花火箭使用冷却
+     */
+    public static final Supplier<Boolean> fireworkRocketUseCooldown = register(
+            RuleFactory.create(Boolean.class, "fireworkRocketUseCooldown", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 强化激流
+     */
+    public static final Supplier<Boolean> riptideIgnoreWeather = register(
+            RuleFactory.create(Boolean.class, "riptideIgnoreWeather", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 将镐作为基岩的有效采集工具
+     */
+    public static final Supplier<Boolean> pickaxeMinedBedrock = register(
+            RuleFactory.create(Boolean.class, "pickaxeMinedBedrock", false)
+                    .setRemoved()
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 村民回血
+     */
+    public static final Supplier<Boolean> villagerHeal = register(
+            RuleFactory.create(Boolean.class, "villagerHeal", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 假玩家回血
+     */
+    public static final Supplier<Boolean> fakePlayerHeal = register(
+            RuleFactory.create(Boolean.class, "fakePlayerHeal", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 最大方块交互距离适用于实体
+     */
+    public static final Supplier<Boolean> maxBlockPlaceDistanceReferToEntity = register(
+            RuleFactory.create(Boolean.class, "maxBlockPlaceDistanceReferToEntity", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 击退棒
+     */
+    public static final Supplier<Boolean> knockbackStick = register(
+            RuleFactory.create(Boolean.class, "knockbackStick", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 禁止重生方块爆炸
+     */
+    public static final Supplier<Boolean> disableRespawnBlocksExplode = register(
+            RuleFactory.create(Boolean.class, "disableRespawnBlocksExplode", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * CCE更新抑制器
+     */
+    public static final Supplier<String> CCEUpdateSuppression = register(
+            RuleFactory.create(String.class, "CCEUpdateSuppression", "false")
+                    .addCategories(RuleCategory.FEATURE)
+                    .addOptions("true", "false")
+                    .setLenient()
+                    .build()
+    );
+
+    /**
+     * 开放{@code /seed}命令权限
+     */
+    public static final Supplier<Boolean> openSeedPermission = register(
+            RuleFactory.create(Boolean.class, "openSeedPermission", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 开放{@code /carpet}命令权限
+     */
+    public static final Supplier<Boolean> openCarpetPermission = register(
+            RuleFactory.create(Boolean.class, "openCarpetPermission", false)
+                    .addCategories(RuleCategory.COMMAND, RuleCategory.CLIENT)
+                    .build()
+    );
+
+    /**
+     * 开放{@code /gamerule}命令权限
+     */
+    public static final Supplier<Boolean> openGameRulePermission = register(
+            RuleFactory.create(Boolean.class, "openGameRulePermission", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 打开村民物品栏
+     */
+    public static final Supplier<Boolean> openVillagerInventory = register(
+            RuleFactory.create(Boolean.class, "openVillagerInventory", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 和平的苦力怕
+     */
+    public static final Supplier<Boolean> peacefulCreeper = register(
+            RuleFactory.create(Boolean.class, "peacefulCreeper", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 经验转移
+     */
+    public static final Supplier<String> commandXpTransfer = register(
+            RuleFactory.create(String.class, "commandXpTransfer", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 生存旁观切换命令
+     */
+    public static final Supplier<String> commandSpectator = register(
+            RuleFactory.create(String.class, "commandSpectator", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 查找器命令
+     */
+    public static final Supplier<String> commandFinder = register(
+            RuleFactory.create(String.class, "commandFinder", TRUE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 自杀
+     */
+    public static final Supplier<String> commandKillMe = register(
+            RuleFactory.create(String.class, "commandKillMe", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 路径点管理器
+     */
+    public static final Supplier<String> commandLocations = register(
+            RuleFactory.create(String.class, "commandLocations", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 生命值不满可以进食
+     */
+    public static final Supplier<Boolean> healthNotFullCanEat = register(
+            RuleFactory.create(Boolean.class, "healthNotFullCanEat", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 可采集刷怪笼
+     */
+    public static final Supplier<Boolean> canMineSpawner = register(
+            RuleFactory.create(Boolean.class, "canMineSpawner", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 假玩家生成时无击退
+     */
+    public static final Supplier<Boolean> fakePlayerSpawnNoKnockback = register(
+            RuleFactory.create(Boolean.class, "fakePlayerSpawnNoKnockback", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 可激活侦测器
+     */
+    public static final Supplier<Boolean> canActivatesObserver = register(
+            RuleFactory.create(Boolean.class, "canActivatesObserver", false)
+                    .addCategories(RuleCategory.FEATURE, RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 禁止水结冰
+     */
+    public static final Supplier<Boolean> disableWaterFreezes = register(
+            RuleFactory.create(Boolean.class, "disableWaterFreezes", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 假玩家动作保留物品
+     */
+    public static final Supplier<Boolean> fakePlayerActionKeepItem = register(
+            RuleFactory.create(Boolean.class, "fakePlayerActionKeepItem", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 绘制粒子线命令
+     */
+    public static final Supplier<String> commandParticleLine = register(
+            RuleFactory.create(String.class, "commandParticleLine", FALSE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .setRemoved()
+                    .build()
+    );
+
+    /**
+     * 禁止特定生物在和平模式下被清除
+     */
+    public static final Supplier<Boolean> disableMobPeacefulDespawn = register(
+            RuleFactory.create(Boolean.class, "disableMobPeacefulDespawn", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 船可以直接走向一格高的方块
+     */
+    public static final Supplier<Boolean> climbingBoat = register(
+            RuleFactory.create(Boolean.class, "climbingBoat", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 可重复使用的锻造模板
+     */
+    public static final Supplier<ReusableSmithingTemplate> reusableSmithingTemplate = register(
+            RuleFactory.create(ReusableSmithingTemplate.class, "reusableSmithingTemplate", ReusableSmithingTemplate.FALSE)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 开放/tp命令权限
+     */
+    public static final Supplier<Boolean> openTpPermission = register(
+            RuleFactory.create(Boolean.class, "openTpPermission", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 易碎深板岩
+     */
+    public static final Supplier<Boolean> softDeepslate = register(
+            RuleFactory.create(Boolean.class, "softDeepslate", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 易碎黑曜石
+     */
+    public static final Supplier<Boolean> softObsidian = register(
+            RuleFactory.create(Boolean.class, "softObsidian", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 易碎矿石
+     */
+    public static final Supplier<Boolean> softOres = register(
+            RuleFactory.create(Boolean.class, "softOres", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 更好的不死图腾
+     */
+    public static final Supplier<BetterTotemOfUndying> betterTotemOfUndying = register(
+            RuleFactory.create(BetterTotemOfUndying.class, "betterTotemOfUndying", BetterTotemOfUndying.VANILLA)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 假玩家动作命令
+     */
+    public static final Supplier<String> commandPlayerAction = register(
+            RuleFactory.create(String.class, "commandPlayerAction", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 假玩家合成支持潜影盒
+     */
+    public static final Supplier<Boolean> fakePlayerPickItemFromShulkerBox = register(
+            RuleFactory.create(Boolean.class, "fakePlayerShulkerBoxItemHandling", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 自定义猪灵交易时间
+     */
+    public static final Supplier<Long> customPiglinBarteringTime = register(
+            RuleFactory.create(Long.class, "customPiglinBarteringTime", -1L)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .addValidator(
+                            newValue -> newValue >= 0 || newValue == -1,
+                            () -> ValidatorFeedbacks.greaterOrEqualOrValue(0, -1)
+                    )
+                    .build()
+    );
+
+    /**
+     * 快速设置假玩家合成
+     */
+    public static final Supplier<QuickSettingFakePlayerCraft> quickSettingFakePlayerCraft = register(
+            RuleFactory.create(QuickSettingFakePlayerCraft.class, "quickSettingFakePlayerCraft", QuickSettingFakePlayerCraft.FALSE)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 假玩家死亡不掉落
+     */
+    public static final Supplier<Boolean> fakePlayerKeepInventory = register(
+            RuleFactory.create(Boolean.class, "fakePlayerKeepInventory", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 假玩家死亡不掉落条件
+     */
+    public static final Supplier<FakePlayerKeepInventoryCondition> fakePlayerKeepInventoryCondition = register(
+            RuleFactory.create(FakePlayerKeepInventoryCondition.class, "fakePlayerKeepInventoryCondition", FakePlayerKeepInventoryCondition.UNCONDITIONAL)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 苦力怕命令
+     */
+    public static final Supplier<String> commandCreeper = register(
+            RuleFactory.create(String.class, "commandCreeper", FALSE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 规则搜索命令
+     */
+    public static final Supplier<String> commandRuleSearch = register(
+            RuleFactory.create(String.class, "commandRuleSearch", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 增强闪电苦力怕
+     */
+    public static final Supplier<Boolean> superChargedCreeper = register(
+            RuleFactory.create(Boolean.class, "superChargedCreeper", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 玩家掉落头颅
+     */
+    public static final Supplier<Boolean> playerDropHead = register(
+            RuleFactory.create(Boolean.class, "playerDropHead", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 信标范围扩展
+     */
+    public static final Supplier<Integer> beaconRangeExpand = register(
+            RuleFactory.create(Integer.class, "beaconRangeExpand", 0)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .addValidator(
+                            integer -> integer <= RuleUtils.MAX_BEACON_RANGE,
+                            () -> ValidatorFeedbacks.lessThanOrEqual(RuleUtils.MAX_BEACON_RANGE)
+                    )
+                    .build()
+    );
+
+    /**
+     * 信标世界高度
+     */
+    public static final Supplier<Boolean> beaconWorldHeight = register(
+            RuleFactory.create(Boolean.class, "beaconWorldHeight", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 可高亮方块坐标
+     */
+    public static final Supplier<CanHighlightBlockPos> canHighlightBlockPos = register(
+            RuleFactory.create(CanHighlightBlockPos.class, "canHighlightBlockPos", CanHighlightBlockPos.DEFAULT)
+                    .addCategories(RuleCategory.SURVIVAL, RuleCategory.CLIENT)
+                    .setClient()
+                    .build()
+    );
+
+    /**
+     * 玩家管理器命令
+     */
+    public static final Supplier<String> commandPlayerManager = register(
+            RuleFactory.create(String.class, "commandPlayerManager", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 方块掉落物直接进入物品栏
+     */
+    public static final Supplier<BlockDropsDirectlyEnterInventory> blockDropsDirectlyEnterInventory = register(
+            RuleFactory.create(
+                            BlockDropsDirectlyEnterInventory.class,
+                            "blockDropsDirectlyEnterInventory",
+                            BlockDropsDirectlyEnterInventory.FALSE
+                    )
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .setPlayerCustom(CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY)
+                    .build()
+    );
+
+    /**
+     * 海龟蛋快速采集
+     */
+    public static final Supplier<Boolean> turtleEggFastMine = register(
+            RuleFactory.create(Boolean.class, "turtleEggFastMine", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 导航器
+     */
+    public static final Supplier<String> commandNavigate = register(
+            RuleFactory.create(String.class, "commandNavigate", TRUE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 玩家死亡产生的掉落物不会自然消失
+     */
+    public static final Supplier<Boolean> playerDropsNotDespawning = register(
+            RuleFactory.create(Boolean.class, "playerDropsNotDespawning", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 假玩家最大物品操作次数
+     */
+    public static final Supplier<Integer> fakePlayerMaxItemOperationCount = register(
+            RuleFactory.create(Integer.class, "fakePlayerMaxItemOperationCount", 3)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .addOptions(1, 3, 5, -1)
+                    .setLenient()
+                    .addValidator(
+                            newValue -> newValue >= RuleUtils.MIN_CRAFT_COUNT || newValue == -1,
+                            () -> ValidatorFeedbacks.greaterOrEqualOrValue(RuleUtils.MIN_CRAFT_COUNT, -1)
+                    )
+                    .build()
+    );
+
+    /**
+     * 假玩家生成时内存泄漏修复
+     */
+    public static final Supplier<Boolean> fakePlayerSpawnMemoryLeakFix = register(
+            RuleFactory.create(Boolean.class, "fakePlayerSpawnMemoryLeakFix", false)
+                    .addCategories(RuleCategory.BUGFIX)
+                    .build()
+    );
+
+    /**
+     * 快递命令
+     */
+    public static final Supplier<String> commandMail = register(
+            RuleFactory.create(String.class, "commandMail", OPS)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 抑制方块破坏位置不匹配警告
+     */
+    public static final Supplier<Boolean> suppressionMismatchInDestroyBlockPosWarn = register(
+            RuleFactory.create(Boolean.class, "suppressionMismatchInDestroyBlockPosWarn", false)
+                    .addCategories(RuleCategory.EXPERIMENTAL)
+                    .build()
+    );
+
+    /**
+     * 同步导航器航点
+     */
+    public static final Supplier<Boolean> syncNavigateWaypoint = register(
+            RuleFactory.create(Boolean.class, "syncNavigateWaypoint", true)
+                    .addCategories(RuleCategory.CLIENT)
+                    .addObservers((source, value) -> {
+                        if (source == null) {
+                            return;
+                        }
+                        List<AbstractNavigator> list = source.getServer().getPlayerList().getPlayers()
+                                .stream()
+                                .map(PlayerComponentCoordinator::getManager)
+                                .map(PlayerComponentCoordinator::getNavigatorManager)
+                                .map(NavigatorManager::getNavigator)
+                                .filter(Objects::nonNull)
+                                .toList();
+                        // 设置玩家路径点
+                        if (value) {
+                            list.forEach(navigator -> navigator.syncWaypoint(true));
+                        } else {
+                            list.forEach(AbstractNavigator::clear);
+                        }
+                    })
+                    .setClient()
+                    .setRemoved()
+                    .build()
+    );
+
+    /**
+     * 潜影盒堆叠
+     */
+    public static final Supplier<Boolean> shulkerBoxStackable = register(
+            RuleFactory.create(Boolean.class, "shulkerBoxStackable", false)
+                    .addCategories(RuleCategory.EXPERIMENTAL)
+                    .build()
+    );
+
+    /**
+     * 最大服务器交互距离同步客户端
+     */
+    public static final Supplier<Boolean> maxBlockPlaceDistanceSyncClient = register(
+            RuleFactory.create(Boolean.class, "maxBlockPlaceDistanceSyncClient", true)
+                    .addCategories(RuleCategory.CLIENT)
+                    .setClient()
+                    .build()
+    );
+
+    /**
+     * 限制幻翼生成
+     */
+    public static final Supplier<Boolean> limitPhantomSpawn = register(
+            RuleFactory.create(Boolean.class, "limitPhantomSpawn", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 立即应用工具效果
+     */
+    public static final Supplier<Boolean> applyToolEffectsImmediately = register(
+            RuleFactory.create(Boolean.class, "applyToolEffectsImmediately", false)
+                    .addCategories(RuleCategory.BUGFIX)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * 强制补货
+     */
+    public static final Supplier<Boolean> forceRestock = register(
+            RuleFactory.create(Boolean.class, "forceRestock", false)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * 自动同步玩家状态
+     */
+    public static final Supplier<Boolean> autoSyncPlayerStatus = register(
+            RuleFactory.create(Boolean.class, "autoSyncPlayerStatus", false)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * 记录玩家命令
+     */
+    public static final Supplier<Boolean> recordPlayerCommand = register(
+            RuleFactory.create(Boolean.class, "recordPlayerCommand", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 保护类魔咒兼容
+     */
+    public static final Supplier<Boolean> protectionEnchantmentCompatible = register(
+            RuleFactory.create(Boolean.class, "protectionEnchantmentCompatible", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 伤害类魔咒兼容
+     */
+    public static final Supplier<Boolean> damageEnchantmentCompatible = register(
+            RuleFactory.create(Boolean.class, "damageEnchantmentCompatible", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 每页最大行数
+     */
+    public static final Supplier<Integer> maxLinesPerPage = register(
+            RuleFactory.create(Integer.class, "maxLinesPerPage", 10)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(10, 15, 20, 25)
+                    .addValidator(newValue -> newValue > 0, () -> ValidatorFeedbacks.greaterThan(0))
+                    .setLenient()
+                    .build()
+    );
+
+    /**
+     * 不死图腾无敌时间
+     */
+    public static final Supplier<Boolean> totemOfUndyingInvincibleTime = register(
+            RuleFactory.create(Boolean.class, "totemOfUndyingInvincibleTime", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * /player命令打开玩家物品栏
+     */
+    public static final Supplier<String> playerCommandOpenPlayerInventory = register(
+            RuleFactory.create(String.class, "playerCommandOpenPlayerInventory", FALSE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * /player命令假玩家传送
+     */
+    public static final Supplier<String> playerCommandTeleportFakePlayer = register(
+            RuleFactory.create(String.class, "playerCommandTeleportFakePlayer", FALSE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
+    /**
+     * 村民虚空交易
+     */
+    public static final Supplier<Boolean> villagerVoidTrading = register(
+            RuleFactory.create(Boolean.class, "villagerVoidTrading", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
+    /**
+     * 经验球合并
+     */
+    public static final Supplier<Boolean> experienceOrbMerge = register(
+            RuleFactory.create(Boolean.class, "experienceOrbMerge", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * 快捷潜影盒
+     */
+    public static final Supplier<Boolean> quickShulker = register(
+            RuleFactory.create(Boolean.class, "quickShulker", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * 禁用创造容器掉落
+     */
+    public static final Supplier<Boolean> disableCreativeContainerDrops = register(
+            RuleFactory.create(Boolean.class, "disableCreativeContainerDrops", false)
+                    .addCategories(RuleCategory.CREATIVE)
+                    .build()
+    );
+
+    /**
+     * 显示假玩家召唤者
+     */
+    public static final Supplier<Boolean> displayPlayerSummoner = register(
+            RuleFactory.create(Boolean.class, "displayPlayerSummoner", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
+    /**
+     * 设置铁砧经验消耗上限
+     */
+    public static final Supplier<Integer> setAnvilCostLimit = register(
+            RuleFactory.create(Integer.class, "setAnvilExperienceConsumptionLimit", -1)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .addValidator(
+                            integer -> integer == -1 || integer > 0 && integer <= 10000,
+                            () -> ValidatorFeedbacks.rangeOrValue(1, 10000, -1)
+                    )
+                    .addOptions(100, 1000, 10000, -1)
+                    .setLenient()
+                    .build()
+    );
+
+    /**
+     * 禁用熔炉掉落经验
+     */
+    public static final Supplier<Boolean> disableFurnaceDropExperience = register(
+            RuleFactory.create(Boolean.class, "disableFurnaceDropExperience", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .setHidden()
+                    .build()
+    );
+
+    /**
+     * /player命令打开玩家物品栏选项
+     */
+    public static final Supplier<OpenPlayerInventory> playerCommandOpenPlayerInventoryOption = register(
+            RuleFactory.create(OpenPlayerInventory.class, "playerCommandOpenPlayerInventoryOption", OpenPlayerInventory.FAKE_PLAYER)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 玩家管理器强制添加注释
+     */
+    public static final Supplier<Boolean> playerManagerForceComment = register(
+            RuleFactory.create(Boolean.class, "playerManagerForceComment", false)
+                    .addCategories(RuleCategory.COMMAND)
+                    .build()
+    );
+
+    /**
+     * 物品拾取范围扩展
+     */
+    public static final Supplier<Integer> itemPickupRangeExpand = register(
+            RuleFactory.create(Integer.class, "itemPickupRangeExpand", 0)
+                    .addCategories(RuleCategory.FEATURE)
+                    .addValidator(integer -> integer >= 0, () -> ValidatorFeedbacks.greaterThanOrEqual(0))
+                    .setHidden()
+                    .addOptions(0, 3, 5)
+                    .setLenient()
+                    .setPlayerCustom(CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND)
+                    .build()
+    );
+
+    /**
+     * 物品拾取范围扩展玩家控制
+     */
+    public static final Supplier<Boolean> itemPickupRangeExpandPlayerControl = register(
+            RuleFactory.create(Boolean.class, "itemPickupRangeExpandPlayerControl", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .setHidden()
+                    .build()
+    );
+
+    private static <T> Supplier<T> register(RuleContext<T> context) {
+        RULES.add(context);
+        return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());
+    }
+
+    public static void register() {
+        for (RuleContext<?> context : RULES) {
+            if (context.shouldRegister()) {
+                CarpetRule<?> rule = context.rule();
+                try {
+                    CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
+                    CustomRuleControl<?> control = context.getCustomRuleControl();
+                    if (control != null) {
+                        RuleSelfManager.put(control, rule);
+                    }
+                } catch (UnsupportedOperationException e) {
+                    CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name());
+                }
+            }
+        }
+    }
+
+    public static Set<RuleContext<?>> listRules() {
+        return RULES;
+    }
+}
