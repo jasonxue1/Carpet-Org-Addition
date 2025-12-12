@@ -1,7 +1,10 @@
 package org.carpetorgaddition.client.renderer;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import org.carpetorgaddition.client.util.ClientUtils;
 
@@ -21,7 +24,9 @@ public class Tooltip {
         Minecraft client = ClientUtils.getClient();
         int height = client.getWindow().getGuiScaledHeight();
         int width = client.getWindow().getGuiScaledWidth();
-        context.setComponentTooltipForNextFrame(ClientUtils.getTextRenderer(), list, width / 2 + 7, height / 2 + 27);
+        Font font = ClientUtils.getTextRenderer();
+        List<ClientTooltipComponent> components = list.stream().map(Component::getVisualOrderText).map(ClientTooltipComponent::create).toList();
+        context.renderTooltip(font, components, width / 2 + 7, height / 2 + 27, DefaultTooltipPositioner.INSTANCE, null);
     }
 
     public static void drawTooltip(GuiGraphics context, Component text) {

@@ -1,9 +1,9 @@
 package org.carpetorgaddition.debug.client.render;
 
 import com.mojang.blaze3d.platform.Window;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
-import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.ChatScreen;
@@ -42,17 +42,15 @@ import org.carpetorgaddition.mixin.debug.accessor.ExperienceOrbEntityAccessor;
 import org.carpetorgaddition.mixin.debug.accessor.HandledScreenAccessor;
 import org.carpetorgaddition.mixin.debug.accessor.ScreenAccessor;
 import org.carpetorgaddition.util.FetcherUtils;
+import org.carpetorgaddition.util.GenericUtils;
 import org.carpetorgaddition.wheel.Counter;
 import org.carpetorgaddition.wheel.TextBuilder;
 import org.jetbrains.annotations.Contract;
 
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class HudDebugRendererRegister {
-    private static final HashSet<HudDebugRenderer> renders = new HashSet<>();
+    private static final Map<Identifier, HudElement> renders = new HashMap<>();
 
     static {
         // 断言开发环境
@@ -61,7 +59,7 @@ public class HudDebugRendererRegister {
 
     static {
         // 显示方块挖掘速度
-        renders.add((context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("block_destroy_speed"), (context, tickCounter) -> {
             if (DebugSettings.showBlockBreakingSpeed.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -90,7 +88,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染比较器强度
-        renders.add((context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("comparator_level"), (context, tickCounter) -> {
             if (DebugSettings.showComparatorLevel.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -115,7 +113,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染灵魂沙物品数量
-        renders.add((context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("soul_sand_item_count"), (context, tickCounter) -> {
             if (showSoulSandItemCount()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -173,7 +171,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.add((context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("hud_information_display"), (context, tickCounter) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
                 Minecraft client = ClientUtils.getClient();
                 Screen screen = ClientUtils.getCurrentScreen();
@@ -215,7 +213,9 @@ public class HudDebugRendererRegister {
     }
 
     public static void register() {
-        HudRenderCallback.EVENT.register((drawContext, tickCounter) -> renders.forEach(renderer -> renderer.render(drawContext, tickCounter)));
+        for (Map.Entry<Identifier, HudElement> entry : renders.entrySet()) {
+            HudElementRegistry.addLast(entry.getKey(), entry.getValue());
+        }
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (DebugSettings.HUDInformationDisplay.get() && screen instanceof AbstractContainerScreen<?> handledScreen) {
                 NonNullList<Slot> slots = handledScreen.getMenu().slots;
@@ -224,7 +224,7 @@ public class HudDebugRendererRegister {
                     int x = accessor.getX();
                     int y = accessor.getY();
                     context.drawString(
-                            Screens.getTextRenderer(screen),
+                            screen.getFont(),
                             String.valueOf(slot.index),
                             slot.x + x + 1,
                             slot.y + y,
