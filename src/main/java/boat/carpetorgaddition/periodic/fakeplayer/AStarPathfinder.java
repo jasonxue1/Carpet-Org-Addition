@@ -268,6 +268,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
         /**
          * 到达终点的预估距离
          */
+        @SuppressWarnings("FieldCanBeLocal")
         private final int hCost;
         /**
          * 预估总代价

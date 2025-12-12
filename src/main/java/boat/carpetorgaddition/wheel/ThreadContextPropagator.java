@@ -26,12 +26,4 @@ public class ThreadContextPropagator<T> {
     public void setInternal(T value) {
         this.internal.set(value);
     }
-
-    public void removeExternal() {
-        this.external.remove();
-    }
-
-    public void removeInternal() {
-        this.internal.remove();
-    }
 }
