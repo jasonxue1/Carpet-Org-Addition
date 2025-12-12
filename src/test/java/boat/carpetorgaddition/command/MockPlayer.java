@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.command;
 
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.Mth;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,7 +33,7 @@ public class MockPlayer {
 
     public void addExperience(int experience) {
         this.experienceProgress = this.experienceProgress + (float) experience / (float) this.getNextLevelExperience();
-        this.totalExperience = MathHelper.clamp(this.totalExperience + experience, 0, Integer.MAX_VALUE);
+        this.totalExperience = Mth.clamp(this.totalExperience + experience, 0, Integer.MAX_VALUE);
         while (this.experienceProgress < 0.0F) {
             float f = this.experienceProgress * (float) this.getNextLevelExperience();
             if (this.experienceLevel > 0) {
@@ -52,7 +52,7 @@ public class MockPlayer {
     }
 
     public int getPoint() {
-        return MathHelper.floor(this.experienceProgress * (float) this.getNextLevelExperience());
+        return Mth.floor(this.experienceProgress * (float) this.getNextLevelExperience());
     }
 
     public void clearExperience() {
@@ -81,7 +81,7 @@ public class MockPlayer {
     @Override
     public String toString() {
         return "MockPlayer{等级=" + experienceLevel + ", 进度=" + experienceProgress + ", 经验值="
-                + (this.experienceLevel <= XpTransferCommandTest.MAX_TRANSFER_LEVEL ? this.getExperienceLevel() : this.getTotalExperienceAsBigInteger())
-                + '}';
+               + (this.experienceLevel <= XpTransferCommandTest.MAX_TRANSFER_LEVEL ? this.getExperienceLevel() : this.getTotalExperienceAsBigInteger())
+               + '}';
     }
 }

@@ -112,7 +112,7 @@ public class TranslateTest {
      */
     @Test
     public void testUsage() throws IOException {
-        File rootPath = new File("src/main/java/org/carpetorgaddition");
+        File rootPath = new File("src/main/java/boat/carpetorgaddition");
         Counter<String> counter = new Counter<>();
         List<String> keys = this.parsers.get(ZH_CN)
                 .listOtherTranslate()

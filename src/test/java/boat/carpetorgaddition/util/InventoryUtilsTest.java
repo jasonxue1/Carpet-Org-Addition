@@ -1,14 +1,14 @@
 package boat.carpetorgaddition.util;
 
-import net.minecraft.Bootstrap;
-import net.minecraft.SharedConstants;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
+import net.minecraft.SharedConstants;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemContainerContents;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
@@ -18,37 +18,37 @@ import java.util.List;
 public class InventoryUtilsTest {
     @BeforeAll
     public static void init() {
-        SharedConstants.createGameVersion();
-        Bootstrap.initialize();
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
     }
 
     @RepeatedTest(10)
     public void testAddItemToShulkerBox() {
         ItemStack itemStack = new ItemStack(Items.SHULKER_BOX);
-        ContainerComponent component = itemStack.get(DataComponentTypes.CONTAINER);
+        ItemContainerContents component = itemStack.get(DataComponents.CONTAINER);
         Assertions.assertNotNull(component);
         List<ItemStack> list = component.stream().toList();
         Assertions.assertTrue(list.isEmpty());
         ContainerComponentInventory inventory = new ContainerComponentInventory(itemStack);
         int count = 0;
         while (true) {
-            Item item = MathUtils.getRandomElement(Registries.ITEM.stream().toList());
+            Item item = MathUtils.getRandomElement(BuiltInRegistries.ITEM.stream().toList());
             ItemStack stack = new ItemStack(item);
-            int i = MathUtils.randomInt(1, stack.getMaxCount());
+            int i = MathUtils.randomInt(1, stack.getMaxStackSize());
             stack.setCount(i);
             if (stack.isEmpty()) {
                 continue;
             }
             count += i;
             System.out.println(stack);
-            ItemStack remaining = inventory.addStack(stack);
+            ItemStack remaining = inventory.addItem(stack);
             if (remaining.isEmpty()) {
                 continue;
             }
             count -= remaining.getCount();
             break;
         }
-        ContainerComponent newComponent = itemStack.get(DataComponentTypes.CONTAINER);
+        ItemContainerContents newComponent = itemStack.get(DataComponents.CONTAINER);
         System.out.println(inventory);
         Assertions.assertNotNull(newComponent);
         Assertions.assertEquals(27, newComponent.stream().toList().size());

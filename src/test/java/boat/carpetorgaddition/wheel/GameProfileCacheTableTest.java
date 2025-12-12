@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.wheel.GameProfileCache.Table;
-import net.minecraft.util.Uuids;
+import net.minecraft.core.UUIDUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,14 +41,14 @@ public class GameProfileCacheTableTest {
     public void init() {
         this.table = new Table();
         for (String username : usernames) {
-            this.table.put(Uuids.getOfflinePlayerUuid(username), username);
+            this.table.put(UUIDUtil.createOfflinePlayerUUID(username), username);
         }
     }
 
     @Test
     public void testGet() {
         for (String username : usernames) {
-            UUID expected = Uuids.getOfflinePlayerUuid(username);
+            UUID expected = UUIDUtil.createOfflinePlayerUUID(username);
             UUID actual = table.get(username).map(Map.Entry::getKey).orElseThrow();
             System.out.println("username: " + username);
             System.out.println("expected: " + expected);
@@ -76,7 +76,7 @@ public class GameProfileCacheTableTest {
                 Map.entry("bOT_1", "bot_1")
         );
         for (Map.Entry<String, String> entry : map.entrySet()) {
-            UUID expected = Uuids.getOfflinePlayerUuid(entry.getValue());
+            UUID expected = UUIDUtil.createOfflinePlayerUUID(entry.getValue());
             UUID actual = table.get(entry.getKey()).map(Map.Entry::getKey).orElseThrow();
             System.out.println("username: " + entry.getKey() + " / " + entry.getValue());
             System.out.println("cache_username: " + table.get(actual).orElseThrow());
