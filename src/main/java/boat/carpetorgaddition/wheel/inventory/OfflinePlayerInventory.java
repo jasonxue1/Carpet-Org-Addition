@@ -20,7 +20,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
-import org.jspecify.annotations.NonNull;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -91,7 +90,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
      * @return 玩家数据是否存在
      */
     public static boolean playerDataExists(UUID uuid, MinecraftServer server) {
-        String filename = uuid.toString() + ".dat";
+        String filename = uuid + ".dat";
         Path path = server.getWorldPath(LevelResource.PLAYER_DATA_DIR).resolve(filename);
         return Files.exists(path);
     }
@@ -102,12 +101,12 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
     @Override
-    public void startOpen(@NonNull ContainerUser user) {
+    public void startOpen(ContainerUser user) {
         if (user instanceof ServerPlayer player) {
             this.accessor.onOpen(player);
             if (this.showLog) {
@@ -122,7 +121,7 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public void stopOpen(@NonNull ContainerUser user) {
+    public void stopOpen(ContainerUser user) {
         if (user instanceof ServerPlayer player) {
             this.accessor.onClose(player);
         }

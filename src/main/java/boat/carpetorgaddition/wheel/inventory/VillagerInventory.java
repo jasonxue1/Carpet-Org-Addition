@@ -4,7 +4,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Player;
-import org.jspecify.annotations.NonNull;
 
 public class VillagerInventory extends AbstractCustomSizeInventory {
     private final Villager villager;
@@ -26,7 +25,7 @@ public class VillagerInventory extends AbstractCustomSizeInventory {
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         if (villager.isDeadOrDying() || villager.isRemoved()) {
             return false;
         }

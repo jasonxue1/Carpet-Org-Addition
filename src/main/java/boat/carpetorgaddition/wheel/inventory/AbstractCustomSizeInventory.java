@@ -9,7 +9,6 @@ import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.jspecify.annotations.NonNull;
 
 import java.util.function.Supplier;
 
@@ -52,7 +51,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack getItem(int slot) {
+    public ItemStack getItem(int slot) {
         if (slot < this.getActualSize()) {
             return this.getInventory().getItem(slot);
         }
@@ -60,7 +59,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack removeItem(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         if (slot < this.getActualSize()) {
             return this.getInventory().removeItem(slot, amount);
         }
@@ -72,7 +71,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack removeItemNoUpdate(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         if (slot < this.getActualSize()) {
             return this.getInventory().removeItemNoUpdate(slot);
         }
@@ -85,7 +84,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
     }
 
     @Override
-    public void setItem(int slot, @NonNull ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         if (slot < this.getActualSize()) {
             this.getInventory().setItem(slot, stack);
             return;
@@ -109,7 +108,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
     }
 
     @Override
-    public boolean canPlaceItem(int slot, @NonNull ItemStack stack) {
+    public boolean canPlaceItem(int slot, ItemStack stack) {
         return slot < this.getActualSize();
     }
 

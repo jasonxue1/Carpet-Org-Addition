@@ -16,8 +16,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +59,7 @@ public class PlayerStorageInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack getItem(int slot) {
+    public ItemStack getItem(int slot) {
         return this.playerInventory.getItem(this.map(slot));
     }
 
@@ -73,17 +71,17 @@ public class PlayerStorageInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack removeItem(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         return this.playerInventory.removeItem(this.map(slot), amount);
     }
 
     @Override
-    public @NonNull ItemStack removeItemNoUpdate(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         return this.playerInventory.removeItemNoUpdate(this.map(slot));
     }
 
     @Override
-    public void setItem(int slot, @NonNull ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         this.playerInventory.setItem(this.map(slot), stack);
     }
 
@@ -97,7 +95,7 @@ public class PlayerStorageInventory implements Container {
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         return this.playerInventory.stillValid(player);
     }
 
@@ -176,7 +174,6 @@ public class PlayerStorageInventory implements Container {
      *
      * @return 物品剩余未插入的部分
      */
-    @NotNull
     @CheckReturnValue
     private ItemStack insertToShulkerBox(ItemStack itemStack) {
         if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {

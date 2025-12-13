@@ -14,7 +14,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
-import org.jspecify.annotations.NonNull;
+
+import java.util.Optional;
 
 /**
  * 模拟一个玩家物品栏，用来接收读取自NBT的物品
@@ -64,21 +65,24 @@ public class SimulatePlayerInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack getItem(int slot) {
+    public ItemStack getItem(int slot) {
         if (slot < this.main.size()) {
             return this.main.get(slot);
         }
-        EquipmentSlot equipmentSlot = Inventory.EQUIPMENT_SLOT_MAPPING.get(slot);
-        return this.equipment.get(equipmentSlot);
+        Optional<EquipmentSlot> optional = getEquipmentSlot(slot);
+        return optional.map(this.equipment::get).orElse(ItemStack.EMPTY);
     }
 
     @Override
-    public @NonNull ItemStack removeItem(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         if (slot < this.main.size()) {
             return ContainerHelper.removeItem(this.main, slot, amount);
         } else {
-            EquipmentSlot equipmentSlot = Inventory.EQUIPMENT_SLOT_MAPPING.get(slot);
-            ItemStack itemStack = this.equipment.get(equipmentSlot);
+            Optional<EquipmentSlot> optional = getEquipmentSlot(slot);
+            if (optional.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            ItemStack itemStack = this.equipment.get(optional.get());
             if (!itemStack.isEmpty()) {
                 return itemStack.split(amount);
             }
@@ -87,23 +91,26 @@ public class SimulatePlayerInventory implements Container {
     }
 
     @Override
-    public @NonNull ItemStack removeItemNoUpdate(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         if (slot < this.main.size()) {
             ItemStack itemStack = this.main.get(slot);
             this.main.set(slot, ItemStack.EMPTY);
             return itemStack;
         }
-        EquipmentSlot equipmentSlot = Inventory.EQUIPMENT_SLOT_MAPPING.get(slot);
-        return this.equipment.set(equipmentSlot, ItemStack.EMPTY);
+        Optional<EquipmentSlot> optional = getEquipmentSlot(slot);
+        return optional.map(equipmentSlot -> this.equipment.set(equipmentSlot, ItemStack.EMPTY)).orElse(ItemStack.EMPTY);
     }
 
     @Override
-    public void setItem(int slot, @NonNull ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         if (slot < this.main.size()) {
             this.main.set(slot, stack);
         }
-        EquipmentSlot equipmentSlot = Inventory.EQUIPMENT_SLOT_MAPPING.get(slot);
-        this.equipment.set(equipmentSlot, stack);
+        Optional<EquipmentSlot> optional = getEquipmentSlot(slot);
+        if (optional.isEmpty()) {
+            return;
+        }
+        this.equipment.set(optional.get(), stack);
     }
 
     @Override
@@ -111,7 +118,7 @@ public class SimulatePlayerInventory implements Container {
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         return true;
     }
 
@@ -119,5 +126,10 @@ public class SimulatePlayerInventory implements Container {
     public void clearContent() {
         this.main.clear();
         this.equipment.clear();
+    }
+
+    @SuppressWarnings("OptionalOfNullableMisuse")
+    private Optional<EquipmentSlot> getEquipmentSlot(int slot) {
+        return Optional.ofNullable(Inventory.EQUIPMENT_SLOT_MAPPING.get(slot));
     }
 }

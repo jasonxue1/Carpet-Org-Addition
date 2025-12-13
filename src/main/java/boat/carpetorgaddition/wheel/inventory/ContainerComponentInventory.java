@@ -10,8 +10,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import org.jetbrains.annotations.CheckReturnValue;
-import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.Optional;
 import java.util.StringJoiner;
@@ -39,7 +37,7 @@ public class ContainerComponentInventory extends SimpleContainer implements Comp
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         if (this.itemStack.isEmpty()) {
             return false;
         }
@@ -104,7 +102,7 @@ public class ContainerComponentInventory extends SimpleContainer implements Comp
     }
 
     @Override
-    public @NonNull String toString() {
+    public String toString() {
         if (this.isEmpty()) {
             return "{Size: %s[]}".formatted(this.getContainerSize());
         }
@@ -119,7 +117,7 @@ public class ContainerComponentInventory extends SimpleContainer implements Comp
     }
 
     @Override
-    public int compareTo(@NotNull ContainerComponentInventory o) {
+    public int compareTo(ContainerComponentInventory o) {
         // 容器内物品相同
         if (this.equals(o)) {
             return 0;
@@ -167,7 +165,7 @@ public class ContainerComponentInventory extends SimpleContainer implements Comp
         return Integer.compare(this.hashCode(), o.hashCode());
     }
 
-    private int compareToCount(@NotNull ContainerComponentInventory o) {
+    private int compareToCount(ContainerComponentInventory o) {
         int thisCount = InventoryUtils.count(this, ItemStackPredicate.WILDCARD);
         int otherCount = InventoryUtils.count(o, ItemStackPredicate.WILDCARD);
         return -Integer.compare(thisCount, otherCount);

@@ -6,7 +6,6 @@ import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -15,7 +14,6 @@ import java.util.NoSuchElementException;
  * 自动扩容物品栏
  */
 public class AutoGrowInventory implements Container, Iterable<ItemStack> {
-    @NotNull
     private SimpleContainer inventory = new SimpleContainer(27);
     private int growCount = 0;
 
@@ -33,22 +31,22 @@ public class AutoGrowInventory implements Container, Iterable<ItemStack> {
     }
 
     @Override
-    public @NonNull ItemStack getItem(int slot) {
+    public ItemStack getItem(int slot) {
         return this.inventory.getItem(slot);
     }
 
     @Override
-    public @NonNull ItemStack removeItem(int slot, int amount) {
+    public ItemStack removeItem(int slot, int amount) {
         return this.inventory.removeItem(slot, amount);
     }
 
     @Override
-    public @NonNull ItemStack removeItemNoUpdate(int slot) {
+    public ItemStack removeItemNoUpdate(int slot) {
         return this.inventory.removeItemNoUpdate(slot);
     }
 
     @Override
-    public void setItem(int slot, @NonNull ItemStack stack) {
+    public void setItem(int slot, ItemStack stack) {
         this.inventory.setItem(slot, stack);
     }
 
@@ -58,7 +56,7 @@ public class AutoGrowInventory implements Container, Iterable<ItemStack> {
     }
 
     @Override
-    public boolean stillValid(@NonNull Player player) {
+    public boolean stillValid(Player player) {
         return this.inventory.stillValid(player);
     }
 
