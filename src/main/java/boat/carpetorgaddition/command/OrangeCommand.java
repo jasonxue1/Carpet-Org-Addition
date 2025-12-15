@@ -14,6 +14,7 @@ import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.dialog.HomeDialog;
 import boat.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
@@ -39,6 +40,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.UuidArgument;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -88,6 +90,7 @@ public class OrangeCommand extends AbstractServerCommand {
     @Override
     public void register(String name) {
         this.dispatcher.register(Commands.literal(name)
+                .executes(this::openDialog)
                 .then(Commands.literal("permission")
                         .requires(Commands.hasPermission(Commands.LEVEL_OWNERS))
                         .then(Commands.argument("node", StringArgumentType.string())
@@ -130,6 +133,13 @@ public class OrangeCommand extends AbstractServerCommand {
                 PermissionManager.listNode().stream().map(StringArgumentType::escapeIfRequired),
                 builder
         );
+    }
+
+    private int openDialog(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        HomeDialog dialog = new HomeDialog();
+        player.openDialog(Holder.direct(dialog.build()));
+        return 1;
     }
 
     // 设置子命令权限

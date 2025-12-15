@@ -5,7 +5,6 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -112,7 +111,6 @@ public class AutoGrowInventory implements Container, Iterable<ItemStack> {
         return count;
     }
 
-    @NotNull
     @Override
     public java.util.Iterator<ItemStack> iterator() {
         return new AutoGrowInventoryIterator();
