@@ -35,7 +35,7 @@ public class ScreenUtils {
             return;
         }
         ContainerComponentInventory inventory = new ContainerComponentInventory(shulker);
-        MenuConstructor factory = (syncId, playerInventory, __) ->
+        MenuConstructor factory = (syncId, playerInventory, _) ->
                 new QuickShulkerScreenHandler(syncId, playerInventory, inventory, player, predicate, shulker);
         openScreenHandler(player, factory, shulker.getHoverName());
     }

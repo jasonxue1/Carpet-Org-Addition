@@ -69,7 +69,7 @@ public class OrgRule<T> implements CarpetRule<T> {
         }
         // 更改规则时将命令同步到客户端
         if (this.categories.contains(RuleCategory.COMMAND)) {
-            this.observers.add((source, value) -> {
+            this.observers.add((source, _) -> {
                 if (source != null) {
                     CommandHelper.notifyPlayersCommandsChanged(source.getServer());
                 }
@@ -80,20 +80,20 @@ public class OrgRule<T> implements CarpetRule<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private RuleValueParser<T> createParser() {
         Map.Entry<Component, Function<String, T>> entry = switch (this.defaultValue) {
-            case String ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"),
+            case String _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"),
                     this.type::cast);
-            case Boolean ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"),
+            case Boolean _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"),
                     s -> this.type.cast(parseBoolean(s)));
-            case Integer ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"),
+            case Integer _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"),
                     s -> this.type.cast(Integer.parseInt(s)));
-            case Long ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.long"),
+            case Long _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.long"),
                     s -> this.type.cast(Long.parseLong(s)));
-            case Double ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.double"),
+            case Double _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.double"),
                     s -> this.type.cast(Double.parseDouble(s)));
-            case Float ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.float"),
+            case Float _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.float"),
                     s -> this.type.cast(Float.parseFloat(s)));
             // 只有枚举名称全部为大写时才能匹配
-            case Enum<?> ignored -> Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"),
+            case Enum<?> _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"),
                     s -> (T) Enum.valueOf((Class<? extends Enum>) this.type, s.toUpperCase(Locale.ROOT)));
             default -> throw new UnsupportedOperationException("Unsupported type for %s %s"
                     .formatted(this.getClass().getSimpleName(), type));

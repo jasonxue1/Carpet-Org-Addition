@@ -104,7 +104,7 @@ public class BlockSearchTask extends ServerTask {
             // 缓存方块坐标到软引用集合，下次不再迭代这个坐标
             if (this.predicate.test(this.world, blockPos) && this.blockPosCache.add(blockPos) && this.traverser.contains(blockPos)) {
                 Block block = world.getBlockState(blockPos).getBlock();
-                Set<BlockPos> set = group.computeIfAbsent(block, ignore -> new HashSet<>());
+                Set<BlockPos> set = group.computeIfAbsent(block, _ -> new HashSet<>());
                 // 如果软引用blockPosCache集合中的内容被回收，则此处可能重复执行
                 if (set.add(blockPos)) {
                     this.count++;

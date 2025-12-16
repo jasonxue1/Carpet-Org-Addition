@@ -9,6 +9,6 @@ public class CarpetOrgAdditionTest {
      */
     @Test
     public void testJavaVersion() {
-        Assertions.assertEquals(21, Runtime.version().version().getFirst().intValue(), "请使用jdk21构建");
+        Assertions.assertEquals(25, Runtime.version().version().getFirst().intValue(), "请使用jdk25构建");
     }
 }

@@ -53,7 +53,7 @@ test {
     useJUnitPlatform()
 }
 
-def targetJavaVersion = 21
+def targetJavaVersion = 25
 tasks.withType(JavaCompile).configureEach {
     // 确保编码设置为UTF-8，无论系统默认编码是什么，这修复了某些特殊字符无法正确显示的边缘情况
     // 详见：http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
@@ -90,7 +90,11 @@ loom {
         client {
             programArgs(["--username", "Player789"])
             vmArgs(
+                    // 抑制jvm警告
                     "-XX:+EnableDynamicAgentLoading",
+                    "--enable-native-access=ALL-UNNAMED",
+                    "--sun-misc-unsafe-memory-access=allow",
+                    // 启用调试工具
                     "-DMC_DEBUG_ENABLED=true",
                     // 在日志中输出命令执行出错时的详细信息
                     "-DMC_DEBUG_VERBOSE_COMMAND_ERRORS=true"

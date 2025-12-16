@@ -67,7 +67,7 @@ public class FillTheContainerAction extends AbstractPlayerAction {
         IntStream intStream;
         if (this.moreContainer) {
             intStream = switch (screenHandler) {
-                case ShulkerBoxMenu ignored -> IntStream.rangeClosed(27, 62);
+                case ShulkerBoxMenu _ -> IntStream.rangeClosed(27, 62);
                 // 箱子，末影箱，木桶等容器
                 case ChestMenu handler
                         when handler.getType() == MenuType.GENERIC_9x3 -> IntStream.rangeClosed(27, 62);
@@ -75,11 +75,11 @@ public class FillTheContainerAction extends AbstractPlayerAction {
                 case ChestMenu handler
                         when handler.getType() == MenuType.GENERIC_9x6 -> IntStream.rangeClosed(54, 89);
                 // 漏斗
-                case HopperMenu ignored -> IntStream.rangeClosed(5, 40);
+                case HopperMenu _ -> IntStream.rangeClosed(5, 40);
                 // 发射器，投掷器
-                case DispenserMenu ignored -> IntStream.rangeClosed(9, 44);
+                case DispenserMenu _ -> IntStream.rangeClosed(9, 44);
                 // 合成器
-                case CrafterMenu ignored -> IntStream.rangeClosed(9, 44);
+                case CrafterMenu _ -> IntStream.rangeClosed(9, 44);
                 case null, default -> IntStream.of();
             };
         } else {

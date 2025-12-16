@@ -164,7 +164,7 @@ public class Express implements Comparable<Express> {
                                 count, copy.getDisplayName()));
                 counter.add(copy.getItem(), count);
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -178,7 +178,7 @@ public class Express implements Comparable<Express> {
                                 count - surplusCount, surplusCount));
                 counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = __ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -220,7 +220,7 @@ public class Express implements Comparable<Express> {
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Function<ServerPlayer, Component> message = __ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
+        Function<ServerPlayer, Component> message = _ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
         this.sendMessageIfPlayerOnline(this.recipient, message);
         this.cancel = true;
     }

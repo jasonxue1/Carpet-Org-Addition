@@ -5,7 +5,6 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.NameAndId;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.Queue;
@@ -56,9 +55,8 @@ public class FabricPlayerAccessManager {
         return this.accessors.computeIfAbsent(entry, profile -> new FabricPlayerAccessor(this.server, profile, this));
     }
 
-    @NotNull
     public FabricPlayerAccessor getOrCreateBlocking(NameAndId gameProfile) {
-        return this.accessors.computeIfAbsent(gameProfile, __ -> {
+        return this.accessors.computeIfAbsent(gameProfile, _ -> {
             // 在多个线程调用构造方法存在并发问题
             Supplier<FabricPlayerAccessor> supplier = () -> new FabricPlayerAccessor(this.server, gameProfile, this);
             FabricPlayerAccessorEntry entry = new FabricPlayerAccessorEntry(supplier);
