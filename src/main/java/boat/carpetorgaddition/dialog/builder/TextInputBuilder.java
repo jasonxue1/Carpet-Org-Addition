@@ -1,7 +1,6 @@
-package boat.carpetorgaddition.wheel.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
-import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.dialog.DialogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.Input;
 import net.minecraft.server.dialog.input.TextInput;
@@ -12,26 +11,18 @@ public class TextInputBuilder {
     private final String key;
     private int width = 200;
     private int height = -1;
-    private Component label = TextBuilder.translate("carpet.generic.type");
-    private boolean labelVisible = false;
+    private Component label = DialogUtils.UNDEFINED;
+    private boolean labelVisible = true;
     private String initial = "";
     private int maxLength = 32;
     private int maxLines = -1;
-    private static final String PREFIX = CarpetOrgAddition.MOD_ID.replace('-', '_') + "_";
 
     private TextInputBuilder(String key) {
-        int length = key.length();
-        if (length > 32) {
-            throw new IllegalArgumentException("The key is too long: " + key);
-        }
-        for (int i = 0; i < length; i++) {
-            char c = key.charAt(i);
-            if ((c >= 'a' && c <= 'z') || c == '_') {
-                continue;
-            }
-            throw new IllegalArgumentException("Invalid key: %s, can only contain lowercase letters and underscores".formatted(key));
-        }
-        this.key = PREFIX + key;
+        this.key = DialogUtils.assertValidDialogKey(key);
+    }
+
+    public static TextInputBuilder of(String key) {
+        return new TextInputBuilder(key);
     }
 
     public TextInputBuilder setWidth(int width) {
@@ -56,6 +47,22 @@ public class TextInputBuilder {
 
     public TextInputBuilder setMaxLength(int maxLength) {
         this.maxLength = maxLength;
+        return this;
+    }
+
+    public TextInputBuilder setHeight(int height) {
+        if (height <= 0) {
+            throw new IllegalArgumentException();
+        }
+        this.height = height;
+        return this;
+    }
+
+    public TextInputBuilder setMaxLines(int maxLines) {
+        if (maxLines <= 0) {
+            throw new IllegalArgumentException();
+        }
+        this.maxLines = maxLines;
         return this;
     }
 

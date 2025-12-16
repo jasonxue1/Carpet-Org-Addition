@@ -14,3 +14,4 @@ remappedSrc/
 lib/
 config/
 startlog.txt
+src/main/generated/

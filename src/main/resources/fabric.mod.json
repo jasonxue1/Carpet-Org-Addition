@@ -18,6 +18,9 @@
   "icon": "assets/carpet-org-addition/icon.png",
   "environment": "*",
   "entrypoints": {
+    "fabric-datagen": [
+      "boat.carpetorgaddition.generator.DataGenerator"
+    ],
     "client": [
       "boat.carpetorgaddition.client.CarpetOrgAdditionClient"
     ],

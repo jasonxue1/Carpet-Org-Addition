@@ -2,6 +2,7 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.dialog.DialogProvider;
 import boat.carpetorgaddition.exception.CommandExecuteIOException;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
@@ -14,7 +15,6 @@ import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.TextBuilder;
-import boat.carpetorgaddition.wheel.dialog.HomeDialog;
 import boat.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
@@ -43,6 +43,7 @@ import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dialog.Dialog;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
@@ -137,8 +138,8 @@ public class OrangeCommand extends AbstractServerCommand {
 
     private int openDialog(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        HomeDialog dialog = new HomeDialog();
-        player.openDialog(Holder.direct(dialog.build()));
+        Dialog dialog = DialogProvider.getStartDialog();
+        player.openDialog(Holder.direct(dialog));
         return 1;
     }
 

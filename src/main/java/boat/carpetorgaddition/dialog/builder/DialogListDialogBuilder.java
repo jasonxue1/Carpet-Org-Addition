@@ -1,8 +1,10 @@
-package boat.carpetorgaddition.wheel.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
+import boat.carpetorgaddition.dialog.DialogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.dialog.ActionButton;
 import net.minecraft.server.dialog.CommonDialogData;
 import net.minecraft.server.dialog.Dialog;
@@ -41,6 +43,15 @@ public final class DialogListDialogBuilder extends DialogBuilder<DialogListDialo
     public DialogListDialogBuilder setButtonWidth(int buttonWidth) {
         this.buttonWidth = buttonWidth;
         return this.self();
+    }
+
+    public DialogListDialogBuilder setExitAction(@Nullable ActionButton exitAction) {
+        this.exitAction = exitAction;
+        return this;
+    }
+
+    public DialogListDialogBuilder setParent(Identifier parent) {
+        return this.setExitAction(DialogUtils.createBackButton(parent));
     }
 
     @Override

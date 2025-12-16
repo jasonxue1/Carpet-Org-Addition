@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.wheel.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.CommonDialogData;

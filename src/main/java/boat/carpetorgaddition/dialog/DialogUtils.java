@@ -1,0 +1,42 @@
+package boat.carpetorgaddition.dialog;
+
+import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.wheel.TextBuilder;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.dialog.ActionButton;
+import net.minecraft.server.dialog.CommonButtonData;
+
+import java.util.Optional;
+
+public class DialogUtils {
+    private static final String PREFIX = CarpetOrgAddition.MOD_ID.replace('-', '_') + "_";
+    public static final Component UNDEFINED = TextBuilder.of("carpet.generic.undefined")
+            .setColor(ChatFormatting.RED)
+            .setBold()
+            .build();
+
+    private DialogUtils() {
+    }
+
+    public static String assertValidDialogKey(String key) {
+        int length = key.length();
+        if (length > 32) {
+            throw new IllegalArgumentException("The key is too long: " + key);
+        }
+        for (int i = 0; i < length; i++) {
+            char c = key.charAt(i);
+            if ((c >= 'a' && c <= 'z') || c == '_') {
+                continue;
+            }
+            throw new IllegalArgumentException("Invalid key: %s, can only contain lowercase letters and underscores".formatted(key));
+        }
+        return PREFIX + key;
+    }
+
+    public static ActionButton createBackButton(Identifier parent) {
+        CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.back"), CommonButtonData.DEFAULT_WIDTH);
+        return new ActionButton(data, Optional.empty());
+    }
+}
