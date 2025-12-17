@@ -2,7 +2,7 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.dialog.DialogProvider;
+import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.exception.CommandExecuteIOException;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
@@ -138,7 +138,9 @@ public class OrangeCommand extends AbstractServerCommand {
 
     private int openDialog(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        Dialog dialog = DialogProvider.getStartDialog();
+        MinecraftServer server = context.getSource().getServer();
+        DialogProvider provider = FetcherUtils.getDialogProvider(server);
+        Dialog dialog = provider.getDialog(DialogProvider.START);
         player.openDialog(Holder.direct(dialog));
         return 1;
     }

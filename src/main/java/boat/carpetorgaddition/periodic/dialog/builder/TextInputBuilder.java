@@ -1,6 +1,6 @@
-package boat.carpetorgaddition.dialog.builder;
+package boat.carpetorgaddition.periodic.dialog.builder;
 
-import boat.carpetorgaddition.dialog.DialogUtils;
+import boat.carpetorgaddition.periodic.dialog.DialogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.Input;
 import net.minecraft.server.dialog.input.TextInput;
@@ -25,6 +25,7 @@ public class TextInputBuilder {
         return new TextInputBuilder(key);
     }
 
+    @SuppressWarnings("unused")
     public TextInputBuilder setWidth(int width) {
         this.width = width;
         return this;
@@ -35,11 +36,13 @@ public class TextInputBuilder {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TextInputBuilder setLabelVisible(boolean labelVisible) {
         this.labelVisible = labelVisible;
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TextInputBuilder setInitial(String initial) {
         this.initial = initial;
         return this;
@@ -50,6 +53,7 @@ public class TextInputBuilder {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TextInputBuilder setHeight(int height) {
         if (height <= 0) {
             throw new IllegalArgumentException();
@@ -58,6 +62,7 @@ public class TextInputBuilder {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public TextInputBuilder setMaxLines(int maxLines) {
         if (maxLines <= 0) {
             throw new IllegalArgumentException();

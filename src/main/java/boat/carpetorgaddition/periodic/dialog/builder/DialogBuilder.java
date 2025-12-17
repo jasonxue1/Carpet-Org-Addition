@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.dialog.builder;
+package boat.carpetorgaddition.periodic.dialog.builder;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.CommonDialogData;
@@ -13,31 +13,57 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@SuppressWarnings("unused")
+/**
+ * @see <a href="https://zh.minecraft.wiki/w/%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%AE%9A%E4%B9%89%E6%A0%BC%E5%BC%8F">对话框定义格式</a>
+ */
 public abstract class DialogBuilder<C extends DialogBuilder<C, D>, D extends Dialog> {
+    /**
+     * 对话框的标题
+     */
     private final Component title;
+    /**
+     * 在暂停屏幕或其他对话框内用于打开此对话框按钮的文本
+     */
     @Nullable
     private Component externalTitle = null;
+    /**
+     * 是否可以通过{@code Ecs}键关闭对话框
+     */
     private boolean canCloseWithEscape = true;
+    /**
+     * 打开对话框是是否暂停单人游戏
+     */
     private boolean pause = false;
+    /**
+     * 对话框的操作后行为
+     */
     private DialogAction afterAction = DialogAction.CLOSE;
+    /**
+     * 对话框的主体元素
+     */
     private final List<DialogBody> bodies = new ArrayList<>();
+    /**
+     * 对话框的输入空间
+     */
     private final List<Input> inputs = new ArrayList<>();
 
     protected DialogBuilder(Component title) {
         this.title = title;
     }
 
+    @SuppressWarnings("unused")
     public C setExternalTitle(Component externalTitle) {
         this.externalTitle = externalTitle;
         return this.self();
     }
 
+    @SuppressWarnings("unused")
     public C setCanCloseWithEscape(boolean canCloseWithEscape) {
         this.canCloseWithEscape = canCloseWithEscape;
         return this.self();
     }
 
+    @SuppressWarnings("unused")
     public C setPause(boolean pause) {
         this.pause = pause;
         return this.self();
@@ -63,6 +89,9 @@ public abstract class DialogBuilder<C extends DialogBuilder<C, D>, D extends Dia
         return this.self();
     }
 
+    /**
+     * @return 获取泛型，直接使用{@code this}会导致无法推导泛型
+     */
     protected abstract C self();
 
     protected CommonDialogData createDialogData() {

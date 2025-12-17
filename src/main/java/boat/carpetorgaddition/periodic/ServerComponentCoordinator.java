@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.periodic;
 
+import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.periodic.express.ExpressManager;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.NotNull;
 public class ServerComponentCoordinator {
     static {
         // 注册服务器保存事件
-        ServerLifecycleEvents.AFTER_SAVE.register((server, flush, force) -> getCoordinator(server).onServerSave());
+        ServerLifecycleEvents.AFTER_SAVE.register((server, _, _) -> getCoordinator(server).onServerSave());
     }
 
     private final MinecraftServer server;
@@ -37,6 +38,7 @@ public class ServerComponentCoordinator {
     private final PlayerSerializationManager playerSerializationManager;
     private final FabricPlayerAccessManager accessManager;
     private final RuleConfig ruleConfig;
+    private final DialogProvider dialogProvider;
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.expressManager = new ExpressManager(server);
@@ -45,6 +47,7 @@ public class ServerComponentCoordinator {
         this.playerSerializationManager = new PlayerSerializationManager(server);
         this.accessManager = new FabricPlayerAccessManager(server);
         this.ruleConfig = new RuleConfig(server);
+        this.dialogProvider = new DialogProvider(server);
     }
 
     public void tick() {
@@ -81,6 +84,10 @@ public class ServerComponentCoordinator {
 
     public RuleConfig getRuleConfig() {
         return this.ruleConfig;
+    }
+
+    public DialogProvider getDialogProvider() {
+        return this.dialogProvider;
     }
 
     private void onServerSave() {

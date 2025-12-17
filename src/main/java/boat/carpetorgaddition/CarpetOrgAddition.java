@@ -78,15 +78,6 @@ public class CarpetOrgAddition implements ModInitializer {
      * </p>
      */
     public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.getInstance().isEnableHiddenFunction();
-    /**
-     * 是否为对话框生成数据，由此方式生成的对话框的语言的回落文本是硬编码的
-     */
-    public static final boolean DIALOG_DATA_GENERATOR = false;
-    /**
-     * 是否为对话框添加{@code #minecraft:pause_screen_additions}标签<br>
-     * 这会让打开对话框变得更方便，但它违反了{@code Carpet}在默认情况下不改变游戏行为的原则
-     */
-    public static final boolean DIALOG_PAUSE_ADDITIONS = false;
 
     /**
      * 模组初始化

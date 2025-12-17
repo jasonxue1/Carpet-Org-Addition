@@ -1,35 +1,40 @@
-package boat.carpetorgaddition.dialog;
+package boat.carpetorgaddition.periodic.dialog;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.dialog.builder.DialogListDialogBuilder;
-import boat.carpetorgaddition.dialog.builder.MultiActionDialogBuilder;
-import boat.carpetorgaddition.dialog.builder.SingleOptionInputBuilder;
-import boat.carpetorgaddition.dialog.builder.TextInputBuilder;
+import boat.carpetorgaddition.periodic.dialog.builder.DialogListDialogBuilder;
+import boat.carpetorgaddition.periodic.dialog.builder.MultiActionDialogBuilder;
+import boat.carpetorgaddition.periodic.dialog.builder.SingleOptionInputBuilder;
+import boat.carpetorgaddition.periodic.dialog.builder.TextInputBuilder;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.TextBuilder;
-import carpet.CarpetSettings;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dialog.ActionButton;
 import net.minecraft.server.dialog.CommonButtonData;
 import net.minecraft.server.dialog.Dialog;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.dialog.DialogAction;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @NullMarked
 public class DialogProvider {
-    @Nullable
-    private static String lang;
-    private static final Map<Identifier, Dialog> DIALOGS = new HashMap<>();
+    private final Map<Identifier, Supplier<Dialog>> dialogs = new HashMap<>();
     public static final Identifier START = getDialogIdentifier("start");
     public static final Identifier FUNCTION = getDialogIdentifier("function");
     public static final Identifier OPEN_INVENTORY = getDialogIdentifier("open_inventory");
+    private final MinecraftServer server;
 
-    public static Dialog getStartDialog() {
-        return getOrCreate(START, () -> {
+    public DialogProvider(MinecraftServer server) {
+        this.server = server;
+        this.init();
+    }
+
+    private void init() {
+        dialogs.put(START, () -> {
             Component version = new TextBuilder(CarpetOrgAddition.VERSION)
                     .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                     .build();
@@ -37,25 +42,22 @@ public class DialogProvider {
             Component translate = TextBuilder.translate("carpet.dialog.metadata.version", version);
             return DialogListDialogBuilder.of(component)
                     .addDialogBody(translate)
-                    .addDialog(getFunctionDialog())
+                    .addDialog(getDialog(FUNCTION))
+                    .setParent(server, null)
                     .build();
         });
-    }
-
-    public static Dialog getFunctionDialog() {
-        return getOrCreate(FUNCTION, () -> DialogListDialogBuilder.of(TextBuilder.translate("carpet.dialog.function.title"))
-                .addDialog(getOpenInventoryDialog())
-                .setParent(START)
+        dialogs.put(FUNCTION, () -> DialogListDialogBuilder.of(TextBuilder.translate("carpet.dialog.function.title"))
+                .addDialog(getDialog(OPEN_INVENTORY))
+                .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
+                .setParent(this.server, START)
                 .build()
         );
-    }
-
-    public static Dialog getOpenInventoryDialog() {
-        return getOrCreate(OPEN_INVENTORY, () -> {
+        dialogs.put(OPEN_INVENTORY, () -> {
             CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.entry"), CommonButtonData.DEFAULT_WIDTH);
             ActionButton button = new ActionButton(data, Optional.empty());
             return MultiActionDialogBuilder.of(TextBuilder.translate("carpet.dialog.function.open_inventory"))
                     .addAction(button)
+                    .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
                     .addInput(
                             TextInputBuilder.of("uuid")
                                     .setLabel(TextBuilder.translate("carpet.dialog.function.uuid"))
@@ -69,26 +71,18 @@ public class DialogProvider {
                                     .addEntry("ender_chest", TextBuilder.translate("carpet.generic.ender_chest"))
                                     .build()
                     )
-                    .setParent(FUNCTION)
+                    .setParent(this.server, FUNCTION)
                     .build();
         });
     }
 
-    public static Set<Map.Entry<Identifier, Dialog>> entrySet() {
+    public Set<Map.Entry<Identifier, Dialog>> entrySet() {
         // 对话框是懒加载的，如果不调用，方法可能返回空集合
-        getStartDialog();
-        return DIALOGS.entrySet();
+        return this.dialogs.entrySet().stream().map(entry -> Map.entry(entry.getKey(), entry.getValue().get())).collect(Collectors.toSet());
     }
 
-    private static Dialog getOrCreate(Identifier key, Supplier<Dialog> supplier) {
-        Dialog result = DIALOGS.get(key);
-        if (Objects.equals(lang, CarpetSettings.language) || result == null) {
-            lang = CarpetSettings.language;
-            Dialog dialog = supplier.get();
-            DIALOGS.put(key, dialog);
-            return dialog;
-        }
-        return result;
+    public Dialog getDialog(Identifier key) {
+        return Objects.requireNonNull(dialogs.get(key).get(), () -> "Unknown dialog: " + key);
     }
 
     private static Identifier getDialogIdentifier(String id) {

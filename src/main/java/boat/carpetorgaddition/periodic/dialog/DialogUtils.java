@@ -1,12 +1,18 @@
-package boat.carpetorgaddition.dialog;
+package boat.carpetorgaddition.periodic.dialog;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.periodic.event.CustomClickAction;
+import boat.carpetorgaddition.periodic.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dialog.ActionButton;
 import net.minecraft.server.dialog.CommonButtonData;
+import net.minecraft.server.dialog.action.Action;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -35,8 +41,16 @@ public class DialogUtils {
         return PREFIX + key;
     }
 
-    public static ActionButton createBackButton(Identifier parent) {
-        CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.back"), CommonButtonData.DEFAULT_WIDTH);
-        return new ActionButton(data, Optional.empty());
+    public static ActionButton createBackButton(MinecraftServer server, @Nullable Identifier parent) {
+        if (parent == null) {
+            CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.close"), CommonButtonData.DEFAULT_WIDTH);
+            return new ActionButton(data, Optional.empty());
+        } else {
+            CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.back"), CommonButtonData.DEFAULT_WIDTH);
+            NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
+            writer.putIdentifier("id", parent);
+            Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG);
+            return new ActionButton(data, Optional.of(action));
+        }
     }
 }

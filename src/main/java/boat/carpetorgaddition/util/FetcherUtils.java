@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
@@ -98,6 +99,10 @@ public class FetcherUtils {
 
     public static PlayerSerializationManager getFakePlayerSerializationManager(MinecraftServer server) {
         return ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
+    }
+
+    public static DialogProvider getDialogProvider(MinecraftServer server) {
+        return ServerComponentCoordinator.getCoordinator(server).getDialogProvider();
     }
 }
 

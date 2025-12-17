@@ -1,6 +1,6 @@
-package boat.carpetorgaddition.dialog.builder;
+package boat.carpetorgaddition.periodic.dialog.builder;
 
-import boat.carpetorgaddition.dialog.DialogUtils;
+import boat.carpetorgaddition.periodic.dialog.DialogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.Input;
 import net.minecraft.server.dialog.input.SingleOptionInput;
@@ -25,11 +25,13 @@ public class SingleOptionInputBuilder {
         return new SingleOptionInputBuilder(key);
     }
 
+    @SuppressWarnings("unused")
     public SingleOptionInputBuilder setWidth(int width) {
         this.width = width;
         return this;
     }
 
+    @SuppressWarnings("unused")
     public SingleOptionInputBuilder setLabel(Component label) {
         this.label = label;
         return this;
@@ -40,6 +42,7 @@ public class SingleOptionInputBuilder {
         return this;
     }
 
+    @SuppressWarnings("unused")
     public SingleOptionInputBuilder addEntry(String id) {
         return this.addEntry(id, null);
     }
