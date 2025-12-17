@@ -1,5 +1,8 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
+import boat.carpetorgaddition.wheel.TextBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.CommonDialogData;
 import net.minecraft.server.dialog.Dialog;
@@ -82,6 +85,14 @@ public abstract class DialogBuilder<C extends DialogBuilder<C, D>, D extends Dia
     public C addDialogBody(Component component) {
         PlainMessage message = new PlainMessage(component, PlainMessage.DEFAULT_WIDTH);
         return this.addDialogBody(message);
+    }
+
+    public C addDialogBody(CommandSyntaxException exception) {
+        return this.addDialogBody(
+                new TextBuilder(exception.getRawMessage())
+                        .setColor(ChatFormatting.RED)
+                        .build()
+        );
     }
 
     public C addInput(Input input) {

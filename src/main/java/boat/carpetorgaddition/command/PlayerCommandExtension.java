@@ -8,10 +8,7 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.WorldUtils;
 import boat.carpetorgaddition.wheel.TextBuilder;
-import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
-import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
-import boat.carpetorgaddition.wheel.inventory.OfflinePlayerEnderChestInventory;
-import boat.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
+import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerInventoryScreenHandler;
@@ -33,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public class PlayerCommandExtension {
     public static RequiredArgumentBuilder<CommandSourceStack, ?> register(RequiredArgumentBuilder<CommandSourceStack, ?> builder) {
@@ -92,7 +90,7 @@ public class PlayerCommandExtension {
         }
         OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
         SimpleMenuProvider factory = new SimpleMenuProvider(
-                (syncId, playerInventory, player) -> {
+                (syncId, playerInventory, _) -> {
                     FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
                     FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
                     OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
@@ -109,7 +107,7 @@ public class PlayerCommandExtension {
         MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         SimpleMenuProvider screen = new SimpleMenuProvider(
-                (syncId, inventory, player) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
+                (syncId, inventory, _) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
                 argumentPlayer.getName()
         );
         // 打开物品栏
@@ -157,7 +155,7 @@ public class PlayerCommandExtension {
         MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
         OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
         SimpleMenuProvider factory = new SimpleMenuProvider(
-                (syncId, playerInventory, player) -> {
+                (syncId, playerInventory, _) -> {
                     FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
                     FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
                     OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(accessor);
@@ -171,7 +169,7 @@ public class PlayerCommandExtension {
         OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         // 创建GUI对象
         SimpleMenuProvider screen = new SimpleMenuProvider(
-                (i, inventory, player) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
+                (i, inventory, _) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
                 argumentPlayer.getName()
         );
         // 打开末影箱GUI
@@ -217,5 +215,25 @@ public class PlayerCommandExtension {
 
     private static String getPlayerName(CommandContext<CommandSourceStack> context) {
         return StringArgumentType.getString(context, "player");
+    }
+
+    public static void openPlayerInventory(MinecraftServer server, UUID uuid, ServerPlayer player, PlayerInventoryType type) throws CommandSyntaxException {
+        if (server.getPlayerList().getPlayer(uuid) != null) {
+            // TODO 取消此条限制
+            throw CommandUtils.createException("carpet.dialog.function.open_inventory.open_inventory.fail");
+        }
+        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
+            Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
+            if (optional.isEmpty()) {
+                throw PlayerCommandExtension.createNoFileFoundException();
+            }
+            GameProfile gameProfile = optional.get();
+            switch (type) {
+                case INVENTORY -> PlayerCommandExtension.openOfflinePlayerInventory(player, gameProfile);
+                case ENDER_CHEST -> PlayerCommandExtension.openOfflinePlayerEnderChest(player, gameProfile);
+            }
+        } else {
+            throw CommandUtils.createPlayerNotFoundException();
+        }
     }
 }

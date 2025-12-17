@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
 import boat.carpetorgaddition.periodic.dialog.DialogUtils;
+import boat.carpetorgaddition.wheel.TextBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;
@@ -41,6 +42,10 @@ public final class DialogListDialogBuilder extends DialogBuilder<DialogListDialo
 
     public static DialogListDialogBuilder of(Component title) {
         return new DialogListDialogBuilder(title);
+    }
+
+    public static DialogListDialogBuilder of(String key, Object... args) {
+        return of(TextBuilder.translate(key, args));
     }
 
     public DialogListDialogBuilder addDialog(Dialog dialog) {

@@ -7,8 +7,10 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
+@SuppressWarnings("ClassCanBeRecord")
 public class CustomClickActionContext {
     private final MinecraftServer server;
     private final ServerPlayer player;
@@ -35,7 +37,11 @@ public class CustomClickActionContext {
         return this.player;
     }
 
-    public Optional<NbtReader> getReader() {
+    public NbtReader getReader() {
+        return Objects.requireNonNull(this.reader, () -> this.getClass().getSimpleName() + "is null");
+    }
+
+    public Optional<NbtReader> getReaderNullable() {
         return Optional.ofNullable(this.reader);
     }
 }

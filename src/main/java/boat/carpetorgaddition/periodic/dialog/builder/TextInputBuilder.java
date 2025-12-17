@@ -18,7 +18,7 @@ public class TextInputBuilder {
     private int maxLines = -1;
 
     private TextInputBuilder(String key) {
-        this.key = DialogUtils.assertValidDialogKey(key);
+        this.key = DialogUtils.toValidDialogKey(key);
     }
 
     public static TextInputBuilder of(String key) {

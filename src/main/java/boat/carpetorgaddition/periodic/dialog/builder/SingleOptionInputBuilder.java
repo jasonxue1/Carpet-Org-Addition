@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class SingleOptionInputBuilder {
+    /**
+     * 从Nbt复合标签中读取数据时的键
+     */
     private final String key;
     private int width = 200;
     private final List<SingleOptionInput.Entry> entries = new ArrayList<>();
@@ -18,7 +21,7 @@ public class SingleOptionInputBuilder {
     private boolean labelVisible = true;
 
     private SingleOptionInputBuilder(String key) {
-        this.key = DialogUtils.assertValidDialogKey(key);
+        this.key = DialogUtils.toValidDialogKey(key);
     }
 
     public static SingleOptionInputBuilder of(String key) {

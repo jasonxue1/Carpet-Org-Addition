@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
 import boat.carpetorgaddition.periodic.dialog.DialogUtils;
+import boat.carpetorgaddition.wheel.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -28,7 +29,11 @@ public final class MultiActionDialogBuilder extends DialogBuilder<MultiActionDia
         return new MultiActionDialogBuilder(title);
     }
 
-    public MultiActionDialogBuilder addAction(ActionButton button) {
+    public static MultiActionDialogBuilder of(String key, Object... args) {
+        return of(TextBuilder.translate(key, args));
+    }
+
+    public MultiActionDialogBuilder addActionButton(ActionButton button) {
         this.actions.add(button);
         return this;
     }

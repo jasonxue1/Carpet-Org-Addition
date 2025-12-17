@@ -1,6 +1,5 @@
 package boat.carpetorgaddition.periodic.dialog;
 
-import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.periodic.event.CustomClickAction;
 import boat.carpetorgaddition.periodic.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.TextBuilder;
@@ -17,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class DialogUtils {
-    private static final String PREFIX = CarpetOrgAddition.MOD_ID.replace('-', '_') + "_";
     public static final Component UNDEFINED = TextBuilder.of("carpet.generic.undefined")
             .setColor(ChatFormatting.RED)
             .setBold()
@@ -26,7 +24,7 @@ public class DialogUtils {
     private DialogUtils() {
     }
 
-    public static String assertValidDialogKey(String key) {
+    public static String toValidDialogKey(String key) {
         int length = key.length();
         if (length > 32) {
             throw new IllegalArgumentException("The key is too long: " + key);
@@ -38,7 +36,7 @@ public class DialogUtils {
             }
             throw new IllegalArgumentException("Invalid key: %s, can only contain lowercase letters and underscores".formatted(key));
         }
-        return PREFIX + key;
+        return key;
     }
 
     public static ActionButton createBackButton(MinecraftServer server, @Nullable Identifier parent) {
