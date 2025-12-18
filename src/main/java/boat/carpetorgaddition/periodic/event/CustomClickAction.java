@@ -14,7 +14,6 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @NullMarked
 public class CustomClickAction {
@@ -33,10 +32,14 @@ public class CustomClickAction {
         if (processor == null) {
             return;
         }
-        Optional<NbtReader> optional = context.getReaderNullable();
-        if (optional.map(reader -> reader.getVersion().compareTo(CURRENT_VERSION) > 0).orElse(false)) {
-            // TODO 通知客户端版本不一致
-            return;
+        try {
+            NbtReader reader = context.getReader();
+            if (reader.getVersion().compareTo(CURRENT_VERSION) > 0) {
+                // TODO 通知客户端版本不一致
+                return;
+            }
+        } catch (NullPointerException e) {
+            CarpetOrgAddition.LOGGER.warn("{} contains no nbt data", identifier, e);
         }
         try {
             processor.accept(context);

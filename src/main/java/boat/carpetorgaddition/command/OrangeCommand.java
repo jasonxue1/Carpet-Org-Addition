@@ -10,8 +10,6 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.TextBuilder;
-import boat.carpetorgaddition.wheel.page.PageManager;
-import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -20,7 +18,6 @@ import carpet.api.settings.CarpetRule;
 import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -65,11 +62,6 @@ public class OrangeCommand extends AbstractServerCommand {
                                         .executes(this::infoRuleSelf)
                                         .then(Commands.argument("value", BoolArgumentType.bool())
                                                 .executes(this::setRuleSelf)))))
-                .then(Commands.literal("textclickevent")
-                        .then(Commands.literal("pageturning")
-                                .then(Commands.argument("id", IntegerArgumentType.integer(0))
-                                        .then(Commands.argument("page", IntegerArgumentType.integer(1))
-                                                .executes(this::pageTurning)))))
                 .then(Commands.literal("dialog")
                         .executes(this::openDialog)));
     }
@@ -185,21 +177,6 @@ public class OrangeCommand extends AbstractServerCommand {
             return 1;
         }
         throw CommandUtils.createSelfOrFakePlayerException();
-    }
-
-    private int pageTurning(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        int id = IntegerArgumentType.getInteger(context, "id");
-        int page = IntegerArgumentType.getInteger(context, "page");
-        MinecraftServer server = context.getSource().getServer();
-        PageManager manager = FetcherUtils.getPageManager(server);
-        Optional<PagedCollection> optional = manager.get(id);
-        if (optional.isPresent()) {
-            PagedCollection collection = optional.get();
-            collection.print(page, true);
-            return page;
-        } else {
-            throw CommandUtils.createException("carpet.command.page.non_existent");
-        }
     }
 
     @Override

@@ -33,7 +33,7 @@ public class ServerComponentCoordinator {
     /**
      * 翻页管理器
      */
-    private final PageManager pageManager = new PageManager();
+    private final PageManager pageManager;
     private final RuleSelfManager ruleSelfManager;
     private final PlayerSerializationManager playerSerializationManager;
     private final FabricPlayerAccessManager accessManager;
@@ -41,8 +41,9 @@ public class ServerComponentCoordinator {
     private final DialogProvider dialogProvider;
 
     public ServerComponentCoordinator(MinecraftServer server) {
-        this.expressManager = new ExpressManager(server);
         this.server = server;
+        this.expressManager = new ExpressManager(server);
+        this.pageManager = new PageManager(server);
         this.ruleSelfManager = new RuleSelfManager(server);
         this.playerSerializationManager = new PlayerSerializationManager(server);
         this.accessManager = new FabricPlayerAccessManager(server);

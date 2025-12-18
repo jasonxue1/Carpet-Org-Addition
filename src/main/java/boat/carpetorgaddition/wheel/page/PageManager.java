@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.wheel.page;
 
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.MinecraftServer;
 
 import java.lang.ref.ReferenceQueue;
 import java.util.HashMap;
@@ -9,9 +10,11 @@ import java.util.Optional;
 public class PageManager {
     private final ReferenceQueue<PagedCollection> referenceQueue = new ReferenceQueue<>();
     private final HashMap<Integer, PagedCache> pagingList = new HashMap<>();
+    private final MinecraftServer server;
     private int currentId = 0;
 
-    public PageManager() {
+    public PageManager(MinecraftServer server) {
+        this.server = server;
     }
 
     /**
@@ -26,7 +29,7 @@ public class PageManager {
     }
 
     public PagedCollection newPagedCollection(CommandSourceStack source) {
-        PagedCollection collection = new PagedCollection(this.currentId, source);
+        PagedCollection collection = new PagedCollection(this.server, this.currentId, source);
         this.pagingList.put(this.currentId, new PagedCache(collection, referenceQueue, this.currentId));
         this.currentId++;
         return collection;

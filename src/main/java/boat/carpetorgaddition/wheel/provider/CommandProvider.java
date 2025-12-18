@@ -207,13 +207,6 @@ public class CommandProvider {
         return "/player %s enderChest".formatted(name);
     }
 
-    /**
-     * 翻页
-     */
-    public static String pageTurning(int id, int number) {
-        return "/%s textclickevent pageturning %s %s".formatted(getCommandName(OrangeCommand.class), id, number);
-    }
-
     public static String setCarpetRule(String rule, String value) {
         return "/carpet %s %s".formatted(rule, value);
     }

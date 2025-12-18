@@ -6,7 +6,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -21,7 +20,6 @@ public class CustomClickActionContext {
     /**
      * 自定义动作携带的负载
      */
-    @Nullable
     private final NbtReader reader;
     /**
      * 当前自定义动作是通过什么发送的
@@ -30,7 +28,7 @@ public class CustomClickActionContext {
     public static final ThreadLocal<ServerPlayer> CURRENT_PLAYER = new ThreadLocal<>();
     public static final ThreadLocal<ActionSource> ACTION_SOURCE = new ThreadLocal<>();
 
-    public CustomClickActionContext(MinecraftServer server, ServerPlayer player, @Nullable NbtReader reader) {
+    public CustomClickActionContext(MinecraftServer server, ServerPlayer player, NbtReader reader) {
         this.server = server;
         this.player = player;
         this.serverCommandSource = player.createCommandSourceStack();
@@ -62,7 +60,7 @@ public class CustomClickActionContext {
     }
 
     public NbtReader getReader() {
-        return Objects.requireNonNull(this.reader, () -> this.getClass().getSimpleName() + "is null");
+        return Objects.requireNonNull(this.reader, "Nbt Reader is null");
     }
 
     public CommandSourceStack getSource() {
@@ -71,9 +69,5 @@ public class CustomClickActionContext {
 
     public ActionSource getActionSource() {
         return this.actionSource;
-    }
-
-    public Optional<NbtReader> getReaderNullable() {
-        return Optional.ofNullable(this.reader);
     }
 }

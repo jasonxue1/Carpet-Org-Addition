@@ -26,6 +26,10 @@ public class NbtWriter {
         this.output.store(DataUpdater.DATA_VERSION, NbtVersion.CODEC, version);
     }
 
+    public void putInt(String key, int value) {
+        this.output.putInt(key, value);
+    }
+
     public void putIdentifier(String key, Identifier identifier) {
         this.output.store(key, Identifier.CODEC, identifier);
     }

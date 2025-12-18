@@ -10,6 +10,8 @@ import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
+import boat.carpetorgaddition.wheel.page.PageManager;
+import boat.carpetorgaddition.wheel.page.PagedCollection;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -65,6 +67,19 @@ public class CustomClickEvents {
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
             throw CommandUtils.createException("carpet.command.thread.wait.last");
+        }
+    });
+    public static final Identifier TURN_THE_PAGE = register("turn_the_page", context -> {
+        NbtReader reader = context.getReader();
+        int id = reader.getInt(CustomClickKeys.ID);
+        int page = reader.getInt(CustomClickKeys.PAGE_NUMBER);
+        PageManager manager = FetcherUtils.getPageManager(context.getServer());
+        Optional<PagedCollection> optional = manager.get(id);
+        if (optional.isPresent()) {
+            PagedCollection collection = optional.get();
+            collection.print(page, true);
+        } else {
+            throw CommandUtils.createException("carpet.command.page.non_existent");
         }
     });
 

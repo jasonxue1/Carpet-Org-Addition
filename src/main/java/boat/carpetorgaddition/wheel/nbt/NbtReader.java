@@ -29,6 +29,10 @@ public class NbtReader {
         return this.input.getString(key).orElseThrow();
     }
 
+    public int getInt(String key) {
+        return this.input.getInt(key).orElseThrow();
+    }
+
     public Identifier getIdentifier(String key) {
         return getIdentifierNullable(key).orElseThrow();
     }

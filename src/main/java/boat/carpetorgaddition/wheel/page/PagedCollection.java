@@ -1,14 +1,18 @@
 package boat.carpetorgaddition.wheel.page;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.event.CustomClickAction;
+import boat.carpetorgaddition.periodic.event.CustomClickEvents;
+import boat.carpetorgaddition.periodic.event.CustomClickKeys;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.TextBuilder;
-import boat.carpetorgaddition.wheel.provider.CommandProvider;
+import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -18,11 +22,13 @@ import java.util.function.Supplier;
 
 public class PagedCollection implements Iterable<Page> {
     private final ArrayList<Page> pages = new ArrayList<>();
+    private final MinecraftServer server;
     private final int id;
     private final CommandSourceStack source;
     private int length = 0;
 
-    public PagedCollection(int id, CommandSourceStack source) {
+    public PagedCollection(MinecraftServer server, int id, CommandSourceStack source) {
+        this.server = server;
         this.id = id;
         this.source = source;
     }
@@ -76,7 +82,10 @@ public class PagedCollection implements Iterable<Page> {
             builder.setColor(ChatFormatting.GRAY);
         } else {
             builder.setHover("carpet.command.page.prev");
-            builder.setCommand(CommandProvider.pageTurning(this.id, pagination - 1));
+            NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
+            writer.putInt(CustomClickKeys.ID, this.id);
+            writer.putInt(CustomClickKeys.PAGE_NUMBER, pagination - 1);
+            builder.setCustomEvent(CustomClickEvents.TURN_THE_PAGE, writer);
             builder.setColor(ChatFormatting.AQUA);
         }
         return builder.build();
@@ -89,7 +98,10 @@ public class PagedCollection implements Iterable<Page> {
             builder.setColor(ChatFormatting.GRAY);
         } else {
             builder.setHover("carpet.command.page.next");
-            builder.setCommand(CommandProvider.pageTurning(this.id, pagination + 1));
+            NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
+            writer.putInt(CustomClickKeys.ID, this.id);
+            writer.putInt(CustomClickKeys.PAGE_NUMBER, pagination + 1);
+            builder.setCustomEvent(CustomClickEvents.TURN_THE_PAGE, writer);
             builder.setColor(ChatFormatting.AQUA);
         }
         return builder.build();
