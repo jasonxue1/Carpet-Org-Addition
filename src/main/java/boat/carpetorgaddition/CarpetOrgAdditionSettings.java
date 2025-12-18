@@ -1013,6 +1013,8 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    // TODO 打开玩家物品栏GCA风格
+    // TODO 假玩家物品栏整理命令
     private static <T> Supplier<T> register(RuleContext<T> context) {
         RULES.add(context);
         return () -> (CarpetOrgAdditionExtension.isCarpetRuleLoaded() ? context.rule().value() : context.value());

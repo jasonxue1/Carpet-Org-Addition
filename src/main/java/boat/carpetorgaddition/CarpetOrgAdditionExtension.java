@@ -50,6 +50,9 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayer player) {
+        if (CarpetOrgAddition.isDebugDevelopment()) {
+            CarpetOrgAddition.LOGGER.info(player.getGameProfile().toString());
+        }
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递

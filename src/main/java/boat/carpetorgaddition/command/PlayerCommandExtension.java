@@ -220,7 +220,7 @@ public class PlayerCommandExtension {
     public static void openPlayerInventory(MinecraftServer server, UUID uuid, ServerPlayer player, PlayerInventoryType type) throws CommandSyntaxException {
         if (server.getPlayerList().getPlayer(uuid) != null) {
             // TODO 取消此条限制
-            throw CommandUtils.createException("carpet.dialog.function.open_inventory.open_inventory.fail");
+            throw CommandUtils.createException("carpet.clickevent.open_inventory.fail");
         }
         if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
             Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));

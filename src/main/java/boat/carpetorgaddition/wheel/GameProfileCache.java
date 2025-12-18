@@ -14,12 +14,14 @@ import net.minecraft.server.players.NameAndId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.VisibleForTesting;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
@@ -52,6 +54,18 @@ import java.util.stream.Collectors;
  * @see <a href="https://zh.minecraft.wiki/w/玩家档案缓存存储格式">玩家档案缓存存储格式</a>
  */
 public class GameProfileCache {
+    /**
+     * 一个只有一个线程并且阻塞队列为空的线程池，用于根据玩家UUID查询玩家名称
+     */
+    public static final ThreadPoolExecutor QUERY_PLAYER_NAME_THREAD_POOL = new ThreadPoolExecutor(
+            0,
+            1,
+            60,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            GameProfileCache::createDaemonThread,
+            new ThreadPoolExecutor.AbortPolicy()
+    );
     private static final String CONFIG_NAME_NAME = "profile";
     private final File config = IOUtils.configFile(CONFIG_NAME_NAME + ".json");
     private final Table table = new Table();
@@ -84,6 +98,55 @@ public class GameProfileCache {
         this.migration();
         this.load();
         this.mergeUsercache();
+    }
+
+    /**
+     * 通过Mojang API查询玩家名称
+     */
+    public static String queryPlayerNameFromMojangApi(UUID uuid) throws IOException {
+        BufferedReader reader = openMojangApiConnection(uuid);
+        try (reader) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line);
+            }
+            // 解析json字符串
+            JsonObject json = IOUtils.GSON.fromJson(sb.toString(), JsonObject.class);
+            if (json.has("name")) {
+                return json.get("name").getAsString();
+            }
+        }
+        throw new IllegalStateException("Player name not returned");
+    }
+
+    /**
+     * 连接到Mojang Api
+     */
+    private static BufferedReader openMojangApiConnection(UUID uuid) throws IOException {
+        URL url;
+        try {
+            URI uri = new URI(MOJANG_API.formatted(uuid.toString()));
+            url = uri.toURL();
+        } catch (URISyntaxException | MalformedURLException e) {
+            throw new IllegalStateException("Invalid URL constructed from UUID: " + uuid, e);
+        }
+        // 连接到Mojang API
+        URLConnection connection = url.openConnection();
+        // 获取字节流并转换为字符流
+        InputStream input = connection.getInputStream();
+        return new BufferedReader(new InputStreamReader(input));
+    }
+
+    /**
+     * 创建守护线程
+     */
+    private static Thread createDaemonThread(Runnable runnable) {
+        Thread thread = new Thread(runnable);
+        // 设置守护线程
+        thread.setDaemon(true);
+        thread.setName("Query-Player-Name");
+        return thread;
     }
 
     /**

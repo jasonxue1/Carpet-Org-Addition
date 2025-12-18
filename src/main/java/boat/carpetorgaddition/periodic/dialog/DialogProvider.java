@@ -28,6 +28,7 @@ public class DialogProvider {
     public static final Identifier START = getDialogIdentifier("start");
     public static final Identifier FUNCTION = getDialogIdentifier("function");
     public static final Identifier OPEN_INVENTORY = getDialogIdentifier("open_inventory");
+    public static final Identifier QUERY_PLAYER_NAME = getDialogIdentifier("query_player_name");
     private final MinecraftServer server;
 
     public DialogProvider(MinecraftServer server) {
@@ -36,6 +37,7 @@ public class DialogProvider {
     }
 
     private void init() {
+        // 对话框主屏幕
         dialogs.put(START, () -> {
             Component version = new TextBuilder(CarpetOrgAddition.VERSION)
                     .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
@@ -48,22 +50,25 @@ public class DialogProvider {
                     .setParent(this.server, null)
                     .build();
         });
+        // 功能列表对话框
         dialogs.put(FUNCTION, () -> DialogListDialogBuilder.of("carpet.dialog.function.title")
                 .addDialog(getDialog(OPEN_INVENTORY))
+                .addDialog(getDialog(QUERY_PLAYER_NAME))
                 .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
                 .setParent(this.server, START)
                 .build()
         );
-        dialogs.put(OPEN_INVENTORY, () -> MultiActionDialogBuilder.of("carpet.dialog.function.open_inventory")
+        // 打开玩家物品栏对话框
+        dialogs.put(OPEN_INVENTORY, () -> MultiActionDialogBuilder.of("carpet.dialog.function.open_inventory.title")
                 .addActionButton(
-                        ActionButtonBuilder.of("carpet.dialog.entry")
+                        ActionButtonBuilder.of(DialogTranslateKeys.ENTRY)
                                 .setCustomClickAction(this.server, CustomClickEvents.OPEN_INVENTORY)
                                 .build()
                 )
                 .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
                 .addInput(
                         TextInputBuilder.of(DialogKeys.UUID)
-                                .setLabel(TextBuilder.translate("carpet.dialog.function.uuid"))
+                                .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
                                 .setMaxLength(36)
                                 .build()
                 )
@@ -77,6 +82,23 @@ public class DialogProvider {
                 .setParent(this.server, FUNCTION)
                 .build()
         );
+        // 查询玩家名称对话框
+        dialogs.put(QUERY_PLAYER_NAME, () -> MultiActionDialogBuilder.of("carpet.dialog.function.query_player_name.title")
+                .addInput(
+                        TextInputBuilder.of(DialogKeys.UUID)
+                                .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
+                                .setMaxLength(36)
+                                .build()
+                )
+                .addActionButton(
+                        ActionButtonBuilder.of(DialogTranslateKeys.ENTRY)
+                                .setCustomClickAction(this.server, CustomClickEvents.QUERY_PLAYER_NAME)
+                                .build()
+                )
+                .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
+                .setParent(this.server, FUNCTION)
+                .build()
+        );
     }
 
     public Dialog getDialog(Identifier key) {
@@ -85,7 +107,7 @@ public class DialogProvider {
 
     public Dialog createErrorNoticeDialog(CommandSyntaxException exception) {
         return NoticeDialogBuilder.of(
-                        TextBuilder.of("carpet.dialog.error")
+                        TextBuilder.of(DialogTranslateKeys.ERROR)
                                 .setColor(ChatFormatting.RED)
                                 .setBold()
                                 .build()

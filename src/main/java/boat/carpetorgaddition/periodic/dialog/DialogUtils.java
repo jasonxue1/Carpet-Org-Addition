@@ -41,10 +41,10 @@ public class DialogUtils {
 
     public static ActionButton createBackButton(MinecraftServer server, @Nullable Identifier parent) {
         if (parent == null) {
-            CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.close"), CommonButtonData.DEFAULT_WIDTH);
+            CommonButtonData data = new CommonButtonData(TextBuilder.translate(DialogTranslateKeys.CLOSE), CommonButtonData.DEFAULT_WIDTH);
             return new ActionButton(data, Optional.empty());
         } else {
-            CommonButtonData data = new CommonButtonData(TextBuilder.translate("carpet.dialog.back"), CommonButtonData.DEFAULT_WIDTH);
+            CommonButtonData data = new CommonButtonData(TextBuilder.translate(DialogTranslateKeys.BACK), CommonButtonData.DEFAULT_WIDTH);
             NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
             writer.putIdentifier("id", parent);
             Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG);

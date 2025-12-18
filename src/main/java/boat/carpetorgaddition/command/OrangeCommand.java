@@ -2,8 +2,8 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.exception.CommandExecuteIOException;
+import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
 import boat.carpetorgaddition.rule.RuleSelfManager;
@@ -55,37 +55,11 @@ import java.net.*;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 public class OrangeCommand extends AbstractServerCommand {
-    /**
-     * 一个只有一个线程并且阻塞队列为空的线程池
-     */
-    private final ThreadPoolExecutor QUERY_PLAYER_NAME_THREAD_POOL = new ThreadPoolExecutor(
-            0,
-            1,
-            60,
-            TimeUnit.SECONDS,
-            new SynchronousQueue<>(),
-            this::createDaemonThread,
-            new ThreadPoolExecutor.AbortPolicy()
-    );
 
     public OrangeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
-    }
-
-    /**
-     * 创建守护线程
-     */
-    private Thread createDaemonThread(Runnable runnable) {
-        Thread thread = new Thread(runnable);
-        // 设置守护线程
-        thread.setDaemon(true);
-        thread.setName("Query-Player-Name");
-        return thread;
     }
 
     @Override
@@ -191,8 +165,8 @@ public class OrangeCommand extends AbstractServerCommand {
                 sendFeekback(context, playerUuid, playerName);
             } else {
                 // 本地不存在，从Mojang API获取
-                QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid));
-                MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.start");
+                GameProfileCache.QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context, uuid));
+                MessageUtils.sendMessage(context, "carpet.clickevent.query_player_name.start");
             }
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
@@ -222,7 +196,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private void sendFeekback(CommandContext<CommandSourceStack> context, String playerUuid, String playerName) {
         Component uuid = new TextBuilder(playerUuid).setCopyToClipboard(playerUuid).setColor(ChatFormatting.GRAY).build();
         Component name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(ChatFormatting.GRAY).build();
-        MessageUtils.sendMessage(context, "carpet.commands.orange.textclickevent.queryPlayerName.success", uuid, name);
+        MessageUtils.sendMessage(context, "carpet.clickevent.query_player_name.success", uuid, name);
     }
 
     /**
@@ -250,7 +224,7 @@ public class OrangeCommand extends AbstractServerCommand {
             input = connection.getInputStream();
             reader = new BufferedReader(new InputStreamReader(input));
         } catch (IOException e) {
-            throw CommandUtils.createException(e, "carpet.commands.orange.textclickevent.queryPlayerName.fail", uuid.toString());
+            throw CommandUtils.createException(e, "carpet.clickevent.query_player_name.fail", uuid.toString());
         }
         StringBuilder sb = new StringBuilder();
         try (reader) {
