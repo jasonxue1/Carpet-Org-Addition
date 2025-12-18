@@ -5,6 +5,9 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.FinderCommand;
 import boat.carpetorgaddition.exception.FileOperationException;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
+import boat.carpetorgaddition.periodic.event.CustomClickAction;
+import boat.carpetorgaddition.periodic.event.CustomClickEvents;
+import boat.carpetorgaddition.periodic.event.CustomClickKeys;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.rule.value.OpenPlayerInventory;
 import boat.carpetorgaddition.util.*;
@@ -12,10 +15,8 @@ import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.ItemStackStatistics;
 import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.WorldFormat;
-import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
-import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessor;
-import boat.carpetorgaddition.wheel.inventory.OfflinePlayerInventory;
-import boat.carpetorgaddition.wheel.inventory.SimulatePlayerInventory;
+import boat.carpetorgaddition.wheel.inventory.*;
+import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
@@ -374,7 +375,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (statistics.hasNestingItem()) {
             this.shulkerBox.set(true);
         }
-        Result result = new Result(entry, statistics, unknownPlayer, isEnderChest);
+        Result result = new Result(entry, statistics, unknownPlayer, isEnderChest, this.server);
         this.results.add(result);
     }
 
@@ -496,9 +497,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @Nullable
     protected Component openInventoryButton(NameAndId entry) {
         if (this.canOpenOfflinePlayerInventory(source)) {
-            String command = CommandProvider.openPlayerInventory(entry.id());
+            NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
+            writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.INVENTORY);
+            writer.putUuid(CustomClickKeys.UUID, entry.id());
             TextBuilder builder = new TextBuilder("[O]");
-            builder.setCommand(command);
+            builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
             builder.setHover("carpet.commands.finder.item.offline_player.open.inventory");
             builder.setColor(ChatFormatting.GRAY);
             return builder.build();
@@ -509,12 +512,14 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @Nullable
     private Component openEnderChestButton(NameAndId entry) {
         if (this.canOpenOfflinePlayerInventory(source)) {
-            String command = CommandProvider.openPlayerEnderChest(entry.id());
             Component clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
             TextBuilder builder = new TextBuilder("[O]");
             builder.setColor(ChatFormatting.GRAY);
             builder.setHover(clickLogin);
-            builder.setCommand(command);
+            NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
+            writer.putUuid(CustomClickKeys.UUID, entry.id());
+            writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.ENDER_CHEST);
+            builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
             return builder.build();
         }
         return null;
@@ -551,16 +556,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * @apiNote 非静态的内部类强引用了外部类导致暂时无法被回收，但这不是问题
      */
     public class Result implements Supplier<Component> {
+        private final MinecraftServer server;
         private final NameAndId playerConfigEntry;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
         private final boolean isEnderChest;
 
-        private Result(NameAndId playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown, boolean isEnderChest) {
+        private Result(NameAndId playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown, boolean isEnderChest, MinecraftServer server) {
             this.playerConfigEntry = playerConfigEntry;
             this.statistics = statistics;
             this.isUnknown = isUnknown;
             this.isEnderChest = isEnderChest;
+            this.server = server;
         }
 
         @Override
@@ -619,8 +626,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
             list.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.query.name"));
             list.add(TextBuilder.of("carpet.commands.finder.item.offline_player.query.non_authentic").setColor(ChatFormatting.RED).build());
             TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
-            // 设置单击按钮执行命令
-            button.setCommand(CommandProvider.queryPlayerName(playerConfigEntry().id()));
+            NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
+            // 设置单击查询玩家名称
+            writer.putUuid(CustomClickKeys.UUID, playerConfigEntry().id());
+            button.setCustomEvent(CustomClickEvents.QUERY_PLAYER_NAME, writer);
             // 设置按钮悬停提示
             button.setHover(TextBuilder.joinList(list));
             return button;

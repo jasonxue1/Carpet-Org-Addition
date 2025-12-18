@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel.nbt;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -37,11 +38,16 @@ public class NbtWriter {
         this.output.store(key, PlayerInventoryType.CODEC, type);
     }
 
+    public void putActionSource(ActionSource source) {
+        this.output.store("action_source", ActionSource.CODEC, source);
+    }
+
     public CompoundTag toNbt() {
         return this.output.buildResult();
     }
 
-    public StaticAction toCustomAction(Identifier identifier) {
+    public StaticAction toCustomAction(Identifier identifier, ActionSource source) {
+        this.putActionSource(source);
         return new StaticAction(new ClickEvent.Custom(identifier, Optional.of(this.toNbt())));
     }
 }

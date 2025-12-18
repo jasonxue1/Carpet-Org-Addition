@@ -3,6 +3,7 @@ package boat.carpetorgaddition.periodic.dialog;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.periodic.dialog.builder.*;
 import boat.carpetorgaddition.periodic.event.CustomClickEvents;
+import boat.carpetorgaddition.periodic.event.CustomClickKeys;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
@@ -67,13 +68,13 @@ public class DialogProvider {
                 )
                 .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
                 .addInput(
-                        TextInputBuilder.of(DialogKeys.UUID)
+                        TextInputBuilder.of(CustomClickKeys.UUID)
                                 .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
                                 .setMaxLength(36)
                                 .build()
                 )
                 .addInput(
-                        SingleOptionInputBuilder.of(DialogKeys.INVENTORY_TYPE)
+                        SingleOptionInputBuilder.of(CustomClickKeys.INVENTORY_TYPE)
                                 .setLabelVisible(false)
                                 .addEntry(PlayerInventoryType.INVENTORY.toString(), PlayerInventoryType.INVENTORY.getDisplayName())
                                 .addEntry(PlayerInventoryType.ENDER_CHEST.toString(), PlayerInventoryType.ENDER_CHEST.getDisplayName())
@@ -85,7 +86,7 @@ public class DialogProvider {
         // 查询玩家名称对话框
         dialogs.put(QUERY_PLAYER_NAME, () -> MultiActionDialogBuilder.of("carpet.dialog.function.query_player_name.title")
                 .addInput(
-                        TextInputBuilder.of(DialogKeys.UUID)
+                        TextInputBuilder.of(CustomClickKeys.UUID)
                                 .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
                                 .setMaxLength(36)
                                 .build()

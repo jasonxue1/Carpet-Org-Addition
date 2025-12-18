@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.mixin.dialog;
 
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.periodic.event.CustomClickActionContext;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -15,11 +16,11 @@ import org.spongepowered.asm.mixin.injection.At;
 
 import java.util.Optional;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @Mixin(SignBlockEntity.class)
 public class SignBlockEntityMixin {
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     @WrapOperation(method = "executeClickCommandsIfPresent", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;handleCustomClickAction(Lnet/minecraft/resources/Identifier;Ljava/util/Optional;)V"))
-    private void handleCustomClickAction(MinecraftServer instance, Identifier identifier, Optional<Tag> optional, Operation<Void> original, @Local(argsOnly = true) Player player) {
+    private void setPlayer(MinecraftServer instance, Identifier identifier, Optional<Tag> optional, Operation<Void> original, @Local(argsOnly = true) Player player) {
         if (player instanceof ServerPlayer) {
             try {
                 CustomClickActionContext.CURRENT_PLAYER.set((ServerPlayer) player);
@@ -29,6 +30,16 @@ public class SignBlockEntityMixin {
             }
         } else {
             original.call(instance, identifier, optional);
+        }
+    }
+
+    @WrapOperation(method = "executeClickCommandsIfPresent", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;handleCustomClickAction(Lnet/minecraft/resources/Identifier;Ljava/util/Optional;)V"))
+    private void setActionSource(MinecraftServer instance, Identifier identifier, Optional<Tag> optional, Operation<Void> original, @Local(argsOnly = true) Player player) {
+        try {
+            CustomClickActionContext.ACTION_SOURCE.set(ActionSource.SIGN);
+            original.call(instance, identifier, optional);
+        } finally {
+            CustomClickActionContext.ACTION_SOURCE.remove();
         }
     }
 }

@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.event;
 
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
@@ -10,18 +11,41 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.Optional;
 
-@SuppressWarnings("ClassCanBeRecord")
 public class CustomClickActionContext {
     private final MinecraftServer server;
+    /**
+     * 发送自定义单击动作的玩家
+     */
     private final ServerPlayer player;
+    private final CommandSourceStack serverCommandSource;
+    /**
+     * 自定义动作携带的负载
+     */
     @Nullable
     private final NbtReader reader;
+    /**
+     * 当前自定义动作是通过什么发送的
+     */
+    private final ActionSource actionSource;
     public static final ThreadLocal<ServerPlayer> CURRENT_PLAYER = new ThreadLocal<>();
+    public static final ThreadLocal<ActionSource> ACTION_SOURCE = new ThreadLocal<>();
 
     public CustomClickActionContext(MinecraftServer server, ServerPlayer player, @Nullable NbtReader reader) {
         this.server = server;
         this.player = player;
+        this.serverCommandSource = player.createCommandSourceStack();
         this.reader = reader;
+        if (reader == null) {
+            this.actionSource = ActionSource.UNKNOWN;
+        } else {
+            Optional<ActionSource> optional = reader.getActionSourceNullable();
+            if (optional.isEmpty()) {
+                ActionSource source = ACTION_SOURCE.get();
+                this.actionSource = source == null ? ActionSource.UNKNOWN : source;
+            } else {
+                this.actionSource = optional.get();
+            }
+        }
     }
 
     public CustomClickActionContext(MinecraftServer server, ServerPlayer player, Tag tag) {
@@ -39,6 +63,14 @@ public class CustomClickActionContext {
 
     public NbtReader getReader() {
         return Objects.requireNonNull(this.reader, () -> this.getClass().getSimpleName() + "is null");
+    }
+
+    public CommandSourceStack getSource() {
+        return this.serverCommandSource;
+    }
+
+    public ActionSource getActionSource() {
+        return this.actionSource;
     }
 
     public Optional<NbtReader> getReaderNullable() {

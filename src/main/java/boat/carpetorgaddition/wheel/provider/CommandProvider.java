@@ -174,13 +174,6 @@ public class CommandProvider {
     }
 
     /**
-     * 通过Mojang API查询玩家名称
-     */
-    public static String queryPlayerName(UUID uuid) {
-        return "/%s textclickevent queryPlayerName %s".formatted(getCommandName(OrangeCommand.class), uuid.toString());
-    }
-
-    /**
      * 停止导航
      */
     public static String stopNavigate() {
@@ -212,14 +205,6 @@ public class CommandProvider {
 
     public static String openPlayerEnderChest(String name) {
         return "/player %s enderChest".formatted(name);
-    }
-
-    public static String openPlayerInventory(UUID uuid) {
-        return "/%s textclickevent openInventory %s inventory".formatted(getCommandName(OrangeCommand.class), uuid.toString());
-    }
-
-    public static String openPlayerEnderChest(UUID uuid) {
-        return "/%s textclickevent openInventory %s enderChest".formatted(getCommandName(OrangeCommand.class), uuid.toString());
     }
 
     /**

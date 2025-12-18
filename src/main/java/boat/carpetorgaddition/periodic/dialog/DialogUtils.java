@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.periodic.dialog;
 
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.periodic.event.CustomClickAction;
 import boat.carpetorgaddition.periodic.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.TextBuilder;
@@ -47,7 +48,7 @@ public class DialogUtils {
             CommonButtonData data = new CommonButtonData(TextBuilder.translate(DialogTranslateKeys.BACK), CommonButtonData.DEFAULT_WIDTH);
             NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
             writer.putIdentifier("id", parent);
-            Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG);
+            Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG, ActionSource.DIALOG);
             return new ActionButton(data, Optional.of(action));
         }
     }

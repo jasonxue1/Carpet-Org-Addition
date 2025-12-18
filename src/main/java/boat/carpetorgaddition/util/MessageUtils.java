@@ -178,6 +178,16 @@ public class MessageUtils {
         sendMessageToHud(player, message);
     }
 
+    public static void sendErrorMessageToHud(CommandSourceStack source, CommandSyntaxException e) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            return;
+        }
+        TextBuilder builder = new TextBuilder(e.getRawMessage());
+        builder.setColor(ChatFormatting.RED);
+        sendMessageToHud(player, builder.build());
+    }
+
     /**
      * 发送多条带有特殊样式的消息，每一条消息单独占一行，消息内容仅发送者可见
      *

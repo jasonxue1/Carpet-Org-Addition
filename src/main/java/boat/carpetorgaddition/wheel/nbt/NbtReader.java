@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel.nbt;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -46,6 +47,14 @@ public class NbtReader {
 
     public PlayerInventoryType getPlayerInventoryType(String key) {
         return this.input.read(key, PlayerInventoryType.CODEC).orElseThrow();
+    }
+
+    public ActionSource getActionSource() {
+        return this.getActionSourceNullable().orElse(ActionSource.UNKNOWN);
+    }
+
+    public Optional<ActionSource> getActionSourceNullable() {
+        return this.input.read("action_source", ActionSource.CODEC);
     }
 
     public NbtVersion getVersion() {

@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.periodic.event.CustomClickAction;
 import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
@@ -52,7 +53,9 @@ public class ActionButtonBuilder {
     }
 
     public ActionButtonBuilder setCustomClickAction(MinecraftServer server, Identifier id) {
-        this.action = new CustomAll(id, Optional.of(new NbtWriter(server, CustomClickAction.CURRENT_VERSION).toNbt()));
+        NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
+        writer.putActionSource(ActionSource.DIALOG);
+        this.action = new CustomAll(id, Optional.of(writer.toNbt()));
         return this;
     }
 

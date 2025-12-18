@@ -2,7 +2,6 @@ package boat.carpetorgaddition.periodic.event;
 
 import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.periodic.dialog.builder.DialogKeys;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
@@ -37,17 +36,19 @@ public class CustomClickEvents {
     });
     public static final Identifier OPEN_INVENTORY = register("open_inventory", context -> {
         NbtReader reader = context.getReader();
-        UUID uuid = reader.getUuidNullable(DialogKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
-        PlayerInventoryType type = reader.getPlayerInventoryType(DialogKeys.INVENTORY_TYPE);
+        UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
+        PlayerInventoryType type = reader.getPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE);
         PlayerCommandExtension.openPlayerInventory(context.getServer(), uuid, context.getPlayer(), type);
     });
     public static final Identifier QUERY_PLAYER_NAME = register("query_player_name", context -> {
         try {
             NbtReader reader = context.getReader();
-            UUID uuid = reader.getUuidNullable(DialogKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
+            UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
             ServerPlayer player = context.getPlayer();
-            // 关闭当前对话框（等待服务器响应屏幕）
-            player.closeContainer();
+            if (context.getActionSource() == ActionSource.DIALOG) {
+                // 关闭当前对话框（等待服务器响应屏幕）
+                player.closeContainer();
+            }
             GameProfileCache cache = GameProfileCache.getInstance();
             Optional<String> optional = cache.get(uuid);
             if (optional.isPresent()) {
@@ -97,12 +98,12 @@ public class CustomClickEvents {
      * 字符串无法解析为UUID
      */
     private static CommandSyntaxException unableToResolveUuid(NbtReader reader) {
-        return CommandUtils.createException("carpet.clickevent.uuid.from_string.fail", reader.getString(DialogKeys.UUID));
+        return CommandUtils.createException("carpet.clickevent.uuid.from_string.fail", reader.getString(CustomClickKeys.UUID));
     }
 
-    public static Identifier register(String id, CustomClickAction.CustomClickActionProcessor<CustomClickActionContext> consumer) {
+    public static Identifier register(String id, CustomClickAction.CustomClickActionProcessor processor) {
         Identifier identifier = GenericUtils.ofIdentifier(id);
-        CustomClickAction.register(identifier, consumer);
+        CustomClickAction.register(identifier, processor);
         return identifier;
     }
 }

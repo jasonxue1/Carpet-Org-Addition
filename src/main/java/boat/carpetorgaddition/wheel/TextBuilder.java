@@ -1,6 +1,8 @@
 package boat.carpetorgaddition.wheel;
 
+import boat.carpetorgaddition.periodic.event.ActionSource;
 import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import com.mojang.brigadier.Message;
 import net.minecraft.ChatFormatting;
@@ -13,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class TextBuilder {
@@ -143,6 +146,15 @@ public class TextBuilder {
      */
     public TextBuilder setCommand(String command) {
         this.text.withStyle(style -> style.withClickEvent(new ClickEvent.RunCommand(command)));
+        return this;
+    }
+
+    /**
+     * 设置自定义单击动作
+     */
+    public TextBuilder setCustomEvent(Identifier identifier, NbtWriter writer) {
+        writer.putActionSource(ActionSource.CHAT);
+        this.text.withStyle(style -> style.withClickEvent(new ClickEvent.Custom(identifier, Optional.of(writer.toNbt()))));
         return this;
     }
 
