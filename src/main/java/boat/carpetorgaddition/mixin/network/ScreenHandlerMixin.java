@@ -5,7 +5,7 @@ import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -25,7 +25,7 @@ public class ScreenHandlerMixin implements UnavailableSlotImplInterface {
     private int to = -1;
 
     @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
-    private void onSlotClick(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
+    private void onSlotClick(int slotIndex, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
         if (MathUtils.isInRange(this.from, this.to, slotIndex)) {
             ci.cancel();
         }

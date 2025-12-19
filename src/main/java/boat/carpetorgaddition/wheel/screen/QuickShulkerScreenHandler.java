@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ShulkerBoxMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -54,7 +54,7 @@ public class QuickShulkerScreenHandler extends ShulkerBoxMenu implements Unavail
     }
 
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         if (MathUtils.isInRange(this.from(), this.to(), slotIndex)) {
             if (button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
                 ItemStack cursorStack = this.getCarried();
@@ -66,7 +66,7 @@ public class QuickShulkerScreenHandler extends ShulkerBoxMenu implements Unavail
             }
             return;
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     @Override

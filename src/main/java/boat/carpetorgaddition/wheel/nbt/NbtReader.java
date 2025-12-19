@@ -38,6 +38,7 @@ public class NbtReader {
     }
 
     private Optional<Identifier> getIdentifierNullable(String key) {
+        // TODO 检查UUID是否有效
         return this.input.read(key, Identifier.CODEC);
     }
 

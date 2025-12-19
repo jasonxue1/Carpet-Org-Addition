@@ -9,7 +9,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Final;
@@ -33,8 +33,8 @@ public abstract class ScreenHandlerMixin {
     public abstract ItemStack getCarried();
 
     @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
-    private void onSlotClick(int slotIndex, int button, ClickType actionType, Player player, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.quickShulker.get() && MathUtils.isInRange(0, this.slots.size(), slotIndex) && actionType == ClickType.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
+    private void onSlotClick(int slotIndex, int button, ContainerInput input, Player player, CallbackInfo ci) {
+        if (CarpetOrgAdditionSettings.quickShulker.get() && MathUtils.isInRange(0, this.slots.size(), slotIndex) && input == ContainerInput.PICKUP && button == FakePlayerUtils.PICKUP_RIGHT_CLICK) {
             ItemStack stack = this.getSlot(slotIndex).getItem();
             if (this.canOpenShulker() && InventoryUtils.isOperableSulkerBox(stack) && this.getCarried().isEmpty()) {
                 // 创造模式物品栏是一个客户端屏幕，因此点击潜影盒不会打开物品栏

@@ -6,7 +6,7 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.StonecutterMenu;
 import net.minecraft.world.item.ItemStack;
@@ -26,12 +26,12 @@ public class StonecutterSetRecipeScreenHandler extends StonecutterMenu implement
     }
 
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         // 不能单击输出槽位
         if (slotIndex == 1) {
             return;
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     @Override

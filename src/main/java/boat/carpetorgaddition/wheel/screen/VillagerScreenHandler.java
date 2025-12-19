@@ -7,7 +7,7 @@ import net.minecraft.world.entity.npc.villager.Villager;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -127,11 +127,11 @@ public class VillagerScreenHandler extends AbstractContainerMenu implements Unav
     }
 
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         if (slotIndex == 8) {
             return;
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     @Override

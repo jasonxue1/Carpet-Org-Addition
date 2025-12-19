@@ -46,7 +46,7 @@ public abstract class TurtleEggBlockMixin extends Block {
                 super.playerDestroy(world, player, pos, state, blockEntity, tool);
             }
             // 播放海龟蛋破坏音效
-            world.playSound(null, pos, SoundEvents.TURTLE_EGG_BREAK, SoundSource.BLOCKS, 0.7F, 0.9F + world.random.nextFloat() * 0.2F);
+            world.playSound(null, pos, SoundEvents.TURTLE_EGG_BREAK, SoundSource.BLOCKS, 0.7F, 0.9F + world.getRandom().nextFloat() * 0.2F);
             ci.cancel();
         }
     }

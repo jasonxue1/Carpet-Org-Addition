@@ -27,6 +27,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+// TODO 更换为新的渲染api
 @Mixin(LevelRenderer.class)
 public class WorldRendererMixin {
     @Shadow
@@ -45,7 +46,7 @@ public class WorldRendererMixin {
         WorldRenderEvents.START.invoker().onStart();
     }
 
-    @WrapOperation(method = "method_62214", at = @At(value = "NEW", target = "()Lcom/mojang/blaze3d/vertex/PoseStack;"))
+    @WrapOperation(method = "lambda$addMainPass$0", at = @At(value = "NEW", target = "()Lcom/mojang/blaze3d/vertex/PoseStack;"))
     private PoseStack setMatrixStack(Operation<PoseStack> original) {
         PoseStack result = original.call();
         this.matrixStack = result;
@@ -64,7 +65,7 @@ public class WorldRendererMixin {
         pass.executes(() -> WorldRenderEvents.AFTER_TRANSLUCENT.invoker().render(this.context));
     }
 
-    @Inject(method = "method_62214", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderAllFeatures()V"))
+    @Inject(method = "lambda$addMainPass$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderAllFeatures()V"))
     private void onDebug(CallbackInfo ci) {
         WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().render(this.context);
     }

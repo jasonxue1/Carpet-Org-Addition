@@ -179,11 +179,11 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Container> 
     }
 
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         if (MathUtils.isInRange(this.from(), this.to(), slotIndex)) {
             return;
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.jspecify.annotations.NonNull;
  * @param target  导航点的目标
  * @param worldId 导航点所在维度
  */
+// TODO 数据包中记录实体ID和玩家信息
 public record WaypointUpdateS2CPacket(Vec3 target, String worldId) implements CustomPacketPayload {
     public static final Type<WaypointUpdateS2CPacket> ID = PacketUtils.createId("waypoint_update");
     public static final StreamCodec<RegistryFriendlyByteBuf, WaypointUpdateS2CPacket> CODEC = new StreamCodec<>() {

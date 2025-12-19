@@ -36,7 +36,7 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
+    @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
     private static Abilities broadcastSummoner(EntityPlayerMPFake instance, Operation<Abilities> original) {
         broadcastSummoner(instance);
         return original.call(instance);

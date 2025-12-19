@@ -8,7 +8,7 @@ import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.item.Item;
@@ -32,11 +32,11 @@ public class CraftingSetRecipeScreenHandler extends CraftingMenu implements Unav
 
     // 阻止玩家取出输出槽位的物品
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         if (slotIndex == 0) {
             return;
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     // 关闭GUI时，设置假玩家的合成动作和配方

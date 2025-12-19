@@ -2,7 +2,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'maven-publish'
 }
 
@@ -21,18 +21,21 @@ repositories {
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     // Carpet: https://github.com/gnembon/fabric-carpet
-    // modImplementation(files("lib/fabric-carpet-1.21.6-1.4.176+v250617.jar"))
-    modImplementation("curse.maven:carpet-349239:${project.carpet_version}")
+    implementation(files("lib/fabric-carpet-26.1-beta-1+v251217.jar"))
+    // implementation("curse.maven:carpet-349239:${project.carpet_version}")
     // MixinExtras: https://github.com/LlamaLad7/MixinExtras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"
 }
 
 processResources {
+    def depend_version = minecraft_version
+            .replace("snapshot-", "alpha.")
+            .replace("pre-", "pre.")
+            .replace("rc-", "rc.")
     inputs.property "version", mod_version
     inputs.property "minecraft_version", minecraft_version
     inputs.property "loader_version", loader_version
@@ -59,9 +62,7 @@ tasks.withType(JavaCompile).configureEach {
     // 详见：http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
     // 如果生成了Javadoc，则在该任务中也必须指定此设置
     it.options.encoding = "UTF-8"
-    if (targetJavaVersion >= 10 || JavaVersion.current().isJava10Compatible()) {
-        it.options.release = targetJavaVersion
-    }
+    it.options.release = targetJavaVersion
 }
 
 java {
@@ -77,9 +78,6 @@ jar {
     }
     // 在构建jar时排除org.util包
     exclude "org/util/**"
-}
-
-remapJar {
     // 构建模组前自动单元测试
     dependsOn test
     archiveBaseName = "${archives_base_name}-mc${minecraft_version}"

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(SettingsManager.class)
 public class SettingsManagerMixin {
     // 开放/carpet命令权限，仅单人游戏
-    @Inject(method = "lambda$registerCommand$11", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "lambda$registerCommand$1", at = @At("HEAD"), cancellable = true)
     private void carpet(CommandSourceStack player, CallbackInfoReturnable<Boolean> cir) {
         if (CarpetOrgAdditionSettings.openCarpetPermission.get()) {
             IntegratedServer clientServer = ClientUtils.getServer();

@@ -8,7 +8,7 @@ import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import org.jspecify.annotations.NonNull;
 
 public class PlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenHandler<ServerPlayerInventory> {
@@ -26,12 +26,12 @@ public class PlayerInventoryScreenHandler extends AbstractPlayerInventoryScreenH
     }
 
     @Override
-    public void clicked(int slotIndex, int button, @NonNull ClickType actionType, @NonNull Player player) {
+    public void clicked(int slotIndex, int button, @NonNull ContainerInput input, @NonNull Player player) {
         if (CarpetOrgAddition.isDebugDevelopment() && MathUtils.isInRange(this.from(), this.to(), slotIndex) && this.player instanceof EntityPlayerMPFake fakePlayer) {
             PlayerStorageInventory inventory = new PlayerStorageInventory(fakePlayer);
             inventory.sort();
         }
-        super.clicked(slotIndex, button, actionType, player);
+        super.clicked(slotIndex, button, input, player);
     }
 
     @Override

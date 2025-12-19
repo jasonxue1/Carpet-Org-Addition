@@ -67,7 +67,7 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @Inject(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
+    @Inject(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
     private static void spawn(CallbackInfo ci, @Local(name = "instance") EntityPlayerMPFake fakePlayer) {
         Consumer<EntityPlayerMPFake> consumer = GenericUtils.INTERNAL_FAKE_PLAYER_SPAWNING.get();
         if (consumer == null) {
@@ -76,7 +76,7 @@ public class EntityPlayerMPFakeMixin {
         consumer.accept(fakePlayer);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V"))
+    @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V"))
     private static void onPlayerConnect(PlayerList instance, Connection connection, ServerPlayer player, CommonListenerCookie clientData, Operation<Void> original) {
         boolean internal = CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal();
         try {
@@ -105,7 +105,7 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, consumer, executor);
     }
 
-    @WrapOperation(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
+    @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
     private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerLevel serverWorld, double x, double y, double z, Set<Relative> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
         if (ReLoginTask.INTERNAL_HOME_POSITION.get()) {
             return false;
@@ -113,7 +113,7 @@ public class EntityPlayerMPFakeMixin {
         return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
     }
 
-    @WrapWithCondition(method = "lambda$createFake$2", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;stopRiding()V"))
+    @WrapWithCondition(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;stopRiding()V"))
     private static boolean stopRiding(EntityPlayerMPFake instance) {
         return !ReLoginTask.INTERNAL_HOME_POSITION.get();
     }
