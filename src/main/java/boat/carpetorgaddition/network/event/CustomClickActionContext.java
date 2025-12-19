@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.event;
+package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import net.minecraft.commands.CommandSourceStack;

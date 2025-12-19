@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.dialog;
 
-import boat.carpetorgaddition.periodic.event.CustomClickAction;
-import boat.carpetorgaddition.periodic.event.CustomClickActionContext;
+import boat.carpetorgaddition.network.event.CustomClickAction;
+import boat.carpetorgaddition.network.event.CustomClickActionContext;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;

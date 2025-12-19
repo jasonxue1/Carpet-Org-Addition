@@ -2,7 +2,7 @@ package boat.carpetorgaddition.client.renderer.waypoint;
 
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.util.WorldUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Camera;

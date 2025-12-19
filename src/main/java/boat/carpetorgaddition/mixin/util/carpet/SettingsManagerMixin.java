@@ -8,7 +8,7 @@ import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.InvalidRuleValueException;
 import carpet.api.settings.RuleHelper;

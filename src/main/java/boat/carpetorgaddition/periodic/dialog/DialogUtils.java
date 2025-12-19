@@ -1,10 +1,10 @@
 package boat.carpetorgaddition.periodic.dialog;
 
-import boat.carpetorgaddition.periodic.event.ActionSource;
-import boat.carpetorgaddition.periodic.event.CustomClickAction;
-import boat.carpetorgaddition.periodic.event.CustomClickEvents;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.network.event.ActionSource;
+import boat.carpetorgaddition.network.event.CustomClickAction;
+import boat.carpetorgaddition.network.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;

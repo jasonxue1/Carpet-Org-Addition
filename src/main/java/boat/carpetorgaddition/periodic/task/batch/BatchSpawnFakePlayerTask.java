@@ -6,7 +6,7 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;

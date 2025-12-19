@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.rule;
 
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleHelper;
 import net.minecraft.network.chat.Component;

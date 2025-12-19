@@ -7,13 +7,13 @@ import boat.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionTy
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import boat.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -115,12 +115,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
                         .then(Commands.literal("fishing")
                                 .executes(this::setFishing))
                         .then(Commands.literal("plant")
-                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .executes(this::setPlant))
                         .then(register(Commands.literal("bedrock")
-                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)))
+                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)))
                         .then(Commands.literal("goto")
-                                .requires(source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .then(Commands.literal("block")
                                         .then(Commands.argument("target", BlockPosArgument.blockPos())
                                                 .executes(this::setGotoBlockPos)))
@@ -316,7 +316,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     private int useGuiSetStonecutting(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        SimpleMenuProvider screen = new SimpleMenuProvider((i, inventory, playerEntity) -> {
+        SimpleMenuProvider screen = new SimpleMenuProvider((i, inventory, _) -> {
             ContainerLevelAccess screenHandlerContext = ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition());
             return new StonecutterSetRecipeScreenHandler(i, inventory, screenHandlerContext, fakePlayer);
         }, TextBuilder.translate("carpet.commands.playerAction.info.stonecutter.gui"));
@@ -431,7 +431,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 打开合成GUI
-        SimpleMenuProvider screen = new SimpleMenuProvider((i, playerInventory, playerEntity)
+        SimpleMenuProvider screen = new SimpleMenuProvider((i, playerInventory, _)
                 -> new CraftingSetRecipeScreenHandler(i, playerInventory, fakePlayer,
                 ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition())),
                 TextBuilder.translate("carpet.commands.playerAction.info.craft.gui"));

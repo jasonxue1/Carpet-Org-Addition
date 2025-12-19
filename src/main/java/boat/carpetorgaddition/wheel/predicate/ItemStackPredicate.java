@@ -2,7 +2,7 @@ package boat.carpetorgaddition.wheel.predicate;
 
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.CommandRegistryAccessor;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.context.CommandContext;

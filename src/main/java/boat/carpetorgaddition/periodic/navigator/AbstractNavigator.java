@@ -5,7 +5,7 @@ import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;

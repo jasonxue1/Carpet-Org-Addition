@@ -10,7 +10,7 @@ import boat.carpetorgaddition.mixin.debug.accessor.ScreenAccessor;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.Counter;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.blaze3d.platform.Window;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -59,7 +59,7 @@ public class HudDebugRendererRegister {
 
     static {
         // 显示方块挖掘速度
-        renders.put(GenericUtils.ofIdentifier("block_destroy_speed"), (context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("block_destroy_speed"), (context, _) -> {
             if (DebugSettings.showBlockBreakingSpeed.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -88,7 +88,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染比较器强度
-        renders.put(GenericUtils.ofIdentifier("comparator_level"), (context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("comparator_level"), (context, _) -> {
             if (DebugSettings.showComparatorLevel.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -113,7 +113,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染灵魂沙物品数量
-        renders.put(GenericUtils.ofIdentifier("soul_sand_item_count"), (context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("soul_sand_item_count"), (context, _) -> {
             if (showSoulSandItemCount()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -171,7 +171,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.put(GenericUtils.ofIdentifier("hud_information_display"), (context, tickCounter) -> {
+        renders.put(GenericUtils.ofIdentifier("hud_information_display"), (context, _) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
                 Minecraft client = ClientUtils.getClient();
                 Screen screen = ClientUtils.getCurrentScreen();
@@ -216,10 +216,10 @@ public class HudDebugRendererRegister {
         for (Map.Entry<Identifier, HudElement> entry : renders.entrySet()) {
             HudElementRegistry.addLast(entry.getKey(), entry.getValue());
         }
-        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+        ScreenEvents.AFTER_INIT.register((_, screen, _, _) -> {
             if (DebugSettings.HUDInformationDisplay.get() && screen instanceof AbstractContainerScreen<?> handledScreen) {
                 NonNullList<Slot> slots = handledScreen.getMenu().slots;
-                slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, mouseX, mouseY, delta) -> {
+                slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, _, _, _) -> {
                     HandledScreenAccessor accessor = (HandledScreenAccessor) handledScreen;
                     int x = accessor.getX();
                     int y = accessor.getY();

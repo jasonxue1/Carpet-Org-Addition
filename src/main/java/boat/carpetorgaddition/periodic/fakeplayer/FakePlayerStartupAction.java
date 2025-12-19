@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;

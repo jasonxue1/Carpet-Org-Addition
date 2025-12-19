@@ -7,7 +7,6 @@ import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.express.Express;
 import boat.carpetorgaddition.periodic.express.ExpressManager;
 import boat.carpetorgaddition.util.*;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
@@ -15,6 +14,7 @@ import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.screen.ShipExpressScreenHandler;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -152,7 +152,7 @@ public class MailCommand extends AbstractServerCommand {
             checkPlayer(sourcePlayer, optional.get());
         }
         SimpleContainer inventory = new SimpleContainer(27);
-        SimpleMenuProvider screen = new SimpleMenuProvider((i, inv, player)
+        SimpleMenuProvider screen = new SimpleMenuProvider((i, inv, _)
                 -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
                 TextBuilder.translate("carpet.commands.mail.multiple.gui"));
         sourcePlayer.openMenu(screen);

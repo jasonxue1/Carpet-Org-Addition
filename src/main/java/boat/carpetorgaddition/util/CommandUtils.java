@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.util;
 
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
 import com.mojang.authlib.GameProfile;

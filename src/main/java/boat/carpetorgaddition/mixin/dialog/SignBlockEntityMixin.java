@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.dialog;
 
-import boat.carpetorgaddition.periodic.event.ActionSource;
-import boat.carpetorgaddition.periodic.event.CustomClickActionContext;
+import boat.carpetorgaddition.network.event.ActionSource;
+import boat.carpetorgaddition.network.event.CustomClickActionContext;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
@@ -34,7 +34,7 @@ public class SignBlockEntityMixin {
     }
 
     @WrapOperation(method = "executeClickCommandsIfPresent", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;handleCustomClickAction(Lnet/minecraft/resources/Identifier;Ljava/util/Optional;)V"))
-    private void setActionSource(MinecraftServer instance, Identifier identifier, Optional<Tag> optional, Operation<Void> original, @Local(argsOnly = true) Player player) {
+    private void setActionSource(MinecraftServer instance, Identifier identifier, Optional<Tag> optional, Operation<Void> original) {
         try {
             CustomClickActionContext.ACTION_SOURCE.set(ActionSource.SIGN);
             original.call(instance, identifier, optional);

@@ -2,7 +2,7 @@ package boat.carpetorgaddition.wheel.predicate;
 
 import boat.carpetorgaddition.util.EnchantmentUtils;
 import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;

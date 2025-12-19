@@ -1,7 +1,8 @@
-package boat.carpetorgaddition.wheel;
+package boat.carpetorgaddition.wheel.text;
 
-import boat.carpetorgaddition.periodic.event.ActionSource;
+import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.wheel.MetaComment;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import com.mojang.brigadier.Message;

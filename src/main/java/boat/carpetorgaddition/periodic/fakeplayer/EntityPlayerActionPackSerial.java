@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
-import boat.carpetorgaddition.wheel.TextBuilder;
-import boat.carpetorgaddition.wheel.TextJoiner;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.helpers.EntityPlayerActionPack.Action;

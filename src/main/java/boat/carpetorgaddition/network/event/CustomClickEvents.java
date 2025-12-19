@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.event;
+package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
@@ -7,11 +7,11 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;

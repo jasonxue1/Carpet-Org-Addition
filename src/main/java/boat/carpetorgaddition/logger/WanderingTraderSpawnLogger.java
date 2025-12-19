@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.logger;
 
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.gamerules.GameRules;
@@ -31,12 +31,12 @@ public class WanderingTraderSpawnLogger {
                     time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes_and_seconds",
                             spawnCountdown / 60, spawnCountdown % 60);
                 }
-                Loggers.getWanderingTraderLogger().log((s, playerEntity) -> new Component[]{
+                Loggers.getWanderingTraderLogger().log((_, _) -> new Component[]{
                         TextBuilder.translate("carpet.logger.wanderingTrader.hud", time, (String.format("%.1f", chance) + "%"))
                 });
             }
         } else {
-            Loggers.getWanderingTraderLogger().log((s, playerEntity)
+            Loggers.getWanderingTraderLogger().log((_, _)
                     -> new Component[]{TextBuilder.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
                     TextBuilder.translate(GameRules.SPAWN_WANDERING_TRADERS.getDescriptionId()))});
         }

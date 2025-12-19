@@ -4,7 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionExtension;
 import boat.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
 import boat.carpetorgaddition.rule.validator.StrictValidator;
 import boat.carpetorgaddition.rule.validator.Validator;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
 import carpet.api.settings.RuleHelper;

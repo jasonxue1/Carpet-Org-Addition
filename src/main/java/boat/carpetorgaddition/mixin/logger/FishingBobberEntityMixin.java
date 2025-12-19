@@ -4,7 +4,7 @@ import boat.carpetorgaddition.logger.FunctionLogger;
 import boat.carpetorgaddition.logger.LoggerRegister;
 import boat.carpetorgaddition.logger.Loggers;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;

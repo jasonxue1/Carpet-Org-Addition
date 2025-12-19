@@ -18,7 +18,6 @@ import boat.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
@@ -26,6 +25,7 @@ import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
@@ -96,7 +96,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             startupNameNode.then(Commands.literal(action.toString())
                     .executes(context -> this.addStartupFunction(context, action, 1))
                     .then(Commands.argument("delay", TimeArgument.time(1))
-                            .suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
+                            .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
                             .executes(context -> this.addStartupFunction(context, action, IntegerArgumentType.getInteger(context, "delay"))))
                     .then(Commands.literal("clear")
                             .executes(context -> this.addStartupFunction(context, action, -1))));
@@ -142,15 +142,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(Commands.literal("group")
                                         .then(Commands.argument("group", StringArgumentType.string())
                                                 .suggests(groupSuggests())
-                                                .executes(context -> listGroup(context, serializer -> true))
+                                                .executes(context -> listGroup(context, _ -> true))
                                                 .then(Commands.argument("filter", StringArgumentType.string())
                                                         .executes(context -> listGroup(context, serializerPredicate(context))))))
                                 .then(Commands.literal("ungrouped")
-                                        .executes(context -> listUngrouped(context, serializer -> true))
+                                        .executes(context -> listUngrouped(context, _ -> true))
                                         .then(Commands.argument("filter", StringArgumentType.string())
                                                 .executes(context -> listUngrouped(context, serializerPredicate(context)))))
                                 .then(Commands.literal("all")
-                                        .executes(context -> listAll(context, serializer -> true))
+                                        .executes(context -> listAll(context, _ -> true))
                                         .then(Commands.argument("filter", StringArgumentType.string())
                                                 .executes(context -> listAll(context, serializerPredicate(context)))))))
                 .then(Commands.literal("reload")
@@ -175,7 +175,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(reLoginTaskSuggests())
                                         .then(Commands.argument("interval", IntegerArgumentType.integer(1))
-                                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(new String[]{"1", "3", "5"}, builder))
+                                                .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"1", "3", "5"}, builder))
                                                 .executes(this::setReLogin))
                                         .then(Commands.literal("stop")
                                                 .executes(this::stopReLogin))))
@@ -315,7 +315,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private Predicate<FakePlayerSerializer> serializerPredicate(@Nullable String filter) {
         if (filter == null) {
-            return serializer -> true;
+            return _ -> true;
         }
         return serializer -> serializerPredicate(serializer, filter);
     }
@@ -350,7 +350,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private SuggestionProvider<CommandSourceStack> groupSuggests() {
         return (context, builder) -> {
             PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
-            Stream<String> stream = manager.listGroup(serializer -> true)
+            Stream<String> stream = manager.listGroup(_ -> true)
                     .keySet()
                     .stream()
                     .filter(Objects::nonNull)

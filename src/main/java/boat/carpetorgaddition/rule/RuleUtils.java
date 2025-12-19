@@ -3,7 +3,7 @@ package boat.carpetorgaddition.rule;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
 import carpet.patches.EntityPlayerMPFake;

@@ -2,7 +2,7 @@ package boat.carpetorgaddition.wheel.nbt;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.dataupdate.DataUpdater;
-import boat.carpetorgaddition.periodic.event.ActionSource;
+import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;

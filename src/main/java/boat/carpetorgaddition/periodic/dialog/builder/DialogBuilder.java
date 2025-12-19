@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

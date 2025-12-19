@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
 import boat.carpetorgaddition.periodic.dialog.DialogUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;

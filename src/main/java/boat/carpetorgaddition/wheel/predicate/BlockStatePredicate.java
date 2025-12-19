@@ -2,7 +2,7 @@ package boat.carpetorgaddition.wheel.predicate;
 
 import boat.carpetorgaddition.mixin.accessor.StateAccessor;
 import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
@@ -72,7 +72,7 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
 
     private BlockStatePredicate() {
         this.content = GenericUtils.getIdAsString(Blocks.AIR);
-        this.biPredicate = (world, blockPos) -> false;
+        this.biPredicate = (_, _) -> false;
         this.block = Blocks.AIR;
     }
 

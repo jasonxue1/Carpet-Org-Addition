@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.client.util;
 
 import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;

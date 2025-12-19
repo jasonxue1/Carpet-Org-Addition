@@ -1,12 +1,12 @@
 package boat.carpetorgaddition.periodic.dialog;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.network.event.CustomClickEvents;
+import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.periodic.dialog.builder.*;
-import boat.carpetorgaddition.periodic.event.CustomClickEvents;
-import boat.carpetorgaddition.periodic.event.CustomClickKeys;
 import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;

@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.event;
+package boat.carpetorgaddition.network.event;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;

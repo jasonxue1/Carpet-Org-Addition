@@ -4,7 +4,7 @@ import boat.carpetorgaddition.exception.CCEUpdateSuppressException;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.WorldUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;

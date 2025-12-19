@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.wheel;
+package boat.carpetorgaddition.wheel.text;
 
 import carpet.CarpetSettings;
 import com.google.gson.Gson;

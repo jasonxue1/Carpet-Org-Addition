@@ -1,13 +1,13 @@
 package boat.carpetorgaddition.wheel.page;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.periodic.event.CustomClickAction;
-import boat.carpetorgaddition.periodic.event.CustomClickEvents;
-import boat.carpetorgaddition.periodic.event.CustomClickKeys;
+import boat.carpetorgaddition.network.event.CustomClickAction;
+import boat.carpetorgaddition.network.event.CustomClickEvents;
+import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;

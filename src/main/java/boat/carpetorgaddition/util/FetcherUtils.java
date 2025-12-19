@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.util;
 
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
+import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;

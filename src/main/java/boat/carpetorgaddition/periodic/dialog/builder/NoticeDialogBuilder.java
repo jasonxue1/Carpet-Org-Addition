@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
 import boat.carpetorgaddition.periodic.dialog.DialogTranslateKeys;
-import boat.carpetorgaddition.wheel.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.ActionButton;
 import net.minecraft.server.dialog.CommonDialogData;

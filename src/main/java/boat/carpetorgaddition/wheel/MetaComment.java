@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.wheel;
 
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.wheel;
+package boat.carpetorgaddition.wheel.text;
 
 import net.minecraft.network.chat.Component;
 

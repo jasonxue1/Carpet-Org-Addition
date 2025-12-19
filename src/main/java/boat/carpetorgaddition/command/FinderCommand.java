@@ -7,13 +7,13 @@ import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.periodic.task.search.*;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.wheel.TextBuilder;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import boat.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
 import boat.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import boat.carpetorgaddition.wheel.traverser.WorldTraverser;
@@ -117,7 +117,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(Commands.literal("worldEater")
-                        .requires(((Predicate<CommandSourceStack>) source -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                        .requires(((Predicate<CommandSourceStack>) _ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
                                 .and(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS)))
                         .then(Commands.argument("from", BlockPosArgument.blockPos())
                                 .then(Commands.argument("to", BlockPosArgument.blockPos())
@@ -125,7 +125,7 @@ public class FinderCommand extends AbstractServerCommand {
     }
 
     private SuggestionProvider<CommandSourceStack> suggestionDefaultDistance() {
-        return (context, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
+        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
     }
 
     /**
