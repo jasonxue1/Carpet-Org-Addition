@@ -123,10 +123,12 @@ public class CommandUtils {
      * @param key 异常信息的翻译键
      * @return 命令语法参数异常
      */
+    @Deprecated
     public static CommandSyntaxException createException(String key, Object... args) {
         return createException(TextBuilder.translate(key, args));
     }
 
+    @Deprecated
     public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
         String message = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, args);

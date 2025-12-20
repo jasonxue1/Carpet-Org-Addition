@@ -5,7 +5,7 @@ import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 public class TradeItemSearchTask extends AbstractTradeSearchTask {
     private final ItemStackPredicate predicate;
     private final Component treadName;
+    private static final LocalizationKey KEY = TRADE.then("item");
 
     public TradeItemSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ItemStackPredicate predicate, CommandSourceStack source) {
         super(world, blockPosTraverser, sourcePos, source);
@@ -61,8 +62,8 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
                 BlockPos blockPos = merchant.blockPosition();
                 // 村民或流浪商人的名称
                 Component villagerName = merchant.getName();
-                return TextBuilder.translate("carpet.commands.finder.trade.item.each",
-                        TextProvider.blockPos(blockPos, ChatFormatting.GREEN), villagerName, getIndexArray(list));
+                Component pos = TextProvider.blockPos(blockPos, ChatFormatting.GREEN);
+                return KEY.then("each").translate(pos, villagerName, getIndexArray(list));
             }
 
             @Override
@@ -74,9 +75,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(this.source,
-                "carpet.commands.finder.trade.item.not_trade",
-                this.getTradeName(), FinderCommand.VILLAGER);
+        MessageUtils.sendMessage(this.source, KEY.then("not_trade").translate(this.getTradeName(), FinderCommand.VILLAGER));
     }
 
     @Override
@@ -85,7 +84,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected String getTradeResultKey() {
-        return "carpet.commands.finder.trade.item.result";
+    protected LocalizationKey getTradeResultKey() {
+        return KEY.then("result");
     }
 }

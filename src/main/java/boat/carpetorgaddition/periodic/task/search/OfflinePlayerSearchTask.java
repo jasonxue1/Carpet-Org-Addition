@@ -21,6 +21,8 @@ import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetSettings;
 import net.minecraft.ChatFormatting;
@@ -106,6 +108,9 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private volatile WorldFormat backupFileDirectory;
     private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
+    public static final LocalizationKey KEY = ItemSearchTask.KEY.then("offline_player");
+    private static final LocalizationKey KEY_THEN_OPEN = KEY.then("open");
+    private static final LocalizationKey KEY_THEN_QUERY = KEY.then("query");
 
     public OfflinePlayerSearchTask(CommandSourceStack source, ItemStackPredicate predicate, ServerPlayer player) {
         super(source);
@@ -261,6 +266,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             INVALID_PLAYER_DATAS.add(uuid);
             return false;
         }
+        // TODO 显示进度条
         FabricPlayerAccessor accessor = this.accessManager.getOrCreateBlocking(entry);
         OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
         inventory.setShowLog(false);
@@ -400,11 +406,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 发送命令反馈
     private void sendFeedback() {
         if (this.results.isEmpty()) {
-            MessageUtils.sendMessage(
-                    this.source,
-                    "carpet.commands.finder.item.offline_player.not_found",
-                    this.predicate.toText()
-            );
+            MessageUtils.sendMessage(this.source, KEY.then("not_found").translate(this.predicate.toText()));
             return;
         }
         int resultCount = this.results.size();
@@ -414,7 +416,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Component numberOfPeople = getNumberOfPeople(resultCount);
         Component message = getFirstFeedback(numberOfPeople, itemCount);
         TextBuilder builder = new TextBuilder(message);
-        builder.setHover("carpet.commands.finder.item.offline_player.prompt");
+        builder.setHover(KEY.then("prompt").translate());
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, builder.build());
         CommandUtils.handlingException(this.pagedCollection::print, source);
@@ -424,12 +426,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 获取首条反馈消息
      */
     private Component getFirstFeedback(Component numberOfPeople, Component itemCount) {
-        return TextBuilder.translate(
-                "carpet.commands.finder.item.offline_player",
-                numberOfPeople,
-                itemCount,
-                this.predicate.toText()
-        );
+        return KEY.translate(numberOfPeople, itemCount, this.predicate.toText());
     }
 
     /**
@@ -451,8 +448,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private Component getNumberOfPeople(int resultCount) {
         // 玩家总数的悬停提示
         ArrayList<Component> peopleHover = new ArrayList<>();
-        peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.total", this.total));
-        peopleHover.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.found", resultCount));
+        peopleHover.add(KEY.then("total").translate(this.total));
+        peopleHover.add(KEY.then("found").translate(resultCount));
         TextBuilder builder = new TextBuilder(resultCount);
         builder.setHover(TextBuilder.joinList(peopleHover));
         // 玩家总数文本
@@ -461,11 +458,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     private Component getContainerName(boolean isEnderChest) {
         if (isEnderChest) {
-            return TextBuilder.of("carpet.commands.finder.item.offline_player.container.enderchest")
+            return TextBuilder.of(LocalizationKeys.GENERIC.then("ender_chest"))
                     .setColor(ChatFormatting.DARK_PURPLE)
                     .build();
         } else {
-            return TextBuilder.of("carpet.commands.finder.item.offline_player.container.inventory")
+            return TextBuilder.of(LocalizationKeys.GENERIC.then("inventory"))
                     .setColor(ChatFormatting.YELLOW)
                     .build();
         }
@@ -478,7 +475,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     @Override
     public String getLogName() {
-        return "从离线玩家物品栏寻找物品";
+        return "Search For Items From Offline Player Inventory";
     }
 
     @Override
@@ -498,11 +495,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
     protected Component openInventoryButton(NameAndId entry) {
         if (this.canOpenOfflinePlayerInventory(source)) {
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
-            writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.INVENTORY);
             writer.putUuid(CustomClickKeys.UUID, entry.id());
+            writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.INVENTORY);
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
-            builder.setHover("carpet.commands.finder.item.offline_player.open.inventory");
+            builder.setHover(KEY_THEN_OPEN.then("inventory").translate());
             builder.setColor(ChatFormatting.GRAY);
             return builder.build();
         }
@@ -512,14 +509,13 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @Nullable
     private Component openEnderChestButton(NameAndId entry) {
         if (this.canOpenOfflinePlayerInventory(source)) {
-            Component clickLogin = TextBuilder.translate("carpet.commands.finder.item.offline_player.open.ender_chest");
-            TextBuilder builder = new TextBuilder("[O]");
-            builder.setColor(ChatFormatting.GRAY);
-            builder.setHover(clickLogin);
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             writer.putUuid(CustomClickKeys.UUID, entry.id());
             writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.ENDER_CHEST);
+            TextBuilder builder = new TextBuilder("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
+            builder.setHover(KEY_THEN_OPEN.then("ender_chest").translate());
+            builder.setColor(ChatFormatting.GRAY);
             return builder.build();
         }
         return null;
@@ -560,6 +556,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         private final NameAndId playerConfigEntry;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
+        // TODO 不再使用布尔值
         private final boolean isEnderChest;
 
         private Result(NameAndId playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown, boolean isEnderChest, MinecraftServer server) {
@@ -600,7 +597,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     .setHover(hover)
                     .setColor(ChatFormatting.GRAY);
             Component container = getContainerName(isEnderChest);
-            return TextBuilder.of("carpet.commands.finder.item.offline_player.each", builder.build(), container, count);
+            return TextBuilder.of(KEY.then("each"), builder.build(), container, count);
         }
 
         // 创建单击上线按钮
@@ -609,7 +606,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 String command = CommandProvider.spawnFakePlayer(playerConfigEntry().name());
                 TextBuilder builder = new TextBuilder(" [↑]");
                 builder.setCommand(command);
-                builder.setHover("carpet.command.text.click.login");
+                builder.setHover(LocalizationKeys.Operation.Click.CLICK.then("login").translate());
                 return builder.build();
             }
             return TextBuilder.empty();
@@ -623,8 +620,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
         private TextBuilder createSearchButton() {
             // 按钮的悬停提示
             ArrayList<Component> list = new ArrayList<>();
-            list.add(TextBuilder.translate("carpet.commands.finder.item.offline_player.query.name"));
-            list.add(TextBuilder.of("carpet.commands.finder.item.offline_player.query.non_authentic").setColor(ChatFormatting.RED).build());
+            list.add(KEY_THEN_QUERY.then("name").translate());
+            list.add(TextBuilder.of(KEY_THEN_QUERY.then("non_authentic")).setColor(ChatFormatting.RED).build());
             TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             // 设置单击查询玩家名称

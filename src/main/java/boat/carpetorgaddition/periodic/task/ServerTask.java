@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.task;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.debug.DebugSettings;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.util.MessageUtils;
 import net.minecraft.commands.CommandSourceStack;
@@ -129,7 +130,7 @@ public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
         if (slice == -1L) {
             return true;
         }
-        return this.getTickExecutionTime() < slice;
+        return DebugSettings.prohibitTaskTimeout.get() || this.getTickExecutionTime() < slice;
     }
 
     /**

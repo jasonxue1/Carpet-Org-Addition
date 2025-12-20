@@ -8,6 +8,7 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
@@ -34,6 +35,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      * 交易选择的总数量
      */
     protected int tradeCount;
+    public static final LocalizationKey TRADE = FinderCommand.FINDER_KEY.then("trade");
 
     public AbstractTradeSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, CommandSourceStack source) {
         super(source);
@@ -108,16 +110,16 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         // 总交易选项数量
         list.add(this.tradeCount);
         // 消息的翻译键
-        String key = this.getTradeResultKey();
+        LocalizationKey key = this.getTradeResultKey();
         MessageUtils.sendEmptyMessage(this.source);
         // 发送消息：在周围找到了<交易选项数量>个出售<出售的物品名称>的<村民>或<流浪商人>
-        MessageUtils.sendMessage(this.source, key, list.toArray(Object[]::new));
+        MessageUtils.sendMessage(this.source, key.translate(list.toArray(Object[]::new)));
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
     }
 
-    protected abstract String getTradeResultKey();
+    protected abstract LocalizationKey getTradeResultKey();
 
     @Override
     public boolean stopped() {

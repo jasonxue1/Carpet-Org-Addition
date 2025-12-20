@@ -31,6 +31,7 @@ public class ActionButtonBuilder {
         return new ActionButtonBuilder(label);
     }
 
+    @Deprecated
     public static ActionButtonBuilder of(String key, Object... args) {
         return of(TextBuilder.translate(key, args));
     }

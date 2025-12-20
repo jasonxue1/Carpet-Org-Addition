@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel.predicate;
 
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.CommandRegistryAccessor;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
 import com.mojang.brigadier.StringReader;
@@ -167,7 +168,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             builder = new TextBuilder("[@]");
         }
         if (builder != null) {
-            return builder.setHover(this.input).build();
+            return builder.setStringHover(this.input).build();
         }
         // 如果有命名空间，将“:”后的单词首字母取出，否则直接获取首字母
         String[] split = this.input.split(":");
@@ -188,7 +189,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             return Items.AIR.getName();
         }
         if (this.isWildcard) {
-            return TextBuilder.translate("carpet.command.item.predicate.wildcard");
+            return LocalizationKeys.Operation.ITEM.then("any_item").translate();
         }
         if (this.convert != null) {
             return this.convert.getName();
@@ -197,7 +198,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             String substring = this.input.substring(0, 30);
             Component ellipsis = TextBuilder.create("...");
             Component result = TextBuilder.combineAll(substring, ellipsis);
-            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
+            TextBuilder builder = new TextBuilder(result).setGrayItalic().setStringHover(this.input);
             return builder.build();
         }
         return TextBuilder.create(this.input);

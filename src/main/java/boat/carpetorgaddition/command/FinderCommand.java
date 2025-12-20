@@ -13,6 +13,8 @@ import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import boat.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import boat.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
@@ -62,10 +64,11 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 村民的游戏内名称
      */
-    public static final Component VILLAGER = TextBuilder.translate("entity.minecraft.villager");
+    public static final Component VILLAGER = LocalizationKey.literal("entity.minecraft.villager").translate();
     public static final String FINDER_BLOCK = "finder.block";
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
+    public static final LocalizationKey FINDER_KEY = LocalizationKeys.COMMAND.then("finder");
 
     public FinderCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -274,7 +277,7 @@ public class FinderCommand extends AbstractServerCommand {
     private void checkBoxSize(WorldTraverser<?> traverser) throws CommandSyntaxException {
         int max = (MAX_HORIZONTAL_RANGE << 1) + 1;
         if (traverser.length() > max || traverser.width() > max) {
-            throw CommandUtils.createException("carpet.commands.finder.toobig", max);
+            throw CommandUtils.createException(FINDER_KEY.then("toobig").translate(max));
         }
     }
 

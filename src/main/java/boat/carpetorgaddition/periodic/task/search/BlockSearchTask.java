@@ -12,7 +12,7 @@ import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
@@ -40,6 +40,7 @@ public class BlockSearchTask extends ServerTask {
     private int count = 0;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
+    public static final LocalizationKey KEY = FinderCommand.FINDER_KEY.then("block");
 
     public BlockSearchTask(ServerLevel world, BlockPos sourcePos, BlockPosTraverser traverser, CommandSourceStack source, BlockStatePredicate predicate) {
         super(source);
@@ -95,6 +96,7 @@ public class BlockSearchTask extends ServerTask {
         this.findState = FindState.SORT;
     }
 
+    // TODO 显示进度条
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
         BlockPos.breadthFirstTraversal(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {
@@ -110,12 +112,12 @@ public class BlockSearchTask extends ServerTask {
                     this.count++;
                     if (this.count > FinderCommand.MAXIMUM_STATISTICAL_COUNT) {
                         // 方块过多，无法统计
-                        Runnable function = () -> MessageUtils.sendErrorMessage(
-                                this.source,
-                                "carpet.commands.finder.block.too_much_blocks",
-                                this.predicate.getDisplayName()
+                        throw new TaskExecutionException(
+                                () -> MessageUtils.sendErrorMessage(
+                                        this.source,
+                                        KEY.then("too_much_blocks").translate(this.predicate.getDisplayName())
+                                )
                         );
-                        throw new TaskExecutionException(function);
                     }
                 }
                 return BlockPos.TraversalNodeStatus.ACCEPT;
@@ -132,7 +134,7 @@ public class BlockSearchTask extends ServerTask {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
             Component name = this.predicate.getDisplayName();
-            MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.not_found_block", name);
+            MessageUtils.sendMessage(this.source, KEY.then("not_found_block").translate(name));
             this.findState = FindState.END;
             return;
         }
@@ -150,7 +152,7 @@ public class BlockSearchTask extends ServerTask {
     private void sendFeedback() {
         Component name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
-        MessageUtils.sendMessage(this.source, "carpet.commands.finder.block.find", this.count, name);
+        MessageUtils.sendMessage(this.source, KEY.then("find").translate(this.count, name));
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
@@ -163,13 +165,7 @@ public class BlockSearchTask extends ServerTask {
 
     private Component getResultMessage(Block block, Set<BlockPos> set) {
         BlockPos center = MathUtils.calculateTheGeometricCenter(set);
-        TextBuilder builder = TextBuilder.of(
-                "carpet.commands.finder.block.feedback",
-                TextProvider.blockPos(center),
-                set.size(),
-                block.getName()
-        );
-        return builder.build();
+        return KEY.then("feedback").translate(TextProvider.blockPos(center), set.size(), block.getName());
     }
 
     @Override
@@ -187,7 +183,7 @@ public class BlockSearchTask extends ServerTask {
 
     @Override
     public String getLogName() {
-        return "方块查找";
+        return "Block Search";
     }
 
     @Override

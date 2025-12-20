@@ -29,6 +29,7 @@ public final class MultiActionDialogBuilder extends DialogBuilder<MultiActionDia
         return new MultiActionDialogBuilder(title);
     }
 
+    @Deprecated
     public static MultiActionDialogBuilder of(String key, Object... args) {
         return of(TextBuilder.translate(key, args));
     }

@@ -7,6 +7,8 @@ import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -26,6 +28,7 @@ public class PagedCollection implements Iterable<Page> {
     private final int id;
     private final CommandSourceStack source;
     private int length = 0;
+    private static final LocalizationKey KEY = LocalizationKeys.OPERATION.then("page");
 
     public PagedCollection(MinecraftServer server, int id, CommandSourceStack source) {
         this.server = server;
@@ -50,7 +53,7 @@ public class PagedCollection implements Iterable<Page> {
 
     public void print(int pagination, boolean printBlankLine) throws CommandSyntaxException {
         if (pagination <= 0 || pagination > this.pages.size()) {
-            throw CommandUtils.createException("carpet.command.page.invalid", pagination, this.totalPages());
+            throw CommandUtils.createException(KEY.then("invalid").translate(pagination, this.totalPages()));
         }
         if (printBlankLine) {
             MessageUtils.sendEmptyMessage(this.source);
@@ -81,7 +84,7 @@ public class PagedCollection implements Iterable<Page> {
             // 已经是第一页，没有上一页了
             builder.setColor(ChatFormatting.GRAY);
         } else {
-            builder.setHover("carpet.command.page.prev");
+            builder.setHover(KEY.then("prev").translate());
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             writer.putInt(CustomClickKeys.ID, this.id);
             writer.putInt(CustomClickKeys.PAGE_NUMBER, pagination - 1);
@@ -97,7 +100,7 @@ public class PagedCollection implements Iterable<Page> {
             // 已经是最后一页，没有下一页了
             builder.setColor(ChatFormatting.GRAY);
         } else {
-            builder.setHover("carpet.command.page.next");
+            builder.setHover(KEY.then("next").translate());
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             writer.putInt(CustomClickKeys.ID, this.id);
             writer.putInt(CustomClickKeys.PAGE_NUMBER, pagination + 1);

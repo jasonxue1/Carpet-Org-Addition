@@ -21,6 +21,7 @@ public class ClientMessageUtils {
     /**
      * 向客户端玩家发送一条聊天消息
      */
+    @Deprecated
     public static void sendMessage(String key, Object... args) {
         sendMessage(TextBuilder.translate(key, args));
     }
@@ -32,6 +33,7 @@ public class ClientMessageUtils {
         sendMessage(new TextBuilder(message).setColor(ChatFormatting.RED).build());
     }
 
+    @Deprecated
     public static void sendErrorMessage(Throwable e, String key, Object... args) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, args);

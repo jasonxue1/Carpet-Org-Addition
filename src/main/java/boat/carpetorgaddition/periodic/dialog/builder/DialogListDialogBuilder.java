@@ -44,6 +44,7 @@ public final class DialogListDialogBuilder extends DialogBuilder<DialogListDialo
         return new DialogListDialogBuilder(title);
     }
 
+    @Deprecated
     public static DialogListDialogBuilder of(String key, Object... args) {
         return of(TextBuilder.translate(key, args));
     }

@@ -47,7 +47,12 @@ public class TextBuilder {
         this(create(message));
     }
 
+    @Deprecated
     public static TextBuilder of(String key, Object... args) {
+        return new TextBuilder(translate(key, args));
+    }
+
+    public static TextBuilder of(LocalizationKey key, Object... args) {
         return new TextBuilder(translate(key, args));
     }
 
@@ -109,6 +114,7 @@ public class TextBuilder {
         return this;
     }
 
+    @Deprecated
     public TextBuilder setHover(String key, Object... args) {
         return this.setHover(translate(key, args));
     }
@@ -300,7 +306,14 @@ public class TextBuilder {
      * @return 可翻译文本
      * @apiNote 客户端不需要有对应的翻译
      */
+    @Deprecated
     public static Component translate(String key, Object... obj) {
+        String value = Translation.getTranslateValue(key);
+        return Component.translatableWithFallback(key, value, obj);
+    }
+
+    public static Component translate(LocalizationKey local, Object... obj) {
+        String key = local.toString();
         String value = Translation.getTranslateValue(key);
         return Component.translatableWithFallback(key, value, obj);
     }

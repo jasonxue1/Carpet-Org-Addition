@@ -14,6 +14,7 @@ import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import boat.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
 import carpet.patches.EntityPlayerMPFake;
@@ -55,6 +56,8 @@ public class ItemSearchTask extends ServerTask {
     private final ItemStackPredicate predicate;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
+    public static final LocalizationKey KEY = FinderCommand.FINDER_KEY.then("item");
+    private static final LocalizationKey FIND_KEY = KEY.then("find");
 
     public ItemSearchTask(Level world, ItemStackPredicate predicate, BlockEntityTraverser blockEntities, CommandSourceStack source) {
         super(source);
@@ -125,7 +128,7 @@ public class ItemSearchTask extends ServerTask {
             switch (entity) {
                 // 掉落物
                 case ItemEntity itemEntity -> {
-                    Component drops = TextBuilder.translate("carpet.commands.finder.item.drops");
+                    Component drops = KEY.then("drops").translate();
                     this.count(new SimpleContainer(itemEntity.getItem()), itemEntity.blockPosition(), drops);
                 }
                 // 假玩家
@@ -187,8 +190,7 @@ public class ItemSearchTask extends ServerTask {
             // 容器太多，无法统计
             Runnable function = () -> MessageUtils.sendErrorMessage(
                     source,
-                    "carpet.commands.finder.item.too_much_container",
-                    this.predicate.toText()
+                    KEY.then("too_much_container").translate(this.predicate.toText())
             );
             throw new TaskExecutionException(function);
         }
@@ -198,7 +200,7 @@ public class ItemSearchTask extends ServerTask {
     private void sort() {
         if (this.results.isEmpty()) {
             // 在周围的容器中找不到指定物品，直接将状态设置为结束，然后结束方法
-            MessageUtils.sendMessage(this.source, "carpet.commands.finder.item.find.not_item", predicate.toText());
+            MessageUtils.sendMessage(this.source, FIND_KEY.then("not_item").translate(predicate.toText()));
             this.findState = FindState.END;
             return;
         }
@@ -222,7 +224,7 @@ public class ItemSearchTask extends ServerTask {
         }
         int size = this.results.size();
         MessageUtils.sendEmptyMessage(this.source);
-        MessageUtils.sendMessage(this.source, "carpet.commands.finder.item.find", size, itemCount, predicate.toText());
+        MessageUtils.sendMessage(this.source, FIND_KEY.translate(size, itemCount, predicate.toText()));
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
@@ -263,12 +265,8 @@ public class ItemSearchTask extends ServerTask {
     ) implements Supplier<Component> {
         @Override
         public Component get() {
-            return TextBuilder.translate(
-                    "carpet.commands.finder.item.each",
-                    TextProvider.blockPos(blockPos, ChatFormatting.GREEN),
-                    containerName,
-                    statistics.getCountText()
-            );
+            Component pos = TextProvider.blockPos(blockPos, ChatFormatting.GREEN);
+            return KEY.then("each").translate(pos, containerName, statistics.getCountText());
         }
     }
 

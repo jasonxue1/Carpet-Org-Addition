@@ -5,7 +5,7 @@ import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.predicate.EnchantedBookPredicate;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -23,6 +23,7 @@ import java.util.Map;
 
 public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     private final EnchantedBookPredicate predicate;
+    private static final LocalizationKey KEY = TRADE.then("enchanted_book");
 
     public TradeEnchantedBookSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, CommandSourceStack source, EnchantedBookPredicate predicate) {
         super(world, blockPosTraverser, sourcePos, source);
@@ -72,9 +73,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(this.source,
-                "carpet.commands.finder.trade.enchanted_book.not_trade",
-                this.getTradeName(), FinderCommand.VILLAGER);
+        MessageUtils.sendMessage(this.source, KEY.then("not_trade").translate(this.getTradeName(), FinderCommand.VILLAGER));
     }
 
     @Override
@@ -83,8 +82,8 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
     }
 
     @Override
-    protected String getTradeResultKey() {
-        return "carpet.commands.finder.trade.enchanted_book.result";
+    protected LocalizationKey getTradeResultKey() {
+        return KEY.then("result");
     }
 
     public class EnchantedBookFindResult implements Result {
@@ -100,14 +99,13 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
         @Override
         public Component get() {
-            String key = "carpet.commands.finder.trade.enchanted_book.each";
             Component pos = TextProvider.blockPos(this.villagerPos(), ChatFormatting.GREEN);
             // 村民或流浪商人的名称
             Component villagerName = merchant.getName();
             String indices = getIndexArray(this.list);
             // 获取交易名称
             Component enchantName = predicate.getWithLevel(level);
-            return TextBuilder.translate(key, pos, villagerName, indices, enchantName);
+            return KEY.then("each").translate(pos, villagerName, indices, enchantName);
         }
 
         @Override

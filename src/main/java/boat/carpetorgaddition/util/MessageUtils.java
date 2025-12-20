@@ -49,7 +49,7 @@ public class MessageUtils {
         broadcastMessage(server.getPlayerList(), message);
     }
 
-    @SuppressWarnings("unused")
+    @Deprecated
     public static void broadcastMessage(MinecraftServer server, String key, Object... args) {
         broadcastMessage(server.getPlayerList(), TextBuilder.translate(key, args));
     }
@@ -67,6 +67,7 @@ public class MessageUtils {
     /**
      * 广播一条错误消息
      */
+    @Deprecated
     public static void broadcastErrorMessage(MinecraftServer server, Throwable e, String key, Object... obj) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, obj);
@@ -101,14 +102,17 @@ public class MessageUtils {
     /**
      * 发送一条可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
      */
+    @Deprecated
     public static void sendMessage(CommandContext<CommandSourceStack> context, String key, Object... obj) {
         MessageUtils.sendMessage(context.getSource(), key, obj);
     }
 
+    @Deprecated
     public static void sendMessage(CommandSourceStack source, String key, Object... obj) {
         MessageUtils.sendMessage(source, TextBuilder.translate(key, obj));
     }
 
+    @Deprecated
     public static void sendMessage(ServerPlayer player, String key, Object... obj) {
         MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
     }
@@ -124,6 +128,7 @@ public class MessageUtils {
         MessageUtils.sendErrorMessage(context.getSource(), key, obj);
     }
 
+    @Deprecated
     public static void sendErrorMessage(CommandSourceStack source, String key, Object... obj) {
         TextBuilder builder = TextBuilder.of(key, obj);
         builder.setColor(ChatFormatting.RED);
@@ -136,6 +141,14 @@ public class MessageUtils {
         MessageUtils.sendMessage(source, builder.build());
     }
 
+    public static void sendErrorMessage(CommandSourceStack source, Throwable e, Component message) {
+        String error = GenericUtils.getExceptionString(e);
+        TextBuilder builder = new TextBuilder(message);
+        builder.setColor(ChatFormatting.RED);
+        builder.setStringHover(error);
+        MessageUtils.sendMessage(source, builder.build());
+    }
+
     /**
      * <br>发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见<br>
      * 鼠标悬停时可以显示异常信息
@@ -145,6 +158,7 @@ public class MessageUtils {
      * @param key    消息的翻译键
      * @param obj    消息中替代占位符的内容
      */
+    @Deprecated
     public static void sendErrorMessage(CommandSourceStack source, Throwable e, String key, Object... obj) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = TextBuilder.of(key, obj);

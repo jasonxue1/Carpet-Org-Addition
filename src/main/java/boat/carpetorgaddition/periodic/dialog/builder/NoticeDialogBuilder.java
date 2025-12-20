@@ -18,6 +18,7 @@ public final class NoticeDialogBuilder extends DialogBuilder<NoticeDialogBuilder
         return new NoticeDialogBuilder(title);
     }
 
+    @Deprecated
     public static NoticeDialogBuilder of(String key, Object... args) {
         return of(TextBuilder.translate(key, args));
     }

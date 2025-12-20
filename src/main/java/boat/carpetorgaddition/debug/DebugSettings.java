@@ -67,6 +67,12 @@ public class DebugSettings {
                     .addCategories("Debug")
                     .build()
     );
+    public static final Supplier<Boolean> prohibitTaskTimeout = register(
+            RuleFactory.create(Boolean.class, "prohibitTaskTimeout", false)
+                    .addCategories("Debug")
+                    .setDisplayName("禁止任务超时")
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();

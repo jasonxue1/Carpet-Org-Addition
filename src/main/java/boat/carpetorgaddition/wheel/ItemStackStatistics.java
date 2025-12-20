@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.wheel;
 
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -140,11 +141,11 @@ public class ItemStackStatistics {
         int remainder = count % maxCount;
         // 为文本添加悬停提示
         if (group == 0) {
-            return TextBuilder.translate("carpet.command.item.remainder", remainder);
+            return LocalizationKeys.Operation.ITEM.then("remainder").translate(remainder);
         } else if (remainder == 0) {
-            return TextBuilder.translate("carpet.command.item.group", group);
+            return LocalizationKeys.Operation.ITEM.then("group").translate(group);
         } else {
-            return TextBuilder.translate("carpet.command.item.count", group, remainder);
+            return LocalizationKeys.Operation.ITEM.then("count").translate(group, remainder);
         }
     }
 }
