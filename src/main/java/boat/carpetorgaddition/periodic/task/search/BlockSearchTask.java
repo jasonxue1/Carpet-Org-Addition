@@ -122,7 +122,7 @@ public class BlockSearchTask extends ServerTask {
                 }
                 return BlockPos.TraversalNodeStatus.ACCEPT;
             }
-            return BlockPos.TraversalNodeStatus.STOP;
+            return BlockPos.TraversalNodeStatus.SKIP;
         });
         for (Map.Entry<Block, Set<BlockPos>> entry : group.entrySet()) {
             this.results.add(new Result(entry.getKey(), entry.getValue()));
