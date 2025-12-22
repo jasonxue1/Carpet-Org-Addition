@@ -10,11 +10,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import org.jetbrains.annotations.CheckReturnValue;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
+@NullMarked
 public class ContainerComponentInventory extends SimpleContainer implements Comparable<ContainerComponentInventory> {
     private final ItemStack itemStack;
     public static final int CONTAINER_SIZE = 27;

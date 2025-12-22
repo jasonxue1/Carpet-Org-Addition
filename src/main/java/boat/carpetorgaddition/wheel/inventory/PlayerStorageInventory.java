@@ -16,6 +16,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.CheckReturnValue;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.function.Predicate;
 /**
  * 一个不包括盔甲槽的玩家物品栏
  */
+@NullMarked
 public class PlayerStorageInventory implements Container {
     private final Inventory playerInventory;
     private final EntityPlayerMPFake fakePlayer;

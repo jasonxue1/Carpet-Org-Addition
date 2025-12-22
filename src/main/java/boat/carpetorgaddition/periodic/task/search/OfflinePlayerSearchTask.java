@@ -262,7 +262,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             this.backup(unsafe, uuid);
         } catch (RuntimeException e) {
             // 备份失败的文件
-            CarpetOrgAddition.LOGGER.warn("Player data has expired: {}", uuid.toString(), e);
+            CarpetOrgAddition.LOGGER.warn("Player data has expired: {}", uuid, e);
             INVALID_PLAYER_DATAS.add(uuid);
             return false;
         }

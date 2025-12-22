@@ -5,6 +5,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ConcurrentModificationException;
 import java.util.NoSuchElementException;
@@ -12,6 +13,7 @@ import java.util.NoSuchElementException;
 /**
  * 自动扩容物品栏
  */
+@NullMarked
 public class AutoGrowInventory implements Container, Iterable<ItemStack> {
     private SimpleContainer inventory = new SimpleContainer(27);
     private int growCount = 0;

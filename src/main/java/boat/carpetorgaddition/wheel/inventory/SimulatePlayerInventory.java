@@ -14,12 +14,14 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Optional;
 
 /**
  * 模拟一个玩家物品栏，用来接收读取自NBT的物品
  */
+@NullMarked
 public class SimulatePlayerInventory implements Container {
     private final NonNullList<ItemStack> main = NonNullList.withSize(36, ItemStack.EMPTY);
     private final EntityEquipment equipment = new EntityEquipment();

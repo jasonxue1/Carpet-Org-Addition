@@ -4,15 +4,17 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringJoiner;
 
 /**
  * 不可变的物品栏，一旦创建，里面的内容都是不可以改变的，只能进行查询操作，否则抛出{@link UnsupportedOperationException}
  */
+@NullMarked
 public final class ImmutableInventory implements Container, Iterable<ItemStack> {
     /**
      * 空物品栏
@@ -99,9 +101,8 @@ public final class ImmutableInventory implements Container, Iterable<ItemStack> 
         return joiner.toString();
     }
 
-    @NotNull
     @Override
-    public java.util.Iterator<ItemStack> iterator() {
+    public Iterator<ItemStack> iterator() {
         return new java.util.Iterator<>() {
             // 要返回的下一个元素的索引
             private int cursor = 0;

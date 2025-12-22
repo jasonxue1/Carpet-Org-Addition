@@ -20,12 +20,14 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
+import org.jspecify.annotations.NullMarked;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
+@NullMarked
 public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
     protected final FabricPlayerAccessor accessor;
     /**
