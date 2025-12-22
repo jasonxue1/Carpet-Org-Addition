@@ -1,6 +1,10 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
+import boat.carpetorgaddition.command.PlayerManagerCommand;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+
 public interface FakePlayerSafeAfkInterface {
+    LocalizationKey KEY = PlayerManagerCommand.SAFE_AFK.then("trigger");
 
     /**
      * 如果假玩家当前血量低于阈值，假玩家将立即退出游戏<br>

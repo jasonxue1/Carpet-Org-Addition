@@ -2,11 +2,13 @@ package boat.carpetorgaddition.periodic.task.schedule;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.Messenger;
 import com.mojang.brigadier.context.CommandContext;
@@ -38,6 +40,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     private boolean stop = false;
     // 假玩家重新上线的倒计时
     private int canSpawn = 2;
+    public static final LocalizationKey KEY = PlayerManagerCommand.SCHEDULE.then("relogin");
 
     public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, CommandSourceStack source) {
         super(source);
@@ -75,7 +78,7 @@ public class ReLoginTask extends PlayerScheduleTask {
             }
         } else {
             Runnable function = () -> {
-                MessageUtils.sendErrorMessage(source, "carpet.commands.playerManager.schedule.relogin.rule.disable");
+                MessageUtils.sendErrorMessage(this.source, KEY.then("rule_not_enabled").translate());
                 // 如果假玩家已经下线，重新生成假玩家
                 ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.getPlayerName());
                 if (player == null) {
@@ -85,7 +88,6 @@ public class ReLoginTask extends PlayerScheduleTask {
             throw new TaskExecutionException(function);
         }
     }
-
 
     /**
      * 让假玩家退出游戏
@@ -147,11 +149,6 @@ public class ReLoginTask extends PlayerScheduleTask {
     }
 
     @Override
-    public String getLogName() {
-        return this.getPlayerName() + "周期性重新上线";
-    }
-
-    @Override
     @Contract(pure = true)
     public String getPlayerName() {
         return this.serializer.getFakePlayerName();
@@ -160,7 +157,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     @Override
     public void onCancel(CommandContext<CommandSourceStack> context) {
         this.markRemove();
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.cancel", this.getPlayerName());
+        MessageUtils.sendMessage(context, KEY.then("stop").translate(this.getPlayerName()));
         ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.getPlayerName());
         if (player == null) {
             loginPlayer();
@@ -169,7 +166,7 @@ public class ReLoginTask extends PlayerScheduleTask {
 
     @Override
     public void sendEachMessage(CommandSourceStack source) {
-        MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.relogin", this.getPlayerName(), this.interval);
+        MessageUtils.sendMessage(source, KEY.translate(this.getPlayerName(), this.interval));
     }
 
     public void setInterval(int interval) {

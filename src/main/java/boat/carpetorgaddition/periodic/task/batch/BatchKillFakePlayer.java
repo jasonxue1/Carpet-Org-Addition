@@ -38,11 +38,6 @@ public class BatchKillFakePlayer extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "玩家批量杀死";
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return this == obj;
     }

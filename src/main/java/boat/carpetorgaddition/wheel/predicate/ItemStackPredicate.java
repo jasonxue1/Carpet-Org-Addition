@@ -189,7 +189,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             return Items.AIR.getName();
         }
         if (this.isWildcard) {
-            return LocalizationKeys.Operation.ITEM.then("any_item").translate();
+            return LocalizationKeys.Item.ANY_ITEM.translate();
         }
         if (this.convert != null) {
             return this.convert.getName();

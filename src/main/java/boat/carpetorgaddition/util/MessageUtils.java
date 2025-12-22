@@ -65,6 +65,9 @@ public class MessageUtils {
         writeLog(source.getTextName(), message.getString());
     }
 
+    public static void sendMessage(CommandContext<CommandSourceStack> context, Component message) {
+        sendMessage(context.getSource(), message);
+    }
 
     /**
      * 发送一条可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见

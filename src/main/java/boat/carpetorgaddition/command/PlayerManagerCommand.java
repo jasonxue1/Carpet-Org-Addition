@@ -25,6 +25,8 @@ import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
@@ -69,6 +71,12 @@ import java.util.stream.Stream;
 
 public class PlayerManagerCommand extends AbstractServerCommand {
     private static final String SAFEAFK_PROPERTIES = "safeafk.properties";
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("playerManager");
+    public static final LocalizationKey GROUP = KEY.then("group");
+    public static final LocalizationKey GROUP_LIST = GROUP.then("list");
+    public static final LocalizationKey SAFE_AFK = KEY.then("safeafk");
+    public static final LocalizationKey SCHEDULE = KEY.then("schedule");
+    public static final LocalizationKey BATCH = KEY.then("batch");
 
     public PlayerManagerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -115,6 +123,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .suggests(defaultSuggests())
                                 .executes(this::spawnPlayer)))
                 .then(Commands.literal("modify")
+                        // TODO 交换参数与子命令顺序
                         .then(Commands.literal("comment")
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
@@ -126,6 +135,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .executes(this::modifyPlayer)))
                         .then(startupNode))
                 .then(Commands.literal("group")
+                        // TODO 一次性召唤所有玩家，并在list添加一键召唤按钮
                         .then(Commands.literal("add")
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(defaultSuggests())
@@ -236,13 +246,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         HashSet<FakePlayerSerializer> set = map.get(group);
         // 不存在的组
         if (set == null) {
-            throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", group);
+            throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
         List<Supplier<Component>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list", group);
+        MessageUtils.sendMessage(context, GROUP_LIST.translate(group));
         collection.print();
         return collection.length();
     }
@@ -251,16 +261,17 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
+        LocalizationKey key = GROUP.then("name");
         HashSet<FakePlayerSerializer> set = map.get(null);
         if (set == null) {
-            Component translate = TextBuilder.translate("carpet.commands.playerManager.group.name.ungrouped");
-            throw CommandUtils.createException("carpet.commands.playerManager.group.non_existent", translate);
+            Component component = key.then("ungrouped").translate();
+            throw CommandUtils.createException(GROUP.then("non_existent").translate(component));
         }
         List<Supplier<Component>> list = set.stream().map(FakePlayerSerializer::toTextSupplier).toList();
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.ungrouped");
+        MessageUtils.sendMessage(context, GROUP_LIST.then("ungrouped").translate());
         collection.print();
         return collection.length();
     }
@@ -272,7 +283,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         PagedCollection collection = FetcherUtils.getPageManager(server).newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.all");
+        MessageUtils.sendMessage(context, GROUP_LIST.then("all").translate());
         collection.print();
         return collection.length();
     }
@@ -282,7 +293,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String group = StringArgumentType.getString(context, "group");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         serializer.addToGroup(group);
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.add", serializer.getDisplayName(), group);
+        MessageUtils.sendMessage(context, GROUP.then("add").translate(serializer.getDisplayName(), group));
         return 1;
     }
 
@@ -290,10 +301,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String name = StringArgumentType.getString(context, "name");
         String group = StringArgumentType.getString(context, "group");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
+        LocalizationKey key = GROUP.then("remove");
         if (serializer.removeFromGroup(group)) {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.remove", serializer.getDisplayName(), group);
+            MessageUtils.sendMessage(context, key.translate(serializer.getDisplayName(), group));
         } else {
-            throw CommandUtils.createException("carpet.commands.playerManager.group.remove.fail");
+            throw CommandUtils.createException(key.then("fail").translate());
         }
         return 1;
     }
@@ -305,7 +317,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         manager.reload();
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.reload");
+        MessageUtils.sendMessage(context, KEY.then("reload").translate());
         return 1;
     }
 
@@ -385,7 +397,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 假玩家安全挂机阈值必须小于玩家最大生命值
         if (threshold >= fakePlayer.getMaxHealth()) {
-            throw CommandUtils.createException("carpet.commands.playerManager.safeafk.threshold_too_high");
+            throw CommandUtils.createException(SAFE_AFK.then("threshold_too_high").translate());
         }
         // 低于或等于0的值没有实际意义，统一设置为-1
         if (threshold <= 0F) {
@@ -404,10 +416,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             String command = CommandProvider.setupSafeAfkPermanentlyChange(fakePlayer, threshold);
             MessageUtils.sendMessage(
                     context,
-                    "carpet.commands.playerManager.safeafk.successfully_set_up",
-                    fakePlayer.getDisplayName(),
-                    threshold,
-                    TextProvider.clickRun(command)
+                    SAFE_AFK.then("set").translate(fakePlayer.getDisplayName(), threshold, TextProvider.clickRun(command))
             );
         }
         return (int) threshold;
@@ -421,6 +430,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .stream()
                 .filter(player -> player instanceof EntityPlayerMPFake)
                 .toList();
+        LocalizationKey key = SAFE_AFK.then("list");
         int count = 0;
         // 遍历所有在线并且设置了安全挂机的假玩家
         for (ServerPlayer player : list) {
@@ -428,13 +438,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             if (threshold < 0) {
                 continue;
             }
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.safeafk.list.each",
-                    player.getDisplayName(), threshold);
+            MessageUtils.sendMessage(context, key.then("each").translate(player.getDisplayName(), threshold));
             count++;
         }
         // 没有玩家被列出
         if (count == 0) {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.safeafk.list.empty");
+            MessageUtils.sendMessage(context, key.then("empty").translate());
         }
         return count;
     }
@@ -452,9 +461,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 throw CommandExecuteIOException.of(e);
             }
         } else {
-            String key = "carpet.commands.playerManager.safeafk.successfully_set_up.cancel";
             Component command = TextProvider.clickRun(CommandProvider.cancelSafeAfkPermanentlyChange(fakePlayer));
-            MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), command);
+            MessageUtils.sendMessage(context, SAFE_AFK.then("remove").translate(fakePlayer.getDisplayName(), command));
         }
         return 1;
     }
@@ -463,8 +471,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int querySafeAfk(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).carpet_Org_Addition$getHealthThreshold();
-        String key = "carpet.commands.playerManager.safeafk.list.each";
-        MessageUtils.sendMessage(context, key, fakePlayer.getDisplayName(), threshold);
+        LocalizationKey key = SAFE_AFK.then("list", "each");
+        MessageUtils.sendMessage(context, key.translate(fakePlayer.getDisplayName(), threshold));
         return (int) threshold;
     }
 
@@ -483,11 +491,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             if (threshold > 0) {
                 // 将玩家安全挂机阈值保存到配置文件
                 properties.setProperty(playerName, String.valueOf(threshold));
-                MessageUtils.sendMessage(context, "carpet.commands.playerManager.safeafk.successfully_set_up.save", fakePlayer.getDisplayName(), threshold);
+                MessageUtils.sendMessage(context, SAFE_AFK.then("set", "persistence").translate(fakePlayer.getDisplayName(), threshold));
             } else {
                 // 将玩家安全挂机阈值从配置文件中删除
                 properties.remove(playerName);
-                MessageUtils.sendMessage(context, "carpet.commands.playerManager.safeafk.successfully_set_up.remove", fakePlayer.getDisplayName());
+                MessageUtils.sendMessage(context, SAFE_AFK.then("remove", "persistence").translate(fakePlayer.getDisplayName()));
             }
             BufferedWriter writer = IOUtils.toWriter(file);
             try (writer) {
@@ -512,7 +520,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         properties.load(reader);
                     }
                 } catch (IOException e) {
-                    CarpetOrgAddition.LOGGER.error("假玩家安全挂机阈值加载时出错", e);
+                    CarpetOrgAddition.LOGGER.error("Error loading safe AFK threshold for fake players: ", e);
                     return;
                 }
                 try {
@@ -525,12 +533,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     float threshold = Float.parseFloat(value);
                     safeAfk.carpet_Org_Addition$setHealthThreshold(threshold);
                     // 广播阈值设置的消息
-                    String key = "carpet.commands.playerManager.safeafk.successfully_set_up.auto";
-                    TextBuilder builder = TextBuilder.of(key, player.getDisplayName(), threshold);
+                    TextBuilder builder = new TextBuilder(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
                     builder.setGrayItalic();
                     MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
-                    CarpetOrgAddition.LOGGER.error("{}安全挂机阈值设置失败", FetcherUtils.getPlayerName(player), e);
+                    CarpetOrgAddition.LOGGER.error("Failed to set the AFK safety threshold for {}", FetcherUtils.getPlayerName(player), e);
                 }
             }
         }
@@ -541,9 +548,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(serializerPredicate(filter));
+        LocalizationKey listKey = KEY.then("list");
         if (map.isEmpty()) {
             // 没有玩家被列出
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.no_player");
+            MessageUtils.sendMessage(context, listKey.then("no_player").translate());
             return 0;
         }
         if (map.size() == 1) {
@@ -558,17 +566,18 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             PagedCollection collection = pageManager.newPagedCollection(context.getSource());
             collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.group.list.all");
+            MessageUtils.sendMessage(context, GROUP_LIST.then("all").translate());
             collection.print();
             return list.size();
         } else {
             ArrayList<Component> list = new ArrayList<>();
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.list.expand");
+            MessageUtils.sendMessage(context, listKey.then("expand").translate());
+            LocalizationKey groupNameKey = GROUP.then("name");
             // 未分组，在倒数第二个展示
             TextBuilder ungrouped = null;
             for (Map.Entry<String, HashSet<FakePlayerSerializer>> entry : map.entrySet()) {
                 if (entry.getKey() == null) {
-                    ungrouped = TextBuilder.of("carpet.commands.playerManager.group.name.ungrouped");
+                    ungrouped = new TextBuilder(groupNameKey.then("ungrouped").translate());
                     setStyle(ungrouped, entry.getValue().size(), CommandProvider.listUngroupedPlayer(filter));
                     continue;
                 }
@@ -580,7 +589,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 list.add(ungrouped.build());
             }
             // 包含所有玩家的组，在最后一个展示
-            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.group.name.all");
+            TextBuilder builder = new TextBuilder(groupNameKey.then("all").translate());
             setStyle(builder, manager.size(), CommandProvider.listAllPlayer(filter));
             list.add(builder.build());
             Component message = TextBuilder.joinList(list, TextBuilder.create(" "));
@@ -591,7 +600,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private void setStyle(TextBuilder builder, int size, String command) {
         builder.setColor(ChatFormatting.AQUA);
-        builder.setHover("carpet.commands.playerManager.group.player", size);
+        builder.setHover(GROUP.then("player").translate(size));
         builder.setCommand(command);
     }
 
@@ -602,13 +611,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String comment = remove ? null : StringArgumentType.getString(context, "comment");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         serializer.setComment(comment);
+        LocalizationKey key = KEY.then("comment");
         // 发送命令反馈
         if (remove) {
             // 移除注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.remove", serializer.getDisplayName());
+            MessageUtils.sendMessage(context, key.then("remove").translate(serializer.getDisplayName()));
         } else {
             // 修改注释
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.comment.modify", serializer.getDisplayName(), comment);
+            MessageUtils.sendMessage(context, key.then("set").translate(serializer.getDisplayName(), comment));
         }
         return 1;
     }
@@ -620,11 +630,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         // 设置自动登录
         serializer.setAutologin(autologin);
+        LocalizationKey key = KEY.then("autologin");
         // 发送命令反馈
         if (autologin) {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.setup", serializer.getDisplayName());
+            MessageUtils.sendMessage(context, key.then("set").translate(serializer.getDisplayName()));
         } else {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.autologin.cancel", serializer.getDisplayName());
+            MessageUtils.sendMessage(context, key.then("remove").translate(serializer.getDisplayName()));
         }
         return 1;
     }
@@ -637,24 +648,25 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 玩家数据是否已存在
         String name = FetcherUtils.getPlayerName(fakePlayer);
         if (IOUtils.isValidFileName(name)) {
-            throw CommandUtils.createException("carpet.command.file.name.valid");
+            throw CommandUtils.createException(LocalizationKeys.Operation.FILE.then("invalid_name").translate());
         }
         Optional<FakePlayerSerializer> optional = manager.get(name);
+        LocalizationKey key = KEY.then("save");
         if (optional.isPresent()) {
             String command = CommandProvider.playerManagerResave(name);
             // 单击执行命令
             Component clickResave = TextProvider.clickRun(command);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.save.file_already_exist", clickResave);
+            MessageUtils.sendMessage(context, key.then("file_already_exist").translate(clickResave));
             return 0;
         } else {
             String comment = hasComment ? StringArgumentType.getString(context, "comment") : "";
             if (CarpetOrgAdditionSettings.playerManagerForceComment.get() && comment.isBlank()) {
-                throw CommandUtils.createException("carpet.rule.message.playerManagerForceComment");
+                throw CommandUtils.createException(LocalizationKeys.Rule.MESSAGE.then("playerManagerForceComment").translate());
             }
             FakePlayerSerializer serializer = comment.isBlank() ? new FakePlayerSerializer(fakePlayer) : new FakePlayerSerializer(fakePlayer, comment);
             manager.add(serializer);
             // 首次保存
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.success", fakePlayer.getDisplayName());
+            MessageUtils.sendMessage(context.getSource(), key.translate(fakePlayer.getDisplayName()));
             return 1;
         }
     }
@@ -667,7 +679,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
         FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer, oldSerializer);
         manager.add(newSerializer);
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.save.resave", fakePlayer.getDisplayName());
+        MessageUtils.sendMessage(context.getSource(), KEY.then("resave").translate(fakePlayer.getDisplayName()));
         return 1;
     }
 
@@ -681,7 +693,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             serializer.spawn(context.getSource().getServer());
         } catch (RuntimeException e) {
             // 尝试生成假玩家时出现意外问题
-            throw CommandUtils.createException(e, "carpet.commands.playerManager.spawn.fail");
+            throw CommandUtils.createException(KEY.then("spawn", "fail").translate(), e);
         } finally {
             CarpetOrgAdditionSettings.playerSummoner.remove();
         }
@@ -692,7 +704,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         PlayerSerializationManager manager = getSerializationManager(context);
         Optional<FakePlayerSerializer> optional = manager.get(name);
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.playerManager.cannot_find_file", name);
+            throw CommandUtils.createException(KEY.then("cannot_find_file").translate(name));
         }
         return optional.get();
     }
@@ -702,15 +714,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String name = StringArgumentType.getString(context, "name");
         PlayerSerializationManager manager = getSerializationManager(context);
         Optional<FakePlayerSerializer> optional = manager.get(name);
+        LocalizationKey key = KEY.then("delete");
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.playerManager.delete.non_existent");
+            throw CommandUtils.createException(key.then("non_existent").translate());
         }
         if (manager.remove(optional.get())) {
             // 文件存在且文件删除成功
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.playerManager.delete.success");
+            MessageUtils.sendMessage(context.getSource(), key.translate());
             return 1;
         }
-        throw CommandUtils.createException("carpet.commands.playerManager.delete.fail");
+        throw CommandUtils.createException(key.then("fail").translate());
     }
 
     private int addStartupFunction(CommandContext<CommandSourceStack> context, FakePlayerStartupAction action, int delay) throws CommandSyntaxException {
@@ -738,7 +751,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 ServerPlayer player = server.getPlayerList().getPlayerByName(name);
                 if (player == null) {
                     // 玩家不存在
-                    throw CommandUtils.createException("argument.entity.notfound.player");
+                    throw CommandUtils.createPlayerNotFoundException();
                 } else {
                     // 目标玩家不是假玩家
                     CommandUtils.assertFakePlayer(player);
@@ -747,7 +760,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             } else {
                 // 修改周期时间
                 optional.get().setInterval(interval);
-                MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.set_interval", name, interval);
+                MessageUtils.sendMessage(context, SCHEDULE.then("relogin", "modify").translate(name, interval));
             }
             return interval;
         }
@@ -783,7 +796,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         int count = end - start + 1;
         if (count > 256) {
             // 限制单次生成的最大玩家数量
-            throw CommandUtils.createException("carpet.commands.playerManager.batch.exceeds_limit", count, 256);
+            throw CommandUtils.createException(BATCH.then("exceeds_limit").translate(count, 256));
         }
         String prefix = StringArgumentType.getString(context, "prefix");
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
@@ -872,12 +885,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 单击后输入的命令
         String command = CommandProvider.setCarpetRule("fakePlayerSpawnMemoryLeakFix", "true");
         // 文本内容：[这里]
-        Component here = TextBuilder.of("carpet.command.text.click.here")
+        Component here = new TextBuilder(LocalizationKeys.Button.HERE.translate())
                 .setSuggest(command)
                 .setColor(ChatFormatting.AQUA)
-                .setHover("carpet.command.text.click.input", command)
+                .setHover(LocalizationKeys.Button.INPUT.translate(command))
                 .build();
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.relogin.condition", here);
+        MessageUtils.sendMessage(context, SCHEDULE.then("relogin", "prerequisite").translate(here));
         return false;
     }
 
@@ -890,7 +903,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .findFirst();
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.playerManager.schedule.cancel.fail");
+            throw CommandUtils.createException(SCHEDULE.then("cancel", "fail").translate());
         }
         optional.ifPresent(task -> task.onCancel(context));
         return 1;
@@ -912,13 +925,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
             taskManager.addTask(new DelayedLoginTask(server, source, serializer, tick));
-            String key = server.getPlayerList().getPlayerByName(name) == null
+            LocalizationKey key = server.getPlayerList().getPlayerByName(name) == null
                     // <玩家>将于<时间>后上线
-                    ? "carpet.commands.playerManager.schedule.login"
+                    ? SCHEDULE.then("login")
                     // <玩家>将于<时间>后再次尝试上线
-                    : "carpet.commands.playerManager.schedule.login.try";
+                    // TODO 更改此条消息内容
+                    : SCHEDULE.then("login", "retry");
             // 发送命令反馈
-            MessageUtils.sendMessage(context, key, serializer.getDisplayName(), time);
+            MessageUtils.sendMessage(context, key.translate(serializer.getDisplayName(), time));
         } else {
             // 修改上线时间
             DelayedLoginTask task = optional.get();
@@ -926,7 +940,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             TextBuilder builder = new TextBuilder(name);
             builder.setHover(task.getInfo());
             task.setDelayed(tick);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.modify", builder.build(), time);
+            MessageUtils.sendMessage(context, SCHEDULE.then("login", "modify").translate(builder.build(), time));
         }
         return (int) tick;
     }
@@ -943,15 +957,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))
                 .findFirst();
+        LocalizationKey key = SCHEDULE.then("logout");
         // 添加新任务
         if (optional.isEmpty()) {
             // 添加延时下线任务
             manager.addTask(new DelayedLogoutTask(server, source, fakePlayer, tick));
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.logout", fakePlayer.getDisplayName(), time);
+            MessageUtils.sendMessage(context, key.translate(fakePlayer.getDisplayName(), time));
         } else {
             // 修改退出时间
             optional.get().setDelayed(tick);
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.logout.modify", fakePlayer.getDisplayName(), time);
+            MessageUtils.sendMessage(context, key.then("modify").translate(fakePlayer.getDisplayName(), time));
         }
         return (int) tick;
     }
@@ -965,7 +980,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .toList();
         if (list.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.playerManager.schedule.cancel.fail");
+            throw CommandUtils.createException(SCHEDULE.then("cancel", "fail").translate());
         }
         list.forEach(task -> task.onCancel(context));
         return list.size();
@@ -976,7 +991,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
-            MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.list.empty");
+            MessageUtils.sendMessage(context, SCHEDULE.then("list", "empty").translate());
         } else {
             list.forEach(task -> task.sendEachMessage(context.getSource()));
         }

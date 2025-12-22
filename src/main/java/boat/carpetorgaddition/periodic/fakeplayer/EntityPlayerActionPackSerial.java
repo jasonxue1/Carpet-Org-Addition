@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
@@ -80,37 +80,31 @@ public class EntityPlayerActionPackSerial {
     /**
      * 将动作转换为文本
      */
-    public Component toText() {
+    public Component getDisplayText(LocalizationKey key) {
         TextJoiner joiner = new TextJoiner();
         // 左键行为
         Action attack = this.actionMap.get(ActionType.ATTACK);
         if (attack != null) {
-            joiner.append("carpet.commands.playerManager.info.left_click");
-            joiner.enter(() -> {
-                if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
-                    // 左键长按
-                    joiner.append("carpet.commands.playerManager.info.continuous");
-                } else {
-                    // 左键单击
-                    joiner.append("carpet.commands.playerManager.info.interval", attack.interval);
-                }
-            });
+            joiner.append(key.then("left_click").translate());
+            joiner.enter(() -> getDisplayText(key, attack, joiner));
         }
         // 右键行为
         Action use = this.actionMap.get(ActionType.USE);
         if (use != null) {
-            joiner.append(TextBuilder.translate("carpet.commands.playerManager.info.right_click"));
-            joiner.enter(() -> {
-                if (((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous()) {
-                    // 右键长按
-                    joiner.append("carpet.commands.playerManager.info.continuous");
-                } else {
-                    // 右键单击
-                    joiner.append("carpet.commands.playerManager.info.interval", use.interval);
-                }
-            });
+            joiner.append(key.then("right_click").translate());
+            joiner.enter(() -> getDisplayText(key, use, joiner));
         }
         return joiner.join();
+    }
+
+    private static void getDisplayText(LocalizationKey key, Action attack, TextJoiner joiner) {
+        if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
+            // 左键长按
+            joiner.append(key.then("continuous").translate());
+        } else {
+            // 左键单击
+            joiner.append(key.then("interval").translate(attack.interval));
+        }
     }
 
     public JsonObject toJson() {

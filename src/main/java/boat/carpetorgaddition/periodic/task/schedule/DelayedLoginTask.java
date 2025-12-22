@@ -1,9 +1,11 @@
 package boat.carpetorgaddition.periodic.task.schedule;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -16,6 +18,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     private final MinecraftServer server;
     private final FakePlayerSerializer serial;
     private long delayed;
+    public static final LocalizationKey KEY = PlayerManagerCommand.SCHEDULE.then("login");
 
     public DelayedLoginTask(MinecraftServer server, CommandSourceStack source, FakePlayerSerializer serial, long delayed) {
         super(source);
@@ -32,9 +35,9 @@ public class DelayedLoginTask extends PlayerScheduleTask {
                 try {
                     serial.spawn(server);
                 } catch (CommandSyntaxException e) {
-                    CarpetOrgAddition.LOGGER.error("玩家{}已存在", this.serial.getFakePlayerName(), e);
+                    CarpetOrgAddition.LOGGER.error("Player {} already exists", this.serial.getFakePlayerName(), e);
                 } catch (RuntimeException e) {
-                    CarpetOrgAddition.LOGGER.error("玩家{}未能在指定时间上线", this.serial.getFakePlayerName(), e);
+                    CarpetOrgAddition.LOGGER.error("Player {} failed to log in within the specified time", this.serial.getFakePlayerName(), e);
                 }
             } finally {
                 // 将此任务设为已执行结束
@@ -55,7 +58,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
         this.markRemove();
         Component time = getDisplayTime();
         Component displayName = this.serial.getDisplayName();
-        MessageUtils.sendMessage(context, "carpet.commands.playerManager.schedule.login.cancel", displayName, time);
+        MessageUtils.sendMessage(context, KEY.then("cancel").translate(displayName, time));
     }
 
     // 获取带有悬停提示的时间
@@ -67,8 +70,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     @Override
     public void sendEachMessage(CommandSourceStack source) {
-        MessageUtils.sendMessage(source, "carpet.commands.playerManager.schedule.login",
-                this.serial.getDisplayName(), this.getDisplayTime());
+        MessageUtils.sendMessage(source, KEY.translate(this.serial.getDisplayName(), this.getDisplayTime()));
     }
 
     public void setDelayed(long delayed) {
@@ -86,6 +88,6 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     @Override
     public String getLogName() {
-        return this.serial.getFakePlayerName() + "延迟上线";
+        return this.serial.getFakePlayerName() + "delayed login";
     }
 }

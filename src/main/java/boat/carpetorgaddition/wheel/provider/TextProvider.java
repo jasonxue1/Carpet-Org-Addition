@@ -2,6 +2,8 @@ package boat.carpetorgaddition.wheel.provider;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -27,24 +29,6 @@ public class TextProvider {
     }
 
     /**
-     * 主世界
-     */
-    public static final Component OVERWORLD = TextBuilder.translate("carpet.command.dimension.overworld");
-    /**
-     * 下界
-     */
-    public static final Component THE_NETHER = TextBuilder.translate("carpet.command.dimension.the_nether");
-    /**
-     * 末地
-     */
-    public static final Component THE_END = TextBuilder.translate("carpet.command.dimension.the_end");
-    public static final Component TRUE = TextBuilder.translate("carpet.command.boolean.true");
-    public static final Component FALSE = TextBuilder.translate("carpet.command.boolean.false");
-    /**
-     * [这里]
-     */
-    public static final Component CLICK_HERE = TextBuilder.translate("carpet.command.text.click.here");
-    /**
      * 物品
      */
     public static final Component ITEM = TextBuilder.translate("carpet.command.item.item");
@@ -60,7 +44,7 @@ public class TextProvider {
     public static final Component SELF = TextBuilder.translate("carpet.command.text.self");
 
     public static Component getBoolean(boolean value) {
-        return value ? TRUE : FALSE;
+        return (value ? LocalizationKeys.Literal.TRUE : LocalizationKeys.Literal.FALSE).translate();
     }
 
     public static Component blockPos(BlockPos blockPos) {
@@ -79,10 +63,10 @@ public class TextProvider {
         switch (CarpetOrgAdditionSettings.canHighlightBlockPos.get()) {
             case OMMC -> builder.append(new TextBuilder(" [H]")
                     .setCommand(CommandProvider.highlightWaypointByOmmc(blockPos))
-                    .setHover("ommc.highlight_waypoint.tooltip"));
+                    .setHover(LocalizationKey.literal("ommc.highlight_waypoint.tooltip").translate()));
             case DEFAULT -> builder.append(new TextBuilder(" [H]")
                     .setCommand(CommandProvider.highlightWaypoint(blockPos))
-                    .setHover("carpet.client.commands.highlight"));
+                    .setHover(LocalizationKeys.Button.HIGHLIGHT.translate()));
             default -> {
             }
         }
@@ -98,28 +82,15 @@ public class TextProvider {
         return ComponentUtils.wrapInSquareBrackets(Component.translatable("chat.coordinates", blockPos.getX(), blockPos.getY(), blockPos.getZ()));
     }
 
-    @SuppressWarnings("unused")
-    public static Component dimensionBlockPos(Level world, BlockPos blockPos) {
-        return TextBuilder.translate("carpet.command.block_pos.dimension", dimension(world), simpleBlockPos(blockPos));
-    }
-
-    /**
-     * 单击输入命令
-     */
-    @SuppressWarnings("unused")
-    public static Component clickInput(String command) {
-        return TextBuilder.translate("carpet.command.text.click.input", command);
-    }
-
     /**
      * 单击执行命令
      *
      * @param command 要执行的命令
      */
     public static Component clickRun(String command) {
-        TextBuilder builder = new TextBuilder(CLICK_HERE);
+        TextBuilder builder = new TextBuilder(LocalizationKeys.Button.HERE.translate());
         builder.setCommand(command);
-        builder.setHover("carpet.command.text.click.run", command);
+        builder.setHover(LocalizationKeys.Button.RUN_COMMAND.translate(command));
         builder.setColor(ChatFormatting.AQUA);
         return builder.build();
     }
@@ -137,11 +108,11 @@ public class TextProvider {
         TextBuilder builder = new TextBuilder(count);
         // 为文本添加悬停提示
         if (group == 0) {
-            builder.setHover("carpet.command.item.remainder", remainder);
+            builder.setHover(LocalizationKeys.Item.REMAINDER.translate(remainder));
         } else if (remainder == 0) {
-            builder.setHover("carpet.command.item.group", group);
+            builder.setHover(LocalizationKeys.Item.GROUP.translate(group));
         } else {
-            builder.setHover("carpet.command.item.count", group, remainder);
+            builder.setHover(LocalizationKeys.Item.COUNT.translate(group, remainder));
         }
         return builder.build();
     }
@@ -171,26 +142,26 @@ public class TextProvider {
     public static Component tickToTime(long tick) {
         // 游戏刻
         if (tick < 20L) {
-            return TextBuilder.translate("carpet.command.time.tick", tick);
+            return LocalizationKeys.Time.TICK.translate(tick);
         }
         // 秒
         if (tick < 1200L) {
-            return TextBuilder.translate("carpet.command.time.second", tick / 20L);
+            return LocalizationKeys.Time.SECOND.translate(tick / 20L);
         }
         // 整分
         if (tick < 72000L && (tick % 1200L == 0 || (tick / 20L) % 60L == 0)) {
-            return TextBuilder.translate("carpet.command.time.minute", tick / 1200L);
+            return LocalizationKeys.Time.MINUTE.translate(tick / 1200L);
         }
         // 分和秒
         if (tick < 72000L) {
-            return TextBuilder.translate("carpet.command.time.minute_second", tick / 1200L, (tick / 20L) % 60L);
+            return LocalizationKeys.Time.MINUTE_SECOND.translate(tick / 1200L, (tick / 20L) % 60L);
         }
         // 整小时
         if (tick % 72000L == 0 || (tick / 20L / 60L) % 60L == 0) {
-            return TextBuilder.translate("carpet.command.time.hour", tick / 72000L);
+            return LocalizationKeys.Time.HOUR.translate(tick / 72000L);
         }
         // 小时和分钟
-        return TextBuilder.translate("carpet.command.time.hour_minute", tick / 72000L, (tick / 20L / 60L) % 60L);
+        return LocalizationKeys.Time.HOUR_MINUTE.translate(tick / 72000L, (tick / 20L / 60L) % 60L);
     }
 
     /**
@@ -201,9 +172,14 @@ public class TextProvider {
      */
     public static Component tickToRealTime(long offset) {
         LocalDateTime time = LocalDateTime.now().plusSeconds(offset / 20);
-        return TextBuilder.translate("carpet.command.time.format",
-                time.getYear(), time.getMonth().ordinal() + 1, time.getDayOfMonth(),
-                time.getHour(), time.getMinute(), time.getSecond());
+        return LocalizationKeys.Time.FORMAT.translate(
+                time.getYear(),
+                time.getMonth().ordinal() + 1,
+                time.getDayOfMonth(),
+                time.getHour(),
+                time.getMinute(),
+                time.getSecond()
+        );
     }
 
     /**
@@ -215,18 +191,19 @@ public class TextProvider {
     public static Component dimension(Level world) {
         String dimension = WorldUtils.getDimensionId(world);
         return switch (dimension) {
-            case WorldUtils.OVERWORLD -> OVERWORLD;
-            case WorldUtils.THE_NETHER -> THE_NETHER;
-            case WorldUtils.THE_END -> THE_END;
+            case WorldUtils.OVERWORLD -> LocalizationKeys.Dimension.OVERWORLD.translate();
+            case WorldUtils.THE_NETHER -> LocalizationKeys.Dimension.THE_NETHER.translate();
+            case WorldUtils.THE_END -> LocalizationKeys.Dimension.THE_END.translate();
             default -> TextBuilder.create(dimension);
         };
     }
 
     public static Component dimension(String dimension) {
         return switch (dimension) {
-            case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> OVERWORLD;
-            case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER -> THE_NETHER;
-            case WorldUtils.THE_END, WorldUtils.SIMPLE_THE_END -> THE_END;
+            case WorldUtils.OVERWORLD, WorldUtils.SIMPLE_OVERWORLD -> LocalizationKeys.Dimension.OVERWORLD.translate();
+            case WorldUtils.THE_NETHER, WorldUtils.SIMPLE_THE_NETHER ->
+                    LocalizationKeys.Dimension.THE_NETHER.translate();
+            case WorldUtils.THE_END, WorldUtils.SIMPLE_THE_END -> LocalizationKeys.Dimension.THE_END.translate();
             default -> TextBuilder.create(dimension);
         };
     }

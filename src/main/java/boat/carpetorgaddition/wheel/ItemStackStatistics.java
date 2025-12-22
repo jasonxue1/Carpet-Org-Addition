@@ -141,11 +141,11 @@ public class ItemStackStatistics {
         int remainder = count % maxCount;
         // 为文本添加悬停提示
         if (group == 0) {
-            return LocalizationKeys.Operation.ITEM.then("remainder").translate(remainder);
+            return LocalizationKeys.Item.REMAINDER.translate(remainder);
         } else if (remainder == 0) {
-            return LocalizationKeys.Operation.ITEM.then("group").translate(group);
+            return LocalizationKeys.Item.GROUP.translate(group);
         } else {
-            return LocalizationKeys.Operation.ITEM.then("count").translate(group, remainder);
+            return LocalizationKeys.Item.COUNT.translate(group, remainder);
         }
     }
 }

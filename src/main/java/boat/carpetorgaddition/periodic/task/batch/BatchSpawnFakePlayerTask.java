@@ -1,12 +1,13 @@
 package boat.carpetorgaddition.periodic.task.batch;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
@@ -63,6 +64,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 玩家档案预加载使用的时间
      */
     private long setupTime = -1L;
+    public static final LocalizationKey KEY = PlayerManagerCommand.KEY.then("batch");
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, UserNameToIdResolver userCache, FakePlayerCreateContext context, String prefix, int start, int end) {
         super(source);
@@ -99,16 +101,17 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
+            LocalizationKey key = KEY.then("preload");
             if (size < this.count) {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
-                    Component message = TextBuilder.translate("carpet.commands.playerManager.batch.preload", size, this.count);
+                    Component message = key.translate(size, this.count);
                     MessageUtils.sendMessageToHudIfPlayer(this.source, message);
                 }
                 return;
             }
             if (progress) {
-                Component message = TextBuilder.translate("carpet.commands.playerManager.batch.preload.done");
+                Component message = key.then("done").translate();
                 MessageUtils.sendMessageToHudIfPlayer(this.source, message);
             }
             this.isPreload = false;
@@ -134,8 +137,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
-            Component summoner = TextBuilder.translate(
-                    "carpet.commands.playerManager.batch.summoner",
+            Component summoner = KEY.then("summoner").translate(
                     this.source.getDisplayName(),
                     this.prefix + this.start,
                     this.prefix + this.end,
@@ -159,11 +161,6 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     @Override
     protected boolean stopped() {
         return this.complete;
-    }
-
-    @Override
-    public String getLogName() {
-        return "玩家批量生成";
     }
 
     @Override

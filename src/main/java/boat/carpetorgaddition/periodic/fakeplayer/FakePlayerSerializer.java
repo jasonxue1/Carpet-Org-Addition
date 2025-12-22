@@ -2,6 +2,7 @@ package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.dataupdate.DataUpdater;
 import boat.carpetorgaddition.dataupdate.player.FakePlayerSerializeDataUpdater;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
@@ -13,6 +14,8 @@ import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.fakes.ServerPlayerInterface;
@@ -215,7 +218,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     // 从json加载并生成假玩家
     public void spawn(MinecraftServer server) throws CommandSyntaxException {
         if (server.getPlayerList().getPlayerByName(this.fakePlayerName) != null) {
-            throw CommandUtils.createException("carpet.commands.playerManager.spawn.player_exist");
+            throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
         }
         CommandSourceStack source = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
@@ -251,42 +254,46 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         String pos = MathUtils.numberToTwoDecimalString(this.playerPos.x()) + " "
                      + MathUtils.numberToTwoDecimalString(this.playerPos.y()) + " "
                      + MathUtils.numberToTwoDecimalString(this.playerPos.z());
-        joiner.append("carpet.commands.playerManager.info.pos", pos);
+        LocalizationKey key = PlayerManagerCommand.KEY.then("info");
+        joiner.append(key.then("pos").translate(pos));
         // 获取朝向
-        joiner.append("carpet.commands.playerManager.info.direction",
+        joiner.append(key.then("direction").translate(
                 MathUtils.numberToTwoDecimalString(this.yaw),
-                MathUtils.numberToTwoDecimalString(this.pitch));
+                MathUtils.numberToTwoDecimalString(this.pitch))
+        );
         // 维度
-        joiner.append("carpet.commands.playerManager.info.dimension", TextProvider.dimension(this.dimension));
+        joiner.append(key.then("dimension").translate(TextProvider.dimension(this.dimension)));
         // 游戏模式
-        joiner.append("carpet.commands.playerManager.info.gamemode", this.gameMode.getLongDisplayName());
+        joiner.append(key.then("gamemode").translate(this.gameMode.getLongDisplayName()));
         // 是否飞行
-        joiner.append("carpet.commands.playerManager.info.flying", TextProvider.getBoolean(this.flying));
+        joiner.append(key.then("flying").translate(TextProvider.getBoolean(this.flying)));
         // 是否潜行
-        joiner.append("carpet.commands.playerManager.info.sneaking", TextProvider.getBoolean(this.sneaking));
+        joiner.append(key.then("sneaking").translate(TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
-        joiner.append("carpet.commands.playerManager.info.autologin", TextProvider.getBoolean(this.autologin));
+        joiner.append(key.then("autologin").translate(TextProvider.getBoolean(this.autologin)));
         if (this.interactiveAction.hasAction()) {
-            joiner.append(this.interactiveAction.toText());
+            joiner.append(this.interactiveAction.getDisplayText(key));
         }
         if (this.autoAction.hasAction()) {
-            joiner.append(this.autoAction.toText());
+            joiner.append(key.then("action").translate());
+            joiner.enter(this.autoAction.getDisplayName());
         }
         if (!this.startups.isEmpty()) {
-            joiner.append("carpet.commands.playerManager.info.startup");
+            LocalizationKey startupKey = key.then("startup");
+            joiner.append(startupKey.translate());
             joiner.enter(() -> {
                 for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
-                    joiner.append(entry.getKey().getDisplayName());
+                    joiner.append(entry.getKey().getDisplayName(startupKey));
                     int delay = entry.getValue();
                     if (delay > 1) {
-                        joiner.enter("carpet.commands.playerManager.info.startup.delay", delay);
+                        joiner.enter(startupKey.then("delay").translate(delay));
                     }
                 }
             });
         }
         if (this.hasComment()) {
             // 添加注释
-            joiner.append("carpet.commands.playerManager.info.comment", this.comment);
+            joiner.append(key.then("comment").translate(this.comment));
         }
         return joiner.join();
     }
@@ -387,14 +394,23 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     private Component toText() {
-        Component loginHover = TextBuilder.translate("carpet.commands.playerManager.click.online");
-        Component logoutHover = TextBuilder.translate("carpet.commands.playerManager.click.offline");
         String name = this.getFakePlayerName();
         String logonCommand = CommandProvider.playerManagerSpawn(name);
         String logoutCommand = CommandProvider.killFakePlayer(name);
-        Component login = new TextBuilder("[↑]").setCommand(logonCommand).setHover(loginHover).setColor(ChatFormatting.GREEN).build();
-        Component logout = new TextBuilder("[↓]").setCommand(logoutCommand).setHover(logoutHover).setColor(ChatFormatting.RED).build();
-        Component info = new TextBuilder("[?]").setHover(this.info()).setColor(ChatFormatting.GRAY).build();
+        Component login = new TextBuilder("[↑]")
+                .setCommand(logonCommand)
+                .setHover(LocalizationKeys.Button.LOGIN.translate())
+                .setColor(ChatFormatting.GREEN)
+                .build();
+        Component logout = new TextBuilder("[↓]")
+                .setCommand(logoutCommand)
+                .setHover(LocalizationKeys.Button.LOGOUT.translate())
+                .setColor(ChatFormatting.RED)
+                .build();
+        Component info = new TextBuilder("[?]")
+                .setHover(this.info())
+                .setColor(ChatFormatting.GRAY)
+                .build();
         TextJoiner joiner = new TextJoiner();
         joiner.then(login)
                 .literal()
@@ -442,7 +458,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 }
             }
         } catch (RuntimeException | CommandSyntaxException e) {
-            CarpetOrgAddition.LOGGER.error("玩家自动登录出现意外错误", e);
+            CarpetOrgAddition.LOGGER.error("Unexpected error occurred during player automatic login: ", e);
         }
     }
 

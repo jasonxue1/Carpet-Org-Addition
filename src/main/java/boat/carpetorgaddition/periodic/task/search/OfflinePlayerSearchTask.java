@@ -606,7 +606,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 String command = CommandProvider.spawnFakePlayer(playerConfigEntry().name());
                 TextBuilder builder = new TextBuilder(" [↑]");
                 builder.setCommand(command);
-                builder.setHover(LocalizationKeys.Operation.Click.CLICK.then("login").translate());
+                builder.setHover(LocalizationKeys.Button.LOGIN.translate());
                 return builder.build();
             }
             return TextBuilder.empty();

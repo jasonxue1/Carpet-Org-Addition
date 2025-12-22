@@ -1,8 +1,10 @@
 package boat.carpetorgaddition.periodic.task.schedule;
 
+import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.context.CommandContext;
@@ -16,6 +18,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     private final MinecraftServer server;
     private final EntityPlayerMPFake fakePlayer;
     private long delayed;
+    public static final LocalizationKey KEY = PlayerManagerCommand.SCHEDULE.then("logout");
 
     public DelayedLogoutTask(MinecraftServer server, CommandSourceStack source, EntityPlayerMPFake fakePlayer, long delayed) {
         super(source);
@@ -58,12 +61,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
     @Override
     public void onCancel(CommandContext<CommandSourceStack> context) {
         this.markRemove();
-        MessageUtils.sendMessage(
-                context,
-                "carpet.commands.playerManager.schedule.logout.cancel",
-                this.fakePlayer.getDisplayName(),
-                this.getDisplayTime()
-        );
+        MessageUtils.sendMessage(context, KEY.then("cancel").translate(this.fakePlayer.getDisplayName(), this.getDisplayTime()));
     }
 
     private @NotNull Component getDisplayTime() {
@@ -74,12 +72,7 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
 
     @Override
     public void sendEachMessage(CommandSourceStack source) {
-        MessageUtils.sendMessage(
-                source,
-                "carpet.commands.playerManager.schedule.logout",
-                this.fakePlayer.getDisplayName(),
-                this.getDisplayTime()
-        );
+        MessageUtils.sendMessage(source, KEY.translate(this.fakePlayer.getDisplayName(), this.getDisplayTime()));
     }
 
     @Override
@@ -89,6 +82,6 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
 
     @Override
     public String getLogName() {
-        return this.getPlayerName() + "延迟下线";
+        return this.getPlayerName() + "delay logout";
     }
 }

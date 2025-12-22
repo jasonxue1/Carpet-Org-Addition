@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
@@ -40,13 +40,8 @@ public enum FakePlayerStartupAction implements Consumer<EntityPlayerMPFake> {
         };
     }
 
-    public Component getDisplayName() {
-        String key = switch (this) {
-            case USE -> "carpet.commands.playerManager.info.startup.use";
-            case ATTACK -> "carpet.commands.playerManager.info.startup.attack";
-            case KILL -> "carpet.commands.playerManager.info.startup.kill";
-        };
-        return TextBuilder.translate(key);
+    public Component getDisplayName(LocalizationKey key) {
+        return key.then(this.toString()).translate();
     }
 
     @Override

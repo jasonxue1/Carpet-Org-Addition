@@ -6,6 +6,7 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -61,7 +62,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         }
         // 安全挂机触发失败，玩家已死亡
         if (this.carpet_Org_Addition$afkTriggerFail()) {
-            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.fail", thisPlayer.getDisplayName());
+            TextBuilder builder = new TextBuilder(KEY.then("fail").translate(thisPlayer.getDisplayName()));
             // 设置为斜体
             builder.setItalic();
             // 设置为红色
@@ -75,7 +76,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         if (thisPlayer.getHealth() <= this.safeAfkThreshold) {
             // 假玩家剩余血量
             String health = MathUtils.numberToTwoDecimalString(thisPlayer.getHealth());
-            TextBuilder builder = TextBuilder.of("carpet.commands.playerManager.safeafk.trigger.success", thisPlayer.getDisplayName(), health);
+            TextBuilder builder = new TextBuilder(KEY.then("success").translate(thisPlayer.getDisplayName(), health));
             // 添加悬停提示
             builder.setHover(report(source, amount));
             builder.setGrayItalic();
@@ -96,10 +97,11 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         Object attacker = Optional.ofNullable(damageSource.getEntity()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
         // 获取伤害来源
         Object source = Optional.ofNullable(damageSource.getDirectEntity()).map(entity -> (Object) entity.getDisplayName()).orElse("null");
-        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.attacker", attacker));
-        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.source", source));
-        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.type", damageSource.getMsgId()));
-        list.add(TextBuilder.translate("carpet.commands.playerManager.safeafk.info.amount", String.valueOf(amount)));
+        LocalizationKey key = KEY.then("info");
+        list.add(key.then("attacker").translate(attacker));
+        list.add(key.then("source").translate(source));
+        list.add(key.then("type").translate(damageSource.getMsgId()));
+        list.add(key.then("amount").translate(String.valueOf(amount)));
         return TextBuilder.joinList(list);
     }
 
