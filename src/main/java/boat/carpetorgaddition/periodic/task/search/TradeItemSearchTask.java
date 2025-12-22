@@ -25,7 +25,7 @@ public class TradeItemSearchTask extends AbstractTradeSearchTask {
     public TradeItemSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, ItemStackPredicate predicate, CommandSourceStack source) {
         super(world, blockPosTraverser, sourcePos, source);
         this.predicate = predicate;
-        this.treadName = predicate.toText();
+        this.treadName = predicate.getDisplayName();
     }
 
     @Override

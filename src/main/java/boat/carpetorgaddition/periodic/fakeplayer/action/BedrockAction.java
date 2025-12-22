@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
@@ -11,7 +12,7 @@ import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import boat.carpetorgaddition.wheel.traverser.CylinderBlockPosTraverser;
 import boat.carpetorgaddition.wheel.traverser.EntityTraverser;
@@ -111,6 +112,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * 定时回收材料的时间间隔（3分钟）
      */
     private static final int MATERIAL_RECYCLING_TIME = 3600;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("bedrock");
 
     private BedrockAction(EntityPlayerMPFake fakePlayer, BlockPosTraverser traverser, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) {
         super(fakePlayer);
@@ -1098,23 +1100,25 @@ public class BedrockAction extends AbstractPlayerAction {
     @Override
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock", getFakePlayer().getDisplayName()));
+        LocalizationKey key = this.getInfoLocalizationKey();
+        list.add(key.translate(getFakePlayer().getDisplayName()));
         switch (this.regionType) {
             case CUBOID -> {
                 Component from = TextProvider.blockPos(this.traverser.getMinBlockPos(), ChatFormatting.GREEN);
                 Component to = TextProvider.blockPos(this.traverser.getMaxBlockPos(), ChatFormatting.GREEN);
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cuboid.range", from, to));
+                list.add(key.then("cuboid", "range").translate(from, to));
             }
             case CYLINDER -> {
                 CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
                 Component center = TextProvider.blockPos(iterator.getCenter());
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.center", center));
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.radius", iterator.getRadius()));
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.cylinder.height", iterator.getHeight()));
+                LocalizationKey cylinder = key.then("cylinder");
+                list.add(cylinder.then("center").translate(center));
+                list.add(cylinder.then("radius").translate(iterator.getRadius()));
+                list.add(cylinder.then("height").translate(iterator.getHeight()));
             }
         }
         if (this.ai) {
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.bedrock.ai.enable"));
+            list.add(key.then("ai", "enable").translate());
         }
         return list;
     }
@@ -1143,8 +1147,8 @@ public class BedrockAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.bedrock");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

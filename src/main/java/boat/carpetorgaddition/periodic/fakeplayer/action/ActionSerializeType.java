@@ -17,7 +17,7 @@ public enum ActionSerializeType {
     /**
      * 停止操作
      */
-    STOP(json -> new StopAction(null)),
+    STOP(_ -> new StopAction(null)),
     /**
      * 物品分拣
      */
@@ -105,11 +105,11 @@ public enum ActionSerializeType {
     /**
      * 自动钓鱼
      */
-    FISHING(json -> new FishingAction(null)),
+    FISHING(_ -> new FishingAction(null)),
     /**
      * 自动种植
      */
-    PLANT(json -> new PlantAction(null)),
+    PLANT(_ -> new PlantAction(null)),
     /**
      * 自动破基岩
      */
@@ -134,7 +134,7 @@ public enum ActionSerializeType {
             }
         }
     }),
-    GOTO(json -> new StopAction(null));
+    GOTO(_ -> new StopAction(null));
 
     private final String serializedName;
     private final Function<JsonObject, AbstractPlayerAction> deserializer;

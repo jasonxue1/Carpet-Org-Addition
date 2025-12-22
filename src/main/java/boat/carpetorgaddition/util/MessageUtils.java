@@ -18,40 +18,8 @@ public class MessageUtils {
     private MessageUtils() {
     }
 
-    /**
-     * 广播一条带有特殊样式的文本消息
-     *
-     * @param player  通过这个玩家对象获取玩家管理器对象，然后通过玩家管理器对象发送消息，player不是消息的发送者
-     * @param message 要广播消息的内容
-     * @deprecated 使用玩家做为参数有误导性
-     */
-    @Deprecated(forRemoval = true)
-    public static void broadcastMessage(ServerPlayer player, Component message) {
-        MinecraftServer server = FetcherUtils.getServer(player);
-        PlayerList playerManager = server.getPlayerList();
-        broadcastMessage(playerManager, message);
-    }
-
-    /**
-     * 广播一条带有特殊样式的文本消息
-     *
-     * @param source  通过这个服务器命令源对象获取玩家管理器对象，然后通过玩家管理器对象发送消息，source不是消息的发送者
-     * @param message 要广播消息的内容
-     * @deprecated 使用服务器命令源作为参数有误导性
-     */
-    @Deprecated(forRemoval = true)
-    public static void broadcastMessage(CommandSourceStack source, Component message) {
-        PlayerList playerManager = source.getServer().getPlayerList();
-        broadcastMessage(playerManager, message);
-    }
-
     public static void broadcastMessage(MinecraftServer server, Component message) {
         broadcastMessage(server.getPlayerList(), message);
-    }
-
-    @Deprecated
-    public static void broadcastMessage(MinecraftServer server, String key, Object... args) {
-        broadcastMessage(server.getPlayerList(), TextBuilder.translate(key, args));
     }
 
     /**
@@ -67,10 +35,9 @@ public class MessageUtils {
     /**
      * 广播一条错误消息
      */
-    @Deprecated
-    public static void broadcastErrorMessage(MinecraftServer server, Throwable e, String key, Object... obj) {
+    public static void broadcastErrorMessage(MinecraftServer server, Throwable e, Component component) {
         String error = GenericUtils.getExceptionString(e);
-        TextBuilder builder = TextBuilder.of(key, obj);
+        TextBuilder builder = new TextBuilder(component);
         builder.setStringHover(error);
         builder.setColor(ChatFormatting.RED);
         broadcastMessage(server, builder.build());

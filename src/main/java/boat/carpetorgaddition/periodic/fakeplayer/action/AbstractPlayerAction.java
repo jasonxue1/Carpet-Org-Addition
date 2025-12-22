@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
@@ -54,7 +55,15 @@ public abstract class AbstractPlayerAction {
     /**
      * @return 当前动作类型的显示名称
      */
-    public abstract Component getDisplayName();
+    public Component getDisplayName() {
+        return this.getLocalizationKey().translate();
+    }
+
+    protected abstract LocalizationKey getLocalizationKey();
+
+    protected LocalizationKey getInfoLocalizationKey() {
+        return this.getLocalizationKey().then("info");
+    }
 
     public abstract ActionSerializeType getActionSerializeType();
 

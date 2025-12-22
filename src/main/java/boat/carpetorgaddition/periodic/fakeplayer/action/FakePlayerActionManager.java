@@ -1,6 +1,8 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.PlayerActionCommand;
+import boat.carpetorgaddition.exception.DebugTriggerException;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import carpet.patches.EntityPlayerMPFake;
@@ -10,6 +12,10 @@ public class FakePlayerActionManager {
     private final EntityPlayerMPFake fakePlayer;
     @NotNull
     private AbstractPlayerAction action;
+    /**
+     * 调试用途，用于手动抛出异常
+     */
+    private String debugExceptionMessage = null;
 
     public FakePlayerActionManager(EntityPlayerMPFake fakePlayer) {
         this.fakePlayer = fakePlayer;
@@ -18,12 +24,18 @@ public class FakePlayerActionManager {
 
     public void tick() {
         try {
+            if (CarpetOrgAddition.isDebugDevelopment()) {
+                String message = this.debugExceptionMessage;
+                if (message != null) {
+                    this.debugExceptionMessage = null;
+                    throw new DebugTriggerException(message);
+                }
+            }
             // 根据假玩家动作类型执行动作
             this.action.execute();
         } catch (RuntimeException e) {
-            // 将错误信息写入日志
             CarpetOrgAddition.LOGGER.error(
-                    "{}在执行“{}”时遇到意外错误:",
+                    "{} encountered an unexpected error while executing '{}': ",
                     FetcherUtils.getPlayerName(this.fakePlayer),
                     this.getAction().getClass().getSimpleName(),
                     e
@@ -31,9 +43,8 @@ public class FakePlayerActionManager {
             MessageUtils.broadcastErrorMessage(
                     FetcherUtils.getServer(this.fakePlayer),
                     e,
-                    "carpet.commands.playerAction.exception.runtime",
-                    this.fakePlayer.getDisplayName(),
-                    this.getAction().getDisplayName()
+                    PlayerActionCommand.KEY.then("error")
+                            .translate(this.fakePlayer.getDisplayName(), this.getAction().getDisplayName())
             );
             // 让假玩家停止当前操作
             this.stop();
@@ -50,6 +61,10 @@ public class FakePlayerActionManager {
     @NotNull
     public AbstractPlayerAction getAction() {
         return this.action;
+    }
+
+    public void setDebugExceptionMessage(String message) {
+        this.debugExceptionMessage = message;
     }
 
     public void setAction(@NotNull AbstractPlayerAction action) {

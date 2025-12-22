@@ -1,13 +1,15 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -32,6 +34,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
      * 合成配方
      */
     private final ItemStackPredicate[] predicates = new ItemStackPredicate[9];
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("craft");
 
     public CraftingTableCraftAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate[] predicates) {
         super(fakePlayer);
@@ -181,22 +184,20 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Component itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
-        joiner.append("carpet.commands.playerAction.info.craft.result", this.getFakePlayer().getDisplayName(), itemText);
+        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.OPERATION.then("item").translate() : craftOutput.getItem().getName();
+        Component displayName = this.getFakePlayer().getDisplayName();
+        LocalizationKey key = this.getInfoLocalizationKey();
+        joiner.append(key.translate(displayName, itemText));
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 判断假玩家是否打开了一个工作台
         if (this.getFakePlayer().containerMenu instanceof CraftingMenu currentScreenHandler) {
             // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-            joiner.append("carpet.commands.playerAction.info.craft.state", this.getFakePlayer().getDisplayName());
+            joiner.append(key.then("state").translate(displayName));
             // 如果打开了，将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
             joiner.enter(() -> this.addCraftGridState(currentScreenHandler, joiner));
         } else {
             // 如果没有打开工作台，将未打开工作台的信息添加到集合
-            joiner.append(
-                    "carpet.commands.playerAction.info.craft.no_crafting_table",
-                    this.getFakePlayer().getDisplayName(),
-                    Items.CRAFTING_TABLE.getName()
-            );
+            joiner.append(key.then("no_crafting_table").translate(displayName, Items.CRAFTING_TABLE.getName()));
         }
         return joiner.collect();
     }
@@ -266,7 +267,12 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
     @Override
     public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.crafting_table_craft");
+        return this.getLocalizationKey().then("crafting_table").translate();
+    }
+
+    @Override
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

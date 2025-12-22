@@ -1,7 +1,8 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.mixin.accessor.FishingBobberEntityAccessor;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
@@ -19,6 +20,7 @@ import java.util.List;
 
 public class FishingAction extends AbstractPlayerAction {
     private int timer = 0;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("fishing");
 
     public FishingAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
@@ -131,7 +133,7 @@ public class FishingAction extends AbstractPlayerAction {
     @Override
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.fishing", this.getFakePlayer().getDisplayName()));
+        list.add(this.getInfoLocalizationKey().translate(this.getFakePlayer().getDisplayName()));
         return list;
     }
 
@@ -141,8 +143,8 @@ public class FishingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.fishing");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

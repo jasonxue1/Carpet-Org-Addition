@@ -1,9 +1,12 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -16,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RenameAction extends AbstractPlayerAction {
-    public static final String ITEM = "item";
-    public static final String NEW_NAME = "new_name";
     /**
      * 要进行重命名的物品
      */
@@ -26,6 +27,9 @@ public class RenameAction extends AbstractPlayerAction {
      * 物品的新名称
      */
     private final String newName;
+    public static final String ITEM = "item";
+    public static final String NEW_NAME = "new_name";
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("rename");
 
     public RenameAction(EntityPlayerMPFake fakePlayer, Item item, String newName) {
         super(fakePlayer);
@@ -38,9 +42,10 @@ public class RenameAction extends AbstractPlayerAction {
         // 如果假玩家对铁砧持续按住右键，就会一直打开新的铁砧界面，同时旧的铁砧界面会自动关闭，关闭旧的铁砧界面时，铁砧内的物品会回到玩家物品栏
         if (getFakePlayer().containerMenu instanceof AnvilMenu anvilScreenHandler) {
             // 如果假玩家没有足够的经验，直接介绍方法，创造玩家给物品重命名不需要消耗经验
+            CommandSourceStack source = getFakePlayer().createCommandSourceStack();
+            // TODO 改为自动暂停，且消息在服务器重启前只显示一次
             if (getFakePlayer().experienceLevel < 1 && !getFakePlayer().isCreative()) {
-                FakePlayerUtils.stopAction(getFakePlayer().createCommandSourceStack(), getFakePlayer(),
-                        "carpet.commands.playerAction.rename.not_experience");
+                FakePlayerUtils.stopAction(source, getFakePlayer(), KEY.then("error", "not_experience").translate());
                 return;
             }
             Slot oneSlot = anvilScreenHandler.getSlot(0);
@@ -98,8 +103,7 @@ public class RenameAction extends AbstractPlayerAction {
                     FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 2, getFakePlayer());
                 } else {
                     // 如果不能取出，可能玩家已经没有经验，停止重命名
-                    FakePlayerUtils.stopAction(getFakePlayer().createCommandSourceStack(), getFakePlayer(),
-                            "carpet.commands.playerAction.rename");
+                    FakePlayerUtils.stopAction(source, getFakePlayer(), KEY.then("error").translate());
                 }
             }
         }
@@ -119,11 +123,10 @@ public class RenameAction extends AbstractPlayerAction {
         // 获取假玩家的显示名称
         Component playerName = getFakePlayer().getDisplayName();
         // 将假玩家要重命名的物品和物品新名称的信息添加到集合
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.item",
-                playerName, this.item.getDefaultInstance().getDisplayName(), newName));
+        LocalizationKey key = this.getInfoLocalizationKey();
+        list.add(key.translate(playerName, this.item.getDefaultInstance().getDisplayName(), newName));
         // 将假玩家剩余经验的信息添加到集合
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.xp",
-                getFakePlayer().experienceLevel));
+        list.add(key.then("xp").translate(getFakePlayer().experienceLevel));
         if (getFakePlayer().containerMenu instanceof AnvilMenu anvilScreenHandler) {
             // 将铁砧GUI上的物品信息添加到集合
             list.add(TextBuilder.combineAll("    ",
@@ -132,8 +135,8 @@ public class RenameAction extends AbstractPlayerAction {
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(2).getItem())));
         } else {
             // 将假玩家没有打开铁砧的信息添加到集合
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.rename.no_anvil",
-                    playerName, Items.ANVIL.getName()));
+            // TODO Items.ANVIL.getName()改为Blocks.ANVIL.getName()
+            list.add(key.then("no_anvil").translate(playerName, Items.ANVIL.getName()));
         }
         return list;
     }
@@ -147,8 +150,8 @@ public class RenameAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.rename");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

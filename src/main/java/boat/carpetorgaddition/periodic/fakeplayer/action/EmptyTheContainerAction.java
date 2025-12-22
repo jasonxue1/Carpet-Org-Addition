@@ -1,9 +1,10 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
@@ -18,6 +19,7 @@ import java.util.List;
 public class EmptyTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
     private final ItemStackPredicate predicate;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("clean");
 
     public EmptyTheContainerAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate) {
         super(fakePlayer);
@@ -59,15 +61,15 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     @Override
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
-        Component text = this.predicate.toText();
+        Component text = this.predicate.getDisplayName();
         Component playerName = this.getFakePlayer().getDisplayName();
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.clean.predicate", playerName, text));
+        list.add(this.getInfoLocalizationKey().translate(playerName, text));
         return list;
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.clean");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

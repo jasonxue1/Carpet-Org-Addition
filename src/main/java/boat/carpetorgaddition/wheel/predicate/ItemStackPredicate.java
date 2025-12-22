@@ -184,7 +184,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      * @return 如果是谓词，返回封装的字符串，如果是物品，返回物品名称
      * @throws IdentifierException 如果解析到了不正确的字符串
      */
-    public Component toText() throws IdentifierException {
+    public Component getDisplayName() throws IdentifierException {
         if (this.isEmpty()) {
             return Items.AIR.getName();
         }
@@ -251,7 +251,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         }
 
         @Override
-        public Component toText() throws IdentifierException {
+        public Component getDisplayName() throws IdentifierException {
             if (this.getInput().length() > 30) {
                 String substring = this.getInput().substring(0, 30);
                 Component ellipsis = TextBuilder.create("...");
@@ -262,7 +262,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 }
                 return new TextBuilder(result).setGrayItalic().setStringHover(joiner.toString()).build();
             }
-            return super.toText();
+            return super.getDisplayName();
         }
     }
 }

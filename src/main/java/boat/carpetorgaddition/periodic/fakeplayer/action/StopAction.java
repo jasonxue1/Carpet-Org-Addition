@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.command.PlayerActionCommand;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
@@ -9,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class StopAction extends AbstractPlayerAction {
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("stop");
+
     public StopAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
     }
@@ -22,7 +25,7 @@ public final class StopAction extends AbstractPlayerAction {
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
         // 直接将假玩家没有任何动作的信息加入集合然后返回
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.stop", this.getFakePlayer().getDisplayName()));
+        list.add(this.getInfoLocalizationKey().translate(this.getFakePlayer().getDisplayName()));
         return list;
     }
 
@@ -37,8 +40,8 @@ public final class StopAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.stop");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

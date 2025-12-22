@@ -39,11 +39,6 @@ public class LocalizationKey {
     }
 
     @Override
-    public String toString() {
-        return this.key;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
@@ -55,5 +50,10 @@ public class LocalizationKey {
     @Override
     public int hashCode() {
         return Objects.hashCode(this.key);
+    }
+
+    @Override
+    public String toString() {
+        return this.key;
     }
 }

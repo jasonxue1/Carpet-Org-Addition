@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
 import boat.carpetorgaddition.periodic.fakeplayer.action.StopAction;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
@@ -79,14 +80,11 @@ public class FakePlayerUtils {
      *
      * @param source     用来获取玩家管理器对象，然后通过玩家管理器发送消息，source本身不需要发送消息
      * @param fakePlayer 要停止操作的假玩家
-     * @param key        停止操作时在聊天栏输出的内容的翻译键
+     * @param message    停止操作时在聊天栏输出的内容
      */
-    public static void stopAction(CommandSourceStack source, EntityPlayerMPFake fakePlayer, String key, Object... obj) {
+    public static void stopAction(CommandSourceStack source, EntityPlayerMPFake fakePlayer, Component message) {
         FetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
-        MessageUtils.broadcastMessage(
-                source.getServer(),
-                TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", TextBuilder.translate(key, obj))
-        );
+        MessageUtils.broadcastMessage(source.getServer(), TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", message));
     }
 
     /**
@@ -339,6 +337,6 @@ public class FakePlayerUtils {
      * @param playerMPFake 需要停止操作的假玩家
      */
     public static void stopCraftAction(CommandSourceStack source, EntityPlayerMPFake playerMPFake) {
-        stopAction(source, playerMPFake, "carpet.commands.playerAction.craft");
+        stopAction(source, playerMPFake, CraftingTableCraftAction.KEY.then("error").translate());
     }
 }

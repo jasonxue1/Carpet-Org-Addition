@@ -1,11 +1,13 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.mixin.accessor.MerchantScreenHandlerAccessor;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -29,8 +31,6 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 public class TradeAction extends AbstractPlayerAction {
-    public static final String INDEX = "index";
-    public static final String VOID_TRADE = "void_trade";
     /**
      * 交易GUI中左侧按钮的索引
      */
@@ -43,10 +43,13 @@ public class TradeAction extends AbstractPlayerAction {
      * 虚空交易的计时器
      */
     private final MutableInt timer = new MutableInt();
+    public static final String INDEX = "index";
+    public static final String VOID_TRADE = "void_trade";
     /**
      * 虚空交易等待时间，如果村民被卸载后立即交易，那么交易仍然会被锁定
      */
     public static final int TRADE_WAIT_TIME = 1;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("trade");
 
     public TradeAction(EntityPlayerMPFake fakePlayer, int index, boolean voidTrade) {
         super(fakePlayer);
@@ -84,8 +87,8 @@ public class TradeAction extends AbstractPlayerAction {
             }
             // 判断按钮索引是否越界
             if (merchantScreenHandler.getOffers().size() <= this.index) {
-                FakePlayerUtils.stopAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer(),
-                        "carpet.commands.playerAction.trade");
+                CommandSourceStack source = this.getFakePlayer().createCommandSourceStack();
+                FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
                 return;
             }
             // 尝试交易物品
@@ -127,7 +130,7 @@ public class TradeAction extends AbstractPlayerAction {
                         return;
                     }
                 } else {
-                    FakePlayerUtils.stopAction(source, this.getFakePlayer(), "carpet.commands.playerAction.trade");
+                    FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
                     return;
                 }
             } else {
@@ -266,7 +269,8 @@ public class TradeAction extends AbstractPlayerAction {
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
         // 获取按钮的索引
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.item", getFakePlayer().getDisplayName(), index + 1));
+        LocalizationKey key = this.getInfoLocalizationKey();
+        list.add(key.translate(getFakePlayer().getDisplayName(), index + 1));
         if (getFakePlayer().containerMenu instanceof MerchantMenu merchantScreenHandler) {
             // 获取当前交易内容的对象
             MerchantOffer tradeOffer = merchantScreenHandler.getOffers().get(index);
@@ -277,18 +281,18 @@ public class TradeAction extends AbstractPlayerAction {
                     FakePlayerUtils.getWithCountHoverText(tradeOffer.getResult())));
             // 如果当前交易已被锁定，将交易已锁定的消息添加到集合，然后直接结束方法并返回集合
             if (tradeOffer.isOutOfStock()) {
-                list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.disabled"));
+                list.add(key.then("disabled").translate());
                 return list;
             }
             // 将“交易状态”文本信息添加到集合中
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.state"));
+            list.add(key.then("state").translate());
             list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(0).getItem()), " ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(1).getItem()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(merchantScreenHandler.getSlot(2).getItem())));
         } else {
             // 将假玩家没有打开交易界面的消息添加到集合中
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.trade.no_villager", getFakePlayer().getDisplayName()));
+            list.add(key.then("no_villager").translate(getFakePlayer().getDisplayName()));
         }
         return list;
     }
@@ -302,8 +306,8 @@ public class TradeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.trade");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

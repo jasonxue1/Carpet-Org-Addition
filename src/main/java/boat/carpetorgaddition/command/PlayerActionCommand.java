@@ -13,7 +13,8 @@ import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.screen.CraftingSetRecipeScreenHandler;
 import boat.carpetorgaddition.wheel.screen.StonecutterSetRecipeScreenHandler;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.CommandDispatcher;
@@ -41,6 +42,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -49,6 +51,7 @@ import java.util.function.Function;
 
 public class PlayerActionCommand extends AbstractServerCommand {
     private final CommandPermission AI_PERMISSION = PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS);
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("playerAction");
 
     public PlayerActionCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -126,7 +129,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                                 .executes(this::setGotoBlockPos)))
                                 .then(Commands.literal("entity")
                                         .then(Commands.argument("target", EntityArgument.entity())
-                                                .executes(this::setGotoEntity))))));
+                                                .executes(this::setGotoEntity))))
+                        .then(Commands.literal("raise")
+                                .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                                .executes(context -> this.raise(context, null))
+                                .then(Commands.argument("message", StringArgumentType.string())
+                                        .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))));
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> node) {
@@ -319,7 +327,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         SimpleMenuProvider screen = new SimpleMenuProvider((i, inventory, _) -> {
             ContainerLevelAccess screenHandlerContext = ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition());
             return new StonecutterSetRecipeScreenHandler(i, inventory, screenHandlerContext, fakePlayer);
-        }, TextBuilder.translate("carpet.commands.playerAction.info.stonecutter.gui"));
+        }, StonecuttingAction.KEY.then("gui").translate());
         player.openMenu(screen);
         return 1;
     }
@@ -364,7 +372,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
             actionManager.setAction(action);
             Optional<ServerPlayer> optional = CommandUtils.getSourcePlayerNullable(context);
             if (optional.isPresent()) {
-                Component translate = TextBuilder.translate("carpet.commands.playerAction.bedrock.share");
+                Component translate = BedrockAction.KEY.then("share").translate();
                 MessageUtils.sendMessageToHud(optional.get(), translate);
             }
             return 1;
@@ -434,9 +442,20 @@ public class PlayerActionCommand extends AbstractServerCommand {
         SimpleMenuProvider screen = new SimpleMenuProvider((i, playerInventory, _)
                 -> new CraftingSetRecipeScreenHandler(i, playerInventory, fakePlayer,
                 ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition())),
-                TextBuilder.translate("carpet.commands.playerAction.info.craft.gui"));
+                CraftingTableCraftAction.KEY.then("gui").translate());
         player.openMenu(screen);
         return 1;
+    }
+
+    // 调试：设置动作抛出异常
+    private int raise(CommandContext<CommandSourceStack> context, @Nullable String message) throws CommandSyntaxException {
+        if (CarpetOrgAddition.isDebugDevelopment()) {
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            actionManager.setDebugExceptionMessage(message == null ? "Manually triggered debug exception" : message);
+            return 1;
+        }
+        return 0;
     }
 
     @Override

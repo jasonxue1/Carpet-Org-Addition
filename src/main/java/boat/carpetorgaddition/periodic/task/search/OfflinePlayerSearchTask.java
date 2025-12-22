@@ -406,7 +406,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 发送命令反馈
     private void sendFeedback() {
         if (this.results.isEmpty()) {
-            MessageUtils.sendMessage(this.source, KEY.then("not_found").translate(this.predicate.toText()));
+            MessageUtils.sendMessage(this.source, KEY.then("not_found").translate(this.predicate.getDisplayName()));
             return;
         }
         int resultCount = this.results.size();
@@ -426,7 +426,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 获取首条反馈消息
      */
     private Component getFirstFeedback(Component numberOfPeople, Component itemCount) {
-        return KEY.translate(numberOfPeople, itemCount, this.predicate.toText());
+        return KEY.translate(numberOfPeople, itemCount, this.predicate.getDisplayName());
     }
 
     /**

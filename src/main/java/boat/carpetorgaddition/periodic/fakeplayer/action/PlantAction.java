@@ -1,11 +1,12 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.common.collect.Lists;
@@ -38,6 +39,7 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private BlockPos cropPos;
     private PlayerStorageInventory inventory;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("plant");
 
     public PlantAction(EntityPlayerMPFake fakePlayer) {
         super(fakePlayer);
@@ -301,7 +303,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     public List<Component> info() {
-        return Lists.newArrayList(TextBuilder.translate("carpet.commands.playerAction.info.farm", this.getFakePlayer().getDisplayName()));
+        return Lists.newArrayList(this.getInfoLocalizationKey().translate(this.getFakePlayer().getDisplayName()));
     }
 
     @Override
@@ -310,8 +312,8 @@ public class PlantAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.farm");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

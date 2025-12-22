@@ -1,10 +1,11 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPos;
@@ -28,6 +29,7 @@ public class GotoAction extends AbstractPlayerAction {
     private final TargetType targetType;
     private final Component displayName;
     private final Supplier<Optional<BlockPos>> target;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("goto");
 
     public GotoAction(@NotNull EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
         super(fakePlayer);
@@ -68,8 +70,7 @@ public class GotoAction extends AbstractPlayerAction {
     @Override
     public List<Component> info() {
         Component name = this.getFakePlayer().getDisplayName();
-        String key = this.targetType.getTranslateKey();
-        Component text = TextBuilder.translate(key, name, displayName);
+        Component text = this.getInfoLocalizationKey().then(this.targetType.getKey()).translate(name, this.displayName);
         ArrayList<Component> list = new ArrayList<>();
         list.add(text);
         return list;
@@ -82,8 +83,8 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.goto");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override
@@ -103,17 +104,17 @@ public class GotoAction extends AbstractPlayerAction {
     }
 
     public enum TargetType {
-        BLOCK("carpet.commands.playerAction.info.goto.block"),
-        ENTITY("carpet.commands.playerAction.info.goto.entity");
+        BLOCK("block"),
+        ENTITY("entity");
 
-        private final String translateKey;
+        private final String key;
 
         TargetType(String key) {
-            this.translateKey = key;
+            this.key = key;
         }
 
-        private String getTranslateKey() {
-            return this.translateKey;
+        private String getKey() {
+            return this.key;
         }
     }
 

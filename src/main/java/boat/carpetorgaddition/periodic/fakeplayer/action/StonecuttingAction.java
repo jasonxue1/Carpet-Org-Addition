@@ -1,14 +1,17 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
@@ -27,8 +30,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class StonecuttingAction extends AbstractPlayerAction {
-    public static final String ITEM = "item";
-    public static final String BUTTON = "button";
     /**
      * 要使用切石机切制的物品
      */
@@ -37,6 +38,9 @@ public class StonecuttingAction extends AbstractPlayerAction {
      * 切石机内按钮的索引
      */
     private final int button;
+    public static final String ITEM = "item";
+    public static final String BUTTON = "button";
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("stonecutting");
 
     public StonecuttingAction(EntityPlayerMPFake fakePlayer, Item item, int button) {
         super(fakePlayer);
@@ -112,7 +116,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 否则，认为前面的操作有误，停止合成，结束方法
-                    FakePlayerUtils.stopAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer(), "carpet.commands.playerAction.stone_cutting");
+                    CommandSourceStack source = this.getFakePlayer().createCommandSourceStack();
+                    FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
                     return;
                 }
             }
@@ -176,21 +181,24 @@ public class StonecuttingAction extends AbstractPlayerAction {
             itemName = outputItemStack.getDisplayName();
         }
         ArrayList<Component> list = new ArrayList<>();
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.item",
-                this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName(),
-                this.item.getDefaultInstance().getDisplayName(), itemName));
+        LocalizationKey key = this.getInfoLocalizationKey();
+        list.add(key.translate(
+                        this.getFakePlayer().getDisplayName(),
+                        Items.STONECUTTER.getName(),
+                        this.item.getDefaultInstance().getDisplayName(),
+                        itemName
+                )
+        );
         if (getFakePlayer().containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
             // 将按钮索引的信息添加到集合，按钮在之前减去了1，这里再加回来
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.button",
-                    (this.button + 1)));
+            list.add(key.then("button").translate(this.button + 1));
             // 将切石机当前的状态的信息添加到集合
             list.add(TextBuilder.combineAll("    ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(0).getItem()), " -> ",
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getItem())));
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
-            list.add(TextBuilder.translate("carpet.commands.playerAction.info.stonecutting.no_stonecutting",
-                    this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName()));
+            list.add(key.then("no_stonecutter").translate(this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName()));
         }
         return list;
     }
@@ -219,8 +227,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.stonecutting");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

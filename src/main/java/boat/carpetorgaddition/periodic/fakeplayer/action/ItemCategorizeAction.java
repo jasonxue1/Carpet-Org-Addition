@@ -1,9 +1,11 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
+import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonArray;
@@ -33,6 +35,7 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
      * 如果当前物品不是要分拣的物品，则将该物品向这个方向丢出
      */
     private final Vec3 otherVec;
+    public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("sorting");
 
     public ItemCategorizeAction(EntityPlayerMPFake fakePlayer, ItemStackPredicate predicate, Vec3 thisVec, Vec3 otherVec) {
         super(fakePlayer);
@@ -110,19 +113,20 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     public List<Component> info() {
         ArrayList<Component> list = new ArrayList<>();
         // 获取要分拣的物品名称
-        Component itemName = this.predicate.toText();
+        Component itemName = this.predicate.getDisplayName();
         // 获取假玩家的显示名称
         Component fakeName = this.getFakePlayer().getDisplayName();
         // 将假玩家正在分拣物品的消息添加到集合中
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.predicate", fakeName, itemName));
+        LocalizationKey key = this.getInfoLocalizationKey();
+        list.add(key.translate(fakeName, itemName));
         // 获取分拣物品要丢出的方向
         Component thisPos = posText(this.thisVec.x(), this.thisVec.y(), this.thisVec.z());
         // 获取非分拣物品要丢出的方向
         Component otherPos = posText(this.otherVec.x(), this.otherVec.y(), this.otherVec.z());
         // 将丢要分拣物品的方向的信息添加到集合
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.this", itemName, thisPos));
+        list.add(key.then("this").translate(itemName, thisPos));
         // 将丢其他物品的方向的信息添加到集合
-        list.add(TextBuilder.translate("carpet.commands.playerAction.info.sorting.other", otherPos));
+        list.add(key.then("other").translate(otherPos));
         return list;
     }
 
@@ -151,8 +155,8 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     }
 
     @Override
-    public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.sorting");
+    public LocalizationKey getLocalizationKey() {
+        return KEY;
     }
 
     @Override

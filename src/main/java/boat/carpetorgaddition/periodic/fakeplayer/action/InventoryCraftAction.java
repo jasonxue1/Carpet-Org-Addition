@@ -7,7 +7,8 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -145,11 +146,12 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = CraftingTableCraftAction.getCraftOutput(this.predicates, 2, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Component itemText = craftOutput.isEmpty() ? TextBuilder.translate("carpet.command.item.item") : craftOutput.getItem().getName();
-        joiner.append("carpet.commands.playerAction.info.craft.result", name, itemText);
+        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.OPERATION.then("item").translate() : craftOutput.getItem().getName();
+        LocalizationKey key = this.getInfoLocalizationKey();
+        joiner.append(key.translate(name, itemText));
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-        joiner.append("carpet.commands.playerAction.info.craft.state", name);
+        joiner.append(key.then("state").translate(name));
         // 获取玩家的生存模式物品栏对象
         InventoryMenu playerScreenHandler = this.getFakePlayer().inventoryMenu;
         // 将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
@@ -201,7 +203,12 @@ public class InventoryCraftAction extends AbstractPlayerAction {
 
     @Override
     public Component getDisplayName() {
-        return TextBuilder.translate("carpet.commands.playerAction.action.inventory_craft");
+        return this.getLocalizationKey().then("inventory").translate();
+    }
+
+    @Override
+    protected LocalizationKey getLocalizationKey() {
+        return CraftingTableCraftAction.KEY;
     }
 
     @Override
