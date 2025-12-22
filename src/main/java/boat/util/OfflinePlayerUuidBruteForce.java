@@ -64,7 +64,7 @@ public class OfflinePlayerUuidBruteForce implements Iterator<String> {
         }
     }
 
-    public static void main(String[] args) {
+    static void main() {
         ArrayList<Character> characters = new ArrayList<>();
         for (char c = '0'; c <= '9'; c++) {
             characters.add(c);

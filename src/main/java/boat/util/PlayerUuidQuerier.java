@@ -34,7 +34,7 @@ public class PlayerUuidQuerier {
         this.sum = this.players.size();
     }
 
-    public static void main(String[] args) throws IOException {
+    static void main() throws IOException {
         File input = new File("lib/queryplayeruuid/players.txt");
         File output = new File("lib/queryplayeruuid/result.txt");
         PlayerUuidQuerier querier = new PlayerUuidQuerier(input, output);

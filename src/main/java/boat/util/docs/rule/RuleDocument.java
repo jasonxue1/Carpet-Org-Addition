@@ -19,7 +19,7 @@ public class RuleDocument {
     private final Set<RuleContext<?>> rules;
     private final JsonObject json;
 
-    public static void main(String[] args) throws IOException {
+    void main() throws IOException {
         // 生成文档前备份旧的文件
         String time = DateTimeFormatter.ofPattern("yyMMddHHmmss").format(LocalDateTime.now());
         FileInputStream fileInputStream = new FileInputStream("docs/rules.md");
@@ -36,7 +36,7 @@ public class RuleDocument {
         writer.close();
     }
 
-    private void write(BufferedWriter writer) throws IOException {
+    void write(BufferedWriter writer) throws IOException {
         List<RuleInformation> list = this.rules.stream()
                 .filter(context -> !context.isHidden())
                 .filter(context -> !context.isRemove())
@@ -48,7 +48,7 @@ public class RuleDocument {
         }
     }
 
-    /*package-private*/ RuleDocument() throws FileNotFoundException {
+    RuleDocument() throws FileNotFoundException {
         BufferedReader reader = new BufferedReader(new FileReader("src/main/resources/assets/carpet-org-addition/lang/zh_cn.json"));
         Gson gson = new Gson();
         this.json = gson.fromJson(reader, JsonObject.class);
@@ -63,17 +63,17 @@ public class RuleDocument {
     }
 
     // 读取规则名称
-    private String readRuleName(String rule) {
+    String readRuleName(String rule) {
         return json.get("carpet.rule." + rule + ".name").getAsString();
     }
 
     // 读取规则描述
-    private String readRuleDesc(String rule) {
+    String readRuleDesc(String rule) {
         return json.get("carpet.rule." + rule + ".desc").getAsString();
     }
 
     // 读取规则扩展描述
-    private String[] readRuleExtra(String rule) {
+    String[] readRuleExtra(String rule) {
         int number = 0;
         ArrayList<String> list = new ArrayList<>();
         while (true) {
