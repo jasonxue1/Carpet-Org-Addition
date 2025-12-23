@@ -8,7 +8,8 @@ import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -33,8 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-//路径点管理器
+// 路径点管理器
 public class LocationsCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("locations");
+
     public LocationsCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
@@ -96,7 +99,7 @@ public class LocationsCommand extends AbstractServerCommand {
         // 获取路径点名称和位置对象
         String name = StringArgumentType.getString(context, "name");
         if (IOUtils.isValidFileName(name)) {
-            throw CommandUtils.createException("carpet.command.file.name.valid");
+            throw CommandUtils.createException(LocalizationKeys.File.INVALID_NAME.translate());
         }
         if (blockPos == null) {
             blockPos = player.blockPosition();
@@ -104,9 +107,10 @@ public class LocationsCommand extends AbstractServerCommand {
         // 获取服务器对象
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
+        LocalizationKey key = KEY.then("add");
         // 检查文件是否已存在
         if (worldFormat.file(name + IOUtils.JSON_EXTENSION).exists()) {
-            throw CommandUtils.createException("carpet.commands.locations.add.fail.already_exists", name);
+            throw CommandUtils.createException(key.then("fail").translate(name));
         }
         // 创建一个路径点对象
         Waypoint waypoint = new Waypoint(blockPos, name, player);
@@ -114,9 +118,9 @@ public class LocationsCommand extends AbstractServerCommand {
             // 将路径点写入本地文件
             waypoint.save();
             // 成功添加路径点
-            MessageUtils.sendMessage(context.getSource(), "carpet.commands.locations.add.success", name, WorldUtils.toPosString(blockPos));
+            MessageUtils.sendMessage(context.getSource(), key.then("success").translate(name, WorldUtils.toPosString(blockPos)));
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("{}在尝试将路径点写入本地文件时出现意外问题:", FetcherUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.error("{} encountered an unexpected issue while attempting to write waypoints to the local file: ", FetcherUtils.getPlayerName(player), e);
         }
         return 1;
     }
@@ -126,8 +130,9 @@ public class LocationsCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.toImmutableFileList();
+        LocalizationKey key = KEY.then("list", "empty");
         if (list.isEmpty()) {
-            MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
+            MessageUtils.sendMessage(context, key.translate());
             return 0;
         }
         PageManager pageManager = FetcherUtils.getPageManager(server);
@@ -147,12 +152,13 @@ public class LocationsCommand extends AbstractServerCommand {
                 messages.add(waypoint::line);
                 count++;
             } catch (IOException | NullPointerException e) {
-                //无法解析坐标
+                // TODO 捕获RuntimeException
+                // 无法解析坐标
                 CarpetOrgAddition.LOGGER.warn("Failed to parse waypoint [{}]", IOUtils.removeExtension(name), e);
             }
         }
         if (messages.isEmpty()) {
-            MessageUtils.sendMessage(context, "carpet.commands.locations.list.no_waypoint");
+            MessageUtils.sendMessage(context, key.translate());
             return 0;
         }
         collection.addContent(messages);
@@ -167,6 +173,7 @@ public class LocationsCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         // 获取路径点的名称
         String name = StringArgumentType.getString(context, "name");
+        LocalizationKey key = KEY.then("comment");
         try {
             // 从本地文件中读取路径点对象
             Waypoint waypoint = Waypoint.load(server, name);
@@ -180,15 +187,15 @@ public class LocationsCommand extends AbstractServerCommand {
             waypoint.save();
             if (remove) {
                 // 移除路径点的说明文本
-                MessageUtils.sendMessage(source, "carpet.commands.locations.comment.remove", name);
+                MessageUtils.sendMessage(source, key.then("remove").translate(name));
             } else {
                 // 为路径点添加说明文本
-                MessageUtils.sendMessage(source, "carpet.commands.locations.comment.add", comment, name);
+                MessageUtils.sendMessage(source, key.then("add").translate(comment, name));
             }
         } catch (IOException | NullPointerException e) {
             //无法添加说明文本
-            CarpetOrgAddition.LOGGER.error("无法为路径点[{}]添加说明文本", name, e);
-            throw CommandUtils.createException("carpet.commands.locations.comment.io", name);
+            CarpetOrgAddition.LOGGER.error("Failed to add description text for waypoint [{}]", name, e);
+            throw CommandUtils.createException(key.then("add", "error").translate(name));
         }
         return 1;
     }
@@ -204,6 +211,7 @@ public class LocationsCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         // 路径点的名称
         String name = StringArgumentType.getString(context, "name");
+        LocalizationKey key = KEY.then("another", "add");
         try {
             // 从文件中读取路径点对象
             Waypoint waypoint = Waypoint.load(server, name);
@@ -211,15 +219,15 @@ public class LocationsCommand extends AbstractServerCommand {
                 waypoint.setAnotherBlockPos(blockPos);
             } else {
                 // 不能为末地添加对向坐标
-                throw CommandUtils.createException("carpet.commands.locations.another.add.fail");
+                throw CommandUtils.createException(key.then("fail").translate());
             }
             // 将修改后的路径点重新写入本地文件
             waypoint.save();
-            //添加对向坐标
-            MessageUtils.sendMessage(source, "carpet.commands.locations.another.add");
+            // 添加对向坐标
+            MessageUtils.sendMessage(source, key.translate());
         } catch (IOException | NullPointerException e) {
-            CarpetOrgAddition.LOGGER.error("无法解析路径点[{}]:", name, e);
-            throw CommandUtils.createException("carpet.commands.locations.another.io", name);
+            CarpetOrgAddition.LOGGER.error("Failed to parse waypoint [{}]", name, e);
+            throw CommandUtils.createException(key.then("error").translate(name));
         }
         return 1;
     }
@@ -233,13 +241,14 @@ public class LocationsCommand extends AbstractServerCommand {
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
         // 获取路径点文件的对象
         File file = worldFormat.file(name + IOUtils.JSON_EXTENSION);
-        //从本地文件删除路径点
+        LocalizationKey key = KEY.then("remove");
+        // 从本地文件删除路径点
         if (file.delete()) {
             // 成功删除
-            MessageUtils.sendMessage(source, "carpet.commands.locations.remove.success", name);
+            MessageUtils.sendMessage(source, key.then("success").translate(name));
         } else {
             // 删除失败
-            throw CommandUtils.createException("carpet.commands.locations.remove.fail", name);
+            throw CommandUtils.createException(key.then("fail").translate(name));
         }
         return 1;
     }
@@ -252,42 +261,49 @@ public class LocationsCommand extends AbstractServerCommand {
             blockPos = player.blockPosition();
         }
         String fileName = StringArgumentType.getString(context, "name");
+        LocalizationKey key = KEY.then("modify");
         try {
             Waypoint waypoint = Waypoint.load(context.getSource().getServer(), fileName);
             waypoint.setBlockPos(blockPos);
             // 将修改完坐标的路径点对象重新写入本地文件
             waypoint.save();
-            //发送命令执行后的反馈
-            MessageUtils.sendMessage(source, "carpet.commands.locations.set", fileName);
+            // 发送命令执行后的反馈
+            MessageUtils.sendMessage(source, key.translate(fileName));
         } catch (IOException | NullPointerException e) {
-            throw CommandUtils.createException("carpet.commands.locations.set.io", fileName);
+            throw CommandUtils.createException(key.then("error").translate(fileName));
         }
         return 1;
     }
 
-    //发送自己的位置
+    // 发送自己的位置
     private int sendSelfLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.blockPosition();
         Level world = FetcherUtils.getWorld(player);
+        LocalizationKey key = KEY.then("here");
         Component text = switch (WorldUtils.getDimensionId(world)) {
-            case WorldUtils.OVERWORLD -> TextBuilder.translate("carpet.commands.locations.here.overworld",
+            case WorldUtils.OVERWORLD -> key.then("cross").translate(
                     player.getDisplayName(),
+                    LocalizationKeys.Dimension.OVERWORLD.translate(),
                     TextProvider.blockPos(blockPos, ChatFormatting.GREEN),
                     TextProvider.blockPos(MathUtils.getTheNetherPos(player), ChatFormatting.RED)
             );
-            case WorldUtils.THE_NETHER -> TextBuilder.translate("carpet.commands.locations.here.the_nether",
-                    player.getDisplayName(), TextProvider.blockPos(blockPos, ChatFormatting.RED),
+            case WorldUtils.THE_NETHER -> key.then("cross").translate(
+                    player.getDisplayName(),
+                    LocalizationKeys.Dimension.THE_NETHER.translate(),
+                    TextProvider.blockPos(blockPos, ChatFormatting.RED),
                     TextProvider.blockPos(MathUtils.getOverworldPos(player), ChatFormatting.GREEN)
             );
-            case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.here.the_end",
+            case WorldUtils.THE_END -> key.translate(
                     player.getDisplayName(),
+                    LocalizationKeys.Dimension.THE_END.translate(),
                     TextProvider.blockPos(blockPos, ChatFormatting.DARK_PURPLE)
             );
-            default -> TextBuilder.translate("carpet.commands.locations.here.default",
+            default -> key.translate(
                     player.getDisplayName(),
                     WorldUtils.getDimensionId(world),
-                    TextProvider.blockPos(blockPos, null));
+                    TextProvider.blockPos(blockPos, null)
+            );
         };
         MessageUtils.broadcastMessage(context.getSource().getServer(), text);
         return 1;

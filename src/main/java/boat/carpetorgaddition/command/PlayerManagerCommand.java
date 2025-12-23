@@ -648,7 +648,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 玩家数据是否已存在
         String name = FetcherUtils.getPlayerName(fakePlayer);
         if (IOUtils.isValidFileName(name)) {
-            throw CommandUtils.createException(LocalizationKeys.Operation.FILE.then("invalid_name").translate());
+            throw CommandUtils.createException(LocalizationKeys.File.INVALID_NAME.translate());
         }
         Optional<FakePlayerSerializer> optional = manager.get(name);
         LocalizationKey key = KEY.then("save");

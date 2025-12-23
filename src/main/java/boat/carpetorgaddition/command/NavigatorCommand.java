@@ -109,7 +109,8 @@ public class NavigatorCommand extends AbstractServerCommand {
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(waypoint);
             MessageUtils.sendMessage(context, START_NAVIGATION, player.getDisplayName(), "[" + waypointArgument + "]");
         } catch (IOException | NullPointerException e) {
-            throw CommandUtils.createException("carpet.commands.locations.list.parse", waypointArgument);
+            // TODO 异常类型
+            throw CommandUtils.createException(LocationsCommand.KEY.then("list", "unable_to_parse").translate(waypointArgument));
         }
         return 1;
     }

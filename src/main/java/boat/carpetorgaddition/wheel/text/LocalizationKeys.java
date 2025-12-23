@@ -10,10 +10,10 @@ public class LocalizationKeys {
     private static final LocalizationKey BUTTON = LocalizationKey.of("button");
     private static final LocalizationKey DIMENSION = LocalizationKey.of("dimension");
     private static final LocalizationKey LITERAL = LocalizationKey.of("literal");
+    public static final LocalizationKey FILE = LocalizationKey.of("file");
 
     public static class Operation {
         public static final LocalizationKey SELF = OPERATION.then("self");
-        public static final LocalizationKey FILE = OPERATION.then("file");
     }
 
     public static class Rule {
@@ -57,5 +57,9 @@ public class LocalizationKeys {
         public static final LocalizationKey OVERWORLD = DIMENSION.then("overworld");
         public static final LocalizationKey THE_NETHER = DIMENSION.then("the_nether");
         public static final LocalizationKey THE_END = DIMENSION.then("the_end");
+    }
+
+    public static class File {
+        public static final LocalizationKey INVALID_NAME = FILE.then("invalid_name");
     }
 }

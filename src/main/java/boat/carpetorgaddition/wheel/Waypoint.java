@@ -1,11 +1,14 @@
 package boat.carpetorgaddition.wheel;
 
+import boat.carpetorgaddition.command.LocationsCommand;
 import boat.carpetorgaddition.dataupdate.DataUpdater;
 import boat.carpetorgaddition.dataupdate.WaypointDataUpdater;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.WorldUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys.Dimension;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.google.gson.JsonObject;
 import net.minecraft.ChatFormatting;
@@ -20,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 public class Waypoint {
     public static final String WAYPOINT = "waypoint";
@@ -111,24 +115,39 @@ public class Waypoint {
 
     // 显示路径点
     public Component line() {
-        return switch (getWorldAsString()) {
-            case WorldUtils.OVERWORLD -> this.anotherBlockPos == null
-                    ? TextBuilder.translate("carpet.commands.locations.show.overworld",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN))
-                    : TextBuilder.translate("carpet.commands.locations.show.overworld_and_the_nether",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN),
-                    TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.RED));
-            case WorldUtils.THE_NETHER -> this.anotherBlockPos == null
-                    ? TextBuilder.translate("carpet.commands.locations.show.the_nether",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.RED))
-                    : TextBuilder.translate("carpet.commands.locations.show.the_nether_and_overworld",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.RED),
-                    TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.GREEN));
-            case WorldUtils.THE_END -> TextBuilder.translate("carpet.commands.locations.show.the_end",
-                    this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.DARK_PURPLE));
-            default -> TextBuilder.translate("carpet.commands.locations.show.custom_dimension",
-                    this.formatName(), getWorldAsString(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN));
-        };
+        LocalizationKey where = LocationsCommand.KEY.then("where");
+        String worldId = this.getWorldAsString();
+        if (this.anotherBlockPos == null) {
+            Map.Entry<Component, ChatFormatting> entry = switch (worldId) {
+                case WorldUtils.OVERWORLD -> Map.entry(Dimension.OVERWORLD.translate(), ChatFormatting.GREEN);
+                case WorldUtils.THE_NETHER -> Map.entry(Dimension.THE_NETHER.translate(), ChatFormatting.RED);
+                case WorldUtils.THE_END -> Map.entry(Dimension.THE_END.translate(), ChatFormatting.DARK_PURPLE);
+                default -> Map.entry(TextBuilder.create(worldId), ChatFormatting.GREEN);
+            };
+            return where.translate(this.formatName(), entry.getKey(), TextProvider.blockPos(this.blockPos, entry.getValue()));
+        } else {
+            LocalizationKey cross = where.then("cross");
+            return switch (worldId) {
+                case WorldUtils.OVERWORLD -> cross.translate(
+                        this.formatName(),
+                        Dimension.OVERWORLD.translate(),
+                        TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN),
+                        Dimension.THE_NETHER.translate(),
+                        TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.RED)
+                );
+                case WorldUtils.THE_NETHER -> cross.translate(
+                        this.formatName(),
+                        Dimension.THE_NETHER.translate(),
+                        TextProvider.blockPos(this.blockPos, ChatFormatting.RED),
+                        Dimension.OVERWORLD.translate(),
+                        TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.GREEN)
+                );
+                case WorldUtils.THE_END ->
+                        where.translate(this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.DARK_PURPLE));
+                default ->
+                        where.translate(this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN));
+            };
+        }
     }
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象
