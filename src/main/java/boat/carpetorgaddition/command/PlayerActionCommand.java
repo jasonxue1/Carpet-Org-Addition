@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class PlayerActionCommand extends AbstractServerCommand {
+    // TODO 非静态，是否与自定义命令名称冲突
     private final CommandPermission AI_PERMISSION = PermissionManager.registerHiddenCommand("playerAction.player.bedrock.ai", PermissionLevel.PASS);
     public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("playerAction");
 

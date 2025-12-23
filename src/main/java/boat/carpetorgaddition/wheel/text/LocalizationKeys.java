@@ -10,7 +10,8 @@ public class LocalizationKeys {
     private static final LocalizationKey BUTTON = LocalizationKey.of("button");
     private static final LocalizationKey DIMENSION = LocalizationKey.of("dimension");
     private static final LocalizationKey LITERAL = LocalizationKey.of("literal");
-    public static final LocalizationKey FILE = LocalizationKey.of("file");
+    private static final LocalizationKey FILE = LocalizationKey.of("file");
+    private static final LocalizationKey MISC = LocalizationKey.of("misc");
 
     public static class Operation {
         public static final LocalizationKey SELF = OPERATION.then("self");
@@ -61,5 +62,11 @@ public class LocalizationKeys {
 
     public static class File {
         public static final LocalizationKey INVALID_NAME = FILE.then("invalid_name");
+    }
+
+    public static class Misc {
+        public static final LocalizationKey OPERATOR = MISC.then("operator");
+        public static final LocalizationKey INVENTORY = MISC.then("inventory");
+        public static final LocalizationKey ENDER_CHEST = MISC.then("ender_chest");
     }
 }

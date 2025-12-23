@@ -39,7 +39,7 @@ public class CreeperCommand extends AbstractServerCommand {
         ServerPlayer sourcePlayer = source.getPlayer();
         if (sourcePlayer != null) {
             CarpetOrgAddition.LOGGER.info(
-                    "{}在{}周围制造了一场苦力怕爆炸",
+                    "{} triggered a creeper explosion around {}",
                     FetcherUtils.getPlayerName(sourcePlayer),
                     FetcherUtils.getPlayerName(targetPlayer)
             );

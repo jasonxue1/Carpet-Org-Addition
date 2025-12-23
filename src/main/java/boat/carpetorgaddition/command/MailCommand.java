@@ -14,7 +14,10 @@ import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.screen.ShipExpressScreenHandler;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -43,7 +46,16 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class MailCommand extends AbstractServerCommand {
-    public final Predicate<CommandSourceStack> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
+    private final Predicate<CommandSourceStack> intercept = PermissionManager.register("mail.intercept", PermissionLevel.OPS);
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("mail");
+    public static final LocalizationKey SEND = KEY.then("send");
+    public static final LocalizationKey COLLECT = KEY.then("collect");
+    public static final LocalizationKey RECALL = KEY.then("recall");
+    public static final LocalizationKey INTERCEPT = KEY.then("intercept");
+    public static final LocalizationKey NOTICE = KEY.then("notice");
+    public static final LocalizationKey ACTION = KEY.then("action");
+    public static final LocalizationKey VERSION = KEY.then("version");
+    public static final LocalizationKey LIST = KEY.then("list");
 
     public MailCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -53,9 +65,11 @@ public class MailCommand extends AbstractServerCommand {
     public void register(String name) {
         this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandMail))
+                // TODO 重命名为send
                 .then(Commands.literal("ship")
                         .then(Commands.argument(CommandUtils.PLAYER, GameProfileArgument.gameProfile())
                                 .executes(this::ship)))
+                // TODO 重命名为collect
                 .then(Commands.literal("receive")
                         .executes(this::receiveAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
@@ -63,6 +77,7 @@ public class MailCommand extends AbstractServerCommand {
                                 .executes(context -> receive(context, false))
                                 .then(Commands.argument("force", BoolArgumentType.bool())
                                         .executes(context -> receive(context, BoolArgumentType.getBool(context, "force"))))))
+                // TODO 重命名为recall
                 .then(Commands.literal("cancel")
                         .executes(this::cancelAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
@@ -70,6 +85,7 @@ public class MailCommand extends AbstractServerCommand {
                                 .executes(context -> cancel(context, false))
                                 .then(Commands.argument("force", BoolArgumentType.bool())
                                         .executes(context -> cancel(context, BoolArgumentType.getBool(context, "force"))))))
+                // TODO 快递可以同时接收，同时也可以拦截，可接收的物品不应该可以拦截
                 .then(Commands.literal("intercept")
                         .requires(intercept)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
@@ -152,9 +168,10 @@ public class MailCommand extends AbstractServerCommand {
             checkPlayer(sourcePlayer, optional.get());
         }
         SimpleContainer inventory = new SimpleContainer(27);
-        SimpleMenuProvider screen = new SimpleMenuProvider((i, inv, _)
-                -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
-                TextBuilder.translate("carpet.commands.mail.multiple.gui"));
+        SimpleMenuProvider screen = new SimpleMenuProvider(
+                (i, inv, _) -> new ShipExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
+                SEND.then("multiple", "gui").translate()
+        );
         sourcePlayer.openMenu(screen);
         return 1;
     }
@@ -175,9 +192,9 @@ public class MailCommand extends AbstractServerCommand {
                 }
                 return 1;
             }
-            throw CommandUtils.createException("carpet.commands.mail.receive.recipient");
+            throw CommandUtils.createException(COLLECT.then("not_myself").translate());
         } else {
-            Component action = TextBuilder.translate("carpet.commands.mail.action.receive");
+            Component action = ACTION.then("collect").translate();
             Component button = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), true));
             Component message = this.differentVersions(action, dataVersion, button);
             MessageUtils.sendMessage(context.getSource(), message);
@@ -189,6 +206,7 @@ public class MailCommand extends AbstractServerCommand {
     private int receiveAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         try {
+            // TODO 未检查是否已撤回
             return ServerComponentCoordinator.getCoordinator(context).getExpressManager().receiveAll(player);
         } catch (IOException e) {
             throw CommandExecuteIOException.of(e);
@@ -209,9 +227,9 @@ public class MailCommand extends AbstractServerCommand {
                 }
                 return 1;
             }
-            throw CommandUtils.createException("carpet.commands.mail.cancel.recipient");
+            throw CommandUtils.createException(RECALL.then("not_myself").translate());
         } else {
-            Component action = TextBuilder.translate("carpet.commands.mail.action.cancel");
+            Component action = ACTION.then("recall").translate();
             Component button = TextProvider.clickRun(CommandProvider.cancelExpress(express.getId(), true));
             Component message = this.differentVersions(action, dataVersion, button);
             MessageUtils.sendMessage(context.getSource(), message);
@@ -244,7 +262,7 @@ public class MailCommand extends AbstractServerCommand {
             }
             return express.getId();
         } else {
-            Component action = TextBuilder.translate("carpet.commands.mail.action.intercept");
+            Component action = ACTION.then("intercept").translate();
             Component button = TextProvider.clickRun(CommandProvider.interceptExpress(express.getId(), true));
             Component message = this.differentVersions(action, dataVersion, button);
             MessageUtils.sendMessage(context.getSource(), message);
@@ -253,14 +271,13 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     private Component differentVersions(Component action, int dataVersion, Component button) {
-        TextBuilder builder = dataVersion > GenericUtils.CURRENT_DATA_VERSION
-                ? TextBuilder.of("carpet.commands.mail.action.version.new")
-                : TextBuilder.of("carpet.commands.mail.action.version.old");
-        builder.setHover(TextBuilder.joinList(List.of(
-                TextBuilder.translate("carpet.commands.mail.action.version.expect", GenericUtils.CURRENT_DATA_VERSION),
-                TextBuilder.translate("carpet.commands.mail.action.version.actua", dataVersion)
-        )));
-        return TextBuilder.translate("carpet.commands.mail.action.version.fail", action, builder.build(), button, action);
+        Component component = VERSION.then(dataVersion > GenericUtils.CURRENT_DATA_VERSION ? "new" : "old").translate();
+        TextBuilder builder = new TextBuilder(component);
+        TextJoiner joiner = new TextJoiner();
+        joiner.append(VERSION.then("expect").translate(GenericUtils.CURRENT_DATA_VERSION));
+        joiner.append(VERSION.then("actual").translate(dataVersion));
+        builder.setHover(joiner.join());
+        return VERSION.then("fail").translate(action, builder.build(), button, action);
     }
 
     // 列出快递
@@ -271,7 +288,7 @@ public class MailCommand extends AbstractServerCommand {
         List<Express> list = manager.stream().toList();
         if (list.isEmpty()) {
             // 没有快递被列出
-            MessageUtils.sendMessage(context, "carpet.commands.mail.list.empty");
+            MessageUtils.sendMessage(context, LIST.then("empty").translate());
             return 0;
         }
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
@@ -290,39 +307,41 @@ public class MailCommand extends AbstractServerCommand {
         ArrayList<Component> list = new ArrayList<>();
         TextBuilder builder;
         if (express.isRecipient(player)) {
+            // TODO 改为[C] Collect
             builder = new TextBuilder("[R]");
             // 点击接收
             builder.setCommand(CommandProvider.receiveExpress(express.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
-            list.add(TextBuilder.translate("carpet.commands.mail.list.receive"));
+            list.add(LIST.then("collect").translate());
             list.add(TextBuilder.empty());
         } else if (express.isSender(player)) {
+            // TODO 改为[R] Recall
             builder = new TextBuilder("[C]");
             // 点击撤回
             builder.setCommand(CommandProvider.cancelExpress(express.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
-            list.add(TextBuilder.translate("carpet.commands.mail.list.sending"));
+            list.add(LIST.then("recall").translate());
             list.add(TextBuilder.empty());
         } else if (intercept.test(player.createCommandSourceStack())) {
             builder = new TextBuilder("[I]");
             // 点击拦截
             builder.setCommand(CommandProvider.interceptExpress(express.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
-            list.add(TextBuilder.translate("carpet.commands.mail.list.intercept"));
+            list.add(LIST.then("intercept").translate());
             list.add(TextBuilder.empty());
         } else {
             builder = new TextBuilder("[?]");
         }
-        list.add(TextBuilder.translate("carpet.commands.mail.list.id", express.getId()));
-        list.add(TextBuilder.translate("carpet.commands.mail.list.sender", express.getSender()));
-        list.add(TextBuilder.translate("carpet.commands.mail.list.recipient", express.getRecipient()));
-        list.add(TextBuilder.translate("carpet.commands.mail.list.item",
-                TextBuilder.translate(express.getExpress().getItem().getDescriptionId()), express.getExpress().getCount()));
-        list.add(TextBuilder.translate("carpet.commands.mail.list.time", express.getTime()));
+        list.add(LIST.then("id").translate(express.getId()));
+        list.add(LIST.then("sender").translate(express.getSender()));
+        list.add(LIST.then("recipient").translate(express.getRecipient()));
+        // TODO item.getDescriptionId()是否可以改为item.getName()
+        list.add(LIST.then("item").translate(TextBuilder.translate(express.getExpress().getItem().getDescriptionId()), express.getExpress().getCount()));
+        list.add(LIST.then("time").translate(express.getTime()));
         // 拼接字符串
         builder.setHover(TextBuilder.joinList(list));
-        return TextBuilder.translate(
-                "carpet.commands.mail.list.each",
+        // TODO 改为单号：%s，物品：%s，然后直接添加按钮
+        return LIST.then("each").translate(
                 express.getId(),
                 express.getExpress().getDisplayName(),
                 express.getSender(),
@@ -339,7 +358,7 @@ public class MailCommand extends AbstractServerCommand {
         // 查找指定单号的快递
         Optional<Express> optional = manager.binarySearch(id);
         if (optional.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.mail.receive.non_existent", id);
+            throw CommandUtils.createException(KEY.then("invalid_parcel").translate(id));
         }
         return optional.get();
     }
@@ -351,8 +370,12 @@ public class MailCommand extends AbstractServerCommand {
             return;
         }
         if (sourcePlayer == targetPlayer || targetPlayer instanceof EntityPlayerMPFake) {
-            throw CommandUtils.createException("carpet.commands.mail.check_player");
+            throw CommandUtils.createException(SEND.then("check_player").translate());
         }
+    }
+
+    public Predicate<CommandSourceStack> getInterceptPredicate() {
+        return this.intercept;
     }
 
     @Override

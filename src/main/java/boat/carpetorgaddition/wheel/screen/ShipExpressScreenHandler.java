@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.wheel.screen;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.MailCommand;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.express.Express;
 import boat.carpetorgaddition.periodic.express.ExpressManager;
@@ -11,8 +12,11 @@ import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.authlib.GameProfile;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -33,6 +37,8 @@ public class ShipExpressScreenHandler extends ChestMenu {
     private final MinecraftServer server;
     private final ServerPlayer sourcePlayer;
     private final GameProfile recipient;
+    private static final LocalizationKey SEND = MailCommand.SEND.then("multiple");
+    private static final LocalizationKey COLLECT = MailCommand.COLLECT.then("multiple");
 
     public ShipExpressScreenHandler(
             int syncId,
@@ -76,8 +82,9 @@ public class ShipExpressScreenHandler extends ChestMenu {
             try {
                 expressManager.putNoMessage(express);
             } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.error("批量发送物品时遇到意外错误", e);
-                MessageUtils.sendErrorMessage(this.sourcePlayer.createCommandSourceStack(), e, "carpet.commands.mail.multiple.error");
+                CarpetOrgAddition.LOGGER.error("Encountered an unexpected error while batch sending items", e);
+                CommandSourceStack source = this.sourcePlayer.createCommandSourceStack();
+                MessageUtils.sendErrorMessage(source, SEND.then("error").translate(), e);
                 return;
             }
         }
@@ -87,10 +94,9 @@ public class ShipExpressScreenHandler extends ChestMenu {
     // 发送命令反馈
     public void sendFeedback(AutoGrowInventory inventory) {
         ItemStack firstStack = inventory.getItem(0);
-        // 定义变量记录查找状态
-        // 如果为0，表示物品栏里只有一种物品，并且NBT也相同
-        // 如果为1，表示物品栏里只有一种物品，但是NBT不相同
-        // 如果为2，表示物品栏里有多种物品，不考虑NBT
+        // 如果为0，表示物品栏里只有一种物品，并且物品堆叠组件也相同
+        // 如果为1，表示物品栏里只有一种物品，但是物品堆叠组件不相同
+        // 如果为2，表示物品栏里有多种物品，不考虑物品堆叠组件
         int onlyOneKind = 0;
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack stack = inventory.getItem(i);
@@ -127,39 +133,39 @@ public class ShipExpressScreenHandler extends ChestMenu {
             }
             case 2 -> {
                 // 不显示物品堆叠组数，但鼠标悬停可以显示物品栏
-                Component itemText = TextBuilder.translate("carpet.command.item.item");
+                Component itemText = LocalizationKeys.Item.ITEM.translate();
                 yield new Object[]{playerName, count, TextProvider.inventory(itemText, inventory), command};
             }
             default -> throw new IllegalStateException();
         };
         // 向物品发送者发送消息
-        MessageUtils.sendMessage(this.sourcePlayer, "carpet.commands.mail.sending.multiple", args);
+        MessageUtils.sendMessage(this.sourcePlayer, SEND.translate(args));
         if (optional.isEmpty()) {
-            TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.offline_player");
+            TextBuilder builder = new TextBuilder(MailCommand.SEND.then("offline").translate());
             builder.setGrayItalic();
             MessageUtils.sendMessage(this.sourcePlayer, builder.build());
         } else {
             ServerPlayer player = optional.get();
             // 向物品接收者发送消息
-            MessageUtils.sendMessage(player, "carpet.commands.mail.receive.multiple",
+            MessageUtils.sendMessage(player, COLLECT.translate(
                     this.sourcePlayer.getDisplayName(), args[1], args[2],
                     TextProvider.clickRun(CommandProvider.receiveAllExpress())
-            );
+            ));
             Express.playXpOrbPickupSound(player);
             Express.checkRecipientPermission(this.sourcePlayer, player);
         }
         // 日志输出
         if (onlyOneKind == 2) {
-            CarpetOrgAddition.LOGGER.info("{}向{}发送了{}",
+            CarpetOrgAddition.LOGGER.info("{} sent {} to {}",
                     FetcherUtils.getPlayerName(this.sourcePlayer),
-                    this.recipient,
-                    new ImmutableInventory(inventory));
+                    new ImmutableInventory(inventory),
+                    this.recipient);
         } else {
-            CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}",
+            CarpetOrgAddition.LOGGER.info("{} sent {} {} to {}",
                     FetcherUtils.getPlayerName(this.sourcePlayer),
-                    this.recipient,
                     ((Component) args[1]).getString(),
-                    firstStack.getHoverName().getString());
+                    firstStack.getHoverName().getString(),
+                    this.recipient);
         }
     }
 }

@@ -99,7 +99,7 @@ public class CustomClickEvents {
             name = GameProfileCache.queryPlayerNameFromMojangApi(uuid);
         } catch (IOException e) {
             CommandSourceStack source = player.createCommandSourceStack();
-            MessageUtils.sendErrorMessage(source, e, key.then("fail").translate(displayUuid));
+            MessageUtils.sendErrorMessage(source, key.then("fail").translate(displayUuid), e);
             return;
         }
         GameProfileCache cache = GameProfileCache.getInstance();

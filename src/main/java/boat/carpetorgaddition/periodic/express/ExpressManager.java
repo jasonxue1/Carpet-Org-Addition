@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.express;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.MailCommand;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
@@ -8,6 +9,8 @@ import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -43,7 +46,7 @@ public class ExpressManager {
             try {
                 nbt = NbtIo.read(file.toPath());
             } catch (IOException e) {
-                CarpetOrgAddition.LOGGER.warn("从文件{}读取快递信息失败", file, e);
+                CarpetOrgAddition.LOGGER.warn("Failed to read cached data from file {}", file, e);
                 continue;
             }
             if (nbt == null) {
@@ -75,7 +78,7 @@ public class ExpressManager {
             messages.add(() -> {
                 Component clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), false));
                 ItemStack stack = express.getExpress();
-                return TextBuilder.translate("carpet.commands.mail.prompt_receive", stack.getCount(), stack.getDisplayName(), clickRun);
+                return MailCommand.KEY.then("prompt_collect").translate(stack.getCount(), stack.getDisplayName(), clickRun);
             });
         }
         PageManager pageManager = FetcherUtils.getPageManager(this.server);
@@ -130,8 +133,9 @@ public class ExpressManager {
                 .filter(express -> express.isRecipient(player))
                 .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
+        LocalizationKey key = MailCommand.COLLECT;
         if (list.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.mail.receive.all.non_existent");
+            throw CommandUtils.createException(key.then("no_parcels").translate());
         }
         // 总物品堆叠数
         int total = 0;
@@ -163,12 +167,12 @@ public class ExpressManager {
             receive += result;
         }
         if (receive == 0) {
-            MessageUtils.sendMessage(player, "carpet.commands.mail.receive.insufficient_capacity");
+            MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
         } else {
             if (receive == total) {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.success", total, TextProvider.ITEM);
+                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM.translate()));
             } else {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.receive.partial_reception", receive, total - receive);
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(receive, total - receive));
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
@@ -191,8 +195,9 @@ public class ExpressManager {
                 .filter(express -> express.isSender(player))
                 .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
+        LocalizationKey key = MailCommand.RECALL;
         if (list.isEmpty()) {
-            throw CommandUtils.createException("carpet.commands.mail.cancel.all.non_existent");
+            throw CommandUtils.createException(key.then("no_parcels").translate());
         }
         // 总物品堆叠数
         int total = 0;
@@ -215,16 +220,16 @@ public class ExpressManager {
             };
         }
         if (cancel == 0) {
-            MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.insufficient_capacity");
+            MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
         } else {
             if (cancel == total) {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", total, TextProvider.ITEM);
+                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM));
             } else {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.partial_reception", cancel, total - cancel);
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(cancel, total - cancel));
             }
             // 播放物品拾取音效
             Express.playItemPickupSound(player);
-            TextBuilder builder = TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName());
+            TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName()));
             builder.setGrayItalic();
             Component message = builder.build();
             for (String name : players) {
@@ -247,7 +252,7 @@ public class ExpressManager {
         for (Item item : counter) {
             list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));
         }
-        TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.notice", player.getDisplayName());
+        TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("collect").translate(player.getDisplayName()));
         builder.setGrayItalic();
         builder.setHover(TextBuilder.joinList(list));
         return builder.build();

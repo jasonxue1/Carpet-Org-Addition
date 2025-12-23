@@ -111,7 +111,7 @@ public class MessageUtils {
         MessageUtils.sendMessage(source, builder.build());
     }
 
-    public static void sendErrorMessage(CommandSourceStack source, Throwable e, Component message) {
+    public static void sendErrorMessage(CommandSourceStack source, Component message, Throwable e) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(message);
         builder.setColor(ChatFormatting.RED);

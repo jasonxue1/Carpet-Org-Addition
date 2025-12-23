@@ -11,6 +11,8 @@ import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -41,6 +43,7 @@ import java.util.function.Function;
 /**
  * 快递
  */
+// TODO 重命名为Parcel
 public class Express implements Comparable<Express> {
     private static final String NBT_DATA_VERSION = "NbtDataVersion";
     /**
@@ -100,7 +103,7 @@ public class Express implements Comparable<Express> {
         if (mainHandStack.isEmpty()) {
             ItemStack offHandStack = player.getOffhandItem();
             if (offHandStack.isEmpty()) {
-                throw CommandUtils.createException("carpet.commands.mail.structure");
+                throw CommandUtils.createException(MailCommand.SEND.then("prompt").translate());
             }
             return offHandStack.copyAndClear();
         } else {
@@ -122,20 +125,21 @@ public class Express implements Comparable<Express> {
         // 向快递发送者发送发出快递的消息
         Component cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
         Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), cancelText};
-        MessageUtils.sendMessage(senderPlayer, TextBuilder.translate("carpet.commands.mail.sending.sender", senderArray));
+        LocalizationKey key = MailCommand.SEND;
+        MessageUtils.sendMessage(senderPlayer, key.then("sender").translate(senderArray));
         // 向快递接受者发送发出快递的消息
         Component receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), receiveText};
         if (recipientPlayer == null) {
-            TextBuilder builder = TextBuilder.of("carpet.commands.mail.sending.offline_player");
+            TextBuilder builder = new TextBuilder(key.then("offline").translate());
             builder.setGrayItalic();
             MessageUtils.sendMessage(senderPlayer, builder.build());
         } else {
-            MessageUtils.sendMessage(recipientPlayer, TextBuilder.translate("carpet.commands.mail.sending.recipient", recipientArray));
+            MessageUtils.sendMessage(recipientPlayer, key.then("recipient").translate(recipientArray));
             // 在接收者位置播放音效
             playXpOrbPickupSound(recipientPlayer);
         }
-        CarpetOrgAddition.LOGGER.info("{}向{}发送了{}个{}", this.sender, this.recipient, this.express.getCount(), this.express.getHoverName().getString());
+        CarpetOrgAddition.LOGGER.info("{} sent {} {} to {}", this.sender, this.express.getCount(), this.express.getItem().getName().getString(), this.recipient);
     }
 
     /**
@@ -148,9 +152,10 @@ public class Express implements Comparable<Express> {
             CarpetOrgAddition.LOGGER.error("The player who received the package does not exist");
             return;
         }
+        LocalizationKey key = MailCommand.COLLECT;
         if (this.cancel) {
             // 快递已被撤回
-            MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.receive.cancel"));
+            MessageUtils.sendMessage(player, key.then("recalled").translate());
             return;
         }
         int count = this.express.getCount();
@@ -159,9 +164,7 @@ public class Express implements Comparable<Express> {
         switch (insertStack(player)) {
             case COMPLETE -> {
                 // 物品完全接收
-                MessageUtils.sendMessage(player,
-                        TextBuilder.translate("carpet.commands.mail.receive.success",
-                                count, copy.getDisplayName()));
+                MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
                 counter.add(copy.getItem(), count);
                 // 通知发送者物品已接收
                 Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
@@ -173,9 +176,7 @@ public class Express implements Comparable<Express> {
                 // 剩余的物品数量
                 int surplusCount = this.express.getCount();
                 // 物品部分放入物品栏
-                MessageUtils.sendMessage(player,
-                        TextBuilder.translate("carpet.commands.mail.receive.partial_reception",
-                                count - surplusCount, surplusCount));
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
                 Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
@@ -183,8 +184,7 @@ public class Express implements Comparable<Express> {
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
-            case FAIL ->
-                    MessageUtils.sendMessage(player, TextBuilder.translate("carpet.commands.mail.receive.insufficient_capacity"));
+            case FAIL -> MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
         }
     }
 
@@ -195,15 +195,16 @@ public class Express implements Comparable<Express> {
         PlayerList playerManager = this.server.getPlayerList();
         ServerPlayer player = playerManager.getPlayerByName(this.sender);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("The player who withdrew the package does not exist");
+            CarpetOrgAddition.LOGGER.error("The player who recall the package does not exist");
             return;
         }
         int count = this.express.getCount();
         ItemStack copy = this.express.copy();
         // 将快递内容放入物品栏
+        final LocalizationKey key = MailCommand.RECALL;
         switch (insertStack(player)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.success", count, copy.getDisplayName());
+                MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -211,16 +212,16 @@ public class Express implements Comparable<Express> {
                 // 剩余的物品数量
                 int surplusCount = this.express.getCount();
                 // 物品部分放入物品栏
-                MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.partial_reception", count - surplusCount, surplusCount);
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
             // 物品未能成功放入物品栏
-            case FAIL -> MessageUtils.sendMessage(player, "carpet.commands.mail.cancel.insufficient_capacity");
+            case FAIL -> MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Function<ServerPlayer, Component> message = _ -> TextBuilder.of("carpet.commands.mail.cancel.notice", player.getDisplayName()).setGrayItalic().build();
+        Function<ServerPlayer, Component> message = _ -> new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName())).setGrayItalic().build();
         this.sendMessageIfPlayerOnline(this.recipient, message);
         this.cancel = true;
     }
@@ -231,33 +232,35 @@ public class Express implements Comparable<Express> {
     public void intercept(ServerPlayer operator) throws IOException {
         int count = this.express.getCount();
         ItemStack copy = this.express.copy();
+        LocalizationKey key = MailCommand.INTERCEPT;
         switch (insertStack(operator)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.success", count, copy.getDisplayName());
+                MessageUtils.sendMessage(operator, key.then("success").translate(count, copy.getDisplayName()));
                 playItemPickupSound(operator);
             }
             case PART -> {
                 // 剩余的物品数量
                 int surplusCount = this.express.getCount();
-                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.partial_reception", count - surplusCount, surplusCount);
+                MessageUtils.sendMessage(operator, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 playItemPickupSound(operator);
             }
             case FAIL -> {
-                MessageUtils.sendMessage(operator, "carpet.commands.mail.intercept.insufficient_capacity");
+                MessageUtils.sendMessage(operator, key.then("insufficient_capacity").translate());
                 return;
             }
         }
         Component hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.express.getCount());
+        LocalizationKey noticeKey = MailCommand.NOTICE.then("intercept");
         sendMessageIfPlayerOnline(this.sender, player -> {
             Component text = getOperatorPlayerName(operator, player);
-            TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.sender", text, this.recipient);
+            TextBuilder builder = new TextBuilder(noticeKey.then("sender").translate(text, this.recipient));
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
         });
         sendMessageIfPlayerOnline(this.recipient, player -> {
             Component text = getOperatorPlayerName(operator, player);
-            TextBuilder builder = TextBuilder.of("carpet.commands.mail.intercept.notice.recipient", text, this.sender);
+            TextBuilder builder = new TextBuilder(noticeKey.then("recipient").translate(text, this.sender));
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
@@ -266,7 +269,7 @@ public class Express implements Comparable<Express> {
 
     private Component getOperatorPlayerName(ServerPlayer operator, ServerPlayer player) {
         MailCommand instance = CommandRegister.getCommandInstance(MailCommand.class);
-        return instance.intercept.test(player.createCommandSourceStack()) ? operator.getDisplayName() : TextBuilder.translate("carpet.generic.operator");
+        return instance.getInterceptPredicate().test(player.createCommandSourceStack()) ? operator.getDisplayName() : LocalizationKeys.Misc.OPERATOR.translate();
     }
 
     /**
@@ -367,7 +370,7 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 将消息设置为灰色斜体
-        Component message = TextBuilder.of("carpet.commands.mail.sending.permission").setGrayItalic().build();
+        Component message = new TextBuilder(MailCommand.SEND.then("permission").translate()).setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 
@@ -461,13 +464,14 @@ public class Express implements Comparable<Express> {
     }
 
     public Component getTime() {
-        return TextBuilder.translate("carpet.command.time.format",
+        return LocalizationKeys.Time.FORMAT.translate(
                 this.time.getYear(),
                 this.time.getMonthValue(),
                 this.time.getDayOfMonth(),
                 this.time.getHour(),
                 this.time.getMinute(),
-                this.time.getSecond());
+                this.time.getSecond()
+        );
     }
 
     public ItemStack getExpress() {

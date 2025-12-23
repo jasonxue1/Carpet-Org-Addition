@@ -29,10 +29,6 @@ public class TextProvider {
     }
 
     /**
-     * 物品
-     */
-    public static final Component ITEM = TextBuilder.translate("carpet.command.item.item");
-    /**
      * 单击复制到剪贴板
      *
      * @apiNote 玩家客户端中一定有这条消息，不需要回调
