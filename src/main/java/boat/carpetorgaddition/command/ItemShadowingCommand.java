@@ -32,6 +32,7 @@ public class ItemShadowingCommand extends AbstractServerCommand {
     private int itemShadowing(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取主副手上的物品
+        // TODO 其中一只手为空即可制作
         ItemStack main = player.getMainHandItem();
         ItemStack off = player.getOffhandItem();
         if (main.isEmpty()) {

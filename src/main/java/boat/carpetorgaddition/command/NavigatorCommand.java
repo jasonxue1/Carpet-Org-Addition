@@ -20,6 +20,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.UuidArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -68,7 +69,7 @@ public class NavigatorCommand extends AbstractServerCommand {
                 .then(Commands.literal("stop")
                         .executes(this::stopNavigate))
                 .then(Commands.literal("uuid")
-                        .then(Commands.argument("uuid", StringArgumentType.string())
+                        .then(Commands.argument("uuid", UuidArgument.uuid())
                                 .executes(this::navigateToEntityForUUID)))
                 .then(Commands.literal("blockPos")
                         .then(Commands.argument("blockPos", BlockPosArgument.blockPos())
@@ -118,13 +119,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     // 根据UUID获取实体并导航
     private int navigateToEntityForUUID(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        UUID uuid;
-        try {
-            // 解析UUID
-            uuid = UUID.fromString(StringArgumentType.getString(context, "uuid"));
-        } catch (IllegalArgumentException e) {
-            throw CommandUtils.createException("carpet.commands.navigate.parse_uuid_fail");
-        }
+        UUID uuid = UuidArgument.getUuid(context, "uuid");
         // 从服务器寻找这个UUID的实体
         MinecraftServer server = context.getSource().getServer();
         for (ServerLevel world : server.getAllLevels()) {
