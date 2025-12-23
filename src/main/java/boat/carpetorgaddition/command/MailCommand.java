@@ -37,6 +37,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -335,15 +336,15 @@ public class MailCommand extends AbstractServerCommand {
         list.add(LIST.then("id").translate(express.getId()));
         list.add(LIST.then("sender").translate(express.getSender()));
         list.add(LIST.then("recipient").translate(express.getRecipient()));
-        // TODO item.getDescriptionId()是否可以改为item.getName()
-        list.add(LIST.then("item").translate(TextBuilder.translate(express.getExpress().getItem().getDescriptionId()), express.getExpress().getCount()));
+        ItemStack itemStack = express.getExpress();
+        list.add(LIST.then("item").translate(itemStack.getItem().getName(), itemStack.getCount()));
         list.add(LIST.then("time").translate(express.getTime()));
         // 拼接字符串
         builder.setHover(TextBuilder.joinList(list));
         // TODO 改为单号：%s，物品：%s，然后直接添加按钮
         return LIST.then("each").translate(
                 express.getId(),
-                express.getExpress().getDisplayName(),
+                itemStack.getDisplayName(),
                 express.getSender(),
                 express.getRecipient(),
                 builder.build()
