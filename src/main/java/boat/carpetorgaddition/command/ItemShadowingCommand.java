@@ -4,7 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -17,6 +18,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 public class ItemShadowingCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("itemshadowing");
+
     public ItemShadowingCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
@@ -32,43 +35,43 @@ public class ItemShadowingCommand extends AbstractServerCommand {
     private int itemShadowing(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取主副手上的物品
-        // TODO 其中一只手为空即可制作
         ItemStack main = player.getMainHandItem();
         ItemStack off = player.getOffhandItem();
-        if (main.isEmpty()) {
-            // 主手不能为空
-            throw CommandUtils.createException("carpet.commands.itemshadowing.main_hand_is_empty");
-        } else if (off.isEmpty()) {
-            // 制作物品分身
-            player.setItemInHand(InteractionHand.OFF_HAND, main);
-            // 广播制作物品分身的消息
-            MessageUtils.broadcastMessage(
-                    context.getSource().getServer(),
-                    TextBuilder.translate("carpet.commands.itemshadowing.broadcast", player.getDisplayName(), main.getDisplayName())
-            );
-            // 将玩家制作物品分身的消息写入日志
-            Level world = FetcherUtils.getWorld(player);
-            if (InventoryUtils.isShulkerBoxItem(main)) {
-                // 获取潜影盒的物品栏
-                ImmutableInventory inventory = InventoryUtils.getInventory(main);
-                if (inventory.isEmpty()) {
-                    CarpetOrgAddition.LOGGER.info("{}制作了一个空[{}]的物品分身，在{}，坐标:[{}]",
-                            FetcherUtils.getPlayerName(player), main.getItem().getName().getString(),
-                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
-                } else {
-                    CarpetOrgAddition.LOGGER.info("{}制作了一个{}的物品分身，包含{}，在{}，坐标:[{}]",
-                            FetcherUtils.getPlayerName(player), main.getItem().getName().getString(), inventory,
-                            WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
-                }
-            } else {
-                CarpetOrgAddition.LOGGER.info("{}制作了一个[{}]的物品分身，在{}，坐标:[{}]",
-                        FetcherUtils.getPlayerName(player), main.getItem().getName().getString(),
+        // 两只手都持有物品，或两只手都不持有物品
+        if (main.isEmpty() == off.isEmpty()) {
+            throw CommandUtils.createException(KEY.then("fail").translate());
+        }
+        ItemStack itemStack = main.isEmpty() ? off : main;
+        // 制作物品分身
+        player.setItemInHand(main.isEmpty() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, itemStack);
+        // 广播制作物品分身的消息
+        MessageUtils.broadcastMessage(
+                context.getSource().getServer(),
+                KEY.then("broadcast").translate(player.getDisplayName(), itemStack.getDisplayName())
+        );
+        // 将玩家制作物品分身的消息写入日志
+        this.logItemShadowing(player, itemStack);
+        return 1;
+    }
+
+    private void logItemShadowing(ServerPlayer player, ItemStack itemStack) {
+        Level world = FetcherUtils.getWorld(player);
+        if (InventoryUtils.isShulkerBoxItem(itemStack)) {
+            // 获取潜影盒的物品栏
+            ImmutableInventory inventory = InventoryUtils.getInventory(itemStack);
+            if (inventory.isEmpty()) {
+                CarpetOrgAddition.LOGGER.info("{} created an empty [{}] item shadow at {} | Coordinates: [{}]",
+                        FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
                         WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
+            } else {
+                CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow containing {} at {} | Coordinates: [{}]",
+                        FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                        inventory, WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
             }
-            return 1;
         } else {
-            // 副手必须为空
-            throw CommandUtils.createException("carpet.commands.itemshadowing.off_hand_not_empty");
+            CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow at {} | Coordinates: [{}]",
+                    FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                    WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
         }
     }
 
