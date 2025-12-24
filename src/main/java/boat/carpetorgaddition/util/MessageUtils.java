@@ -35,7 +35,7 @@ public class MessageUtils {
     /**
      * 广播一条错误消息
      */
-    public static void broadcastErrorMessage(MinecraftServer server, Throwable e, Component component) {
+    public static void broadcastErrorMessage(MinecraftServer server, Component component, Throwable e) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
         builder.setStringHover(error);
@@ -91,13 +91,6 @@ public class MessageUtils {
         CarpetOrgAddition.LOGGER.info("[{} <- {}] {}", name, CarpetOrgAddition.MOD_NAME, message);
     }
 
-    /**
-     * 发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
-     */
-    public static void sendErrorMessage(CommandContext<CommandSourceStack> context, String key, Object... obj) {
-        MessageUtils.sendErrorMessage(context.getSource(), key, obj);
-    }
-
     @Deprecated
     public static void sendErrorMessage(CommandSourceStack source, String key, Object... obj) {
         TextBuilder builder = TextBuilder.of(key, obj);
@@ -116,24 +109,6 @@ public class MessageUtils {
         TextBuilder builder = new TextBuilder(message);
         builder.setColor(ChatFormatting.RED);
         builder.setStringHover(error);
-        MessageUtils.sendMessage(source, builder.build());
-    }
-
-    /**
-     * <br>发送一条红色的可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见<br>
-     * 鼠标悬停时可以显示异常信息
-     *
-     * @param source 消息的发送者
-     * @param e      引发错误的异常对象
-     * @param key    消息的翻译键
-     * @param obj    消息中替代占位符的内容
-     */
-    @Deprecated
-    public static void sendErrorMessage(CommandSourceStack source, Throwable e, String key, Object... obj) {
-        String error = GenericUtils.getExceptionString(e);
-        TextBuilder builder = TextBuilder.of(key, obj);
-        builder.setStringHover(error);
-        builder.setColor(ChatFormatting.RED);
         MessageUtils.sendMessage(source, builder.build());
     }
 

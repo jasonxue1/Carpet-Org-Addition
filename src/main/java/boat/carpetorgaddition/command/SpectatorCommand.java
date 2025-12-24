@@ -4,6 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.WorldFormat;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
@@ -32,6 +34,8 @@ import java.util.Locale;
 // 在生存模式和旁观模式间切换
 public class SpectatorCommand extends AbstractServerCommand {
     private static final String SPECTATOR = "spectator";
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("spectator");
+    public static final LocalizationKey TELEPORT = KEY.then("teleport");
 
     public SpectatorCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -81,7 +85,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         player.setGameMode(gameMode);
         // 发送命令反馈
         Component text = gameMode.getLongDisplayName();
-        player.displayClientMessage(Component.translatable("commands.gamemode.success.self", text), true);
+        MessageUtils.sendMessageToHud(player, LocalizationKey.literal("commands.gamemode.success.self").translate(text));
         return gameMode == GameType.SURVIVAL ? 1 : 0;
     }
 
@@ -98,8 +102,7 @@ public class SpectatorCommand extends AbstractServerCommand {
             WorldUtils.teleport(player, dimension, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
         }
         // 发送命令反馈
-        MessageUtils.sendMessage(context, "carpet.commands.spectator.teleport.success.dimension",
-                player.getDisplayName(), WorldUtils.getDimensionId(dimension));
+        MessageUtils.sendMessage(context, TELEPORT.then("success").translate(player.getDisplayName(), WorldUtils.getDimensionId(dimension)));
         return 1;
     }
 
@@ -112,8 +115,15 @@ public class SpectatorCommand extends AbstractServerCommand {
         Vec3 location = Vec3Argument.getVec3(context, "location");
         WorldUtils.teleport(player, dimension, location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
         // 发送命令反馈
-        MessageUtils.sendMessage(context, "commands.teleport.success.location.single",
-                player.getDisplayName(), formatFloat(location.x()), formatFloat(location.y()), formatFloat(location.z()));
+        MessageUtils.sendMessage(
+                context,
+                LocalizationKey.literal("commands.teleport.success.location.single").translate(
+                        player.getDisplayName(),
+                        formatFloat(location.x()),
+                        formatFloat(location.y()),
+                        formatFloat(location.z())
+                )
+        );
         return 1;
     }
 
@@ -125,8 +135,13 @@ public class SpectatorCommand extends AbstractServerCommand {
         Entity entity = EntityArgument.getEntity(context, "entity");
         WorldUtils.teleport(player, (ServerLevel) FetcherUtils.getWorld(entity), entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
         // 发送命令反馈
-        MessageUtils.sendMessage(context, "commands.teleport.success.entity.single",
-                player.getDisplayName(), entity.getDisplayName());
+        MessageUtils.sendMessage(
+                context,
+                LocalizationKey.literal("commands.teleport.success.entity.single").translate(
+                        player.getDisplayName(),
+                        entity.getDisplayName()
+                )
+        );
         return 1;
     }
 
@@ -135,7 +150,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         if (player.isSpectator()) {
             return;
         }
-        throw CommandUtils.createException("carpet.commands.spectator.teleport.fail", GameType.SPECTATOR.getLongDisplayName());
+        throw CommandUtils.createException(TELEPORT.then("fail").translate(GameType.SPECTATOR.getLongDisplayName()));
     }
 
     // 将玩家位置保存到文件

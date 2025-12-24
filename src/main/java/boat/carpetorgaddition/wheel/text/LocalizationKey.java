@@ -2,10 +2,12 @@ package boat.carpetorgaddition.wheel.text;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import net.minecraft.network.chat.Component;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.Objects;
 import java.util.StringJoiner;
 
+@NullMarked
 public class LocalizationKey {
     private static final String ROOT = CarpetOrgAddition.MOD_ID;
     private final String key;
@@ -23,11 +25,9 @@ public class LocalizationKey {
     }
 
     public LocalizationKey then(String key, String... keys) {
-        if (keys.length == 0) {
-            return new LocalizationKey(this.key + "." + key);
-        }
         StringJoiner joiner = new StringJoiner(".");
-        joiner.add(this.key).add(key);
+        joiner.add(this.key);
+        joiner.add(key);
         for (String str : keys) {
             joiner.add(str);
         }

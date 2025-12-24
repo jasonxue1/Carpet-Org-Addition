@@ -484,7 +484,7 @@
   "carpet-org-addition.command.playerManager.batch.preload.done": "预加载完成",
   "carpet-org-addition.command.playerManager.batch.summoner": "%s召唤了%s-%s共%s名玩家",
   "carpet-org-addition.command.spectator.teleport.fail": "你当前未处于%s",
-  "carpet-org-addition.command.spectator.teleport.success.dimension": "已将%s传送至%s",
+  "carpet-org-addition.command.spectator.teleport.success": "已将%s传送至%s",
   "carpet-org-addition.command.navigate.start": "%s开始导航 -> %s",
   "carpet-org-addition.command.navigate.unable_to_find": "查询不到%s的%s",
   "carpet-org-addition.command.navigate.name.spawnpoint": "重生点",

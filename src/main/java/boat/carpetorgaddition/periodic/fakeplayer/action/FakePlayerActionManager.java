@@ -42,9 +42,9 @@ public class FakePlayerActionManager {
             );
             MessageUtils.broadcastErrorMessage(
                     FetcherUtils.getServer(this.fakePlayer),
-                    e,
                     PlayerActionCommand.KEY.then("error")
-                            .translate(this.fakePlayer.getDisplayName(), this.getAction().getDisplayName())
+                            .translate(this.fakePlayer.getDisplayName(), this.getAction().getDisplayName()),
+                    e
             );
             // 让假玩家停止当前操作
             this.stop();
