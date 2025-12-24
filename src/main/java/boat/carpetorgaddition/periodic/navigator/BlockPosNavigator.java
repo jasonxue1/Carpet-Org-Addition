@@ -56,7 +56,7 @@ public class BlockPosNavigator extends AbstractNavigator {
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos) <= 8) {
                 // 到达目的地，停止追踪
-                MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
+                MessageUtils.sendMessageToHud(this.player, REACH.translate());
                 this.clear();
                 return true;
             }

@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointClearS2CPacket;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.MessageUtils;
@@ -38,8 +39,8 @@ public class NavigatorManager {
                 this.navigator.tick();
             }
         } catch (RuntimeException e) {
-            MessageUtils.sendErrorMessage(this.player.createCommandSourceStack(), e, "carpet.commands.navigate.exception");
-            CarpetOrgAddition.LOGGER.error("导航器没有按照预期工作", e);
+            MessageUtils.sendErrorMessage(this.player.createCommandSourceStack(), NavigatorCommand.KEY.then("error").translate(), e);
+            CarpetOrgAddition.LOGGER.error("The navigator did not work as expected", e);
             // 清除导航器
             this.clearNavigator();
         }

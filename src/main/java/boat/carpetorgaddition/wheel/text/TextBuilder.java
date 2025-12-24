@@ -312,6 +312,7 @@ public class TextBuilder {
         return Component.translatableWithFallback(key, value, obj);
     }
 
+    @Deprecated
     public static Component translate(LocalizationKey local, Object... obj) {
         String key = local.toString();
         String value = Translation.getTranslateValue(key);

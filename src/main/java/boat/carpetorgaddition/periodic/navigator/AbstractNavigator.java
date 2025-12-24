@@ -1,10 +1,12 @@
 package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,8 +20,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 public abstract class AbstractNavigator {
-    protected static final String IN = "carpet.commands.navigate.hud.in";
-    protected static final String REACH = "carpet.commands.navigate.hud.reach";
+    protected static final LocalizationKey IN = NavigatorCommand.HUD.then("in");
+    protected static final LocalizationKey REACH = NavigatorCommand.HUD.then("reach");
     protected final ServerPlayer player;
     protected final MinecraftServer server;
     protected final NavigatorManager manager;
@@ -75,7 +77,7 @@ public abstract class AbstractNavigator {
             case -1 -> " ↓ ";
             default -> "   ";
         });
-        builder.append(TextBuilder.of("carpet.commands.navigate.hud.distance", distance));
+        builder.append(NavigatorCommand.HUD.then("distance").translate(distance));
         builder.append(entry.getValue());
         return builder.build();
     }

@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.periodic.navigator;
 
+import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
@@ -52,7 +53,7 @@ public class EntityNavigator extends AbstractNavigator {
     public void tick() {
         if (this.isFailure()) {
             // 如果目标实体死亡，就清除玩家的追踪器
-            MessageUtils.sendMessageToHud(this.player, TextBuilder.translate("carpet.commands.navigate.hud.target_death"));
+            MessageUtils.sendMessageToHud(this.player, NavigatorCommand.HUD.then("target_death").translate());
             this.clear();
             return;
         }
@@ -60,15 +61,15 @@ public class EntityNavigator extends AbstractNavigator {
         Component text;
         if (FetcherUtils.getWorld(this.player).equals(world)) {
             // 获取翻译后的文本信息
-            Component in = TextBuilder.translate(IN, entity.getName(), TextProvider.simpleBlockPos(entity.blockPosition()));
+            Component in = IN.translate(entity.getName(), TextProvider.simpleBlockPos(entity.blockPosition()));
             int distance = MathUtils.getBlockIntegerDistance(player.blockPosition(), entity.blockPosition());
             // 添加上下箭头
             Vec3 eyePos = this.entity.getEyePosition();
             text = getHUDText(eyePos, in, distance);
         } else {
-            text = TextBuilder.translate(IN, entity.getName(),
-                    TextBuilder.combineAll(TextProvider.dimension(FetcherUtils.getWorld(this.entity)),
-                            TextProvider.simpleBlockPos(entity.blockPosition())));
+            Component dimension = TextProvider.dimension(FetcherUtils.getWorld(this.entity));
+            Component pos = TextProvider.simpleBlockPos(entity.blockPosition());
+            text = IN.translate(entity.getName(), TextBuilder.combineAll(dimension, pos));
         }
         MessageUtils.sendMessageToHud(this.player, text);
         this.syncWaypoint(false);
@@ -97,7 +98,7 @@ public class EntityNavigator extends AbstractNavigator {
         if (FetcherUtils.getWorld(this.player).equals(FetcherUtils.getWorld(this.entity))
             && MathUtils.getBlockDistance(player.blockPosition(), entity.blockPosition()) <= 8) {
             // 停止追踪
-            MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
+            MessageUtils.sendMessageToHud(this.player, REACH.translate());
             this.clear();
             return true;
         }

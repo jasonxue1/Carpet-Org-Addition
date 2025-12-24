@@ -22,13 +22,13 @@ public class HasNamePosNavigator extends BlockPosNavigator {
     @Override
     public void tick() {
         Component text;
-        Component posText = TextProvider.simpleBlockPos(this.blockPos);
+        Component pos = TextProvider.simpleBlockPos(this.blockPos);
         // 玩家与目的地是否在同一维度
         if (FetcherUtils.getWorld(this.player).equals(this.world)) {
             int distance = MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos);
-            text = getHUDText(this.blockPos.getCenter(), TextBuilder.translate(IN, this.name, posText), distance);
+            text = getHUDText(this.blockPos.getCenter(), IN.translate(this.name, pos), distance);
         } else {
-            text = TextBuilder.translate(IN, this.name, TextBuilder.combineAll(TextProvider.dimension(this.world), posText));
+            text = IN.translate(this.name, TextBuilder.combineAll(TextProvider.dimension(this.world), pos));
         }
         MessageUtils.sendMessageToHud(this.player, text);
     }

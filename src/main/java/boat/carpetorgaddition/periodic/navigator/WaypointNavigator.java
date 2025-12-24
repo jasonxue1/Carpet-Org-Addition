@@ -58,7 +58,7 @@ public class WaypointNavigator extends AbstractNavigator {
         // 玩家所在维度
         if (this.world.equals(this.playerWorld)) {
             // 玩家和路径点在相同的维度
-            Component display = TextBuilder.translate(IN, waypoint.getName(), TextProvider.simpleBlockPos(this.target));
+            Component display = IN.translate(waypoint.getName(), TextProvider.simpleBlockPos(this.target));
             int distance = MathUtils.getBlockIntegerDistance(playerPos, this.target);
             Component text = this.getHUDText(this.target.getCenter(), display, distance);
             MessageUtils.sendMessageToHud(this.player, text);
@@ -68,14 +68,14 @@ public class WaypointNavigator extends AbstractNavigator {
                 TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(this.secondTarget));
                 // 将坐标设置为斜体
                 builder.setItalic();
-                Component in = TextBuilder.translate(IN, waypoint.getName(), builder.build());
+                Component in = IN.translate(waypoint.getName(), builder.build());
                 int distance = MathUtils.getBlockIntegerDistance(playerPos, this.secondTarget);
                 Component text = this.getHUDText(this.secondTarget.getCenter(), in, distance);
                 MessageUtils.sendMessageToHud(this.player, text);
             } else {
                 // 玩家和路径点在不同维度
                 Component dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
-                Component in = TextBuilder.translate(IN, waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(this.target)));
+                Component in = IN.translate(waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(this.target)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
         }
@@ -108,7 +108,7 @@ public class WaypointNavigator extends AbstractNavigator {
     public boolean isArrive() {
         if (this.playerWorld.equals(this.world) && MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.waypoint.getBlockPos()) <= 8) {
             // 到达目的地，停止追踪
-            MessageUtils.sendMessageToHud(this.player, TextBuilder.translate(REACH));
+            MessageUtils.sendMessageToHud(this.player, REACH.translate());
             this.clear();
             return true;
         }
