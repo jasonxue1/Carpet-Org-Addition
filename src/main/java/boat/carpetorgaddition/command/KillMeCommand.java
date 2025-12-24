@@ -2,6 +2,8 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -12,6 +14,8 @@ import net.minecraft.server.level.ServerPlayer;
 
 // 自杀命令
 public class KillMeCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("killMe");
+
     public KillMeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
@@ -26,7 +30,7 @@ public class KillMeCommand extends AbstractServerCommand {
     // 玩家自杀
     private int killMe(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        //广播自杀消息
+        // 广播自杀消息
         try {
             CarpetOrgAdditionSettings.committingSuicide.set(true);
             player.kill(player.level());

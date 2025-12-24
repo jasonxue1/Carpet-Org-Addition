@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.mixin.command;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.command.KillMeCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
@@ -48,7 +49,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
     @WrapOperation(method = "die", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/damagesource/CombatTracker;getDeathMessage()Lnet/minecraft/network/chat/Component;"))
     private Component getDeathMessage(CombatTracker instance, Operation<Component> original) {
         if (CarpetOrgAdditionSettings.committingSuicide.get()) {
-            return TextBuilder.translate("carpet.commands.killMe.suicide", thisPlayer.getDisplayName());
+            return KillMeCommand.KEY.then("suicide").translate(thisPlayer.getDisplayName());
         }
         return original.call(instance);
     }
