@@ -4,6 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -24,6 +26,9 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 
 public class RuntimeCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("runtime");
+    public static final LocalizationKey MEMORY = KEY.then("memory");
+
     public RuntimeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
@@ -60,10 +65,11 @@ public class RuntimeCommand extends AbstractServerCommand {
         Component total = displayMemory(runtime.totalMemory());
         Component max = displayMemory(runtime.maxMemory());
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm");
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm.used", used);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm.total", total);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.jvm.max", max);
+        LocalizationKey key = MEMORY.then("jvm");
+        MessageUtils.sendMessage(context, key.translate());
+        MessageUtils.sendMessage(context, key.then("used").translate(used));
+        MessageUtils.sendMessage(context, key.then("total").translate(total));
+        MessageUtils.sendMessage(context, key.then("max").translate(max));
         return (int) usedSize;
     }
 
@@ -79,9 +85,10 @@ public class RuntimeCommand extends AbstractServerCommand {
         Component total = displayMemory(memory.getTotal());
         Component used = displayMemory(usedSize);
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.physical");
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.physical.total", total);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.memory.physical.used", used);
+        LocalizationKey key = MEMORY.then("physical");
+        MessageUtils.sendMessage(context, key.translate());
+        MessageUtils.sendMessage(context, key.then("total").translate(total));
+        MessageUtils.sendMessage(context, key.then("used").translate(used));
         return (int) usedSize;
     }
 
@@ -94,8 +101,9 @@ public class RuntimeCommand extends AbstractServerCommand {
         runtime.gc();
         long size = runtime.freeMemory() - l;
         Component free = displayMemory(size);
-        MessageUtils.sendMessage(context, "carpet.commands.runtime.gc", free);
-        Component prompt = TextBuilder.of("carpet.commands.runtime.gc.prompt").setGrayItalic().build();
+        LocalizationKey key = KEY.then("gc");
+        MessageUtils.sendMessage(context, key.translate(free));
+        Component prompt = new TextBuilder(key.then("prompt").translate()).setGrayItalic().build();
         MessageUtils.sendMessage(context.getSource(), prompt);
         return (int) size;
     }
@@ -111,8 +119,8 @@ public class RuntimeCommand extends AbstractServerCommand {
     private Component displayMemory(long size) {
         DecimalFormat format = new DecimalFormat("#.00");
         String mb = format.format(size / 1024.0 / 1024.0);
-        TextBuilder builder = new TextBuilder("%s MB".formatted(mb))
-                .setHover("carpet.command.data.unit.byte", size)
+        TextBuilder builder = new TextBuilder("%sMB".formatted(mb))
+                .setStringHover("%sB".formatted(size))
                 .setColor(ChatFormatting.GRAY);
         return builder.build();
     }

@@ -164,7 +164,6 @@
   "carpet-org-addition.operation.task.timeout": "Task timeout",
   "carpet-org-addition.operation.error.io": "IO error occurred",
   "carpet-org-addition.operation.operation.timeout": "Operation Timeout",
-  "carpet-org-addition.operation.data.unit.byte": "%s Byte",
   "carpet-org-addition.operation.page.prev": "Previous Page",
   "carpet-org-addition.operation.page.next": "Next Page",
   "carpet-org-addition.operation.page.invalid": "Attempted to access page %s, but only %s pages exist",
