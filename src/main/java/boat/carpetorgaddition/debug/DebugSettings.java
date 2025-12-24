@@ -73,6 +73,12 @@ public class DebugSettings {
                     .setDisplayName("禁止任务超时")
                     .build()
     );
+    public static final Supplier<Boolean> showPlayerExperience = register(
+            RuleFactory.create(Boolean.class, "showPlayerExperience", false)
+                    .addCategories("Debug")
+                    .setDisplayName("显示玩家经验")
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();

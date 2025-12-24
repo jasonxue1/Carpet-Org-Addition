@@ -33,6 +33,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
@@ -44,6 +45,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Contract;
 
@@ -208,6 +210,23 @@ public class HudDebugRendererRegister {
                     }
                 }
                 context.setComponentTooltipForNextFrame(ClientUtils.getTextRenderer(), list.stream().map(Component::nullToEmpty).toList(), 3, 25);
+            }
+        });
+        // 渲染当前HUD信息
+        renders.put(GenericUtils.ofIdentifier("show_player_experience"), (context, _) -> {
+            if (DebugSettings.showPlayerExperience.get() && ClientUtils.getCrosshairTarget() instanceof EntityHitResult hitResult) {
+                Entity entity = hitResult.getEntity();
+                if (entity instanceof Player) {
+                    IntegratedServer server = ClientUtils.getServer();
+                    if (server == null) {
+                        return;
+                    }
+                    Player player = (Player) ClientUtils.getServerWorld().getEntity(entity.getId());
+                    if (player == null) {
+                        return;
+                    }
+                    Tooltip.drawTooltip(context, TextBuilder.create("经验等级：" + player.experienceLevel));
+                }
             }
         });
     }

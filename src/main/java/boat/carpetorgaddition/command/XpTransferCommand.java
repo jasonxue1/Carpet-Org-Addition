@@ -8,6 +8,8 @@ import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.ExperienceTransfer;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -24,6 +26,9 @@ import net.minecraft.server.level.ServerPlayer;
 import java.math.BigInteger;
 
 public class XpTransferCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("xpTransfer");
+    public static final LocalizationKey FAIL = KEY.then("fail");
+
     public XpTransferCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
     }
@@ -73,11 +78,12 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int fromCurrentLevel = from.getLevel();
             int toCurrentLevel = to.getLevel();
-            TextBuilder builder = TextBuilder.of(
-                    "carpet.commands.xpTransfer.all",
-                    from.player().getDisplayName(),
-                    number.toString(),
-                    to.player().getDisplayName()
+            TextBuilder builder = new TextBuilder(
+                    KEY.then("all").translate(
+                            from.player().getDisplayName(),
+                            number.toString(),
+                            to.player().getDisplayName()
+                    )
             );
             Component hover = getHover(to.player(), toCurrentLevel, toBeforeLevel, from.player(), fromBeforeLevel, fromCurrentLevel);
             builder.setHover(hover);
@@ -111,11 +117,12 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
             Component hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
-            TextBuilder builder = TextBuilder.of(
-                    "carpet.commands.xpTransfer.half",
-                    from.player().getDisplayName(),
-                    number.toString(),
-                    to.player().getDisplayName()
+            TextBuilder builder = new TextBuilder(
+                    KEY.then("half").translate(
+                            from.player().getDisplayName(),
+                            number.toString(),
+                            to.player().getDisplayName()
+                    )
             );
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
@@ -144,7 +151,7 @@ public class XpTransferCommand extends AbstractServerCommand {
         try {
             count = ExperienceTransfer.calculateTotalExperience(level, 0);
         } catch (ArithmeticException e) {
-            throw CommandUtils.createException(e, "carpet.commands.xpTransfer.calculate.fail");
+            throw CommandUtils.createException(FAIL.then("incalculable").translate(), e);
         }
         return this.transfer(context, count);
     }
@@ -159,7 +166,7 @@ public class XpTransferCommand extends AbstractServerCommand {
         try {
             count = ExperienceTransfer.calculateUpgradeExperience(level, upgrade);
         } catch (ArithmeticException e) {
-            throw CommandUtils.createException(e, "carpet.commands.xpTransfer.calculate.fail");
+            throw CommandUtils.createException(FAIL.then("incalculable").translate(), e);
         }
         return this.transfer(context, count);
     }
@@ -174,11 +181,11 @@ public class XpTransferCommand extends AbstractServerCommand {
         try {
             count = ExperienceTransfer.calculateUpgradeExperience(level, upgrade);
         } catch (ArithmeticException e) {
-            throw CommandUtils.createException(e, "carpet.commands.xpTransfer.calculate.fail");
+            throw CommandUtils.createException(FAIL.then("incalculable").translate(), e);
         }
         if (count.compareTo(BigInteger.ZERO) < 0) {
             // 升级所需经验为负数
-            throw CommandUtils.createException("carpet.commands.xpTransfer.upgradeto.negative");
+            throw CommandUtils.createException(FAIL.then("negative").translate());
         }
         return this.transfer(context, count);
     }
@@ -200,10 +207,11 @@ public class XpTransferCommand extends AbstractServerCommand {
             } catch (ExperienceTransfer.ExperienceTransferException e) {
                 // 要转移经验的数量不能多于玩家的总经验
                 throw CommandUtils.createException(
-                        "carpet.commands.xpTransfer.point.fail",
-                        from.player().getDisplayName(),
-                        e.getRequire().toString(),
-                        e.getExisting().toString()
+                        FAIL.then("insufficient").translate(
+                                from.player().getDisplayName(),
+                                e.getRequire().toString(),
+                                e.getExisting().toString()
+                        )
                 );
             } catch (OperationTimeoutException e) {
                 throw CommandUtils.createOperationTimeoutException();
@@ -211,10 +219,13 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
-            TextBuilder builder = TextBuilder.of("carpet.commands.xpTransfer.point",
-                    from.player().getDisplayName(),
-                    count.toString(),
-                    to.player().getDisplayName());
+            TextBuilder builder = new TextBuilder(
+                    KEY.then("point").translate(
+                            from.player().getDisplayName(),
+                            count.toString(),
+                            to.player().getDisplayName()
+                    )
+            );
             Component hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
             builder.setHover(hover);
             MessageUtils.sendMessage(source, builder.build());
@@ -244,9 +255,15 @@ public class XpTransferCommand extends AbstractServerCommand {
             BigInteger point
     ) {
         ServerPlayer player = source.getPlayer();
-        String output = player == outputPlayer ? "自己" : FetcherUtils.getPlayerName(outputPlayer);
-        String input = player == inputPlayer ? "自己" : FetcherUtils.getPlayerName(inputPlayer);
-        CarpetOrgAddition.LOGGER.info("{}将{}的{}点经验转移给{}", source.getTextName(), output, point.toString(), input);
+        String output = player == outputPlayer ? "themself" : FetcherUtils.getPlayerName(outputPlayer);
+        String input = player == inputPlayer ? "themself" : FetcherUtils.getPlayerName(inputPlayer);
+        CarpetOrgAddition.LOGGER.info(
+                "{} transferred {} experience points from {} to {}",
+                source.getTextName(),
+                point.toString(),
+                output,
+                input
+        );
     }
 
     // 获取悬停提示
@@ -259,20 +276,23 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel
     ) {
         return TextBuilder.combineAll(
-                TextBuilder.of("carpet.commands.xpTransfer.upgrade",
+                new TextBuilder(
+                        KEY.then("upgrade").translate(
                                 inputPlayer.getDisplayName(),
                                 inputCurrentLevel - inputBeforeLevel,
                                 inputBeforeLevel,
-                                inputCurrentLevel)
-                        .setColor(ChatFormatting.GREEN).build(),
+                                inputCurrentLevel
+                        )
+                ).setColor(ChatFormatting.GREEN).build(),
                 TextProvider.NEW_LINE,
-                TextBuilder.of(
-                                "carpet.commands.xpTransfer.degrade",
+                new TextBuilder(
+                        KEY.then("degrade").translate(
                                 outputPlayer.getDisplayName(),
                                 outputBeforeLevel - outputCurrentLevel,
                                 outputBeforeLevel,
-                                outputCurrentLevel)
-                        .setColor(ChatFormatting.RED).build()
+                                outputCurrentLevel
+                        )
+                ).setColor(ChatFormatting.RED).build()
         );
     }
 

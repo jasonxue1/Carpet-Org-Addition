@@ -10,12 +10,16 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Optional;
 
 public class ClientUtils {
@@ -70,6 +74,14 @@ public class ClientUtils {
             throw new IllegalStateException("Attempted to get client world while not in a game");
         }
         return world;
+    }
+
+    @NotNull
+    @Contract(pure = true)
+    public static ServerLevel getServerWorld() {
+        IntegratedServer server = Objects.requireNonNull(getServer(), "Attempted to get server while not in a game");
+        ResourceKey<Level> dimension = getWorld().dimension();
+        return Objects.requireNonNull(server.getLevel(dimension), () -> "Invalid dimension: " + dimension.identifier());
     }
 
     /**
