@@ -543,11 +543,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return this.backupFileDirectory;
     }
 
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        CarpetOrgAddition.LOGGER.warn("Encountered an unexpected error while querying offline player items", e);
-    }
-
     /**
      * @apiNote 非静态的内部类强引用了外部类导致暂时无法被回收，但这不是问题
      */

@@ -10,26 +10,32 @@ import net.minecraft.server.ServerTickRateManager;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
+public abstract class ServerTask {
     protected final CommandSourceStack source;
     /**
      * 之前每个游戏刻中任务持续时间的总和
      */
     private long executionTime;
     private long tickTaskStartTime = -1L;
-    private final ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors() + 1,
             Runtime.getRuntime().availableProcessors() + 1,
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
-            this::ofPlatformThread
+            ServerTask::ofPlatformThread
     );
+
+    static {
+        EXECUTOR.allowCoreThreadTimeOut(true);
+    }
+
+    private static final AtomicInteger CURRENT_THREAD_ID = new AtomicInteger(0);
 
     public ServerTask(CommandSourceStack source) {
         this.source = source;
-        this.executor.allowCoreThreadTimeOut(true);
     }
 
     /**
@@ -175,22 +181,17 @@ public abstract class ServerTask implements Thread.UncaughtExceptionHandler {
     }
 
     protected void submit(Runnable task) {
-        this.executor.submit(task);
-    }
-
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-        CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e);
+        EXECUTOR.submit(task);
     }
 
     /**
      * 为线程池创建线程
      */
-    private Thread ofPlatformThread(Runnable runnable) {
+    private static Thread ofPlatformThread(Runnable runnable) {
         return Thread.ofPlatform()
                 .daemon()
-                .name(this.getClass().getSimpleName() + "-Thread")
-                .uncaughtExceptionHandler(this)
+                .name(ServerTask.class.getSimpleName() + "-Thread-" + CURRENT_THREAD_ID.getAndIncrement())
+                .uncaughtExceptionHandler((_, e) -> CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e))
                 .unstarted(runnable);
     }
 }
