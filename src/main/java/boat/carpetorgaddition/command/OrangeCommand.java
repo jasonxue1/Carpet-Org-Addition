@@ -13,6 +13,8 @@ import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.utils.CommandHelper;
@@ -38,6 +40,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 public class OrangeCommand extends AbstractServerCommand {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("orange");
+    public static final LocalizationKey RULESELF = KEY.then("ruleself");
 
     public OrangeCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -89,14 +93,15 @@ public class OrangeCommand extends AbstractServerCommand {
     // 设置子命令权限
     private int setLevel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         CommandPermission permission = PermissionManager.getPermission(StringArgumentType.getString(context, "node"));
+        LocalizationKey key = KEY.then("permission");
         if (permission == null) {
-            throw CommandUtils.createException("carpet.commands.orange.permission.node.not_found");
+            throw CommandUtils.createException(key.then("invalid_node").translate());
         }
         PermissionLevel level;
         try {
             level = PermissionLevel.fromString(StringArgumentType.getString(context, "level"));
         } catch (IllegalArgumentException e) {
-            throw CommandUtils.createException(e, "carpet.commands.orange.permission.value.invalid");
+            throw CommandUtils.createException(key.then("invalid_value").translate(), e);
         }
         permission.setLevel(level);
         MinecraftServer server = context.getSource().getServer();
@@ -115,8 +120,10 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<CommandSourceStack> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        Component version = new TextBuilder(CarpetOrgAddition.VERSION).setHover(CarpetOrgAddition.BUILD_TIMESTAMP).build();
-        MessageUtils.sendMessage(context, "carpet.commands.orange.version", name, version);
+        Component version = new TextBuilder(CarpetOrgAddition.VERSION)
+                .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
+                .build();
+        MessageUtils.sendMessage(context, KEY.then("version").translate(name, version));
         return 1;
     }
 
@@ -128,22 +135,22 @@ public class OrangeCommand extends AbstractServerCommand {
             String ruleString = StringArgumentType.getString(context, "rule");
             Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
             if (optional.isEmpty()) {
-                throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
+                throw CommandUtils.createException(RULESELF.then("failed").translate());
             }
             CustomRuleEntry entry = optional.get();
             CustomRuleControl<?> control = entry.getControl();
             boolean value = BoolArgumentType.getBool(context, "value");
             ruleSelfManager.setEnabled(player, ruleString, value);
             Component ruleName = RuleUtils.simpleTranslationName(entry.getRule());
-            Component playerName = (player == CommandUtils.getSourcePlayer(context) ? TextProvider.SELF : player.getDisplayName());
+            Component playerName = (player == CommandUtils.getSourcePlayer(context) ? LocalizationKeys.Misc.SELF.translate() : player.getDisplayName());
             TextBuilder builder;
             if (value) {
-                builder = TextBuilder.of("carpet.commands.orange.ruleself.enable", ruleName, playerName);
+                builder = new TextBuilder(RULESELF.then("enable").translate(ruleName, playerName));
             } else {
-                builder = TextBuilder.of("carpet.commands.orange.ruleself.disable", ruleName, playerName);
+                builder = new TextBuilder(RULESELF.then("disable").translate(ruleName, playerName));
             }
             if (control.isServerDecision()) {
-                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setHover(RULESELF.then("invalid").translate());
                 builder.setStrikethrough();
             }
             MessageUtils.sendMessage(context.getSource(), builder.build());
@@ -159,18 +166,19 @@ public class OrangeCommand extends AbstractServerCommand {
             String ruleString = StringArgumentType.getString(context, "rule");
             Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
             if (optional.isEmpty()) {
-                throw CommandUtils.createException("carpet.commands.orange.ruleself.failed");
+                throw CommandUtils.createException(RULESELF.then("failed").translate());
             }
             CustomRuleEntry entry = optional.get();
             CustomRuleControl<?> control = entry.getControl();
             MessageUtils.sendEmptyMessage(context);
-            MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.player", player.getDisplayName());
+            LocalizationKey key = RULESELF.then("info");
+            MessageUtils.sendMessage(context, key.then("player").translate(player.getDisplayName()));
             boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
             Component displayName = RuleUtils.simpleTranslationName(entry.getRule());
-            MessageUtils.sendMessage(context, "carpet.commands.orange.ruleself.info.rule", displayName);
-            TextBuilder builder = TextBuilder.of("carpet.commands.orange.ruleself.info.enable", TextProvider.getBoolean(enabled));
+            MessageUtils.sendMessage(context, key.then("rule").translate(displayName));
+            TextBuilder builder = new TextBuilder(key.then("enable").translate(TextProvider.getBoolean(enabled)));
             if (control.isServerDecision()) {
-                builder.setHover("carpet.commands.orange.ruleself.invalid");
+                builder.setHover(RULESELF.then("invalid").translate());
                 builder.setStrikethrough();
             }
             MessageUtils.sendMessage(context.getSource(), builder.build());

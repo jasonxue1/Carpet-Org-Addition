@@ -14,7 +14,7 @@ public class LocalizationKeys {
     private static final LocalizationKey MISC = LocalizationKey.of("misc");
 
     public static class Operation {
-        public static final LocalizationKey SELF = OPERATION.then("self");
+
     }
 
     public static class Rule {
@@ -68,5 +68,6 @@ public class LocalizationKeys {
         public static final LocalizationKey OPERATOR = MISC.then("operator");
         public static final LocalizationKey INVENTORY = MISC.then("inventory");
         public static final LocalizationKey ENDER_CHEST = MISC.then("ender_chest");
+        public static final LocalizationKey SELF = MISC.then("self");
     }
 }

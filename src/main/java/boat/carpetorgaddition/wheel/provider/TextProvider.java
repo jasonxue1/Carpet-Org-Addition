@@ -34,10 +34,6 @@ public class TextProvider {
      * @apiNote 玩家客户端中一定有这条消息，不需要回调
      */
     public static final Component COPY_CLICK = Component.translatable("chat.copy.click");
-    /**
-     * 自己
-     */
-    public static final Component SELF = TextBuilder.translate("carpet.command.text.self");
 
     public static Component getBoolean(boolean value) {
         return (value ? LocalizationKeys.Literal.TRUE : LocalizationKeys.Literal.FALSE).translate();
