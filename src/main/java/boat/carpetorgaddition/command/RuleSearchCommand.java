@@ -4,6 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.mixin.accessor.carpet.SettingsManagerAccessor;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
@@ -38,7 +39,8 @@ public class RuleSearchCommand extends AbstractServerCommand {
         if (filter.matches("\".*\"")) {
             filter = filter.substring(1, filter.length() - 1);
         }
-        Component text = TextBuilder.of("carpet.commands.ruleSearch.feedback", filter)
+        LocalizationKey key = LocalizationKey.literal("carpet.settings.command.mod_settings_matching");
+        Component text = new TextBuilder(key.translate("Carpet", filter))
                 .setBold()
                 .build();
         MessageUtils.sendMessage(context.getSource(), text);

@@ -544,7 +544,6 @@
   "carpet-org-addition.command.mail.list.empty": "没有快递被列出",
   "carpet-org-addition.command.mail.invalid_parcel": "不存在单号为%s的快递",
   "carpet-org-addition.command.mail.prompt_collect": "你有一件包含%s个%s的快递尚未接收，点击%s接收",
-  "carpet-org-addition.command.ruleSearch.feedback": "Carpet Mod中符合“%s”的选项：:",
   "carpet-org-addition.command.orange.version": "%s的版本为：%s",
   "carpet-org-addition.command.orange.permission.node.not_found": "命令权限节点不存在",
   "carpet-org-addition.command.orange.permission.value.invalid": "无效的命令权限等级",

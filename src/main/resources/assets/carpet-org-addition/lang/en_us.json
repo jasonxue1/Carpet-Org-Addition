@@ -444,7 +444,6 @@
   "carpet-org-addition.command.mail.list.empty": "No package delivery listed",
   "carpet-org-addition.command.mail.invalid_parcel": "Can't find the package which number is %s",
   "carpet-org-addition.command.mail.prompt_collect": "You are supposed to receive a package which contains %s %s, click %s to receive",
-  "carpet-org-addition.command.ruleSearch.feedback": "Carpet Mod options matching \"%s\"",
   "carpet-org-addition.command.orange.version": "Version of %s: %s",
   "carpet-org-addition.command.orange.permission.node.not_found": "Command permission node not found",
   "carpet-org-addition.command.orange.permission.value.invalid": "Invalid command permission value",
