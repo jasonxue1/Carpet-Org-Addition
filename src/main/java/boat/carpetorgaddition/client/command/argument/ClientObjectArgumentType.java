@@ -4,7 +4,8 @@ import boat.carpetorgaddition.client.util.ClientCommandUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.EnchantmentUtils;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -67,12 +68,12 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         // 没有对象与字符串对应
         if (list.isEmpty()) {
             reader.setCursor(cursor);
-            throw CommandUtils.createException("carpet.client.commands.dictionary.not_matched");
+            throw CommandUtils.createException(LocalizationKeys.Argument.Object.MISMATCH.translate());
         }
         // 字符串过于宽泛
         if (this.patternMatching && list.size() > 40 && pattern != MatchPattern.EQUAL) {
             reader.setCursor(cursor);
-            throw CommandUtils.createException("carpet.client.command.string.broad");
+            throw CommandUtils.createException(LocalizationKeys.Argument.Object.BROAD.translate());
         }
         return list;
     }
@@ -86,7 +87,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
                 case "-equal" -> MatchPattern.EQUAL;
                 case "-contain" -> MatchPattern.CONTAIN;
                 case "-regex" -> MatchPattern.REGEX;
-                default -> throw CommandUtils.createException("carpet.client.command.matching_pattern.invalid");
+                default ->
+                        throw CommandUtils.createException(LocalizationKeys.Argument.Object.INVALID_PATTERN.translate());
             };
         } else {
             reader.setCursor(cursor);
@@ -253,7 +255,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
         @Override
         protected String objectToString(Biome biome) {
             Registry<Biome> biomes = ClientUtils.getPlayer().connection.registryAccess().lookupOrThrow(Registries.BIOME);
-            return TextBuilder.translate(Objects.requireNonNull(biomes.getKey(biome)).toLanguageKey("biome")).getString();
+            String key = Objects.requireNonNull(biomes.getKey(biome)).toLanguageKey("biome");
+            return LocalizationKey.literal(key).translate().getString();
 
         }
 
@@ -285,7 +288,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     public static class ClientGameRuleArgumentType extends ClientObjectArgumentType<GameRule<?>> {
         @Override
         protected String objectToString(GameRule<?> gameRule) {
-            return TextBuilder.translate(gameRule.getDescriptionId()).getString();
+            String key = gameRule.getDescriptionId();
+            return LocalizationKey.literal(key).translate().getString();
         }
 
         @Override

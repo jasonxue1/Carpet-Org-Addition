@@ -1,6 +1,8 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
 import com.mojang.authlib.GameProfile;
@@ -87,10 +89,15 @@ public class CommandUtils {
             case 0 -> throw GameProfileArgument.ERROR_UNKNOWN_PLAYER.create();
             case 1 -> collection.iterator().next();
             default -> {
-                TextBuilder builder = TextBuilder.of("carpet.command.argument.player.toomany");
+                TextBuilder builder = new TextBuilder(LocalizationKeys.Argument.Player.TOOMANY.translate());
                 ArrayList<Component> list = new ArrayList<>();
                 for (GameProfile gameProfile : collection) {
-                    list.add(TextBuilder.translate("%s: %s", EntityType.PLAYER.getDescription(), gameProfile.name()));
+                    TextJoiner joiner = new TextJoiner();
+                    Component component = joiner
+                            .then(EntityType.PLAYER.getDescription())
+                            .literal(": ")
+                            .literal(gameProfile.name()).join();
+                    list.add(component);
                 }
                 builder.setHover(TextBuilder.joinList(list));
                 throw createException(builder.build());

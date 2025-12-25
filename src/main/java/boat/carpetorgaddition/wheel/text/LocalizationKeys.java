@@ -6,6 +6,7 @@ public class LocalizationKeys {
     public static final LocalizationKey GENERIC = LocalizationKey.of("generic");
     public static final LocalizationKey RULE = LocalizationKey.of("rule");
     private static final LocalizationKey TIME = LocalizationKey.of("time");
+    private static final LocalizationKey ARGUMENT = LocalizationKey.of("argument");
     private static final LocalizationKey ITEM = LocalizationKey.of("item");
     private static final LocalizationKey BUTTON = LocalizationKey.of("button");
     private static final LocalizationKey DIMENSION = LocalizationKey.of("dimension");
@@ -20,6 +21,21 @@ public class LocalizationKeys {
     public static class Rule {
         public static final LocalizationKey MESSAGE = RULE.then("message");
         public static final LocalizationKey VALIDATE = RULE.then("validate");
+    }
+
+    public static class Argument {
+        private static final LocalizationKey PLAYER = ARGUMENT.then("player");
+        private static final LocalizationKey OBJECT = ARGUMENT.then("object");
+
+        public static class Player {
+            public static final LocalizationKey TOOMANY = PLAYER.then("toomany");
+        }
+
+        public static class Object {
+            public static final LocalizationKey INVALID_PATTERN = OBJECT.then("invalid_pattern");
+            public static final LocalizationKey BROAD = OBJECT.then("broad");
+            public static final LocalizationKey MISMATCH = OBJECT.then("mismatch");
+        }
     }
 
     public static class Time {

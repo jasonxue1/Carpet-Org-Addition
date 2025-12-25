@@ -5,6 +5,8 @@ import boat.carpetorgaddition.client.util.ClientMessageUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.util.EnchantmentUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
@@ -35,6 +37,8 @@ import java.util.List;
 public class DictionaryCommand extends AbstractClientCommand {
     public static final String DEFAULT_COMMAND_NAME = "dictionary";
     private static final String UNREGISTERED = "[<unregistered>]";
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("dictionary");
+    public static final LocalizationKey MULTIPLE = KEY.then("multiple");
 
     public DictionaryCommand(CommandDispatcher<FabricClientCommandSource> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -74,15 +78,15 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     // 发送命令反馈
     private void sendFeedback(Component text, String id) {
-        ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.id", text, canCopyId(id));
+        ClientMessageUtils.sendMessage(KEY.then("single").translate(text, canCopyId(id)));
     }
 
     private void sendFeedback(int count) {
-        ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.multiple.id", count);
+        ClientMessageUtils.sendMessage(MULTIPLE.then("head").translate(count));
     }
 
     private void sendFeedback(String id) {
-        ClientMessageUtils.sendMessage("carpet.client.commands.dictionary.multiple.each", canCopyId(id));
+        ClientMessageUtils.sendMessage(MULTIPLE.then("each").translate(canCopyId(id)));
     }
 
     // 将字符串id转换成可以单击复制的形式
@@ -182,10 +186,11 @@ public class DictionaryCommand extends AbstractClientCommand {
                 case BIOME -> registry.lookup(Registries.BIOME)
                         .map(biome -> biome.getKey((Biome) obj))
                         .map(identifier -> identifier.toLanguageKey("biome"))
-                        .map(TextBuilder::translate)
+                        .map(LocalizationKey::literal)
+                        .map(LocalizationKey::translate)
                         .orElse(TextBuilder.create(UNREGISTERED));
                 case GAME_MODE -> ((GameType) obj).getLongDisplayName();
-                case GAME_RULE -> TextBuilder.translate(((GameRule<?>) obj).getDescriptionId());
+                case GAME_RULE -> LocalizationKey.literal(((GameRule<?>) obj).getDescriptionId()).translate();
             };
         }
 
