@@ -14,7 +14,7 @@ public class LocalizationKeys {
     private static final LocalizationKey MISC = LocalizationKey.of("misc");
 
     public static class Operation {
-
+        public static final LocalizationKey OFFLINE_PLAYER_NAME = OPERATION.then("offline_player_name");
     }
 
     public static class Rule {

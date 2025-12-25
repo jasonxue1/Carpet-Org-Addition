@@ -1,21 +1,15 @@
 package boat.carpetorgaddition.wheel.inventory;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
-import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import com.google.gson.JsonParseException;
 import com.mojang.authlib.GameProfile;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.Permission;
-import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.server.players.NameAndId;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.entity.player.Player;
@@ -61,22 +55,6 @@ public class OfflinePlayerInventory extends AbstractCustomSizeInventory {
             CarpetOrgAddition.LOGGER.warn("An unexpected issue occurred while reading usercache.json, using offline player UUID", e);
         }
         return Optional.empty();
-    }
-
-    /**
-     * 检查玩家是否有权限打开离线玩家物品栏
-     */
-    public static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayer player) throws CommandSyntaxException {
-        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().permissionRequired()) {
-            if (player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))) {
-                return;
-            }
-            PlayerList playerManager = server.getPlayerList();
-            NameAndId entry = new NameAndId(gameProfile);
-            if (playerManager.isWhiteListed(entry) || playerManager.isOp(entry)) {
-                throw CommandUtils.createException("carpet.commands.player.inventory.offline.permission");
-            }
-        }
     }
 
     public static Optional<NameAndId> getPlayerConfigEntry(UUID uuid, MinecraftServer server) {

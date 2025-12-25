@@ -11,7 +11,8 @@ import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerInventoryScreenHandler;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,6 +24,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permission;
+import net.minecraft.server.permissions.PermissionLevel;
+import net.minecraft.server.players.NameAndId;
+import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.inventory.ChestMenu;
@@ -33,6 +38,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class PlayerCommandExtension {
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("player");
+    public static final LocalizationKey INVENTORY = KEY.then("inventory");
+
     public static RequiredArgumentBuilder<CommandSourceStack, ?> register(RequiredArgumentBuilder<CommandSourceStack, ?> builder) {
         return builder
                 .then(Commands.literal("inventory")
@@ -88,7 +96,7 @@ public class PlayerCommandExtension {
         if (gameProfile == null) {
             throw createNoFileFoundException();
         }
-        OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
+        checkPermission(server, gameProfile, sourcePlayer);
         SimpleMenuProvider factory = new SimpleMenuProvider(
                 (syncId, playerInventory, _) -> {
                     FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
@@ -100,12 +108,12 @@ public class PlayerCommandExtension {
     }
 
     public static CommandSyntaxException createNoFileFoundException() {
-        return CommandUtils.createException("carpet.commands.player.inventory.offline.no_file_found");
+        return CommandUtils.createException(INVENTORY.then("no_file_found").translate());
     }
 
     public static void openOnlinePlayerInventory(ServerPlayer sourcePlayer, ServerPlayer argumentPlayer) throws CommandSyntaxException {
         MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
+        checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         SimpleMenuProvider screen = new SimpleMenuProvider(
                 (syncId, inventory, _) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
                 argumentPlayer.getName()
@@ -121,10 +129,10 @@ public class PlayerCommandExtension {
         ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
         String playerName = getPlayerName(context);
         ServerPlayer argumentPlayer = getPlayerNullable(playerName, server);
-        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
+        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
         switch (argumentPlayer) {
             case null -> {
-                if (ruleValue.canOpenOfflinePlayer()) {
+                if (option.canOpenOfflinePlayer()) {
                     Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
                     if (optional.isEmpty()) {
                         throw createNoFileFoundException();
@@ -136,12 +144,12 @@ public class PlayerCommandExtension {
                 }
             }
             case EntityPlayerMPFake player -> {
-                if (ruleValue.canOpenFakePlayer()) {
+                if (option.canOpenFakePlayer()) {
                     openOnlinePlayerEnderChest(sourcePlayer, player);
                 }
             }
             case ServerPlayer player -> {
-                if (ruleValue.canOpenRealPlayer()) {
+                if (option.canOpenRealPlayer()) {
                     openOnlinePlayerEnderChest(sourcePlayer, player);
                 } else {
                     throw CommandUtils.createNotFakePlayerException(player);
@@ -153,7 +161,7 @@ public class PlayerCommandExtension {
 
     public static void openOfflinePlayerEnderChest(ServerPlayer sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
         MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        OfflinePlayerInventory.checkPermission(server, gameProfile, sourcePlayer);
+        checkPermission(server, gameProfile, sourcePlayer);
         SimpleMenuProvider factory = new SimpleMenuProvider(
                 (syncId, playerInventory, _) -> {
                     FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
@@ -166,7 +174,7 @@ public class PlayerCommandExtension {
 
     public static void openOnlinePlayerEnderChest(ServerPlayer sourcePlayer, ServerPlayer argumentPlayer) throws CommandSyntaxException {
         MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        OfflinePlayerInventory.checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
+        checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
         // 创建GUI对象
         SimpleMenuProvider screen = new SimpleMenuProvider(
                 (i, inventory, _) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
@@ -191,12 +199,13 @@ public class PlayerCommandExtension {
         Component fakePlayerName = fakePlayer.getDisplayName();
         Component playerName = player.getDisplayName();
         // 在聊天栏显示命令反馈
-        MessageUtils.sendMessage(context.getSource(), "carpet.commands.player.tp.success", fakePlayerName, playerName);
+        LocalizationKey key = LocalizationKey.literal("commands.teleport.success.entity.single");
+        MessageUtils.sendMessage(context.getSource(), key.translate(fakePlayerName, playerName));
         return 1;
     }
 
     private static Component offlinePlayerName(String name) {
-        return TextBuilder.translate("carpet.commands.player.inventory.offline.display_name", name);
+        return LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(name);
     }
 
     @NotNull
@@ -222,7 +231,8 @@ public class PlayerCommandExtension {
             // TODO 取消此条限制
             throw CommandUtils.createException("carpet.clickevent.open_inventory.fail");
         }
-        if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().canOpenOfflinePlayer()) {
+        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
+        if (option.canOpenOfflinePlayer()) {
             Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
             if (optional.isEmpty()) {
                 throw PlayerCommandExtension.createNoFileFoundException();
@@ -234,6 +244,23 @@ public class PlayerCommandExtension {
             }
         } else {
             throw CommandUtils.createPlayerNotFoundException();
+        }
+    }
+
+    /**
+     * 检查玩家是否有权限打开离线玩家物品栏
+     */
+    private static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayer player) throws CommandSyntaxException {
+        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
+        if (option.permissionRequired()) {
+            if (player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))) {
+                return;
+            }
+            PlayerList playerManager = server.getPlayerList();
+            NameAndId entry = new NameAndId(gameProfile);
+            if (playerManager.isWhiteListed(entry) || playerManager.isOp(entry)) {
+                throw CommandUtils.createException(INVENTORY.then("permission").translate());
+            }
         }
     }
 }
