@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.logger;
 
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.gamerules.GameRules;
@@ -10,6 +11,7 @@ import net.minecraft.world.level.gamerules.GameRules;
  */
 public class WanderingTraderSpawnLogger {
     private static SpawnCountdown spawnCountdown;
+    public static final LocalizationKey KEY = LocalizationKeys.LOGGER.then("wanderingTraderSpawnCountdown");
 
     // 更新HUD
     public static void updateHud(MinecraftServer server) {
@@ -22,23 +24,24 @@ public class WanderingTraderSpawnLogger {
                 int spawnCountdown = WanderingTraderSpawnLogger.spawnCountdown.countdown + 1;
                 if (spawnCountdown <= 60) {
                     // 小于60秒
-                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.second", spawnCountdown);
+                    time = LocalizationKeys.Time.SECOND.translate(spawnCountdown);
                 } else if (spawnCountdown % 60 == 0) {
                     // 整分
-                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes", spawnCountdown / 60);
+                    time = LocalizationKeys.Time.MINUTE.translate(spawnCountdown / 60);
                 } else {
                     // %s分%s秒
-                    time = TextBuilder.translate("carpet.logger.wanderingTrader.time.minutes_and_seconds",
-                            spawnCountdown / 60, spawnCountdown % 60);
+                    time = LocalizationKeys.Time.MINUTE_SECOND.translate(spawnCountdown / 60, spawnCountdown % 60);
                 }
-                Loggers.getWanderingTraderLogger().log((_, _) -> new Component[]{
-                        TextBuilder.translate("carpet.logger.wanderingTrader.hud", time, (String.format("%.1f", chance) + "%"))
+                Loggers.getWanderingTraderLogger().log((_, _) -> {
+                    Component message = KEY.then("hud").translate(time, (String.format("%.1f", chance) + "%"));
+                    return new Component[]{message};
                 });
             }
         } else {
-            Loggers.getWanderingTraderLogger().log((_, _)
-                    -> new Component[]{TextBuilder.translate("carpet.logger.wanderingTrader.gamerule.not_enabled",
-                    TextBuilder.translate(GameRules.SPAWN_WANDERING_TRADERS.getDescriptionId()))});
+            Loggers.getWanderingTraderLogger().log((_, _) -> {
+                Component gamerule = LocalizationKey.literal(GameRules.SPAWN_WANDERING_TRADERS.getDescriptionId()).translate();
+                return new Component[]{KEY.then("gamerule_not_enabled").translate(gamerule)};
+            });
         }
     }
 

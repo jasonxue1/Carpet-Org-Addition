@@ -78,7 +78,7 @@ public class CommandProvider {
      * 导航到指定UUID的实体
      */
     public static String navigateToUuidEntity(UUID uuid) {
-        return "/%s uuid \"%s\"".formatted(getCommandName(NavigatorCommand.class), uuid.toString());
+        return "/%s uuid %s".formatted(getCommandName(NavigatorCommand.class), uuid.toString());
     }
 
     /**

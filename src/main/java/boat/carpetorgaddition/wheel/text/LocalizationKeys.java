@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel.text;
 
 public class LocalizationKeys {
     public static final LocalizationKey COMMAND = LocalizationKey.of("command");
+    public static final LocalizationKey LOGGER = LocalizationKey.of("logger");
     public static final LocalizationKey OPERATION = LocalizationKey.of("operation");
     public static final LocalizationKey GENERIC = LocalizationKey.of("generic");
     public static final LocalizationKey RULE = LocalizationKey.of("rule");
@@ -71,6 +72,8 @@ public class LocalizationKeys {
         public static final LocalizationKey LOGIN = BUTTON.then("login");
         public static final LocalizationKey LOGOUT = BUTTON.then("logout");
         public static final LocalizationKey HIGHLIGHT = BUTTON.then("highlight");
+        public static final LocalizationKey NAVIGATE = BUTTON.then("navigate");
+        public static final LocalizationKey NAVIGATE_HOVER = NAVIGATE.then("hover");
     }
 
     public static class Dimension {

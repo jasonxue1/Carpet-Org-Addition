@@ -12,6 +12,8 @@ import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.WorldUtils;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.logging.HUDLogger;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -69,24 +71,23 @@ public class WanderingTraderManagerMixin {
             Set<Map.Entry<String, String>> entries = ((LoggerAccessor) logger).getSubscribedOnlinePlayers().entrySet();
             // 普通消息
             Component blockPos = TextProvider.blockPos(trader.blockPosition(), ChatFormatting.GREEN);
-            Component message = TextBuilder.translate("carpet.logger.wanderingTrader.message", blockPos);
             for (Map.Entry<String, String> entry : entries) {
                 ServerPlayer player = server.getPlayerList().getPlayerByName(entry.getKey());
                 if (player == null) {
                     continue;
                 }
                 // 广播流浪商人生成成功
-                boolean canNavigate = CommandUtils.canUseCommand(player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate);
-                if (canNavigate) {
+                LocalizationKey key = WanderingTraderSpawnLogger.KEY;
+                if (CommandUtils.canUseCommand(player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate)) {
                     // 带点击导航的消息
-                    Component button = TextBuilder.of("carpet.logger.wanderingTrader.message.navigate")
+                    Component button = new TextBuilder(LocalizationKeys.Button.NAVIGATE.translate())
                             .setCommand(CommandProvider.navigateToUuidEntity(trader.getUUID()))
-                            .setHover(TextBuilder.translate("carpet.logger.wanderingTrader.message.navigate.hover", trader.getName()))
+                            .setHover(LocalizationKeys.Button.NAVIGATE_HOVER.translate(trader.getName()))
                             .setColor(ChatFormatting.AQUA)
                             .build();
-                    Component canNavigateMessage = TextBuilder.translate("carpet.logger.wanderingTrader.message.click", blockPos, button);
-                    MessageUtils.sendMessage(player, canNavigateMessage);
+                    MessageUtils.sendMessage(player, key.then("message_with_navigate").translate(blockPos, button));
                 } else {
+                    Component message = key.then("message").translate(blockPos);
                     MessageUtils.sendMessage(player, message);
                 }
                 // 播放音效通知流浪商人生成
