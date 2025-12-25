@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.wheel.inventory;
 
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
@@ -22,7 +23,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
 
     static {
         ItemStack itemStack = new ItemStack(Items.RED_STAINED_GLASS_PANE);
-        TextBuilder builder = TextBuilder.of("carpet.inventory.item.placeholder");
+        TextBuilder builder = new TextBuilder(LocalizationKeys.Item.PLACEHOLDER.translate());
         builder.setColor(ChatFormatting.RED);
         itemStack.set(DataComponents.CUSTOM_NAME, builder.build());
         PLACEHOLDER = itemStack;

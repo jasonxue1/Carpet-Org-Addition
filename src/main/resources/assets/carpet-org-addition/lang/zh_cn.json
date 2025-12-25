@@ -281,6 +281,7 @@
   "carpet-org-addition.item.count": "%s组%s个",
   "carpet-org-addition.item.item": "物品",
   "carpet-org-addition.item.any_item": "任意物品",
+  "carpet-org-addition.item.placeholder": "占位",
   "carpet-org-addition.literal.true": "是",
   "carpet-org-addition.literal.false": "否",
   "carpet-org-addition.dimension.overworld": "主世界",
@@ -593,8 +594,6 @@
   "carpet-org-addition.dialog.generic.entry": "确定",
   "carpet-org-addition.dialog.generic.close": "关闭",
   "carpet-org-addition.dialog.generic.error": "错误",
-  "carpet-org-addition.inventory.item.placeholder": "占位",
-  "carpet-org-addition.client.commands.highlight": "点击以高亮路径点",
-  "carpet-org-addition.client.render.waypoint.error": "渲染路径点时遇到意外错误",
-  "carpet-org-addition.client.key.keyboard.waypoint.clear": "清除高亮路径点"
+  "carpet-org-addition.render.waypoint.error": "渲染路径点时遇到意外错误",
+  "carpet-org-addition.keyboard.waypoint.clear": "清除高亮路径点"
 }

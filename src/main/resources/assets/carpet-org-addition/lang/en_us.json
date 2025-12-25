@@ -186,6 +186,7 @@
   "carpet-org-addition.item.count": "%s stacks %s items",
   "carpet-org-addition.item.item": "Item",
   "carpet-org-addition.item.any_item": "Any Item",
+  "carpet-org-addition.item.placeholder": "PLACEHOLDER",
   "carpet-org-addition.literal.true": "True",
   "carpet-org-addition.literal.false": "False",
   "carpet-org-addition.dimension.overworld": "Overworld",
@@ -488,8 +489,6 @@
   "carpet-org-addition.logger.fishing.bite": "The fish will be hooked in %s tick",
   "carpet-org-addition.logger.fishing.break_free": "The fish will break free in %s tick",
   "carpet-org-addition.logger.obsidian.generate": "A piece of obsidian has been generated at %s",
-  "carpet-org-addition.inventory.item.placeholder": "PLACEHOLDER",
-  "carpet-org-addition.client.commands.highlight": "Click to highlight the waypoint",
-  "carpet-org-addition.client.render.waypoint.error": "An unexpected error was encountered while rendering the waypoint",
-  "carpet-org-addition.client.key.keyboard.waypoint.clear": "Clear Highlight Waypoint"
+  "carpet-org-addition.render.waypoint.error": "An unexpected error was encountered while rendering the waypoint",
+  "carpet-org-addition.keyboard.waypoint.clear": "Clear Highlight Waypoint"
 }

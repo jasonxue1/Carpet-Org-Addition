@@ -5,6 +5,7 @@ import boat.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
 import boat.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import boat.carpetorgaddition.client.util.ClientMessageUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Camera;
@@ -26,7 +27,7 @@ public class WaypointRenderer {
 
     static {
         // 断开连接时清除路径点
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> destroy());
+        ClientPlayConnectionEvents.DISCONNECT.register((_, _) -> destroy());
         // 清除不再需要的渲染器
         WorldRenderEvents.START.register(() -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
     }
@@ -60,7 +61,7 @@ public class WaypointRenderer {
                 waypoint.render(matrixStack, consumers, this.camera, tickCounter);
             } catch (RuntimeException e) {
                 // 发送错误消息，然后停止渲染
-                ClientMessageUtils.sendErrorMessage(e, "carpet.client.render.waypoint.error");
+                ClientMessageUtils.sendErrorMessage(LocalizationKeys.Render.WAYPOINT.then("error").translate(), e);
                 CarpetOrgAddition.LOGGER.error("An unexpected error occurred while rendering waypoint '{}'", waypoint.getName(), e);
                 waypoint.discard();
                 waypoint.requestServerToStop();
@@ -69,7 +70,7 @@ public class WaypointRenderer {
     }
 
     public Waypoint addOrUpdate(Waypoint waypoint) {
-        return this.waypoints.computeIfAbsent(waypoint.getIcon(), key -> waypoint);
+        return this.waypoints.computeIfAbsent(waypoint.getIcon(), _ -> waypoint);
     }
 
     public Optional<Waypoint> addOrModify(Waypoint waypoint) {

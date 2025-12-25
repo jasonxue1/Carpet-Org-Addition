@@ -13,6 +13,8 @@ public class LocalizationKeys {
     private static final LocalizationKey LITERAL = LocalizationKey.of("literal");
     private static final LocalizationKey FILE = LocalizationKey.of("file");
     private static final LocalizationKey MISC = LocalizationKey.of("misc");
+    private static final LocalizationKey RENDER = LocalizationKey.of("render");
+    private static final LocalizationKey KEYBOARD = LocalizationKey.of("keyboard");
 
     public static class Operation {
         public static final LocalizationKey OFFLINE_PLAYER_NAME = OPERATION.then("offline_player_name");
@@ -54,6 +56,7 @@ public class LocalizationKeys {
         public static final LocalizationKey GROUP = LocalizationKeys.ITEM.then("group");
         public static final LocalizationKey COUNT = LocalizationKeys.ITEM.then("count");
         public static final LocalizationKey ANY_ITEM = LocalizationKeys.ITEM.then("any_item");
+        public static final LocalizationKey PLACEHOLDER = LocalizationKeys.ITEM.then("placeholder");
     }
 
     public static class Literal {
@@ -85,5 +88,13 @@ public class LocalizationKeys {
         public static final LocalizationKey INVENTORY = MISC.then("inventory");
         public static final LocalizationKey ENDER_CHEST = MISC.then("ender_chest");
         public static final LocalizationKey SELF = MISC.then("self");
+    }
+
+    public static class Render {
+        public static final LocalizationKey WAYPOINT = RENDER.then("waypoint");
+    }
+
+    public static class Keyboard {
+        public static final LocalizationKey WAYPOINT = KEYBOARD.then("waypoint");
     }
 }
