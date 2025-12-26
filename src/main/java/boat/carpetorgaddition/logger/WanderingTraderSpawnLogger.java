@@ -11,7 +11,7 @@ import net.minecraft.world.level.gamerules.GameRules;
  */
 public class WanderingTraderSpawnLogger {
     private static SpawnCountdown spawnCountdown;
-    public static final LocalizationKey KEY = LocalizationKeys.LOGGER.then("wanderingTraderSpawnCountdown");
+    public static final LocalizationKey KEY = LocalizationKeys.LOGGER.then(LoggerNames.WANDERING_TRADER_SPAWN_COUNTDOWN);
 
     // 更新HUD
     public static void updateHud(MinecraftServer server) {
