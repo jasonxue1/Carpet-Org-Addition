@@ -35,7 +35,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
      * 交易选择的总数量
      */
     protected int tradeCount;
-    public static final LocalizationKey TRADE = FinderCommand.FINDER_KEY.then("trade");
+    public static final LocalizationKey TRADE = FinderCommand.KEY.then("trade");
 
     public AbstractTradeSearchTask(Level world, BlockPosTraverser blockPosTraverser, BlockPos sourcePos, CommandSourceStack source) {
         super(source);

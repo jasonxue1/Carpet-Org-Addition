@@ -68,7 +68,7 @@ public class FinderCommand extends AbstractServerCommand {
     public static final String FINDER_BLOCK = "finder.block";
     public static final String FINDER_ITEM = "finder.item";
     public static final String FINDER_ITEM_FROM_OFFLINE_PLAYER = "finder.item.from.offline_player";
-    public static final LocalizationKey FINDER_KEY = LocalizationKeys.COMMAND.then("finder");
+    public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("finder");
 
     public FinderCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -277,7 +277,7 @@ public class FinderCommand extends AbstractServerCommand {
     private void checkBoxSize(WorldTraverser<?> traverser) throws CommandSyntaxException {
         int max = (MAX_HORIZONTAL_RANGE << 1) + 1;
         if (traverser.length() > max || traverser.width() > max) {
-            throw CommandUtils.createException(FINDER_KEY.then("toobig").translate(max));
+            throw CommandUtils.createException(KEY.then("toobig").translate(max));
         }
     }
 

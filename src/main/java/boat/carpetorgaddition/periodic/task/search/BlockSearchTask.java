@@ -40,7 +40,7 @@ public class BlockSearchTask extends ServerTask {
     private int count = 0;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
-    public static final LocalizationKey KEY = FinderCommand.FINDER_KEY.then("block");
+    public static final LocalizationKey KEY = FinderCommand.KEY.then("block");
 
     public BlockSearchTask(ServerLevel world, BlockPos sourcePos, BlockPosTraverser traverser, CommandSourceStack source, BlockStatePredicate predicate) {
         super(source);
@@ -115,7 +115,7 @@ public class BlockSearchTask extends ServerTask {
                         throw new TaskExecutionException(
                                 () -> MessageUtils.sendErrorMessage(
                                         this.source,
-                                        KEY.then("too_much_blocks").translate(this.predicate.getDisplayName())
+                                        KEY.then("too_much").translate(this.predicate.getDisplayName())
                                 )
                         );
                     }
@@ -134,7 +134,7 @@ public class BlockSearchTask extends ServerTask {
         if (this.results.isEmpty()) {
             // 从周围没有找到指定方块
             Component name = this.predicate.getDisplayName();
-            MessageUtils.sendMessage(this.source, KEY.then("not_found_block").translate(name));
+            MessageUtils.sendMessage(this.source, KEY.then("cannot_find").translate(name));
             this.findState = FindState.END;
             return;
         }
@@ -152,7 +152,7 @@ public class BlockSearchTask extends ServerTask {
     private void sendFeedback() {
         Component name = this.predicate.getDisplayName();
         MessageUtils.sendEmptyMessage(this.source);
-        MessageUtils.sendMessage(this.source, KEY.then("find").translate(this.count, name));
+        MessageUtils.sendMessage(this.source, KEY.then("head").translate(this.count, name));
         this.pagedCollection.addContent(this.results);
         CommandUtils.handlingException(this.pagedCollection::print, this.source);
         this.findState = FindState.END;
@@ -165,7 +165,7 @@ public class BlockSearchTask extends ServerTask {
 
     private Component getResultMessage(Block block, Set<BlockPos> set) {
         BlockPos center = MathUtils.calculateTheGeometricCenter(set);
-        return KEY.then("feedback").translate(TextProvider.blockPos(center), set.size(), block.getName());
+        return KEY.then("each").translate(TextProvider.blockPos(center), set.size(), block.getName());
     }
 
     @Override

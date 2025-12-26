@@ -109,8 +109,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
     public static final LocalizationKey KEY = ItemSearchTask.KEY.then("offline_player");
-    private static final LocalizationKey KEY_THEN_OPEN = KEY.then("open");
-    private static final LocalizationKey KEY_THEN_QUERY = KEY.then("query");
 
     public OfflinePlayerSearchTask(CommandSourceStack source, ItemStackPredicate predicate, ServerPlayer player) {
         super(source);
@@ -406,7 +404,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     // 发送命令反馈
     private void sendFeedback() {
         if (this.results.isEmpty()) {
-            MessageUtils.sendMessage(this.source, KEY.then("not_found").translate(this.predicate.getDisplayName()));
+            MessageUtils.sendMessage(this.source, KEY.then("cannot_find").translate(this.predicate.getDisplayName()));
             return;
         }
         int resultCount = this.results.size();
@@ -426,7 +424,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 获取首条反馈消息
      */
     private Component getFirstFeedback(Component numberOfPeople, Component itemCount) {
-        return KEY.translate(numberOfPeople, itemCount, this.predicate.getDisplayName());
+        return KEY.then("head").translate(numberOfPeople, itemCount, this.predicate.getDisplayName());
     }
 
     /**
@@ -458,11 +456,11 @@ public class OfflinePlayerSearchTask extends ServerTask {
 
     private Component getContainerName(boolean isEnderChest) {
         if (isEnderChest) {
-            return TextBuilder.of(LocalizationKeys.GENERIC.then("ender_chest"))
+            return new TextBuilder(LocalizationKeys.Misc.ENDER_CHEST.translate())
                     .setColor(ChatFormatting.DARK_PURPLE)
                     .build();
         } else {
-            return TextBuilder.of(LocalizationKeys.GENERIC.then("inventory"))
+            return new TextBuilder(LocalizationKeys.Misc.INVENTORY.translate())
                     .setColor(ChatFormatting.YELLOW)
                     .build();
         }
@@ -499,7 +497,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.INVENTORY);
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
-            builder.setHover(KEY_THEN_OPEN.then("inventory").translate());
+            builder.setHover(LocalizationKeys.Operation.OpenInventory.HOVER.translate(LocalizationKeys.Misc.INVENTORY.translate()));
             builder.setColor(ChatFormatting.GRAY);
             return builder.build();
         }
@@ -514,7 +512,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.ENDER_CHEST);
             TextBuilder builder = new TextBuilder("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
-            builder.setHover(KEY_THEN_OPEN.then("ender_chest").translate());
+            builder.setHover(LocalizationKeys.Operation.OpenInventory.HOVER.translate(LocalizationKeys.Misc.ENDER_CHEST.translate()));
             builder.setColor(ChatFormatting.GRAY);
             return builder.build();
         }
@@ -615,8 +613,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
         private TextBuilder createSearchButton() {
             // 按钮的悬停提示
             ArrayList<Component> list = new ArrayList<>();
-            list.add(KEY_THEN_QUERY.then("name").translate());
-            list.add(TextBuilder.of(KEY_THEN_QUERY.then("non_authentic")).setColor(ChatFormatting.RED).build());
+            list.add(LocalizationKeys.Operation.QueryPlayerName.Hover.FIRST.translate());
+            list.add(new TextBuilder(LocalizationKeys.Operation.QueryPlayerName.Hover.SECOND.translate()).setColor(ChatFormatting.RED).build());
             TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             // 设置单击查询玩家名称

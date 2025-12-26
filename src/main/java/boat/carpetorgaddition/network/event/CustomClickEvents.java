@@ -117,7 +117,7 @@ public class CustomClickEvents {
      * 字符串无法解析为UUID
      */
     private static CommandSyntaxException unableToResolveUuid(NbtReader reader) {
-        LocalizationKey key = KEY.then("uuid", "from_string", "fail");
+        LocalizationKey key = KEY.then("unable_to_parse_string_to_uuid");
         return CommandUtils.createException(key.translate(reader.getString(CustomClickKeys.UUID)));
     }
 

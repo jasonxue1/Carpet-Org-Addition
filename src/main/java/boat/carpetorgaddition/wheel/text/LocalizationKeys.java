@@ -3,9 +3,11 @@ package boat.carpetorgaddition.wheel.text;
 public class LocalizationKeys {
     public static final LocalizationKey COMMAND = LocalizationKey.of("command");
     public static final LocalizationKey LOGGER = LocalizationKey.of("logger");
+    @Deprecated(forRemoval = true)
     public static final LocalizationKey OPERATION = LocalizationKey.of("operation");
+    @Deprecated(forRemoval = true)
     public static final LocalizationKey GENERIC = LocalizationKey.of("generic");
-    public static final LocalizationKey RULE = LocalizationKey.of("rule");
+    private static final LocalizationKey RULE = LocalizationKey.of("rule");
     private static final LocalizationKey TIME = LocalizationKey.of("time");
     private static final LocalizationKey ARGUMENT = LocalizationKey.of("argument");
     private static final LocalizationKey ITEM = LocalizationKey.of("item");
@@ -19,6 +21,25 @@ public class LocalizationKeys {
 
     public static class Operation {
         public static final LocalizationKey OFFLINE_PLAYER_NAME = OPERATION.then("offline_player_name");
+        private static final LocalizationKey OPEN_INVENTORY = OPERATION.then("open_inventory");
+        private static final LocalizationKey QUERY_PLAYER_NAME = OPERATION.then("query_player_name");
+
+        public static class OpenInventory {
+            public static final LocalizationKey FAIL = OPEN_INVENTORY.then("fail");
+            public static final LocalizationKey HOVER = OPEN_INVENTORY.then("hover");
+        }
+
+        public static class QueryPlayerName {
+            public static final LocalizationKey START = QUERY_PLAYER_NAME.then("start");
+            public static final LocalizationKey SUCCESS = QUERY_PLAYER_NAME.then("success");
+            public static final LocalizationKey FAIL = QUERY_PLAYER_NAME.then("fail");
+            private static final LocalizationKey HOVER = QUERY_PLAYER_NAME.then("hover");
+
+            public static class Hover {
+                public static final LocalizationKey FIRST = QueryPlayerName.HOVER.then("first");
+                public static final LocalizationKey SECOND = QueryPlayerName.HOVER.then("second");
+            }
+        }
     }
 
     public static class Rule {
@@ -53,6 +74,7 @@ public class LocalizationKeys {
 
     public static class Item {
         public static final LocalizationKey ITEM = LocalizationKeys.ITEM.then("item");
+        public static final LocalizationKey DROPS = LocalizationKeys.ITEM.then("drops");
         public static final LocalizationKey REMAINDER = LocalizationKeys.ITEM.then("remainder");
         public static final LocalizationKey GROUP = LocalizationKeys.ITEM.then("group");
         public static final LocalizationKey COUNT = LocalizationKeys.ITEM.then("count");

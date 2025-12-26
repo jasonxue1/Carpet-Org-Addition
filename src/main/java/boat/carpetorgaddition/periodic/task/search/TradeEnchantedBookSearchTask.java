@@ -73,7 +73,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected void notFound() {
-        MessageUtils.sendMessage(this.source, KEY.then("not_trade").translate(this.getTradeName(), FinderCommand.VILLAGER));
+        MessageUtils.sendMessage(this.source, KEY.then("cannot_find").translate(this.getTradeName(), FinderCommand.VILLAGER));
     }
 
     @Override
@@ -83,7 +83,7 @@ public class TradeEnchantedBookSearchTask extends AbstractTradeSearchTask {
 
     @Override
     protected LocalizationKey getTradeResultKey() {
-        return KEY.then("result");
+        return KEY.then("head");
     }
 
     public class EnchantedBookFindResult implements Result {
