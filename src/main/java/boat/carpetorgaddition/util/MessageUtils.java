@@ -69,23 +69,6 @@ public class MessageUtils {
         sendMessage(context.getSource(), message);
     }
 
-    /**
-     * 发送一条可以被翻译的消息做为命令的执行反馈，消息内容仅消息发送者可见
-     */
-    @Deprecated
-    public static void sendMessage(CommandContext<CommandSourceStack> context, String key, Object... obj) {
-        MessageUtils.sendMessage(context.getSource(), key, obj);
-    }
-
-    @Deprecated
-    public static void sendMessage(CommandSourceStack source, String key, Object... obj) {
-        MessageUtils.sendMessage(source, TextBuilder.translate(key, obj));
-    }
-
-    @Deprecated
-    public static void sendMessage(ServerPlayer player, String key, Object... obj) {
-        MessageUtils.sendMessage(player, TextBuilder.translate(key, obj));
-    }
 
     private static void writeLog(String name, String message) {
         CarpetOrgAddition.LOGGER.info("[{} <- {}] {}", name, CarpetOrgAddition.MOD_NAME, message);

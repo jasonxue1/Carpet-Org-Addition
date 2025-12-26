@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.wheel.inventory;
 
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.network.chat.Component;
@@ -9,8 +9,8 @@ import java.util.Locale;
 import java.util.Optional;
 
 public enum PlayerInventoryType {
-    INVENTORY(TextBuilder.translate("carpet.generic.inventory")),
-    ENDER_CHEST(TextBuilder.translate("carpet.generic.ender_chest"));
+    INVENTORY(LocalizationKeys.Misc.INVENTORY.translate()),
+    ENDER_CHEST(LocalizationKeys.Misc.ENDER_CHEST.translate());
     private final Component displayName;
     public static final Codec<PlayerInventoryType> CODEC = Codec.STRING
             .comapFlatMap(PlayerInventoryType::parse, PlayerInventoryType::toString)

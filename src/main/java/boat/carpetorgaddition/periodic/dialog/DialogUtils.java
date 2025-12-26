@@ -4,7 +4,7 @@ import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.network.event.CustomClickAction;
 import boat.carpetorgaddition.network.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class DialogUtils {
-    public static final Component UNDEFINED = TextBuilder.of("carpet.generic.undefined")
+    public static final Component UNDEFINED = LocalizationKeys.Misc.UNDEFINED.builder()
             .setColor(ChatFormatting.RED)
             .setBold()
             .build();
@@ -42,10 +42,10 @@ public class DialogUtils {
 
     public static ActionButton createBackButton(MinecraftServer server, @Nullable Identifier parent) {
         if (parent == null) {
-            CommonButtonData data = new CommonButtonData(TextBuilder.translate(DialogTranslateKeys.CLOSE), CommonButtonData.DEFAULT_WIDTH);
+            CommonButtonData data = new CommonButtonData(LocalizationKeys.Button.CLOSE.translate(), CommonButtonData.DEFAULT_WIDTH);
             return new ActionButton(data, Optional.empty());
         } else {
-            CommonButtonData data = new CommonButtonData(TextBuilder.translate(DialogTranslateKeys.BACK), CommonButtonData.DEFAULT_WIDTH);
+            CommonButtonData data = new CommonButtonData(LocalizationKeys.Button.BACK.translate(), CommonButtonData.DEFAULT_WIDTH);
             NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
             writer.putIdentifier("id", parent);
             Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG, ActionSource.DIALOG);

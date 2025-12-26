@@ -5,8 +5,6 @@ public class LocalizationKeys {
     public static final LocalizationKey LOGGER = LocalizationKey.of("logger");
     @Deprecated(forRemoval = true)
     public static final LocalizationKey OPERATION = LocalizationKey.of("operation");
-    @Deprecated(forRemoval = true)
-    public static final LocalizationKey GENERIC = LocalizationKey.of("generic");
     private static final LocalizationKey RULE = LocalizationKey.of("rule");
     private static final LocalizationKey TIME = LocalizationKey.of("time");
     private static final LocalizationKey ARGUMENT = LocalizationKey.of("argument");
@@ -16,6 +14,7 @@ public class LocalizationKeys {
     private static final LocalizationKey LITERAL = LocalizationKey.of("literal");
     private static final LocalizationKey FILE = LocalizationKey.of("file");
     private static final LocalizationKey MISC = LocalizationKey.of("misc");
+    private static final LocalizationKey DIALOG = LocalizationKey.of("dialog");
     private static final LocalizationKey RENDER = LocalizationKey.of("render");
     private static final LocalizationKey KEYBOARD = LocalizationKey.of("keyboard");
 
@@ -96,6 +95,9 @@ public class LocalizationKeys {
         public static final LocalizationKey HIGHLIGHT = BUTTON.then("highlight");
         public static final LocalizationKey NAVIGATE = BUTTON.then("navigate");
         public static final LocalizationKey NAVIGATE_HOVER = NAVIGATE.then("hover");
+        public static final LocalizationKey BACK = BUTTON.then("back");
+        public static final LocalizationKey CONFIRM = BUTTON.then("confirm");
+        public static final LocalizationKey CLOSE = BUTTON.then("close");
     }
 
     public static class Dimension {
@@ -109,10 +111,32 @@ public class LocalizationKeys {
     }
 
     public static class Misc {
+        public static final LocalizationKey UNDEFINED = MISC.then("undefined");
         public static final LocalizationKey OPERATOR = MISC.then("operator");
         public static final LocalizationKey INVENTORY = MISC.then("inventory");
         public static final LocalizationKey ENDER_CHEST = MISC.then("ender_chest");
         public static final LocalizationKey SELF = MISC.then("self");
+    }
+
+    public static class Dialog {
+        private static final LocalizationKey TEXT = DIALOG.then("text");
+        private static final LocalizationKey TITLE = DIALOG.then("title");
+        private static final LocalizationKey TEXTBOX = DIALOG.then("textbox");
+
+        public static class Text {
+            public static final LocalizationKey VERSION = TEXT.then("version");
+        }
+
+        public static class Title {
+            public static final LocalizationKey FUNCTION = TITLE.then("function");
+            public static final LocalizationKey OPEN_INVENTORY = TITLE.then("open_inventory");
+            public static final LocalizationKey QUERY_PLAYER_NAME = TITLE.then("query_player_name");
+            public static final LocalizationKey ERROR = TITLE.then("error");
+        }
+
+        public static class Textbox {
+            public static final LocalizationKey UUID = TEXTBOX.then("uuid");
+        }
     }
 
     public static class Render {

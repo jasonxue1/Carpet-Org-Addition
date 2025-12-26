@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.periodic.dialog.builder;
 
-import boat.carpetorgaddition.periodic.dialog.DialogTranslateKeys;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.ActionButton;
@@ -8,7 +8,7 @@ import net.minecraft.server.dialog.CommonDialogData;
 import net.minecraft.server.dialog.NoticeDialog;
 
 public final class NoticeDialogBuilder extends DialogBuilder<NoticeDialogBuilder, NoticeDialog> {
-    private ActionButton action = ActionButtonBuilder.of(DialogTranslateKeys.ENTRY).build();
+    private ActionButton action = ActionButtonBuilder.of(LocalizationKeys.Button.CONFIRM.translate()).build();
 
     private NoticeDialogBuilder(Component title) {
         super(title);

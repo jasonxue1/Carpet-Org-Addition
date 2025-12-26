@@ -6,6 +6,7 @@ import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.periodic.dialog.builder.*;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
@@ -44,7 +45,7 @@ public class DialogProvider {
                     .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                     .build();
             Component component = TextBuilder.create(CarpetOrgAddition.MOD_NAME);
-            Component translate = TextBuilder.translate("carpet.dialog.metadata.version", version);
+            Component translate = LocalizationKeys.Dialog.Text.VERSION.translate(version);
             return DialogListDialogBuilder.of(component)
                     .addDialogBody(translate)
                     .addDialog(getDialog(FUNCTION))
@@ -52,7 +53,7 @@ public class DialogProvider {
                     .build();
         });
         // 功能列表对话框
-        dialogs.put(FUNCTION, () -> DialogListDialogBuilder.of("carpet.dialog.function.title")
+        dialogs.put(FUNCTION, () -> DialogListDialogBuilder.of(LocalizationKeys.Dialog.Title.FUNCTION.translate())
                 .addDialog(getDialog(OPEN_INVENTORY))
                 .addDialog(getDialog(QUERY_PLAYER_NAME))
                 .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
@@ -60,16 +61,16 @@ public class DialogProvider {
                 .build()
         );
         // 打开玩家物品栏对话框
-        dialogs.put(OPEN_INVENTORY, () -> MultiActionDialogBuilder.of("carpet.dialog.function.open_inventory.title")
+        dialogs.put(OPEN_INVENTORY, () -> MultiActionDialogBuilder.of(LocalizationKeys.Dialog.Title.OPEN_INVENTORY.translate())
                 .addActionButton(
-                        ActionButtonBuilder.of(DialogTranslateKeys.ENTRY)
+                        ActionButtonBuilder.of(LocalizationKeys.Button.CONFIRM.translate())
                                 .setCustomClickAction(this.server, CustomClickEvents.OPEN_INVENTORY)
                                 .build()
                 )
                 .setAfterAction(DialogAction.WAIT_FOR_RESPONSE)
                 .addInput(
                         TextInputBuilder.of(CustomClickKeys.UUID)
-                                .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
+                                .setLabel(LocalizationKeys.Dialog.Textbox.UUID.translate())
                                 .setMaxLength(36)
                                 .build()
                 )
@@ -84,15 +85,15 @@ public class DialogProvider {
                 .build()
         );
         // 查询玩家名称对话框
-        dialogs.put(QUERY_PLAYER_NAME, () -> MultiActionDialogBuilder.of("carpet.dialog.function.query_player_name.title")
+        dialogs.put(QUERY_PLAYER_NAME, () -> MultiActionDialogBuilder.of(LocalizationKeys.Dialog.Title.QUERY_PLAYER_NAME.translate())
                 .addInput(
                         TextInputBuilder.of(CustomClickKeys.UUID)
-                                .setLabel(TextBuilder.translate("carpet.dialog.function.uuid.textbox"))
+                                .setLabel(LocalizationKeys.Dialog.Textbox.UUID.translate())
                                 .setMaxLength(36)
                                 .build()
                 )
                 .addActionButton(
-                        ActionButtonBuilder.of(DialogTranslateKeys.ENTRY)
+                        ActionButtonBuilder.of(LocalizationKeys.Button.CONFIRM.translate())
                                 .setCustomClickAction(this.server, CustomClickEvents.QUERY_PLAYER_NAME)
                                 .build()
                 )
@@ -108,7 +109,7 @@ public class DialogProvider {
 
     public Dialog createErrorNoticeDialog(CommandSyntaxException exception) {
         return NoticeDialogBuilder.of(
-                        TextBuilder.of(DialogTranslateKeys.ERROR)
+                        LocalizationKeys.Dialog.Title.ERROR.builder()
                                 .setColor(ChatFormatting.RED)
                                 .setBold()
                                 .build()

@@ -38,6 +38,10 @@ public class LocalizationKey {
         return TextBuilder.translate(this, args);
     }
 
+    public TextBuilder builder(Object... args) {
+        return new TextBuilder(this.translate(args));
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
