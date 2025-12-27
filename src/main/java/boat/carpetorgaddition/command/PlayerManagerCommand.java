@@ -661,7 +661,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         } else {
             String comment = hasComment ? StringArgumentType.getString(context, "comment") : "";
             if (CarpetOrgAdditionSettings.playerManagerForceComment.get() && comment.isBlank()) {
-                throw CommandUtils.createException(LocalizationKeys.Rule.MESSAGE.then("playerManagerForceComment").translate());
+                throw CommandUtils.createException(LocalizationKeys.Rule.Message.PLAYER_MANAGER_FORCE_COMMENT.translate());
             }
             FakePlayerSerializer serializer = comment.isBlank() ? new FakePlayerSerializer(fakePlayer) : new FakePlayerSerializer(fakePlayer, comment);
             manager.add(serializer);

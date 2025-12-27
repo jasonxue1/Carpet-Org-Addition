@@ -42,8 +42,26 @@ public class LocalizationKeys {
     }
 
     public static class Rule {
-        public static final LocalizationKey MESSAGE = RULE.then("message");
-        public static final LocalizationKey VALIDATE = RULE.then("validate");
+        private static final LocalizationKey MESSAGE = RULE.then("message");
+        private static final LocalizationKey VALIDATE = RULE.then("validate");
+
+        public static class Message {
+            public static final LocalizationKey DISABLE_RESPAWN_BLOCKS_EXPLODE = MESSAGE.then("disableRespawnBlocksExplode");
+            public static final LocalizationKey CCE_UPDATE_SUPPRESSION = MESSAGE.then("CCEUpdateSuppression");
+            public static final LocalizationKey DISPLAY_PLAYER_SUMMONER = MESSAGE.then("displayPlayerSummoner");
+            public static final LocalizationKey PLAYER_MANAGER_FORCE_COMMENT = MESSAGE.then("playerManagerForceComment");
+        }
+
+        public static class Validate {
+            public static final LocalizationKey INVALID_VALUE = VALIDATE.then("invalid_value");
+            public static final LocalizationKey GREATER_THAN = VALIDATE.then("greater_than");
+            public static final LocalizationKey LESS_THAN = VALIDATE.then("less_than");
+            public static final LocalizationKey GREATER_THAN_OR_EQUAL = VALIDATE.then("greater_than_or_equal");
+            public static final LocalizationKey LESS_THAN_OR_EQUAL = VALIDATE.then("less_than_or_equal");
+            public static final LocalizationKey GREATER_THAN_OR_EQUAL_OR_NUMBER = VALIDATE.then("greater_than_or_equal_or_number");
+            public static final LocalizationKey BETWEEN_TWO_NUMBER_OR_NUMBER = VALIDATE.then("between_two_number_or_number");
+            public static final LocalizationKey VALID_OPTIONS = VALIDATE.then("valid_options");
+        }
     }
 
     public static class Argument {

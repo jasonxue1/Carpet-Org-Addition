@@ -4,7 +4,7 @@ import boat.carpetorgaddition.exception.CCEUpdateSuppressException;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.WorldUtils;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -45,11 +45,10 @@ public class ShulkerBoxBlockMixin {
     }
 
     @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
-    private void onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit,
-                       CallbackInfoReturnable<InteractionResult> cir) {
+    private void onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
         // 提示玩家不能打开用于更新抑制的潜影盒
         if (RuleUtils.canUpdateSuppression(getBlockName(world, pos))) {
-            MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.CCEUpdateSuppression"));
+            MessageUtils.sendMessageToHud(player, LocalizationKeys.Rule.Message.CCE_UPDATE_SUPPRESSION.translate());
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }

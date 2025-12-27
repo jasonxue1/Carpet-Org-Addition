@@ -5,6 +5,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -49,7 +50,7 @@ public class EntityPlayerMPFakeMixin {
             if (player == null || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal()) {
                 return;
             }
-            TextBuilder builder = TextBuilder.of("carpet.rule.message.displayPlayerSummoner", player.getDisplayName());
+            TextBuilder builder = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER.builder(player.getDisplayName());
             builder.setGrayItalic();
             Component dimension = TextProvider.dimension(FetcherUtils.getWorld(fakePlayer));
             Component blockPos = TextProvider.simpleBlockPos(fakePlayer.blockPosition());

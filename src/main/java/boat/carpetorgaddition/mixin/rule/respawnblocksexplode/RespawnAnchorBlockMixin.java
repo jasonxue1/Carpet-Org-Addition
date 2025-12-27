@@ -2,7 +2,7 @@ package boat.carpetorgaddition.mixin.rule.respawnblocksexplode;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -21,7 +21,7 @@ public class RespawnAnchorBlockMixin {
     @Inject(method = "useWithoutItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/RespawnAnchorBlock;explode(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/core/BlockPos;)V"), cancellable = true)
     private void onUse(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
         if (CarpetOrgAdditionSettings.disableRespawnBlocksExplode.get()) {
-            MessageUtils.sendMessageToHud(player, TextBuilder.translate("carpet.rule.message.disableRespawnBlocksExplode"));
+            MessageUtils.sendMessageToHud(player, LocalizationKeys.Rule.Message.DISABLE_RESPAWN_BLOCKS_EXPLODE.translate());
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }

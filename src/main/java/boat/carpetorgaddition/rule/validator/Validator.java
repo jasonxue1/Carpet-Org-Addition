@@ -2,6 +2,7 @@ package boat.carpetorgaddition.rule.validator;
 
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import carpet.api.settings.CarpetRule;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
@@ -30,7 +31,7 @@ public interface Validator<T> {
     default void notifyFailure(CommandSourceStack source, CarpetRule<T> currentRule, String providedValue) {
         // 获取此规则的翻译名称
         Component name = RuleUtils.simpleTranslationName(currentRule);
-        MessageUtils.sendErrorMessage(source, "carpet.rule.validate.invalid_value", name, providedValue);
+        MessageUtils.sendErrorMessage(source, LocalizationKeys.Rule.Validate.INVALID_VALUE.translate(name, providedValue));
         MessageUtils.sendErrorMessage(source, errorMessage());
     }
 
