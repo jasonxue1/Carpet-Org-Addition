@@ -35,7 +35,8 @@ public class LocalizationKey {
     }
 
     public Component translate(Object... args) {
-        return TextBuilder.translate(this, args);
+        String value = Translation.getTranslateValue(this.key);
+        return Component.translatableWithFallback(this.key, value, args);
     }
 
     public TextBuilder builder(Object... args) {

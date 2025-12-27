@@ -42,12 +42,6 @@ public class TextJoiner {
         return this;
     }
 
-    @Deprecated
-    public TextJoiner append(String key, Object... args) {
-        Component translate = TextBuilder.translate(key, args);
-        return this.append(translate);
-    }
-
     public TextJoiner literal() {
         return this.literal(" ");
     }
@@ -78,11 +72,6 @@ public class TextJoiner {
      */
     public TextJoiner enter(Component text) {
         return this.enter(() -> this.append(text));
-    }
-
-    @Deprecated
-    public TextJoiner enter(String key, Object... args) {
-        return this.enter(TextBuilder.translate(key, args));
     }
 
     /**

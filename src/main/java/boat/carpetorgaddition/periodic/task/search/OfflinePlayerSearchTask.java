@@ -590,7 +590,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     .setHover(hover)
                     .setColor(ChatFormatting.GRAY);
             Component container = getContainerName(isEnderChest);
-            return TextBuilder.of(KEY.then("each"), builder.build(), container, count);
+            return KEY.then("each").builder(builder.build(), container, count);
         }
 
         // 创建单击上线按钮

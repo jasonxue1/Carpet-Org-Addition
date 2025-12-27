@@ -3,7 +3,6 @@ package boat.carpetorgaddition.periodic.dialog.builder;
 import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.network.event.CustomClickAction;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
-import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -29,11 +28,6 @@ public class ActionButtonBuilder {
 
     public static ActionButtonBuilder of(Component label) {
         return new ActionButtonBuilder(label);
-    }
-
-    @Deprecated
-    public static ActionButtonBuilder of(String key, Object... args) {
-        return of(TextBuilder.translate(key, args));
     }
 
     @SuppressWarnings("unused")

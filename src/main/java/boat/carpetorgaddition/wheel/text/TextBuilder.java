@@ -52,10 +52,6 @@ public class TextBuilder {
         return new TextBuilder(translate(key, args));
     }
 
-    public static TextBuilder of(LocalizationKey key, Object... args) {
-        return new TextBuilder(translate(key, args));
-    }
-
     public static TextBuilder fromCombined(Object... args) {
         return new TextBuilder(combineAll(args));
     }
@@ -308,13 +304,6 @@ public class TextBuilder {
      */
     @Deprecated
     public static Component translate(String key, Object... obj) {
-        String value = Translation.getTranslateValue(key);
-        return Component.translatableWithFallback(key, value, obj);
-    }
-
-    @Deprecated
-    public static Component translate(LocalizationKey local, Object... obj) {
-        String key = local.toString();
         String value = Translation.getTranslateValue(key);
         return Component.translatableWithFallback(key, value, obj);
     }

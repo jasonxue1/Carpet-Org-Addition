@@ -74,13 +74,6 @@ public class MessageUtils {
         CarpetOrgAddition.LOGGER.info("[{} <- {}] {}", name, CarpetOrgAddition.MOD_NAME, message);
     }
 
-    @Deprecated
-    public static void sendErrorMessage(CommandSourceStack source, String key, Object... obj) {
-        TextBuilder builder = TextBuilder.of(key, obj);
-        builder.setColor(ChatFormatting.RED);
-        MessageUtils.sendMessage(source, builder.build());
-    }
-
     public static void sendErrorMessage(CommandSourceStack source, Component message) {
         TextBuilder builder = new TextBuilder(message);
         builder.setColor(ChatFormatting.RED);

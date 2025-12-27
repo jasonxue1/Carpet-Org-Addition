@@ -22,8 +22,6 @@ public class TextProvider {
      * 换行
      */
     public static final Component NEW_LINE = TextBuilder.create("\n");
-    @Deprecated(forRemoval = true)
-    public static final Component INDENT_SYMBOL = TextBuilder.create("    ");
 
     private TextProvider() {
     }
