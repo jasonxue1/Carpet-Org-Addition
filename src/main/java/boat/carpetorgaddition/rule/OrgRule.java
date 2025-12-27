@@ -4,6 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAdditionExtension;
 import boat.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
 import boat.carpetorgaddition.rule.validator.StrictValidator;
 import boat.carpetorgaddition.rule.validator.Validator;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys.Data.Type;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
@@ -80,31 +82,28 @@ public class OrgRule<T> implements CarpetRule<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private RuleValueParser<T> createParser() {
         Map.Entry<Component, Function<String, T>> entry = switch (this.defaultValue) {
-            case String _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.string"),
-                    this.type::cast);
-            case Boolean _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.boolean"),
-                    s -> this.type.cast(parseBoolean(s)));
-            case Integer _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.integer"),
-                    s -> this.type.cast(Integer.parseInt(s)));
-            case Long _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.long"),
-                    s -> this.type.cast(Long.parseLong(s)));
-            case Double _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.double"),
-                    s -> this.type.cast(Double.parseDouble(s)));
-            case Float _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.float"),
-                    s -> this.type.cast(Float.parseFloat(s)));
-            // 只有枚举名称全部为大写时才能匹配
-            case Enum<?> _ -> Map.entry(TextBuilder.translate("carpet.generic.data.type.enum"),
-                    s -> (T) Enum.valueOf((Class<? extends Enum>) this.type, s.toUpperCase(Locale.ROOT)));
-            default -> throw new UnsupportedOperationException("Unsupported type for %s %s"
-                    .formatted(this.getClass().getSimpleName(), type));
+            case String _ -> Map.entry(Type.STRING.translate(), this.type::cast);
+            case Boolean _ -> Map.entry(Type.BOOLEAN.translate(), s -> this.type.cast(parseBoolean(s)));
+            case Integer _ -> Map.entry(Type.INTEGER.translate(), s -> this.type.cast(Integer.parseInt(s)));
+            case Long _ -> Map.entry(Type.LONG.translate(), s -> this.type.cast(Long.parseLong(s)));
+            case Double _ -> Map.entry(Type.DOUBLE.translate(), s -> this.type.cast(Double.parseDouble(s)));
+            case Float _ -> Map.entry(Type.FLOAT.translate(), s -> this.type.cast(Float.parseFloat(s)));
+            case Enum<?> _ -> Map.entry(Type.ENUM.translate(), s -> {
+                Class<? extends Enum> clazz = (Class<? extends Enum>) this.type;
+                // 只有枚举名称全部为大写时才能匹配
+                return (T) Enum.valueOf(clazz, s.toUpperCase(Locale.ROOT));
+            });
+            default -> {
+                String message = "Unsupported type for %s %s".formatted(this.getClass().getSimpleName(), this.type);
+                throw new UnsupportedOperationException(message);
+            }
         };
         return str -> {
             Component dataType = entry.getKey();
             try {
                 return entry.getValue().apply(str);
             } catch (RuntimeException e) {
-                Component stringType = TextBuilder.translate("carpet.generic.data.type.string");
-                TextBuilder builder = TextBuilder.of("carpet.rule.org.pause", stringType, str, dataType);
+                TextBuilder builder = LocalizationKeys.Data.UNABLE_TO_PARSE.builder(Type.STRING.translate(), str, dataType);
                 builder.setHover(e);
                 throw new TranslatableInvalidRuleValueException(builder.build());
             }

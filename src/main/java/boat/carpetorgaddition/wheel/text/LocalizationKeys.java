@@ -6,6 +6,7 @@ public class LocalizationKeys {
     @Deprecated(forRemoval = true)
     public static final LocalizationKey OPERATION = LocalizationKey.of("operation");
     private static final LocalizationKey RULE = LocalizationKey.of("rule");
+    private static final LocalizationKey DATA = LocalizationKey.of("data");
     private static final LocalizationKey TIME = LocalizationKey.of("time");
     private static final LocalizationKey ARGUMENT = LocalizationKey.of("argument");
     private static final LocalizationKey ITEM = LocalizationKey.of("item");
@@ -61,6 +62,21 @@ public class LocalizationKeys {
             public static final LocalizationKey GREATER_THAN_OR_EQUAL_OR_NUMBER = VALIDATE.then("greater_than_or_equal_or_number");
             public static final LocalizationKey BETWEEN_TWO_NUMBER_OR_NUMBER = VALIDATE.then("between_two_number_or_number");
             public static final LocalizationKey VALID_OPTIONS = VALIDATE.then("valid_options");
+        }
+    }
+
+    public static class Data {
+        public static final LocalizationKey UNABLE_TO_PARSE = DATA.then("unable_to_parse");
+        private static final LocalizationKey TYPE = DATA.then("type");
+
+        public static class Type {
+            public static final LocalizationKey STRING = TYPE.then("string");
+            public static final LocalizationKey INTEGER = TYPE.then("integer");
+            public static final LocalizationKey LONG = TYPE.then("long");
+            public static final LocalizationKey BOOLEAN = TYPE.then("boolean");
+            public static final LocalizationKey DOUBLE = TYPE.then("double");
+            public static final LocalizationKey FLOAT = TYPE.then("float");
+            public static final LocalizationKey ENUM = TYPE.then("enum");
         }
     }
 
