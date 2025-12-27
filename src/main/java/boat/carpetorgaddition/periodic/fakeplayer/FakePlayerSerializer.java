@@ -255,35 +255,35 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                      + MathUtils.numberToTwoDecimalString(this.playerPos.y()) + " "
                      + MathUtils.numberToTwoDecimalString(this.playerPos.z());
         LocalizationKey key = PlayerManagerCommand.KEY.then("info");
-        joiner.append(key.then("pos").translate(pos));
+        joiner.newline(key.then("pos").translate(pos));
         // 获取朝向
-        joiner.append(key.then("direction").translate(
+        joiner.newline(key.then("direction").translate(
                 MathUtils.numberToTwoDecimalString(this.yaw),
                 MathUtils.numberToTwoDecimalString(this.pitch))
         );
         // 维度
-        joiner.append(key.then("dimension").translate(TextProvider.dimension(this.dimension)));
+        joiner.newline(key.then("dimension").translate(TextProvider.dimension(this.dimension)));
         // 游戏模式
-        joiner.append(key.then("gamemode").translate(this.gameMode.getLongDisplayName()));
+        joiner.newline(key.then("gamemode").translate(this.gameMode.getLongDisplayName()));
         // 是否飞行
-        joiner.append(key.then("flying").translate(TextProvider.getBoolean(this.flying)));
+        joiner.newline(key.then("flying").translate(TextProvider.getBoolean(this.flying)));
         // 是否潜行
-        joiner.append(key.then("sneaking").translate(TextProvider.getBoolean(this.sneaking)));
+        joiner.newline(key.then("sneaking").translate(TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
-        joiner.append(key.then("autologin").translate(TextProvider.getBoolean(this.autologin)));
+        joiner.newline(key.then("autologin").translate(TextProvider.getBoolean(this.autologin)));
         if (this.interactiveAction.hasAction()) {
-            joiner.append(this.interactiveAction.getDisplayText(key));
+            joiner.newline(this.interactiveAction.getDisplayText(key));
         }
         if (this.autoAction.hasAction()) {
-            joiner.append(key.then("action").translate());
+            joiner.newline(key.then("action").translate());
             joiner.enter(this.autoAction.getDisplayName());
         }
         if (!this.startups.isEmpty()) {
             LocalizationKey startupKey = key.then("startup");
-            joiner.append(startupKey.translate());
+            joiner.newline(startupKey.translate());
             joiner.enter(() -> {
                 for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
-                    joiner.append(entry.getKey().getDisplayName(startupKey));
+                    joiner.newline(entry.getKey().getDisplayName(startupKey));
                     int delay = entry.getValue();
                     if (delay > 1) {
                         joiner.enter(startupKey.then("delay").translate(delay));
@@ -293,7 +293,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         }
         if (this.hasComment()) {
             // 添加注释
-            joiner.append(key.then("comment").translate(this.comment));
+            joiner.newline(key.then("comment").translate(this.comment));
         }
         return joiner.join();
     }
@@ -412,17 +412,17 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 .setColor(ChatFormatting.GRAY)
                 .build();
         TextJoiner joiner = new TextJoiner();
-        joiner.then(login)
-                .literal()
-                .then(logout)
-                .literal()
-                .then(info)
-                .literal()
-                .literal(name);
+        joiner.append(login)
+                .space()
+                .append(logout)
+                .space()
+                .append(info)
+                .space()
+                .append(name);
         if (this.hasComment()) {
             TextBuilder builder = new TextBuilder("    // " + this.getComment());
             builder.setGrayItalic();
-            joiner.then(builder.build());
+            joiner.append(builder.build());
         }
         return joiner.join();
     }

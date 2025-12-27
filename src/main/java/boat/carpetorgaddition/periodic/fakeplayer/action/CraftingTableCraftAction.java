@@ -187,17 +187,17 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : craftOutput.getItem().getName();
         Component displayName = this.getFakePlayer().getDisplayName();
         LocalizationKey key = this.getInfoLocalizationKey();
-        joiner.append(key.translate(displayName, itemText));
+        joiner.newline(key.translate(displayName, itemText));
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 判断假玩家是否打开了一个工作台
         if (this.getFakePlayer().containerMenu instanceof CraftingMenu currentScreenHandler) {
             // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-            joiner.append(key.then("state").translate(displayName));
+            joiner.newline(key.then("state").translate(displayName));
             // 如果打开了，将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
             joiner.enter(() -> this.addCraftGridState(currentScreenHandler, joiner));
         } else {
             // 如果没有打开工作台，将未打开工作台的信息添加到集合
-            joiner.append(key.then("no_crafting_table").translate(displayName, Items.CRAFTING_TABLE.getName()));
+            joiner.newline(key.then("no_crafting_table").translate(displayName, Items.CRAFTING_TABLE.getName()));
         }
         return joiner.collect();
     }
@@ -205,55 +205,55 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     private void addCraftRecipe(TextJoiner joiner, ItemStack craftOutput) {
         // 配方第一排
         joiner.newline()
-                .then(this.predicates[0].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[1].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[2].getInitialUpperCase());
+                .append(this.predicates[0].getInitialUpperCase())
+                .space()
+                .append(this.predicates[1].getInitialUpperCase())
+                .space()
+                .append(this.predicates[2].getInitialUpperCase());
         // 配方第二排
         joiner.newline()
-                .then(this.predicates[3].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[4].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[5].getInitialUpperCase());
+                .append(this.predicates[3].getInitialUpperCase())
+                .space()
+                .append(this.predicates[4].getInitialUpperCase())
+                .space()
+                .append(this.predicates[5].getInitialUpperCase());
         if (!craftOutput.isEmpty()) {
-            joiner.literal(" -> ").then(FakePlayerUtils.getWithCountHoverText(craftOutput));
+            joiner.append(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
         }
         // 配方第三排
         joiner.newline()
-                .then(this.predicates[6].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[7].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[8].getInitialUpperCase());
+                .append(this.predicates[6].getInitialUpperCase())
+                .space()
+                .append(this.predicates[7].getInitialUpperCase())
+                .space()
+                .append(this.predicates[8].getInitialUpperCase());
     }
 
     // 添加当前合成方格的状态
     private void addCraftGridState(CraftingMenu screenHandler, TextJoiner joiner) {
         // 合成格第一排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()));
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()));
         // 合成格第二排和输出槽
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(5).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(6).getItem()))
-                .literal(" -> ")
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(5).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(6).getItem()))
+                .append(" -> ")
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
         // 合成格第三排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(7).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(8).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(9).getItem()));
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(7).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(8).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(9).getItem()));
     }
 
     @Override

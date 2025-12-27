@@ -148,10 +148,10 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
         Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : craftOutput.getItem().getName();
         LocalizationKey key = this.getInfoLocalizationKey();
-        joiner.append(key.translate(name, itemText));
+        joiner.newline(key.translate(name, itemText));
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));
         // 将可变文本“<玩家>当前合成物品的状态:”添加到集合中
-        joiner.append(key.then("state").translate(name));
+        joiner.newline(key.then("state").translate(name));
         // 获取玩家的生存模式物品栏对象
         InventoryMenu playerScreenHandler = this.getFakePlayer().inventoryMenu;
         // 将每一个合成槽位（包括输出槽位）中的物品的名称和堆叠数组装成一个可变文本对象并添加到集合
@@ -163,16 +163,16 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     private void addCraftRecipe(TextJoiner joiner, ItemStack craftOutput) {
         // 配方第一排
         joiner.newline()
-                .then(this.predicates[0].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[1].getInitialUpperCase());
+                .append(this.predicates[0].getInitialUpperCase())
+                .space()
+                .append(this.predicates[1].getInitialUpperCase());
         // 配方第二排
         joiner.newline()
-                .then(this.predicates[2].getInitialUpperCase())
-                .literal()
-                .then(this.predicates[3].getInitialUpperCase());
+                .append(this.predicates[2].getInitialUpperCase())
+                .space()
+                .append(this.predicates[3].getInitialUpperCase());
         if (!craftOutput.isEmpty()) {
-            joiner.literal(" -> ").then(FakePlayerUtils.getWithCountHoverText(craftOutput));
+            joiner.append(" -> ").append(FakePlayerUtils.getWithCountHoverText(craftOutput));
         }
     }
 
@@ -180,16 +180,16 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     private void addCraftGridState(TextJoiner joiner, InventoryMenu screenHandler) {
         // 合成格第一排
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()));
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(1).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(2).getItem()));
         // 合成格第二排和输出槽
         joiner.newline()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()))
-                .literal()
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
-                .literal(" -> ")
-                .then(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(3).getItem()))
+                .space()
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(4).getItem()))
+                .append(" -> ")
+                .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(0).getItem()));
     }
 
     @Override

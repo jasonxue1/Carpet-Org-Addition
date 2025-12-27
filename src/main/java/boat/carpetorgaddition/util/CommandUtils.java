@@ -94,9 +94,9 @@ public class CommandUtils {
                 for (GameProfile gameProfile : collection) {
                     TextJoiner joiner = new TextJoiner();
                     Component component = joiner
-                            .then(EntityType.PLAYER.getDescription())
-                            .literal(": ")
-                            .literal(gameProfile.name()).join();
+                            .append(EntityType.PLAYER.getDescription())
+                            .append(": ")
+                            .append(gameProfile.name()).join();
                     list.add(component);
                 }
                 builder.setHover(TextBuilder.joinList(list));

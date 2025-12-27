@@ -85,13 +85,13 @@ public class EntityPlayerActionPackSerial {
         // 左键行为
         Action attack = this.actionMap.get(ActionType.ATTACK);
         if (attack != null) {
-            joiner.append(key.then("left_click").translate());
+            joiner.newline(key.then("left_click").translate());
             joiner.enter(() -> getDisplayText(key, attack, joiner));
         }
         // 右键行为
         Action use = this.actionMap.get(ActionType.USE);
         if (use != null) {
-            joiner.append(key.then("right_click").translate());
+            joiner.newline(key.then("right_click").translate());
             joiner.enter(() -> getDisplayText(key, use, joiner));
         }
         return joiner.join();
@@ -100,10 +100,10 @@ public class EntityPlayerActionPackSerial {
     private static void getDisplayText(LocalizationKey key, Action attack, TextJoiner joiner) {
         if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
             // 左键长按
-            joiner.append(key.then("continuous").translate());
+            joiner.newline(key.then("continuous").translate());
         } else {
             // 左键单击
-            joiner.append(key.then("interval").translate(attack.interval));
+            joiner.newline(key.then("interval").translate(attack.interval));
         }
     }
 

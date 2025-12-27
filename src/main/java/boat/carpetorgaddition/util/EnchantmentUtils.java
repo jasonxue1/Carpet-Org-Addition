@@ -109,9 +109,9 @@ public class EnchantmentUtils {
      */
     public static Component getName(Enchantment enchantment, int level) {
         TextJoiner joiner = new TextJoiner();
-        joiner.then(getName(enchantment));
+        joiner.append(getName(enchantment));
         if (level != 1 || enchantment.getMaxLevel() != 1) {
-            joiner.then(CommonComponents.SPACE).then(LocalizationKey.literal("enchantment.level." + level).translate());
+            joiner.append(CommonComponents.SPACE).append(LocalizationKey.literal("enchantment.level." + level).translate());
         }
         return joiner.join();
     }

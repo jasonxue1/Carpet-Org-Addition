@@ -275,8 +275,8 @@ public class MailCommand extends AbstractServerCommand {
         Component component = VERSION.then(dataVersion > GenericUtils.CURRENT_DATA_VERSION ? "new" : "old").translate();
         TextBuilder builder = new TextBuilder(component);
         TextJoiner joiner = new TextJoiner();
-        joiner.append(VERSION.then("expect").translate(GenericUtils.CURRENT_DATA_VERSION));
-        joiner.append(VERSION.then("actual").translate(dataVersion));
+        joiner.newline(VERSION.then("expect").translate(GenericUtils.CURRENT_DATA_VERSION));
+        joiner.newline(VERSION.then("actual").translate(dataVersion));
         builder.setHover(joiner.join());
         return VERSION.then("fail").translate(action, builder.build(), button, action);
     }

@@ -27,13 +27,13 @@ public class TextJoiner {
      * 换行
      */
     public TextJoiner newline() {
-        return this.append(TextBuilder.empty());
+        return this.newline(TextBuilder.empty());
     }
 
     /**
      * 追加文本并换行
      */
-    public TextJoiner append(Component text) {
+    public TextJoiner newline(Component text) {
         if (this.depth == 0) {
             this.list.add(text);
         } else {
@@ -42,23 +42,23 @@ public class TextJoiner {
         return this;
     }
 
-    public TextJoiner literal() {
-        return this.literal(" ");
+    public TextJoiner space() {
+        return this.append(" ");
     }
 
     /**
      * 追加字符串，不换行
      */
-    public TextJoiner literal(String str) {
-        return this.then(TextBuilder.create(str));
+    public TextJoiner append(String str) {
+        return this.append(TextBuilder.create(str));
     }
 
     /**
      * 追加文本但不换行
      */
-    public TextJoiner then(Component text) {
+    public TextJoiner append(Component text) {
         if (this.list.isEmpty()) {
-            this.append(text);
+            this.newline(text);
         } else {
             Component last = this.list.removeLast();
             Component combined = TextBuilder.combineAll(last, text);
@@ -71,7 +71,7 @@ public class TextJoiner {
      * 进入下一缩进层级并追加文本
      */
     public TextJoiner enter(Component text) {
-        return this.enter(() -> this.append(text));
+        return this.enter(() -> this.newline(text));
     }
 
     /**
