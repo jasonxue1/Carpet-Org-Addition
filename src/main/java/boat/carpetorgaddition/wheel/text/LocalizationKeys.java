@@ -20,7 +20,10 @@ public class LocalizationKeys {
     private static final LocalizationKey KEYBOARD = LocalizationKey.of("keyboard");
 
     public static class Operation {
+        public static final LocalizationKey NOT_FAKE_PLAYER = OPERATION.then("not_fake_player");
+        public static final LocalizationKey SELF_OR_FAKE_PLAYER = OPERATION.then("self_or_fake_player");
         public static final LocalizationKey OFFLINE_PLAYER_NAME = OPERATION.then("offline_player_name");
+        public static final LocalizationKey UNABLE_TO_PARSE_STRING_TO_UUID = OPERATION.then("unable_to_parse_string_to_uuid");
         private static final LocalizationKey OPEN_INVENTORY = OPERATION.then("open_inventory");
         private static final LocalizationKey QUERY_PLAYER_NAME = OPERATION.then("query_player_name");
 

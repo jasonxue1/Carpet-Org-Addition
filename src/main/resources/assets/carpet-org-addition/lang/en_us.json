@@ -151,8 +151,6 @@
   "carpet-org-addition.operation.not_fake_player": "%s is not a fake player",
   "carpet-org-addition.operation.self_or_fake_player": "You are only allowed to manipulate yourself or fake player",
   "carpet-org-addition.operation.offline_player_name": "%s (Offline)",
-  "carpet-org-addition.operation.uuid.parse.fail": "Failed to parse UUID from string",
-  "carpet-org-addition.operation.block_pos.dimension": "%s [%s]",
   "carpet-org-addition.operation.api.mojang_api.connection.fail": "Failed to establish a connection to the Mojang API",
   "carpet-org-addition.operation.thread.wait.last": "Waiting for the previous thread to complete execution",
   "carpet-org-addition.operation.task.wait.last": "Waiting for the completion of the previous task execution",

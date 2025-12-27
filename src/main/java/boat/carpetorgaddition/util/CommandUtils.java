@@ -186,14 +186,14 @@ public class CommandUtils {
      * 只允许操作自己或假玩家
      */
     public static CommandSyntaxException createSelfOrFakePlayerException() {
-        return createException("carpet.command.self_or_fake_player");
+        return createException(LocalizationKeys.Operation.SELF_OR_FAKE_PLAYER.translate());
     }
 
     /**
      * 指定玩家不是假玩家
      */
     public static CommandSyntaxException createNotFakePlayerException(Player fakePlayer) {
-        return createException("carpet.command.not_fake_player", fakePlayer.getDisplayName());
+        return createException(LocalizationKeys.Operation.NOT_FAKE_PLAYER.translate(fakePlayer.getDisplayName()));
     }
 
     /**
@@ -217,7 +217,7 @@ public class CommandUtils {
         try {
             return UUID.fromString(uuid);
         } catch (IllegalArgumentException e) {
-            throw createException("carpet.command.uuid.parse.fail");
+            throw createException(LocalizationKeys.Operation.UNABLE_TO_PARSE_STRING_TO_UUID.translate(uuid));
         }
     }
 

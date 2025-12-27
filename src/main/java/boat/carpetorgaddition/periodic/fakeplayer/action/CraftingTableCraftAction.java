@@ -184,7 +184,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.OPERATION.then("item").translate() : craftOutput.getItem().getName();
+        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : craftOutput.getItem().getName();
         Component displayName = this.getFakePlayer().getDisplayName();
         LocalizationKey key = this.getInfoLocalizationKey();
         joiner.append(key.translate(displayName, itemText));

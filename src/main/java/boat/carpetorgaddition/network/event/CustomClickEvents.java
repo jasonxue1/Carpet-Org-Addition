@@ -11,7 +11,6 @@ import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
-import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -30,7 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.RejectedExecutionException;
 
 public class CustomClickEvents {
-    private static final LocalizationKey KEY = LocalizationKeys.OPERATION;
     public static final Identifier OPEN_DIALOG = register("open_dialog", context -> {
         NbtReader reader = context.getReader();
         Identifier id = reader.getIdentifier("id");
@@ -47,7 +45,6 @@ public class CustomClickEvents {
     });
     public static final Identifier QUERY_PLAYER_NAME = register("query_player_name", context -> {
         try {
-            LocalizationKey key = KEY.then("query_player_name");
             NbtReader reader = context.getReader();
             UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
             ServerPlayer player = context.getPlayer();
@@ -62,11 +59,11 @@ public class CustomClickEvents {
                 String playerName = optional.get();
                 TextBuilder builder = new TextBuilder("UUID");
                 builder.setStringHover(uuid.toString());
-                sendQueryPlayerNameFeekback(player, key, builder.build(), playerName);
+                sendQueryPlayerNameFeekback(player, builder.build(), playerName);
             } else {
                 // 本地不存在，从Mojang API获取
-                GameProfileCache.QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context.getServer(), key, player, uuid));
-                MessageUtils.sendMessage(player, key.then("start").translate());
+                GameProfileCache.QUERY_PLAYER_NAME_THREAD_POOL.submit(() -> queryPlayerName(context.getServer(), player, uuid));
+                MessageUtils.sendMessage(player, LocalizationKeys.Operation.QueryPlayerName.START.translate());
             }
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
@@ -90,7 +87,7 @@ public class CustomClickEvents {
     /**
      * 在独立线程查询玩家名称
      */
-    private static void queryPlayerName(MinecraftServer server, LocalizationKey key, ServerPlayer player, UUID uuid) {
+    private static void queryPlayerName(MinecraftServer server, ServerPlayer player, UUID uuid) {
         TextBuilder builder = new TextBuilder("UUID");
         builder.setStringHover(uuid.toString());
         Component displayUuid = builder.build();
@@ -99,26 +96,27 @@ public class CustomClickEvents {
             name = GameProfileCache.queryPlayerNameFromMojangApi(uuid);
         } catch (IOException e) {
             CommandSourceStack source = player.createCommandSourceStack();
-            MessageUtils.sendErrorMessage(source, key.then("fail").translate(displayUuid), e);
+            MessageUtils.sendErrorMessage(source, LocalizationKeys.Operation.QueryPlayerName.FAIL.translate(displayUuid), e);
             return;
         }
         GameProfileCache cache = GameProfileCache.getInstance();
         cache.put(uuid, name);
         // 在服务器线程发送命令反馈
-        server.execute(() -> sendQueryPlayerNameFeekback(player, key, displayUuid, name));
+        server.execute(() -> sendQueryPlayerNameFeekback(player, displayUuid, name));
     }
 
-    private static void sendQueryPlayerNameFeekback(ServerPlayer player, LocalizationKey key, Component uuid, String playerName) {
+    private static void sendQueryPlayerNameFeekback(ServerPlayer player, Component uuid, String playerName) {
         Component name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(ChatFormatting.GRAY).build();
-        MessageUtils.sendMessage(player, key.then("success").translate(uuid, name));
+        MessageUtils.sendMessage(player, LocalizationKeys.Operation.QueryPlayerName.SUCCESS.translate(uuid, name));
     }
 
     /**
      * 字符串无法解析为UUID
      */
     private static CommandSyntaxException unableToResolveUuid(NbtReader reader) {
-        LocalizationKey key = KEY.then("unable_to_parse_string_to_uuid");
-        return CommandUtils.createException(key.translate(reader.getString(CustomClickKeys.UUID)));
+        String uuid = reader.getString(CustomClickKeys.UUID);
+        Component component = LocalizationKeys.Operation.UNABLE_TO_PARSE_STRING_TO_UUID.translate(uuid);
+        return CommandUtils.createException(component);
     }
 
     public static Identifier register(String id, CustomClickAction.CustomClickActionProcessor processor) {
