@@ -67,7 +67,7 @@ public class CustomClickEvents {
             }
         } catch (RejectedExecutionException e) {
             // 只允许同时存在一个线程执行查询任务
-            throw CommandUtils.createException("carpet.command.thread.wait.last");
+            throw CommandUtils.createException(LocalizationKeys.Operation.WAIT_LAST.translate());
         }
     });
     public static final Identifier TURN_THE_PAGE = register("turn_the_page", context -> {
@@ -80,7 +80,7 @@ public class CustomClickEvents {
             PagedCollection collection = optional.get();
             collection.print(page, true);
         } else {
-            throw CommandUtils.createException("carpet.command.page.non_existent");
+            throw CommandUtils.createException(LocalizationKeys.Operation.Page.NON_EXISTENT.translate());
         }
     });
 

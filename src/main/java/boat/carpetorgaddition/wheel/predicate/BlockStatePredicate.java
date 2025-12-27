@@ -1,7 +1,9 @@
 package boat.carpetorgaddition.wheel.predicate;
 
+import boat.carpetorgaddition.command.FinderCommand;
 import boat.carpetorgaddition.mixin.accessor.StateAccessor;
 import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
@@ -184,13 +186,15 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
             String substring = this.content.substring(0, 30);
             Component ellipsis = TextBuilder.create("...");
             Component result = TextBuilder.combineAll(substring, ellipsis);
-            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.content);
+            TextBuilder builder = new TextBuilder(result).setGrayItalic().setStringHover(this.content);
             return builder.build();
         }
         return TextBuilder.create(this.content);
     }
 
     public static class WorldEaterBlockPredicate extends BlockStatePredicate {
+        private static final LocalizationKey KEY = FinderCommand.KEY.then("world_eater");
+
         private WorldEaterBlockPredicate() {
             super();
         }
@@ -239,7 +243,7 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
 
         @Override
         public Component getDisplayName() {
-            return TextBuilder.translate("carpet.commands.finder.may_affect_world_eater_block.name");
+            return KEY.then("head").translate();
         }
     }
 

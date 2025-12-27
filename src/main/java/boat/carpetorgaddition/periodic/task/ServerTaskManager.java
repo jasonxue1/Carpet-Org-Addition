@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic.task;
 
 import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.server.ServerTickRateManager;
 
@@ -26,7 +27,7 @@ public class ServerTaskManager {
         if (this.tasks.add(task)) {
             return;
         }
-        throw CommandUtils.createException("carpet.command.task.wait.last");
+        throw CommandUtils.createException(LocalizationKeys.Operation.WAIT_LAST.translate());
     }
 
     /**

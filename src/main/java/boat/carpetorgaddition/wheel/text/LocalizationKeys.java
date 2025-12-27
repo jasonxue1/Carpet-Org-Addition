@@ -3,8 +3,7 @@ package boat.carpetorgaddition.wheel.text;
 public class LocalizationKeys {
     public static final LocalizationKey COMMAND = LocalizationKey.of("command");
     public static final LocalizationKey LOGGER = LocalizationKey.of("logger");
-    @Deprecated(forRemoval = true)
-    public static final LocalizationKey OPERATION = LocalizationKey.of("operation");
+    private static final LocalizationKey OPERATION = LocalizationKey.of("operation");
     private static final LocalizationKey RULE = LocalizationKey.of("rule");
     private static final LocalizationKey DATA = LocalizationKey.of("data");
     private static final LocalizationKey TIME = LocalizationKey.of("time");
@@ -24,8 +23,27 @@ public class LocalizationKeys {
         public static final LocalizationKey SELF_OR_FAKE_PLAYER = OPERATION.then("self_or_fake_player");
         public static final LocalizationKey OFFLINE_PLAYER_NAME = OPERATION.then("offline_player_name");
         public static final LocalizationKey UNABLE_TO_PARSE_STRING_TO_UUID = OPERATION.then("unable_to_parse_string_to_uuid");
+        public static final LocalizationKey INSUFFICIENT_PERMISSIONS = OPERATION.then("insufficient_permissions");
+        public static final LocalizationKey WAIT_LAST = OPERATION.then("wait_last");
+        private static final LocalizationKey ERROR = OPERATION.then("error");
+        private static final LocalizationKey TIMEOUT = OPERATION.then("timeout");
+        private static final LocalizationKey PAGE = OPERATION.then("page");
         private static final LocalizationKey OPEN_INVENTORY = OPERATION.then("open_inventory");
         private static final LocalizationKey QUERY_PLAYER_NAME = OPERATION.then("query_player_name");
+
+        public static class Page {
+            public static final LocalizationKey INVALID_INDEX = PAGE.then("invalid_index");
+            public static final LocalizationKey NON_EXISTENT = PAGE.then("non_existent");
+        }
+
+        public static class Error {
+            public static final LocalizationKey IO = ERROR.then("io");
+        }
+
+        public static class Timeout {
+            public static final LocalizationKey TASK = TIMEOUT.then("task");
+            public static final LocalizationKey OPERATION = TIMEOUT.then("operation");
+        }
 
         public static class OpenInventory {
             public static final LocalizationKey FAIL = OPEN_INVENTORY.then("fail");
@@ -135,6 +153,8 @@ public class LocalizationKeys {
         public static final LocalizationKey BACK = BUTTON.then("back");
         public static final LocalizationKey CONFIRM = BUTTON.then("confirm");
         public static final LocalizationKey CLOSE = BUTTON.then("close");
+        public static final LocalizationKey PREV_PAGE = BUTTON.then("prev_page");
+        public static final LocalizationKey NEXT_PAGE = BUTTON.then("next_page");
     }
 
     public static class Dimension {

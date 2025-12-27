@@ -4,6 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.debug.DebugSettings;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.ServerTickRateManager;
 
@@ -150,7 +151,7 @@ public abstract class ServerTask {
      * 超时的处理策略
      */
     protected void timeoutHandler() {
-        MessageUtils.sendErrorMessage(this.source, "carpet.command.task.timeout");
+        MessageUtils.sendErrorMessage(this.source, LocalizationKeys.Operation.Timeout.TASK.translate());
     }
 
     /**

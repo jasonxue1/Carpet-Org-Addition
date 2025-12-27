@@ -16,6 +16,7 @@ import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.traverser.BlockEntityTraverser;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -83,6 +84,6 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
         if (permission == null || permission.test(source)) {
             return;
         }
-        throw CommandUtils.createException("carpet.command.permission.insufficient");
+        throw CommandUtils.createException(LocalizationKeys.Operation.INSUFFICIENT_PERMISSIONS.translate());
     }
 }

@@ -123,26 +123,12 @@ public class CommandUtils {
         return player == specified || player instanceof EntityPlayerMPFake;
     }
 
-
     /**
-     * 创建一个命令语法参数异常对象
+     * 创建一个命令语法异常对象
      *
-     * @param key 异常信息的翻译键
-     * @return 命令语法参数异常
+     * @param component 异常的文本信息
+     * @param e         异常的原因，作为文本的悬停提示
      */
-    @Deprecated
-    public static CommandSyntaxException createException(String key, Object... args) {
-        return createException(TextBuilder.translate(key, args));
-    }
-
-    @Deprecated
-    public static CommandSyntaxException createException(Throwable e, String key, Object... args) {
-        String message = GenericUtils.getExceptionString(e);
-        TextBuilder builder = TextBuilder.of(key, args);
-        builder.setHover(message);
-        return new SimpleCommandExceptionType(builder.build()).create();
-    }
-
     public static CommandSyntaxException createException(Component component, Throwable e) {
         String message = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
@@ -172,14 +158,14 @@ public class CommandUtils {
      * 创建IO错误的语法参数异常异常
      */
     public static CommandSyntaxException createIOErrorException(IOException e) {
-        return createException(e, "carpet.command.error.io");
+        return createException(LocalizationKeys.Operation.Error.IO.translate(), e);
     }
 
     /**
      * 操作超时
      */
     public static CommandSyntaxException createOperationTimeoutException() {
-        return createException("carpet.command.operation.timeout");
+        return createException(LocalizationKeys.Operation.Timeout.OPERATION.translate());
     }
 
     /**
