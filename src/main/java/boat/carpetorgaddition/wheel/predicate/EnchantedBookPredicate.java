@@ -40,14 +40,14 @@ public class EnchantedBookPredicate implements Predicate<ItemStack> {
 
     public Component getWithLevel(int level) {
         TextBuilder builder = new TextBuilder(EnchantmentUtils.getName(this.enchantment, level));
-        builder.setStringHover(this.id);
+        builder.setHover(this.id);
         return builder.build();
     }
 
     public Component getDisplayName() {
         // 获取附魔名称，不带等级
         TextBuilder builder = new TextBuilder(EnchantmentUtils.getName(enchantment));
-        builder.setStringHover(this.id);
+        builder.setHover(this.id);
         return builder.build();
     }
 }

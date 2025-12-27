@@ -38,7 +38,7 @@ public class MessageUtils {
     public static void broadcastErrorMessage(MinecraftServer server, Component component, Throwable e) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
-        builder.setStringHover(error);
+        builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
         broadcastMessage(server, builder.build());
     }
@@ -84,7 +84,7 @@ public class MessageUtils {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(message);
         builder.setColor(ChatFormatting.RED);
-        builder.setStringHover(error);
+        builder.setHover(error);
         MessageUtils.sendMessage(source, builder.build());
     }
 

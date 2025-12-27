@@ -47,11 +47,6 @@ public class TextBuilder {
         this(create(message));
     }
 
-    @Deprecated
-    public static TextBuilder of(String key, Object... args) {
-        return new TextBuilder(translate(key, args));
-    }
-
     public static TextBuilder fromCombined(Object... args) {
         return new TextBuilder(combineAll(args));
     }
@@ -110,17 +105,12 @@ public class TextBuilder {
         return this;
     }
 
-    @Deprecated
-    public TextBuilder setHover(String key, Object... args) {
-        return this.setHover(translate(key, args));
-    }
-
     public TextBuilder setHover(Throwable e) {
         String error = GenericUtils.getExceptionString(e);
         return this.setHover(create(error));
     }
 
-    public TextBuilder setStringHover(String hover) {
+    public TextBuilder setHover(String hover) {
         return this.setHover(create(hover));
     }
 
@@ -293,18 +283,5 @@ public class TextBuilder {
             }
         }
         return result;
-    }
-
-    /**
-     * 获取一个可翻译文本对象
-     *
-     * @param key 翻译键
-     * @return 可翻译文本
-     * @apiNote 客户端不需要有对应的翻译
-     */
-    @Deprecated
-    public static Component translate(String key, Object... obj) {
-        String value = Translation.getTranslateValue(key);
-        return Component.translatableWithFallback(key, value, obj);
     }
 }

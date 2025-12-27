@@ -186,7 +186,7 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
             String substring = this.content.substring(0, 30);
             Component ellipsis = TextBuilder.create("...");
             Component result = TextBuilder.combineAll(substring, ellipsis);
-            TextBuilder builder = new TextBuilder(result).setGrayItalic().setStringHover(this.content);
+            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.content);
             return builder.build();
         }
         return TextBuilder.create(this.content);
@@ -266,7 +266,7 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
                 }
                 return builder
                         .setGrayItalic()
-                        .setStringHover(joiner.toString())
+                        .setHover(joiner.toString())
                         .build();
             }
             return TextBuilder.create(this.content);

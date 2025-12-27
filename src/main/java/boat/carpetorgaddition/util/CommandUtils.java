@@ -132,7 +132,7 @@ public class CommandUtils {
     public static CommandSyntaxException createException(Component component, Throwable e) {
         String message = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
-        builder.setStringHover(message);
+        builder.setHover(message);
         return new SimpleCommandExceptionType(builder.build()).create();
     }
 

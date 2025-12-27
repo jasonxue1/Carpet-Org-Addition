@@ -28,7 +28,7 @@ public class ClientMessageUtils {
     public static void sendErrorMessage(Component component, Throwable e) {
         String error = GenericUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
-        builder.setStringHover(error);
+        builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
         sendErrorMessage(builder.build());
     }

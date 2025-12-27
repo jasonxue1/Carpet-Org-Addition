@@ -42,7 +42,7 @@ public class DialogProvider {
         // 对话框主屏幕
         dialogs.put(START, () -> {
             Component version = new TextBuilder(CarpetOrgAddition.VERSION)
-                    .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
+                    .setHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                     .build();
             Component component = TextBuilder.create(CarpetOrgAddition.MOD_NAME);
             Component translate = LocalizationKeys.Dialog.Text.VERSION.translate(version);

@@ -121,7 +121,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int version(CommandContext<CommandSourceStack> context) {
         String name = CarpetOrgAddition.MOD_NAME;
         Component version = new TextBuilder(CarpetOrgAddition.VERSION)
-                .setStringHover(CarpetOrgAddition.BUILD_TIMESTAMP)
+                .setHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                 .build();
         MessageUtils.sendMessage(context, KEY.then("version").translate(name, version));
         return 1;

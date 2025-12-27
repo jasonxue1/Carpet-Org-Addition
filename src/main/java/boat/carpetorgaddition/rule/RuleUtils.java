@@ -3,6 +3,7 @@ package boat.carpetorgaddition.rule;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
 import carpet.api.settings.CarpetRule;
@@ -126,7 +127,7 @@ public class RuleUtils {
      */
     public static Component simpleTranslationName(CarpetRule<?> rule) {
         String key = String.format(TranslationKeys.RULE_NAME_PATTERN, rule.settingsManager().identifier(), rule.name());
-        TextBuilder builder = TextBuilder.of(key);
+        TextBuilder builder = LocalizationKey.literal(key).builder();
         if (Translations.hasTranslation(key)) {
             return builder.setHover(rule.name()).build();
         }
@@ -140,7 +141,8 @@ public class RuleUtils {
             list.add(Translations.tr(key + i));
         }
         return list.stream()
-                .map(TextBuilder::of)
+                .map(LocalizationKey::literal)
+                .map(LocalizationKey::builder)
                 .map(builder -> builder.setColor(ChatFormatting.GRAY))
                 .map(TextBuilder::build)
                 .toList();

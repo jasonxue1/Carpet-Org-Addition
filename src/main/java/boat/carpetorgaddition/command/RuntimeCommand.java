@@ -120,7 +120,7 @@ public class RuntimeCommand extends AbstractServerCommand {
         DecimalFormat format = new DecimalFormat("#.00");
         String mb = format.format(size / 1024.0 / 1024.0);
         TextBuilder builder = new TextBuilder("%sMB".formatted(mb))
-                .setStringHover("%sB".formatted(size))
+                .setHover("%sB".formatted(size))
                 .setColor(ChatFormatting.GRAY);
         return builder.build();
     }

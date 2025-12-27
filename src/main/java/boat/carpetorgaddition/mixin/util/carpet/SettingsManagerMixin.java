@@ -8,6 +8,7 @@ import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.InvalidRuleValueException;
@@ -68,7 +69,9 @@ public abstract class SettingsManagerMixin {
             RuleConfig ruleConfig = ServerComponentCoordinator.getCoordinator(this.server).getRuleConfig();
             // 保存规则到配置文件
             ruleConfig.put(rule, stringValue);
-            TextBuilder builder = TextBuilder.of("carpet.settings.command.default_set", RuleUtils.simpleTranslationName(rule), stringValue);
+            TextBuilder builder = LocalizationKey
+                    .literal("carpet.settings.command.default_set")
+                    .builder(RuleUtils.simpleTranslationName(rule), stringValue);
             builder.setGrayItalic();
             MessageUtils.sendMessage(source, builder.build());
             cir.setReturnValue(1);
@@ -86,7 +89,9 @@ public abstract class SettingsManagerMixin {
             ruleConfig.remove(rule);
             // 将规则设置为默认值
             RuleHelper.resetToDefault(rule, source);
-            TextBuilder builder = TextBuilder.of("carpet.settings.command.default_removed", RuleUtils.simpleTranslationName(rule));
+            TextBuilder builder = LocalizationKey
+                    .literal("carpet.settings.command.default_removed")
+                    .builder(RuleUtils.simpleTranslationName(rule));
             builder.setGrayItalic();
             MessageUtils.sendMessage(source, builder.build());
             cir.setReturnValue(1);

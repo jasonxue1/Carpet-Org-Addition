@@ -58,7 +58,7 @@ public class CustomClickEvents {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerName = optional.get();
                 TextBuilder builder = new TextBuilder("UUID");
-                builder.setStringHover(uuid.toString());
+                builder.setHover(uuid.toString());
                 sendQueryPlayerNameFeekback(player, builder.build(), playerName);
             } else {
                 // 本地不存在，从Mojang API获取
@@ -89,7 +89,7 @@ public class CustomClickEvents {
      */
     private static void queryPlayerName(MinecraftServer server, ServerPlayer player, UUID uuid) {
         TextBuilder builder = new TextBuilder("UUID");
-        builder.setStringHover(uuid.toString());
+        builder.setHover(uuid.toString());
         Component displayUuid = builder.build();
         String name;
         try {

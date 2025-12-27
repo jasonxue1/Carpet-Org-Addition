@@ -168,7 +168,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             builder = new TextBuilder("[@]");
         }
         if (builder != null) {
-            return builder.setStringHover(this.input).build();
+            return builder.setHover(this.input).build();
         }
         // 如果有命名空间，将“:”后的单词首字母取出，否则直接获取首字母
         String[] split = this.input.split(":");
@@ -198,7 +198,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             String substring = this.input.substring(0, 30);
             Component ellipsis = TextBuilder.create("...");
             Component result = TextBuilder.combineAll(substring, ellipsis);
-            TextBuilder builder = new TextBuilder(result).setGrayItalic().setStringHover(this.input);
+            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
             return builder.build();
         }
         return TextBuilder.create(this.input);
@@ -260,7 +260,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 for (Item item : this.items) {
                     joiner.add(GenericUtils.getIdAsString(item));
                 }
-                return new TextBuilder(result).setGrayItalic().setStringHover(joiner.toString()).build();
+                return new TextBuilder(result).setGrayItalic().setHover(joiner.toString()).build();
             }
             return super.getDisplayName();
         }

@@ -1,6 +1,8 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -106,11 +108,12 @@ public class EnchantmentUtils {
      * @return 获取一个附魔的名字，带有等级
      */
     public static Component getName(Enchantment enchantment, int level) {
-        Component mutableText = getName(enchantment);
+        TextJoiner joiner = new TextJoiner();
+        joiner.then(getName(enchantment));
         if (level != 1 || enchantment.getMaxLevel() != 1) {
-            mutableText = TextBuilder.combineAll(mutableText, CommonComponents.SPACE, TextBuilder.translate("enchantment.level." + level));
+            joiner.then(CommonComponents.SPACE).then(LocalizationKey.literal("enchantment.level." + level).translate());
         }
-        return mutableText;
+        return joiner.join();
     }
 
     /**
