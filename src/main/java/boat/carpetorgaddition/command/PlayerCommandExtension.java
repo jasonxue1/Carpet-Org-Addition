@@ -24,15 +24,15 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.permissions.Permission;
-import net.minecraft.server.permissions.PermissionLevel;
-import net.minecraft.server.players.NameAndId;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.inventory.MenuConstructor;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -45,143 +45,34 @@ public class PlayerCommandExtension {
         return builder
                 .then(Commands.literal("inventory")
                         .requires(OpenPlayerInventory::isEnable)
-                        .executes(PlayerCommandExtension::openPlayerInventory))
+                        .executes(context -> openInventory(context, PlayerInventoryType.INVENTORY)))
                 .then(Commands.literal("enderChest")
                         .requires(OpenPlayerInventory::isEnable)
-                        .executes(PlayerCommandExtension::openEnderChest))
+                        .executes(context -> openInventory(context, PlayerInventoryType.ENDER_CHEST)))
                 .then(Commands.literal("teleport")
                         .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.playerCommandTeleportFakePlayer))
                         .executes(PlayerCommandExtension::fakePlayerTeleport));
     }
 
-    // 打开玩家物品栏
-    private static int openPlayerInventory(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int openInventory(CommandContext<CommandSourceStack> context, PlayerInventoryType type) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
-        String playerName = getPlayerName(context);
+        String name = getPlayerName(context);
         MinecraftServer server = source.getServer();
-        ServerPlayer argumentPlayer = getPlayerNullable(playerName, server);
-        ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(source);
-        OpenPlayerInventory ruleValue = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
-        switch (argumentPlayer) {
-            case null -> {
-                if (ruleValue.canOpenOfflinePlayer()) {
-                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
-                    if (optional.isEmpty()) {
-                        throw PlayerCommandExtension.createNoFileFoundException();
-                    }
-                    GameProfile gameProfile = optional.get();
-                    openOfflinePlayerInventory(sourcePlayer, gameProfile);
-                } else {
-                    throw CommandUtils.createPlayerNotFoundException();
-                }
-            }
-            case EntityPlayerMPFake player -> {
-                if (ruleValue.canOpenFakePlayer()) {
-                    openOnlinePlayerInventory(sourcePlayer, player);
-                }
-            }
-            case ServerPlayer player -> {
-                if (ruleValue.canOpenRealPlayer()) {
-                    openOnlinePlayerInventory(sourcePlayer, player);
-                } else {
-                    throw CommandUtils.createNotFakePlayerException(player);
-                }
-            }
-        }
-        return 1;
+        ServerPlayer argumentPlayer = getPlayerNullable(name, server);
+        PlayerInventroyAccessor accessor = (argumentPlayer == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(argumentPlayer));
+        return openInventory(CommandUtils.getSourcePlayer(source), type, accessor);
     }
 
-    public static void openOfflinePlayerInventory(ServerPlayer sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        if (gameProfile == null) {
-            throw createNoFileFoundException();
-        }
-        checkPermission(server, gameProfile, sourcePlayer);
-        SimpleMenuProvider factory = new SimpleMenuProvider(
-                (syncId, playerInventory, _) -> {
-                    FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
-                    FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
-                    OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
-                    return new OfflinePlayerInventoryScreenHandler(syncId, playerInventory, inventory);
-                }, offlinePlayerName(gameProfile.name()));
-        sourcePlayer.openMenu(factory);
+    @NullMarked
+    public static int openInventory(ServerPlayer player, PlayerInventoryType type, PlayerInventroyAccessor accessor) throws CommandSyntaxException {
+        CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().checkPermission(player, accessor.getGameProfile());
+        SimpleMenuProvider factory = new SimpleMenuProvider((containerId, inventory, serverPlayer) -> accessor.createMenu(containerId, inventory, serverPlayer, type), accessor.getDisplayName());
+        player.openMenu(factory);
+        return 1;
     }
 
     public static CommandSyntaxException createNoFileFoundException() {
         return CommandUtils.createException(INVENTORY.then("no_file_found").translate());
-    }
-
-    public static void openOnlinePlayerInventory(ServerPlayer sourcePlayer, ServerPlayer argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
-        SimpleMenuProvider screen = new SimpleMenuProvider(
-                (syncId, inventory, _) -> new PlayerInventoryScreenHandler(syncId, inventory, argumentPlayer),
-                argumentPlayer.getName()
-        );
-        // 打开物品栏
-        sourcePlayer.openMenu(screen);
-    }
-
-    // 打开玩家末影箱
-    private static int openEnderChest(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        CommandSourceStack source = context.getSource();
-        MinecraftServer server = source.getServer();
-        ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
-        String playerName = getPlayerName(context);
-        ServerPlayer argumentPlayer = getPlayerNullable(playerName, server);
-        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
-        switch (argumentPlayer) {
-            case null -> {
-                if (option.canOpenOfflinePlayer()) {
-                    Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(playerName, server);
-                    if (optional.isEmpty()) {
-                        throw createNoFileFoundException();
-                    }
-                    GameProfile gameProfile = optional.get();
-                    openOfflinePlayerEnderChest(sourcePlayer, gameProfile);
-                } else {
-                    throw CommandUtils.createPlayerNotFoundException();
-                }
-            }
-            case EntityPlayerMPFake player -> {
-                if (option.canOpenFakePlayer()) {
-                    openOnlinePlayerEnderChest(sourcePlayer, player);
-                }
-            }
-            case ServerPlayer player -> {
-                if (option.canOpenRealPlayer()) {
-                    openOnlinePlayerEnderChest(sourcePlayer, player);
-                } else {
-                    throw CommandUtils.createNotFakePlayerException(player);
-                }
-            }
-        }
-        return 1;
-    }
-
-    public static void openOfflinePlayerEnderChest(ServerPlayer sourcePlayer, GameProfile gameProfile) throws CommandSyntaxException {
-        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        checkPermission(server, gameProfile, sourcePlayer);
-        SimpleMenuProvider factory = new SimpleMenuProvider(
-                (syncId, playerInventory, _) -> {
-                    FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
-                    FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
-                    OfflinePlayerEnderChestInventory inventory = new OfflinePlayerEnderChestInventory(accessor);
-                    return ChestMenu.threeRows(syncId, playerInventory, inventory);
-                }, offlinePlayerName(gameProfile.name()));
-        sourcePlayer.openMenu(factory);
-    }
-
-    public static void openOnlinePlayerEnderChest(ServerPlayer sourcePlayer, ServerPlayer argumentPlayer) throws CommandSyntaxException {
-        MinecraftServer server = FetcherUtils.getServer(sourcePlayer);
-        checkPermission(server, argumentPlayer.getGameProfile(), sourcePlayer);
-        // 创建GUI对象
-        SimpleMenuProvider screen = new SimpleMenuProvider(
-                (i, inventory, _) -> new PlayerEnderChestScreenHandler(i, inventory, argumentPlayer),
-                argumentPlayer.getName()
-        );
-        // 打开末影箱GUI
-        sourcePlayer.openMenu(screen);
     }
 
     // 传送假玩家
@@ -204,11 +95,6 @@ public class PlayerCommandExtension {
         return 1;
     }
 
-    private static Component offlinePlayerName(String name) {
-        return LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(name);
-    }
-
-    @NotNull
     private static ServerPlayer getPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerNullable(getPlayerName(context), context.getSource().getServer());
         if (player == null) {
@@ -226,40 +112,96 @@ public class PlayerCommandExtension {
         return StringArgumentType.getString(context, "player");
     }
 
-    public static void openPlayerInventory(MinecraftServer server, UUID uuid, ServerPlayer player, PlayerInventoryType type) throws CommandSyntaxException {
-        if (server.getPlayerList().getPlayer(uuid) != null) {
-            // TODO 取消此条限制
-            throw CommandUtils.createException(LocalizationKeys.Operation.OpenInventory.FAIL.translate());
+    @NullMarked
+    public static class PlayerInventroyAccessor {
+        private final MenuConstructor inventory;
+        private final MenuConstructor enderChest;
+        private final Component displayName;
+        private final GameProfile gameProfile;
+
+        public PlayerInventroyAccessor(ServerPlayer player) throws CommandSyntaxException {
+            checkCanBeOpened(player);
+            this.displayName = player.getDisplayName();
+            this.gameProfile = player.getGameProfile();
+            this.inventory = (containerId, inventory, _) -> new PlayerInventoryScreenHandler(containerId, inventory, player);
+            this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
         }
-        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
-        if (option.canOpenOfflinePlayer()) {
+
+        public PlayerInventroyAccessor(MinecraftServer server, GameProfile gameProfile) throws CommandSyntaxException {
+            this.gameProfile = gameProfile;
+            ServerPlayer player = server.getPlayerList().getPlayer(gameProfile.id());
+            checkCanBeOpened(player);
+            if (player == null) {
+                FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
+                FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
+                this.displayName = LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(gameProfile.name());
+                this.inventory = (containerId, inventory, _) -> new OfflinePlayerInventoryScreenHandler(containerId, inventory, new OfflinePlayerInventory(accessor));
+                this.enderChest = (containerId, inventory, _) -> ChestMenu.threeRows(containerId, inventory, new OfflinePlayerEnderChestInventory(accessor));
+            } else {
+                this.displayName = player.getDisplayName();
+                this.inventory = (containerId, inventory, _) -> new PlayerInventoryScreenHandler(containerId, inventory, player);
+                this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
+            }
+        }
+
+        public PlayerInventroyAccessor(MinecraftServer server, String name) throws CommandSyntaxException {
+            checkCanBeOpened(server.getPlayerList().getPlayer(name));
+            Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(name, server);
+            if (optional.isEmpty()) {
+                throw createNoFileFoundException();
+            }
+            this(server, optional.get());
+        }
+
+        public PlayerInventroyAccessor(MinecraftServer server, UUID uuid) throws CommandSyntaxException {
+            checkCanBeOpened(server.getPlayerList().getPlayer(uuid));
             Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
             if (optional.isEmpty()) {
-                throw PlayerCommandExtension.createNoFileFoundException();
+                throw createNoFileFoundException();
             }
-            GameProfile gameProfile = optional.get();
-            switch (type) {
-                case INVENTORY -> PlayerCommandExtension.openOfflinePlayerInventory(player, gameProfile);
-                case ENDER_CHEST -> PlayerCommandExtension.openOfflinePlayerEnderChest(player, gameProfile);
-            }
-        } else {
-            throw CommandUtils.createPlayerNotFoundException();
+            this(server, optional.get());
         }
-    }
 
-    /**
-     * 检查玩家是否有权限打开离线玩家物品栏
-     */
-    private static void checkPermission(MinecraftServer server, GameProfile gameProfile, ServerPlayer player) throws CommandSyntaxException {
-        OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
-        if (option.permissionRequired()) {
-            if (player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))) {
-                return;
+        public Component getDisplayName() {
+            return this.displayName;
+        }
+
+        public GameProfile getGameProfile() {
+            return this.gameProfile;
+        }
+
+        public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player, PlayerInventoryType type) {
+            AbstractContainerMenu menu = switch (type) {
+                case INVENTORY -> this.inventory.createMenu(containerId, inventory, player);
+                case ENDER_CHEST -> this.enderChest.createMenu(containerId, inventory, player);
+            };
+            if (menu == null) {
+                throw new IllegalStateException("Failed to create container menu");
             }
-            PlayerList playerManager = server.getPlayerList();
-            NameAndId entry = new NameAndId(gameProfile);
-            if (playerManager.isWhiteListed(entry) || playerManager.isOp(entry)) {
-                throw CommandUtils.createException(INVENTORY.then("permission").translate());
+            return menu;
+        }
+
+        private static void checkCanBeOpened(@Nullable ServerPlayer player) throws CommandSyntaxException {
+            OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
+            switch (player) {
+                case EntityPlayerMPFake _ -> {
+                    if (option.canOpenFakePlayer()) {
+                        return;
+                    }
+                    throw new IllegalStateException("Always allow opening fake player inventory");
+                }
+                case ServerPlayer _ -> {
+                    if (option.canOpenRealPlayer()) {
+                        return;
+                    }
+                    throw CommandUtils.createNotFakePlayerException(player);
+                }
+                case null -> {
+                    if (option.canOpenOfflinePlayer()) {
+                        return;
+                    }
+                    throw CommandUtils.createPlayerNotFoundException();
+                }
             }
         }
     }

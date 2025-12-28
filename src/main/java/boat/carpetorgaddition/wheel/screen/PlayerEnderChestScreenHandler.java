@@ -16,7 +16,7 @@ public class PlayerEnderChestScreenHandler extends ChestMenu {
         this.player = player;
     }
 
-    //假玩家死亡时，自动关闭GUI
+    // 假玩家死亡时，自动关闭GUI
     @Override
     public boolean stillValid(@NonNull Player player) {
         if (this.player == null) {
