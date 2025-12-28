@@ -160,7 +160,6 @@
   "carpet-org-addition.operation.page.non_existent": "Page does not exist or has been removed",
   "carpet-org-addition.operation.insufficient_permissions": "Insufficient permissions!",
   "carpet-org-addition.operation.unable_to_parse_string_to_uuid": "Failed to parse UUID from string",
-  "carpet-org-addition.operation.open_inventory.fail": "This function can only be used to open the offline player inventory",
   "carpet-org-addition.operation.open_inventory.hover": "Click to open the player's %s",
   "carpet-org-addition.operation.query_player_name.hover.first": "Click to query the player name via the Mojang API",
   "carpet-org-addition.operation.query_player_name.hover.second": "Do not use this feature to query player name of non-authentic player",

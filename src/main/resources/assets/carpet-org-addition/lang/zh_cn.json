@@ -256,7 +256,6 @@
   "carpet-org-addition.operation.page.non_existent": "页面不存在或已被回收",
   "carpet-org-addition.operation.insufficient_permissions": "权限不足！",
   "carpet-org-addition.operation.unable_to_parse_string_to_uuid": "字符串“%s”无法解析为UUID",
-  "carpet-org-addition.operation.open_inventory.fail": "此功能只能用于打开离线玩家物品栏",
   "carpet-org-addition.operation.open_inventory.hover": "单击以打开玩家%s",
   "carpet-org-addition.operation.query_player_name.hover.first": "单击以通过Mojang API查询玩家名称",
   "carpet-org-addition.operation.query_player_name.hover.second": "请勿使用此功能查询非正版玩家的玩家名称",

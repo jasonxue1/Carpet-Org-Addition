@@ -46,7 +46,6 @@ public class LocalizationKeys {
         }
 
         public static class OpenInventory {
-            public static final LocalizationKey FAIL = OPEN_INVENTORY.then("fail");
             public static final LocalizationKey HOVER = OPEN_INVENTORY.then("hover");
         }
 
