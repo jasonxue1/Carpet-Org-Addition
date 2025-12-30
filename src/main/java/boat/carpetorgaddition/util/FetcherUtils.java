@@ -8,6 +8,8 @@ import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import boat.carpetorgaddition.rule.RuleSelfManager;
 import boat.carpetorgaddition.wheel.page.PageManager;
+import carpet.fakes.ServerPlayerInterface;
+import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
@@ -103,6 +105,10 @@ public class FetcherUtils {
 
     public static DialogProvider getDialogProvider(MinecraftServer server) {
         return ServerComponentCoordinator.getCoordinator(server).getDialogProvider();
+    }
+
+    public static EntityPlayerActionPack getActionPack(ServerPlayer player) {
+        return ((ServerPlayerInterface) player).getActionPack();
     }
 }
 

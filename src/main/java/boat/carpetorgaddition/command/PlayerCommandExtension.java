@@ -11,6 +11,7 @@ import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerInventoryScreenHandler;
+import boat.carpetorgaddition.wheel.screen.WithButtonPlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import carpet.patches.EntityPlayerMPFake;
@@ -123,7 +124,7 @@ public class PlayerCommandExtension {
             checkCanBeOpened(player);
             this.displayName = player.getDisplayName();
             this.gameProfile = player.getGameProfile();
-            this.inventory = (containerId, inventory, _) -> new PlayerInventoryScreenHandler(containerId, inventory, player);
+            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, player, new ServerPlayerInventory(player));
             this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
         }
 

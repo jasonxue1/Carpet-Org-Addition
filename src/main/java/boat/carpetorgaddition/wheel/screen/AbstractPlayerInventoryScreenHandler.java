@@ -56,7 +56,7 @@ public abstract class AbstractPlayerInventoryScreenHandler<T extends Container> 
     }
 
     /**
-     * 添加离线玩家物品栏槽位（GUI上半部分）
+     * 添加假玩家物品栏槽位（GUI上半部分）
      */
     private void addOfflinePlayerInventorySlot() {
         int index = 0;

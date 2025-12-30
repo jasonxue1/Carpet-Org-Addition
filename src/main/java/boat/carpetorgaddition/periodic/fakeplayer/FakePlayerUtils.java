@@ -16,6 +16,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerInput;
@@ -277,8 +278,8 @@ public class FakePlayerUtils {
         actionPack.start(type, EntityPlayerActionPack.Action.once());
     }
 
-    public static EntityPlayerActionPack getActionPack(EntityPlayerMPFake fakePlayer) {
-        return ((ServerPlayerInterface) fakePlayer).getActionPack();
+    public static EntityPlayerActionPack getActionPack(ServerPlayer player) {
+        return ((ServerPlayerInterface) player).getActionPack();
     }
 
     /**

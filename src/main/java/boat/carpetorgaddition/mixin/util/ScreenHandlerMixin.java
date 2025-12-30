@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(AbstractContainerMenu.class)
 public class ScreenHandlerMixin {
     /**
-     * 修复如果被合并的两个物品时同一个对象时，可能发生的物品复制问题
+     * 修复如果被合并的两个物品是同一个对象时，可能发生的物品复制问题
      *
      * @see AbstractPlayerInventoryScreenHandler#quickMoveStack(Player, int)
      */
