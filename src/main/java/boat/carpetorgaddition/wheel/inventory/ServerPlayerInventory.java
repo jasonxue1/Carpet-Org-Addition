@@ -7,7 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-public class ServerPlayerInventory extends AbstractCustomSizeInventory implements PlayerInventoryDecomposer {
+public class ServerPlayerInventory extends AbstractCustomSizeInventory implements PlayerDecomposedContainer {
     private final ServerPlayer player;
     private final Inventory inventory;
 
@@ -27,28 +27,13 @@ public class ServerPlayerInventory extends AbstractCustomSizeInventory implement
     }
 
     @Override
+    public Inventory getPlayerInventory() {
+        return this.inventory;
+    }
+
+    @Override
     public boolean stillValid(Player player) {
         // 玩家活着，并且玩家没有被删除
         return !this.player.isDeadOrDying() && !this.player.isRemoved();
-    }
-
-    @Override
-    public Container getStorage() {
-        return new SubInventory(this.inventory, 9, 36);
-    }
-
-    @Override
-    public Container getHotbar() {
-        return new SubInventory(this.inventory, 0, 9);
-    }
-
-    @Override
-    public Container getArmor() {
-        return new ReverseInventroy(new SubInventory(this.inventory, 36, 40));
-    }
-
-    @Override
-    public Container getOffHand() {
-        return new SubInventory(this.inventory, 40, 41);
     }
 }

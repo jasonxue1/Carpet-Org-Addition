@@ -124,7 +124,7 @@ public class PlayerCommandExtension {
             checkCanBeOpened(player);
             this.displayName = player.getDisplayName();
             this.gameProfile = player.getGameProfile();
-            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, player, new ServerPlayerInventory(player));
+            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, player);
             this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
         }
 

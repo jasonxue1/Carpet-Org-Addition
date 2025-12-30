@@ -297,7 +297,7 @@ public abstract class HopperBlockEntityMixin extends BlockEntity {
 
     // 让漏斗一次从一堆掉落物中只吸取一个潜影盒
     @WrapOperation(method = "addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/entity/item/ItemEntity;)Z", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/entity/HopperBlockEntity;addItem(Lnet/minecraft/world/Container;Lnet/minecraft/world/Container;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/core/Direction;)Lnet/minecraft/world/item/ItemStack;"))
-    private static ItemStack extract(Container from, Container to, ItemStack stack, Direction side, Operation<ItemStack> original, @Local LocalBooleanRef bl) {
+    private static ItemStack extract(Container from, Container to, ItemStack stack, Direction side, Operation<ItemStack> original, @Local(name = "changed") LocalBooleanRef bl) {
         if (CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get()) {
             return original.call(from, to, stack, side);
         }

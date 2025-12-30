@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.util;
 
 import boat.carpetorgaddition.client.util.ClientUtils;
-import boat.carpetorgaddition.wheel.screen.WithButtonPlayerInventoryScreenHandler;
+import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
 import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.fabricmc.api.EnvType;
@@ -34,7 +34,7 @@ public class ItemMixin {
             if (customData == null) {
                 return;
             }
-            if (customData.copyTag().get(WithButtonPlayerInventoryScreenHandler.STOP_BUTTON_ITEM) != null) {
+            if (customData.copyTag().get(WithButtonPlayerInventory.STOP_BUTTON_ITEM) != null) {
                 builder.accept(LocalizationKeys.Button.Action.Stop.RIGHT.builder().setGrayItalic().build());
             }
         }

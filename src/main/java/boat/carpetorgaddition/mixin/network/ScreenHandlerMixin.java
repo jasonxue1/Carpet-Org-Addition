@@ -2,8 +2,8 @@ package boat.carpetorgaddition.mixin.network;
 
 import boat.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
 import boat.carpetorgaddition.wheel.screen.UnavailableSlotClientSide;
-import boat.carpetorgaddition.wheel.screen.WithButtonPlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -30,7 +30,7 @@ public class ScreenHandlerMixin implements UnavailableSlotClientSide, WithButton
 
     @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
     private void onSlotClick(int slotIndex, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
-        if (MathUtils.isInRange(this.from, this.to, slotIndex) || (this.withButtonMenu && WithButtonPlayerInventoryScreenHandler.BUTTON_INDEXS.contains(slotIndex))) {
+        if (MathUtils.isInRange(this.from, this.to, slotIndex) || (this.withButtonMenu && WithButtonPlayerInventory.BUTTON_INDEXS.contains(slotIndex))) {
             ci.cancel();
         }
     }

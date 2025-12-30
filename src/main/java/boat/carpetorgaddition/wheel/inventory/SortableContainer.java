@@ -1,0 +1,107 @@
+package boat.carpetorgaddition.wheel.inventory;
+
+import boat.carpetorgaddition.exception.InfiniteLoopException;
+import boat.carpetorgaddition.util.InventoryUtils;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public interface SortableContainer extends Container {
+    /**
+     * 整理物品栏
+     */
+    default void sort() {
+        // 记录所有未被锁定的槽位
+        ArrayList<Integer> list = new ArrayList<>();
+        // 合并相同的物品
+        for (int index = 0; index < this.getContainerSize(); index++) {
+            if (this.isValidSlot(index)) {
+                list.add(index);
+                ItemStack itemStack = this.getItem(index);
+                // 物品不可堆叠或堆叠已满
+                if (InventoryUtils.isItemStackFull(itemStack)) {
+                    continue;
+                }
+                this.merge(index, itemStack);
+            }
+        }
+        // 整理物品
+        sort(list);
+    }
+
+    private void sort(List<Integer> list) {
+        if (list.isEmpty()) {
+            return;
+        }
+        int start = 0;
+        int end = list.size() - 1;
+        // 基准物品
+        ItemStack pivot = this.getItem(list.getFirst());
+        while (start < end) {
+            // 程序是否陷入了死循环
+            boolean infiniteLoop = true;
+            while (end > start && InventoryUtils.compare(pivot, this.getItem(list.get(end))) <= 0) {
+                end--;
+                infiniteLoop = false;
+            }
+            while (end > start && InventoryUtils.compare(pivot, this.getItem(list.get(start))) >= 0) {
+                start++;
+                infiniteLoop = false;
+            }
+            if (infiniteLoop) {
+                throw new InfiniteLoopException("Trapped in an infinite loop while sorting items");
+            }
+            this.swap(list.get(start), list.get(end));
+        }
+        // 基准物品归位
+        this.swap(list.getFirst(), list.get(start));
+        sort(list.subList(0, start));
+        sort(list.subList(start + 1, list.size()));
+    }
+
+    private void merge(int index, ItemStack itemStack) {
+        for (int i = index + 1; i < this.getContainerSize(); i++) {
+            if (this.isValidSlot(i)) {
+                ItemStack slotStack = this.getItem(i);
+                if (slotStack.isEmpty()) {
+                    continue;
+                }
+                if (InventoryUtils.canMergeTo(itemStack, slotStack)) {
+                    InventoryUtils.mergeStack(itemStack, slotStack);
+                    if (itemStack.isEmpty()) {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * @return 指定索引的物品是否可以被操作
+     */
+    default boolean isValidSlot(int index) {
+        ItemStack itemStack = this.getItem(index);
+        if (itemStack.getCount() > itemStack.getMaxStackSize()) {
+            return false;
+        }
+        if (itemStack == AbstractCustomSizeInventory.PLACEHOLDER) {
+            return false;
+        }
+        return !InventoryUtils.isGcaItem(itemStack);
+    }
+
+    /**
+     * 交换两个索引上的物品
+     */
+    default void swap(int first, int second) {
+        if (first == second) {
+            return;
+        }
+        ItemStack firstStack = this.getItem(first);
+        ItemStack secondStack = this.getItem(second);
+        this.setItem(first, secondStack);
+        this.setItem(second, firstStack);
+    }
+}

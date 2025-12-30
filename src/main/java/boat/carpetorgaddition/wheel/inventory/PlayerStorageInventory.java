@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.wheel.inventory;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
@@ -10,7 +9,6 @@ import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -19,14 +17,13 @@ import org.jetbrains.annotations.CheckReturnValue;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Predicate;
 
 /**
  * 一个不包括盔甲槽的玩家物品栏
  */
 @NullMarked
-public class PlayerStorageInventory implements Container {
+public class PlayerStorageInventory implements PlayerDecomposedContainer, SortableContainer {
     private final Inventory playerInventory;
     private final ServerPlayer player;
     private final IntList indexMapping;
@@ -249,102 +246,6 @@ public class PlayerStorageInventory implements Container {
     }
 
     /**
-     * 整理物品栏
-     */
-    public void sort() {
-        sort(true);
-    }
-
-    public void sort(boolean includingHands) {
-        // 记录所有未被锁定的槽位
-        ArrayList<Integer> list = new ArrayList<>();
-        // 合并相同的物品
-        for (int index = 0; index < this.getContainerSize(); index++) {
-            if (this.isValidSlot(index, includingHands)) {
-                list.add(index);
-                ItemStack itemStack = this.getItem(index);
-                // 物品不可堆叠或堆叠已满
-                if (InventoryUtils.isItemStackFull(itemStack)) {
-                    continue;
-                }
-                this.merge(index, itemStack, includingHands);
-            }
-        }
-        // 整理物品
-        sort(list);
-    }
-
-    private void sort(List<Integer> list) {
-        if (list.isEmpty()) {
-            return;
-        }
-        int start = 0;
-        int end = list.size() - 1;
-        // 基准物品
-        ItemStack pivot = this.getItem(list.getFirst());
-        while (start < end) {
-            // 程序是否陷入了死循环
-            boolean infiniteLoop = true;
-            while (end > start && InventoryUtils.compare(pivot, this.getItem(list.get(end))) <= 0) {
-                end--;
-                infiniteLoop = false;
-            }
-            while (end > start && InventoryUtils.compare(pivot, this.getItem(list.get(start))) >= 0) {
-                start++;
-                infiniteLoop = false;
-            }
-            if (infiniteLoop) {
-                throw new InfiniteLoopException("Trapped in an infinite loop while sorting items");
-            }
-            this.swap(list.get(start), list.get(end));
-        }
-        // 基准物品归位
-        this.swap(list.getFirst(), list.get(start));
-        sort(list.subList(0, start));
-        sort(list.subList(start + 1, list.size()));
-    }
-
-    private void merge(int index, ItemStack itemStack, boolean includingHands) {
-        for (int i = index + 1; i < this.getContainerSize(); i++) {
-            if (this.isValidSlot(i, includingHands)) {
-                ItemStack slotStack = this.getItem(i);
-                if (slotStack.isEmpty()) {
-                    continue;
-                }
-                if (InventoryUtils.canMergeTo(itemStack, slotStack)) {
-                    InventoryUtils.mergeStack(itemStack, slotStack);
-                    if (itemStack.isEmpty()) {
-                        return;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * @return 指定索引的物品是否可以被操作
-     */
-    private boolean isValidSlot(int index, boolean includingHands) {
-        ItemStack itemStack = this.getItem(index);
-        if (!includingHands && (index == getHandSlotIndex(InteractionHand.MAIN_HAND) || index == getHandSlotIndex(InteractionHand.OFF_HAND))) {
-            return false;
-        }
-        if (itemStack.getCount() > itemStack.getMaxStackSize()) {
-            return false;
-        }
-        if (itemStack == AbstractCustomSizeInventory.PLACEHOLDER) {
-            return false;
-        }
-        if (InventoryUtils.isGcaItem(itemStack)) {
-            return false;
-        }
-        if (player.containerMenu instanceof QuickShulkerScreenHandler quickShulkerScreenHandler) {
-            return itemStack != quickShulkerScreenHandler.getShulkerBox();
-        }
-        return true;
-    }
-
-    /**
      * 将指定物品栏移动到主手
      *
      * @return 是否移动成功
@@ -367,7 +268,7 @@ public class PlayerStorageInventory implements Container {
                 continue;
             }
             if (predicate.test(this.getItem(i))) {
-                swap(i, headSlot);
+                this.swap(i, headSlot);
                 return true;
             } else if (pickItemFromShulker) {
                 ItemStack shulker = this.getItem(i);
@@ -422,17 +323,13 @@ public class PlayerStorageInventory implements Container {
         return false;
     }
 
-    /**
-     * 交换两个索引上的物品
-     */
-    private void swap(int first, int second) {
-        if (first == second) {
-            return;
+    @Override
+    public boolean isValidSlot(int index) {
+        ItemStack itemStack = this.getItem(index);
+        if (QuickShulkerScreenHandler.isOpenedShulkerBox(player, itemStack)) {
+            return false;
         }
-        ItemStack firstStack = this.getItem(first);
-        ItemStack secondStack = this.getItem(second);
-        this.setItem(first, secondStack);
-        this.setItem(second, firstStack);
+        return SortableContainer.super.isValidSlot(index);
     }
 
     /**
@@ -440,5 +337,10 @@ public class PlayerStorageInventory implements Container {
      */
     private int map(int index) {
         return this.indexMapping.getInt(index);
+    }
+
+    @Override
+    public Inventory getPlayerInventory() {
+        return this.playerInventory;
     }
 }

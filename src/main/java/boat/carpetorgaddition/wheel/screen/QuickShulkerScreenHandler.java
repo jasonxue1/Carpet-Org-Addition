@@ -99,4 +99,11 @@ public class QuickShulkerScreenHandler extends ShulkerBoxMenu implements Unavail
     public ItemStack getShulkerBox() {
         return this.shulkerBox;
     }
+
+    public static boolean isOpenedShulkerBox(ServerPlayer player, ItemStack itemStack) {
+        if (player.containerMenu instanceof QuickShulkerScreenHandler screenHandler) {
+            return itemStack != screenHandler.getShulkerBox();
+        }
+        return false;
+    }
 }
