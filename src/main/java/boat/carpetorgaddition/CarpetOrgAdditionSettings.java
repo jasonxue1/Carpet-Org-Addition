@@ -1013,6 +1013,15 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 打开玩家物品栏GCA样式
+     */
+    public static final Supplier<Boolean> playerCommandOpenPlayerInventoryGcaStyle = register(
+            RuleFactory.create(Boolean.class, "playerCommandOpenPlayerInventoryGcaStyle", false)
+                    .addCategories(RuleCategory.FEATURE)
+                    .build()
+    );
+
     // TODO 打开玩家物品栏GCA风格
     // TODO 假玩家物品栏整理命令
     private static <T> Supplier<T> register(RuleContext<T> context) {

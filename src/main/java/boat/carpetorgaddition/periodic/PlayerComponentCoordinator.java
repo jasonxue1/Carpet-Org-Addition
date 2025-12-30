@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
+import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
@@ -8,10 +9,12 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerComponentCoordinator {
     private final ServerPlayer player;
     private final NavigatorManager navigatorManager;
+    private final WithButtonPlayerInventory withButtonPlayerInventory;
 
     public PlayerComponentCoordinator(ServerPlayer player) {
         this.player = player;
         this.navigatorManager = new NavigatorManager(player);
+        this.withButtonPlayerInventory = new WithButtonPlayerInventory(player);
     }
 
     public static PlayerComponentCoordinator of(ServerPlayer serverPlayerEntity) {
@@ -24,10 +27,15 @@ public class PlayerComponentCoordinator {
 
     public void tick() {
         this.navigatorManager.tick();
+        this.withButtonPlayerInventory.tick();
     }
 
     public NavigatorManager getNavigatorManager() {
         return this.navigatorManager;
+    }
+
+    public WithButtonPlayerInventory getWithButtonPlayerInventory() {
+        return this.withButtonPlayerInventory;
     }
 
     @NotNull

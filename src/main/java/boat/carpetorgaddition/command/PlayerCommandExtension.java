@@ -57,11 +57,12 @@ public class PlayerCommandExtension {
 
     private static int openInventory(CommandContext<CommandSourceStack> context, PlayerInventoryType type) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
+        ServerPlayer visitor = CommandUtils.getSourcePlayer(source);
         String name = getPlayerName(context);
         MinecraftServer server = source.getServer();
-        ServerPlayer argumentPlayer = getPlayerNullable(name, server);
-        PlayerInventroyAccessor accessor = (argumentPlayer == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(argumentPlayer));
-        return openInventory(CommandUtils.getSourcePlayer(source), type, accessor);
+        ServerPlayer interviewee = getPlayerNullable(name, server);
+        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(interviewee));
+        return openInventory(visitor, type, accessor);
     }
 
     @NullMarked
@@ -120,12 +121,12 @@ public class PlayerCommandExtension {
         private final Component displayName;
         private final GameProfile gameProfile;
 
-        public PlayerInventroyAccessor(ServerPlayer player) throws CommandSyntaxException {
-            checkCanBeOpened(player);
-            this.displayName = player.getDisplayName();
-            this.gameProfile = player.getGameProfile();
-            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, player);
-            this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
+        public PlayerInventroyAccessor(ServerPlayer interviewee) throws CommandSyntaxException {
+            checkCanBeOpened(interviewee);
+            this.displayName = interviewee.getDisplayName();
+            this.gameProfile = interviewee.getGameProfile();
+            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, interviewee);
+            this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
         }
 
         public PlayerInventroyAccessor(MinecraftServer server, GameProfile gameProfile) throws CommandSyntaxException {

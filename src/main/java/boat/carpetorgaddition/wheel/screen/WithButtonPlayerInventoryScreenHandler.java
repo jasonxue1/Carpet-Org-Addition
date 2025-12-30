@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.wheel.screen;
 
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.wheel.DisabledSlot;
 import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
@@ -29,7 +30,7 @@ public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMen
 
     public WithButtonPlayerInventoryScreenHandler(int containerId, Inventory inventory, ServerPlayer player) {
         super(MenuType.GENERIC_9x6, containerId);
-        this.inventory = new WithButtonPlayerInventory(player);
+        this.inventory = PlayerComponentCoordinator.getManager(player).getWithButtonPlayerInventory();
         this.addInventorySlot();
         this.addPlayerInventorySlot(inventory);
         this.addHotSlot(inventory);

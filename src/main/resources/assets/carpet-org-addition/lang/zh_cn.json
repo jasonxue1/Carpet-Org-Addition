@@ -225,6 +225,8 @@
   "carpet.rule.itemPickupRangeExpand.desc": "将物品拾取范围向四周扩展指定格数",
   "carpet.rule.itemPickupRangeExpandPlayerControl.name": "物品拾取范围扩展玩家控制",
   "carpet.rule.itemPickupRangeExpandPlayerControl.desc": "允许玩家自行决定是否启用“物品拾取范围扩展”",
+  "carpet.rule.playerCommandOpenPlayerInventoryGcaStyle.name": "打开玩家物品栏GCA样式",
+  "carpet.rule.playerCommandOpenPlayerInventoryGcaStyle.desc": "将/player命令打开的玩家物品栏替换为GCA样式",
   "carpet-org-addition.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet-org-addition.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet-org-addition.rule.message.displayPlayerSummoner": "↑由%s召唤",

@@ -143,7 +143,6 @@ public class WithButtonPlayerInventory implements Container {
             on.set(DataComponents.CUSTOM_NAME, LocalizationKeys.Button.HOTBAR.builder(index + 1).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
             return Map.entry(on, off);
         }, (index, pack) -> pack.setSlot(index + 1));
-        stopAll.addMutualExclusion(stopAll);
         stopAll.addMutualExclusion(this.intervalAttack);
         stopAll.addMutualExclusion(this.continuousAttack);
         stopAll.addMutualExclusion(this.continuousUse);
@@ -162,28 +161,32 @@ public class WithButtonPlayerInventory implements Container {
         list.add(decomposer.getHotbar());
         this.inventory = new CombinedInventory(list);
         this.sortInventory = new SortInventory(List.of(decomposer.getStorage(), decomposer.getHotbar()), player, () -> 27 + player.getInventory().getSelectedSlot());
-        this.init();
+        this.updateButton();
     }
 
-    private void init() {
+    private void updateButton() {
         EntityPlayerActionPackAccessor accessor = (EntityPlayerActionPackAccessor) this.actionPack;
         Map<EntityPlayerActionPack.ActionType, EntityPlayerActionPack.Action> actions = accessor.getActions();
         EntityPlayerActionPack.Action attack = actions.get(EntityPlayerActionPack.ActionType.ATTACK);
-        if (attack != null) {
-            if (attack.interval == 12) {
-                this.intervalAttack.setState(0, true);
-            } else if (((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous()) {
-                this.continuousAttack.setState(0, true);
-            }
+        if (attack == null) {
+            this.intervalAttack.setState(0, false);
+            this.continuousAttack.setState(0, false);
+        } else {
+            this.intervalAttack.setState(0, attack.interval == ATTACK_INTERVAL);
+            this.continuousAttack.setState(0, ((EntityPlayerActionPackAccessor.ActionAccessor) attack).isContinuous());
         }
         EntityPlayerActionPack.Action use = actions.get(EntityPlayerActionPack.ActionType.USE);
-        if (use != null) {
-            if (((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous()) {
-                this.continuousUse.setState(0, true);
-            }
+        if (use == null) {
+            this.continuousUse.setState(0, false);
+        } else {
+            this.continuousUse.setState(0, ((EntityPlayerActionPackAccessor.ActionAccessor) use).isContinuous());
         }
         int slot = this.player.getInventory().getSelectedSlot();
         this.hotbar.setState(slot, true);
+    }
+
+    public void tick() {
+        this.updateButton();
     }
 
     public void sort() {
@@ -254,6 +257,9 @@ public class WithButtonPlayerInventory implements Container {
         private final ServerPlayer player;
         private final IntSupplier supplier;
 
+        /**
+         * @param supplier 主手槽位的索引，用于在整理物品时忽略主手物品
+         */
         public SortInventory(List<Container> containers, ServerPlayer player, IntSupplier supplier) {
             super(containers);
             this.player = player;
@@ -353,13 +359,14 @@ public class WithButtonPlayerInventory implements Container {
 
         @Override
         public void onClickd(int index, EntityPlayerActionPack actionPack) {
+            this.setState(index, true);
+            this.consumer.getValue().accept(index, actionPack);
+        }
+
+        @Override
+        public void setState(int index, boolean state) {
             for (int i = 0; i < this.getContainerSize(); i++) {
-                if (i == index) {
-                    setState(index, true);
-                    this.consumer.getValue().accept(index, actionPack);
-                } else {
-                    this.setState(i, false);
-                }
+                super.setState(i, i == index);
             }
         }
     }

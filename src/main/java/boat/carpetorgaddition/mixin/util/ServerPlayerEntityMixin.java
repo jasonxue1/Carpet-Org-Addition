@@ -26,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.OptionalInt;
 
-@Mixin(ServerPlayer.class)
+@Mixin(value = ServerPlayer.class, priority = 1001)
 public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
     @Unique
     private final ServerPlayer thisPlayer = (ServerPlayer) (Object) this;
