@@ -13,6 +13,7 @@ import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.HitResult;
 import org.jetbrains.annotations.Contract;
@@ -113,6 +114,15 @@ public class ClientUtils {
     @Nullable
     public static Screen getCurrentScreen() {
         return getClient().screen;
+    }
+
+
+    /**
+     * 获取当前打开菜单
+     */
+    @NotNull
+    public static AbstractContainerMenu getContainerMenun() {
+        return getPlayer().containerMenu;
     }
 
     /**

@@ -5,11 +5,11 @@ import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
-import carpet.patches.EntityPlayerMPFake;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
@@ -28,12 +28,12 @@ import java.util.function.Predicate;
 @NullMarked
 public class PlayerStorageInventory implements Container {
     private final Inventory playerInventory;
-    private final EntityPlayerMPFake fakePlayer;
+    private final ServerPlayer player;
     private final IntList indexMapping;
 
-    public PlayerStorageInventory(EntityPlayerMPFake fakePlayer) {
-        this.playerInventory = fakePlayer.getInventory();
-        this.fakePlayer = fakePlayer;
+    public PlayerStorageInventory(ServerPlayer player) {
+        this.playerInventory = player.getInventory();
+        this.player = player;
         IntArrayList list = new IntArrayList(37);
         NonNullList<ItemStack> main = this.playerInventory.getNonEquipmentItems();
         for (int i = 0; i < main.size(); i++) {
@@ -67,8 +67,8 @@ public class PlayerStorageInventory implements Container {
 
     public ItemStack getStack(InteractionHand hand) {
         return switch (hand) {
-            case MAIN_HAND -> this.fakePlayer.getMainHandItem();
-            case OFF_HAND -> this.fakePlayer.getOffhandItem();
+            case MAIN_HAND -> this.player.getMainHandItem();
+            case OFF_HAND -> this.player.getOffhandItem();
         };
     }
 
@@ -88,7 +88,7 @@ public class PlayerStorageInventory implements Container {
     }
 
     public void setStack(InteractionHand hand, ItemStack stack) {
-        this.fakePlayer.setItemInHand(hand, stack);
+        this.player.setItemInHand(hand, stack);
     }
 
     @Override
@@ -111,7 +111,7 @@ public class PlayerStorageInventory implements Container {
     public void drop(int index) {
         ItemStack itemStack = this.getItem(index);
         this.setItem(index, ItemStack.EMPTY);
-        this.fakePlayer.drop(itemStack, false, true);
+        this.player.drop(itemStack, false, true);
     }
 
     /**
@@ -150,7 +150,7 @@ public class PlayerStorageInventory implements Container {
             return false;
         }
         // 潜影盒和物品栏都没有足够空间，丢弃物品
-        FakePlayerUtils.dropItem(this.fakePlayer, remaining);
+        FakePlayerUtils.dropItem(this.player, remaining);
         return true;
     }
 
@@ -168,7 +168,7 @@ public class PlayerStorageInventory implements Container {
             return;
         }
         // 物品栏和潜影盒都没有足够空间，丢弃物品
-        FakePlayerUtils.dropItem(this.fakePlayer, remaining);
+        FakePlayerUtils.dropItem(this.player, remaining);
     }
 
     /**
@@ -252,18 +252,22 @@ public class PlayerStorageInventory implements Container {
      * 整理物品栏
      */
     public void sort() {
+        sort(true);
+    }
+
+    public void sort(boolean includingHands) {
         // 记录所有未被锁定的槽位
         ArrayList<Integer> list = new ArrayList<>();
         // 合并相同的物品
         for (int index = 0; index < this.getContainerSize(); index++) {
-            if (this.isValidSlot(index)) {
+            if (this.isValidSlot(index, includingHands)) {
                 list.add(index);
                 ItemStack itemStack = this.getItem(index);
                 // 物品不可堆叠或堆叠已满
                 if (InventoryUtils.isItemStackFull(itemStack)) {
                     continue;
                 }
-                this.merge(index, itemStack);
+                this.merge(index, itemStack, includingHands);
             }
         }
         // 整理物品
@@ -300,9 +304,9 @@ public class PlayerStorageInventory implements Container {
         sort(list.subList(start + 1, list.size()));
     }
 
-    private void merge(int index, ItemStack itemStack) {
+    private void merge(int index, ItemStack itemStack, boolean includingHands) {
         for (int i = index + 1; i < this.getContainerSize(); i++) {
-            if (this.isValidSlot(i)) {
+            if (this.isValidSlot(i, includingHands)) {
                 ItemStack slotStack = this.getItem(i);
                 if (slotStack.isEmpty()) {
                     continue;
@@ -320,8 +324,11 @@ public class PlayerStorageInventory implements Container {
     /**
      * @return 指定索引的物品是否可以被操作
      */
-    private boolean isValidSlot(int index) {
+    private boolean isValidSlot(int index, boolean includingHands) {
         ItemStack itemStack = this.getItem(index);
+        if (!includingHands && (index == getHandSlotIndex(InteractionHand.MAIN_HAND) || index == getHandSlotIndex(InteractionHand.OFF_HAND))) {
+            return false;
+        }
         if (itemStack.getCount() > itemStack.getMaxStackSize()) {
             return false;
         }
@@ -331,7 +338,7 @@ public class PlayerStorageInventory implements Container {
         if (InventoryUtils.isGcaItem(itemStack)) {
             return false;
         }
-        if (fakePlayer.containerMenu instanceof QuickShulkerScreenHandler quickShulkerScreenHandler) {
+        if (player.containerMenu instanceof QuickShulkerScreenHandler quickShulkerScreenHandler) {
             return itemStack != quickShulkerScreenHandler.getShulkerBox();
         }
         return true;
@@ -380,7 +387,7 @@ public class PlayerStorageInventory implements Container {
                 if (picked.isEmpty()) {
                     continue;
                 }
-                this.fakePlayer.setItemInHand(hand, picked);
+                this.player.setItemInHand(hand, picked);
                 this.insertWithInventoryPriority(stackInHand);
                 return true;
             }

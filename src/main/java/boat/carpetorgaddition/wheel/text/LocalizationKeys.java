@@ -154,6 +154,30 @@ public class LocalizationKeys {
         public static final LocalizationKey CLOSE = BUTTON.then("close");
         public static final LocalizationKey PREV_PAGE = BUTTON.then("prev_page");
         public static final LocalizationKey NEXT_PAGE = BUTTON.then("next_page");
+        public static final LocalizationKey HOTBAR = BUTTON.then("hotbar");
+        public static final LocalizationKey ON = BUTTON.then("on");
+        public static final LocalizationKey OFF = BUTTON.then("off");
+        private static final LocalizationKey ACTION = BUTTON.then("action");
+
+        public static class Action {
+            private static final LocalizationKey STOP = ACTION.then("stop");
+            private static final LocalizationKey ATTACK = ACTION.then("attack");
+            private static final LocalizationKey USE = ACTION.then("use");
+
+            public static class Stop {
+                public static final LocalizationKey LEFT = STOP.then("left");
+                public static final LocalizationKey RIGHT = STOP.then("right");
+            }
+
+            public static class Attack {
+                public static final LocalizationKey INTERVAL = ATTACK.then("interval");
+                public static final LocalizationKey CONTINUOUS = ATTACK.then("continuous");
+            }
+
+            public static class Use {
+                public static final LocalizationKey CONTINUOUS = USE.then("continuous");
+            }
+        }
     }
 
     public static class Dimension {

@@ -11,7 +11,8 @@ import boat.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import boat.carpetorgaddition.network.s2c.*;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
-import boat.carpetorgaddition.wheel.screen.UnavailableSlotImplInterface;
+import boat.carpetorgaddition.wheel.screen.UnavailableSlotClientSide;
+import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.resources.ResourceKey;
@@ -20,7 +21,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
 public class CarpetOrgAdditionClientRegister {
-
     public static void register() {
         registerCommand();
         registerC2SNetworkPack();
@@ -50,7 +50,7 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点更新数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointUpdateS2CPacket.ID,
-                (payload, context) -> {
+                (payload, _) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     Vec3 target = payload.target();
                     ResourceKey<Level> registryKey = GenericUtils.getWorld(payload.worldId());
@@ -61,7 +61,7 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
-                (payload, context) -> {
+                (_, _) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     instance.listRenderers(Waypoint.NAVIGATOR).forEach(instance::stop);
                 }
@@ -69,8 +69,15 @@ public class CarpetOrgAdditionClientRegister {
         // 容器不可用槽位同步数据包
         ClientPlayNetworking.registerGlobalReceiver(UnavailableSlotSyncS2CPacket.ID, (payload, context) -> {
             AbstractContainerMenu screen = context.player().containerMenu;
-            if (screen.containerId == payload.syncId() && screen instanceof UnavailableSlotImplInterface anInterface) {
-                anInterface.carpet_Org_Addition$sync(payload);
+            if (screen.containerId == payload.syncId() && screen instanceof UnavailableSlotClientSide packet) {
+                packet.carpet_Org_Addition$sync(payload);
+            }
+        });
+        // 带按钮屏幕同步数据包
+        ClientPlayNetworking.registerGlobalReceiver(WithButtonScreenSyncS2CPacket.ID, (payload, context) -> {
+            AbstractContainerMenu screen = context.player().containerMenu;
+            if (screen.containerId == payload.syncId() && screen instanceof WithButtonScreenClientSide packet) {
+                packet.carpet_Org_Addition$setWithButton();
             }
         });
         // 背景精灵同步数据包
@@ -81,7 +88,7 @@ public class CarpetOrgAdditionClientRegister {
             }
         });
         // 记录器更新数据包
-        ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, context) -> ClientLogger.onPacketReceive(packet));
+        ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, _) -> ClientLogger.onPacketReceive(packet));
     }
 
     /**

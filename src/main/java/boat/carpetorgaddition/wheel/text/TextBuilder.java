@@ -163,7 +163,11 @@ public class TextBuilder {
      * 设置为斜体
      */
     public TextBuilder setItalic() {
-        this.text.withStyle(style -> style.withItalic(true));
+        return this.setItalic(true);
+    }
+
+    public TextBuilder setItalic(boolean italic) {
+        this.text.withStyle(style -> style.withItalic(italic));
         return this;
     }
 
@@ -171,7 +175,14 @@ public class TextBuilder {
      * 设置为粗体
      */
     public TextBuilder setBold() {
-        this.text.withStyle(style -> style.withBold(true));
+        return this.setBold(true);
+    }
+
+    /**
+     * 设置为粗体
+     */
+    public TextBuilder setBold(boolean bold) {
+        this.text.withStyle(style -> style.withBold(bold));
         return this;
     }
 
@@ -179,7 +190,11 @@ public class TextBuilder {
      * 设置有删除线
      */
     public TextBuilder setStrikethrough() {
-        this.text.withStyle(style -> style.withStrikethrough(true));
+        return this.setStrikethrough(true);
+    }
+
+    public TextBuilder setStrikethrough(boolean strikethrough) {
+        this.text.withStyle(style -> style.withStrikethrough(strikethrough));
         return this;
     }
 
@@ -187,7 +202,11 @@ public class TextBuilder {
      * 设置有下划线
      */
     public TextBuilder setUnderline() {
-        this.text.withStyle(style -> style.withUnderlined(true));
+        return this.setUnderline(true);
+    }
+
+    public TextBuilder setUnderline(boolean underline) {
+        this.text.withStyle(style -> style.withUnderlined(underline));
         return this;
     }
 
@@ -195,7 +214,11 @@ public class TextBuilder {
      * 设置为随机字符
      */
     public TextBuilder setObfuscated() {
-        this.text.withStyle(style -> style.withObfuscated(true));
+        return this.setObfuscated(true);
+    }
+
+    public TextBuilder setObfuscated(boolean obfuscated) {
+        this.text.withStyle(style -> style.withObfuscated(obfuscated));
         return this;
     }
 

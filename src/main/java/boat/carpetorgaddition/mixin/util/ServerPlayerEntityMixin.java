@@ -2,10 +2,12 @@ package boat.carpetorgaddition.mixin.util;
 
 import boat.carpetorgaddition.network.s2c.BackgroundSpriteSyncS2CPacket;
 import boat.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
+import boat.carpetorgaddition.network.s2c.WithButtonScreenSyncS2CPacket;
 import boat.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.wheel.screen.BackgroundSpriteSyncServer;
 import boat.carpetorgaddition.wheel.screen.UnavailableSlotSyncInterface;
+import boat.carpetorgaddition.wheel.screen.WithButtonPlayerInventoryScreenHandler;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -52,10 +54,12 @@ public class ServerPlayerEntityMixin implements PeriodicTaskManagerInterface {
     }
 
     @Inject(method = "openMenu", at = @At(value = "RETURN", ordinal = 2))
-    private void openHandledScreen(MenuProvider factory, CallbackInfoReturnable<OptionalInt> cir, @Local AbstractContainerMenu screenHandler) {
+    private void openHandledScreen(MenuProvider factory, CallbackInfoReturnable<OptionalInt> cir, @Local(name = "menu") AbstractContainerMenu screenHandler) {
         // 同步不可用槽位
         if (screenHandler instanceof UnavailableSlotSyncInterface anInterface) {
             ServerPlayNetworking.send(thisPlayer, new UnavailableSlotSyncS2CPacket(screenHandler.containerId, anInterface.from(), anInterface.to()));
+        } else if (screenHandler instanceof WithButtonPlayerInventoryScreenHandler) {
+            ServerPlayNetworking.send(thisPlayer, new WithButtonScreenSyncS2CPacket(screenHandler.containerId));
         }
         // 同步槽位背景纹理
         if (screenHandler instanceof BackgroundSpriteSyncServer anInterface) {

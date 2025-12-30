@@ -107,6 +107,7 @@
     "rule.shulkerboxstackable.ItemStackMixin",
     "rule.shulkerboxstackable.ScreenHandlerMixin",
     "util.CommandRegistryAccessMixin",
+    "util.ItemMixin",
     "util.MinecraftServerMixin",
     "util.PlayerManagerMixin",
     "util.ScreenHandlerMixin",

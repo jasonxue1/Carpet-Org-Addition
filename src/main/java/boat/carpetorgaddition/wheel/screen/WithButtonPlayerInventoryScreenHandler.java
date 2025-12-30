@@ -1,26 +1,35 @@
 package boat.carpetorgaddition.wheel.screen;
 
 import boat.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
+import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.DisabledSlot;
 import boat.carpetorgaddition.wheel.inventory.CombinedInventory;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryDecomposer;
+import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
+import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.helpers.EntityPlayerActionPack.Action;
 import carpet.helpers.EntityPlayerActionPack.ActionType;
+import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntObjectBiConsumer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ContainerInput;
-import net.minecraft.world.inventory.MenuType;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.ArrayList;
@@ -29,7 +38,7 @@ import java.util.Map;
 import java.util.function.IntFunction;
 
 @NullMarked
-public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMenu {
+public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMenu implements BackgroundSpriteSyncServer {
     /**
      * 玩家正在操作的物品栏
      */
@@ -40,36 +49,118 @@ public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMen
     private final ButtonInventory hotbar;
     private final ServerPlayer player;
     private final EntityPlayerActionPack actionPack;
-    private static final Item ON = Items.BARRIER;
-    private static final Item OFF = Items.STRUCTURE_VOID;
+    private final PlayerStorageInventory playerStorageInventory;
+    private static final ItemStack ON_STACK;
+    private static final ItemStack OFF_STACK;
+    private static final Component ON_TEXT = LocalizationKeys.Button.ON.builder().setBold().setColor(ChatFormatting.GREEN).build();
+    private static final Component OFF_TEXT = LocalizationKeys.Button.OFF.builder().setBold().setColor(ChatFormatting.RED).build();
+    /**
+     * 左键单击间隔
+     */
+    private static final int ATTACK_INTERVAL = 12;
+    /**
+     * 没有任何作用，仅为与Gugle Carpet Addition和一些物品整理兼容
+     */
+    private static final String GCA_CLEAR = "GcaClear";
+    /**
+     * 没有任何作用，仅表示按钮功能
+     */
+    private static final String BUTTON_ITEM = GenericUtils.ofIdentifier("button_item").toString();
+    /**
+     * 用于在客户端工具提示中添加右键单击整理物品栏文本
+     */
+    public static final String STOP_BUTTON_ITEM = GenericUtils.ofIdentifier("stop_button_item").toString();
+    /**
+     * 所有按钮的索引
+     */
+    public static final IntList BUTTON_INDEXS = IntList.of(0, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+    private static final Map<Integer, Identifier> BACKGROUND_SPRITE_MAP = Map.of(
+            1, InventoryMenu.EMPTY_ARMOR_SLOT_HELMET,
+            2, InventoryMenu.EMPTY_ARMOR_SLOT_CHESTPLATE,
+            3, InventoryMenu.EMPTY_ARMOR_SLOT_LEGGINGS,
+            4, InventoryMenu.EMPTY_ARMOR_SLOT_BOOTS,
+            7, InventoryMenu.EMPTY_ARMOR_SLOT_SHIELD
+    );
+
+    static {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean(GCA_CLEAR, true);
+        tag.putBoolean(BUTTON_ITEM, true);
+        CustomData customData = CustomData.of(tag);
+        // 苹果物品使用了结构空位和屏障的模型，即便物品被玩家通过某种方式取出来了，那也只是一个苹果
+        ON_STACK = new ItemStack(Items.APPLE);
+        OFF_STACK = new ItemStack(Items.APPLE);
+        ON_STACK.set(DataComponents.ITEM_MODEL, BuiltInRegistries.ITEM.getKey(Items.BARRIER));
+        OFF_STACK.set(DataComponents.ITEM_MODEL, BuiltInRegistries.ITEM.getKey(Items.STRUCTURE_VOID));
+        ON_STACK.set(DataComponents.CUSTOM_DATA, customData);
+        OFF_STACK.set(DataComponents.CUSTOM_DATA, customData);
+    }
 
     public WithButtonPlayerInventoryScreenHandler(int containerId, Inventory playerInventory, ServerPlayer player, PlayerInventoryDecomposer decomposer) {
         super(MenuType.GENERIC_9x6, containerId);
         this.player = player;
+        this.playerStorageInventory = new PlayerStorageInventory(player);
         this.actionPack = FetcherUtils.getActionPack(this.player);
-        ButtonInventory stopAll = new StopButtonInventory(_ -> Map.entry(new ItemStack(ON), new ItemStack(OFF)), (_, pack) -> pack.stopAll());
+        ButtonInventory stopAll = new StopButtonInventory(_ -> {
+            ItemStack itemStack = OFF_STACK.copy();
+            Component component = LocalizationKeys.Button.Action.Stop.LEFT.builder().setItalic(false).setColor(ChatFormatting.WHITE).setBold().build();
+            itemStack.set(DataComponents.CUSTOM_NAME, component);
+            CompoundTag tag = new CompoundTag();
+            tag.putBoolean(STOP_BUTTON_ITEM, false);
+            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            return Map.entry(itemStack, itemStack);
+        }, (_, pack) -> pack.stopAll());
         this.intervalAttack = new ButtonInventory(
-                _ -> Map.entry(new ItemStack(ON), new ItemStack(OFF)),
+                _ -> {
+                    ItemStack on = ON_STACK.copy();
+                    ItemStack off = OFF_STACK.copy();
+                    LocalizationKey key = LocalizationKeys.Button.Action.Attack.INTERVAL;
+                    on.set(DataComponents.CUSTOM_NAME, key.builder(ATTACK_INTERVAL, ON_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    off.set(DataComponents.CUSTOM_NAME, key.builder(ATTACK_INTERVAL, OFF_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    return Map.entry(on, off);
+                },
                 Map.entry(
-                        (_, pack) -> pack.start(ActionType.ATTACK, Action.interval(12)),
+                        (_, pack) -> pack.start(ActionType.ATTACK, Action.interval(ATTACK_INTERVAL)),
                         (_, pack) -> pack.start(ActionType.ATTACK, Action.once())
                 )
         );
         this.continuousAttack = new ButtonInventory(
-                _ -> Map.entry(new ItemStack(ON), new ItemStack(OFF)),
+                _ -> {
+                    ItemStack on = ON_STACK.copy();
+                    ItemStack off = OFF_STACK.copy();
+                    LocalizationKey key = LocalizationKeys.Button.Action.Attack.CONTINUOUS;
+                    on.set(DataComponents.CUSTOM_NAME, key.builder(ON_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    off.set(DataComponents.CUSTOM_NAME, key.builder(OFF_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    return Map.entry(on, off);
+                },
                 Map.entry(
                         (_, pack) -> pack.start(ActionType.ATTACK, Action.continuous()),
                         (_, pack) -> pack.start(ActionType.ATTACK, Action.once())
                 )
         );
         this.continuousUse = new ButtonInventory(
-                _ -> Map.entry(new ItemStack(ON), new ItemStack(OFF)),
+                _ -> {
+                    ItemStack on = ON_STACK.copy();
+                    ItemStack off = OFF_STACK.copy();
+                    LocalizationKey key = LocalizationKeys.Button.Action.Use.CONTINUOUS;
+                    on.set(DataComponents.CUSTOM_NAME, key.builder(ON_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    off.set(DataComponents.CUSTOM_NAME, key.builder(OFF_TEXT).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+                    return Map.entry(on, off);
+                },
                 Map.entry(
                         (_, pack) -> pack.start(ActionType.USE, Action.continuous()),
                         (_, pack) -> pack.start(ActionType.USE, Action.once())
                 )
         );
-        this.hotbar = new HotbarButtonInventory(_ -> Map.entry(new ItemStack(ON), new ItemStack(OFF)), (index, pack) -> pack.setSlot(index + 1));
+        this.hotbar = new HotbarButtonInventory(index -> {
+            ItemStack off = OFF_STACK.copy();
+            off.setCount(index + 1);
+            off.set(DataComponents.CUSTOM_NAME, LocalizationKeys.Button.HOTBAR.builder(index + 1).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+            ItemStack on = ON_STACK.copy();
+            on.setCount(index + 1);
+            on.set(DataComponents.CUSTOM_NAME, LocalizationKeys.Button.HOTBAR.builder(index + 1).setItalic(false).setColor(ChatFormatting.WHITE).setBold().build());
+            return Map.entry(on, off);
+        }, (index, pack) -> pack.setSlot(index + 1));
         stopAll.addMutualExclusion(stopAll);
         stopAll.addMutualExclusion(this.intervalAttack);
         stopAll.addMutualExclusion(this.continuousAttack);
@@ -137,6 +228,10 @@ public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMen
     @Override
     public void clicked(int slotIndex, int buttonNum, ContainerInput containerInput, Player player) {
         Container container = this.inventory.getSubInventory(slotIndex);
+        if (buttonNum == FakePlayerUtils.PICKUP_RIGHT_CLICK && container instanceof StopButtonInventory) {
+            this.playerStorageInventory.sort(false);
+            return;
+        }
         if (container instanceof ButtonInventory buttonInventory) {
             buttonInventory.onClickd(buttonInventory == this.hotbar ? slotIndex - 9 : 0, this.actionPack);
             return;
@@ -174,6 +269,11 @@ public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMen
     @Override
     public boolean stillValid(Player player) {
         return true;
+    }
+
+    @Override
+    public Map<Integer, Identifier> getBackgroundSprite() {
+        return BACKGROUND_SPRITE_MAP;
     }
 
     public static class ButtonInventory extends SimpleContainer {

@@ -2,7 +2,7 @@ package boat.carpetorgaddition.wheel.screen;
 
 import boat.carpetorgaddition.network.s2c.UnavailableSlotSyncS2CPacket;
 
-public interface UnavailableSlotImplInterface {
+public interface UnavailableSlotClientSide {
     /**
      * 通知客户端哪些槽位被禁用
      */

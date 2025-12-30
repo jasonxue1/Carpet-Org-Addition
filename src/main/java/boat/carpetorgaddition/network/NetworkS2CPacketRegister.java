@@ -17,6 +17,7 @@ public class NetworkS2CPacketRegister {
         PayloadTypeRegistry.playS2C().register(WaypointClearS2CPacket.ID, WaypointClearS2CPacket.CODEC);
         // 容器禁用槽位同步数据包
         PayloadTypeRegistry.playS2C().register(UnavailableSlotSyncS2CPacket.ID, UnavailableSlotSyncS2CPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(WithButtonScreenSyncS2CPacket.ID, WithButtonScreenSyncS2CPacket.CODEC);
         // 背景精灵同步数据包
         PayloadTypeRegistry.playS2C().register(BackgroundSpriteSyncS2CPacket.ID, BackgroundSpriteSyncS2CPacket.CODEC);
         // 记录器更新数据包
