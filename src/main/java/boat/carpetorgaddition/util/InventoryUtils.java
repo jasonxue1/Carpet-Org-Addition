@@ -8,12 +8,14 @@ import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 import org.jetbrains.annotations.CheckReturnValue;
 import org.jetbrains.annotations.Contract;
@@ -403,6 +405,45 @@ public class InventoryUtils {
      */
     public static boolean isFoodItem(ItemStack itemStack) {
         return itemStack.has(DataComponents.FOOD);
+    }
+
+    /**
+     * @return 指定物品是否是头盔
+     */
+    public static boolean isHelmetItem(ItemStack itemStack) {
+        return canBeEquipped(itemStack, EquipmentSlot.HEAD);
+    }
+
+    /**
+     * @return 指定物品是否是胸甲
+     */
+    public static boolean isChestplateItem(ItemStack itemStack) {
+        return canBeEquipped(itemStack, EquipmentSlot.CHEST);
+    }
+
+    /**
+     * @return 指定物品是否是护腿
+     */
+    public static boolean isLeggingsItem(ItemStack itemStack) {
+        return canBeEquipped(itemStack, EquipmentSlot.LEGS);
+    }
+
+    /**
+     * @return 指定物品是否是靴子
+     */
+    public static boolean isBootsItem(ItemStack itemStack) {
+        return canBeEquipped(itemStack, EquipmentSlot.FEET);
+    }
+
+    /**
+     * @return 指定物品是否可以穿戴到指定槽位上
+     */
+    private static boolean canBeEquipped(ItemStack itemStack, EquipmentSlot slot) {
+        Equippable equippable = itemStack.get(DataComponents.EQUIPPABLE);
+        if (equippable == null) {
+            return false;
+        }
+        return slot == equippable.slot();
     }
 
     /**

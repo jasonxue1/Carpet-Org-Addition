@@ -97,6 +97,10 @@ public class WithButtonPlayerInventoryScreenHandler extends AbstractContainerMen
         return ItemStack.EMPTY;
     }
 
+    public static ItemStack quickMoveStack(int slotIndex) {
+        return ItemStack.EMPTY;
+    }
+
     @Override
     public boolean stillValid(Player player) {
         return true;

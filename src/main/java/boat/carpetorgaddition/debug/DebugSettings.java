@@ -79,6 +79,12 @@ public class DebugSettings {
                     .setDisplayName("显示玩家经验")
                     .build()
     );
+    public static final Supplier<Boolean> displayItemTagTooltip = register(
+            RuleFactory.create(Boolean.class, "displayItemTagTooltip", false)
+                    .addCategories("Debug")
+                    .setDisplayName("显示物品标签工具提示")
+                    .build()
+    );
 
     private static <T> Supplier<T> register(RuleContext<T> context) {
         CarpetRule<T> rule = context.rule();

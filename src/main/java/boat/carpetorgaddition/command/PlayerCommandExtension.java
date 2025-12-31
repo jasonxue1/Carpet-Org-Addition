@@ -123,6 +123,7 @@ public class PlayerCommandExtension {
 
         public PlayerInventroyAccessor(ServerPlayer interviewee) throws CommandSyntaxException {
             checkCanBeOpened(interviewee);
+            // TODO 标题添加头像
             this.displayName = interviewee.getDisplayName();
             this.gameProfile = interviewee.getGameProfile();
             this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, interviewee);

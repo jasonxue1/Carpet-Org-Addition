@@ -21,6 +21,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
 import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -34,11 +35,17 @@ public class WithButtonPlayerInventory implements Container {
      * 玩家正在操作的物品栏
      */
     private final CombinedInventory inventory;
+    /**
+     * 用于整理玩家物品栏，盔甲槽和手上的物品不会参与整理
+     */
     private final SortInventory sortInventory;
     private final ButtonInventory intervalAttack;
     private final ButtonInventory continuousAttack;
     private final ButtonInventory continuousUse;
     private final ButtonInventory hotbar;
+    /**
+     * 被打开物品栏的玩家
+     */
     private final ServerPlayer player;
     private final EntityPlayerActionPack actionPack;
     private static final ItemStack ON_STACK;
@@ -57,10 +64,6 @@ public class WithButtonPlayerInventory implements Container {
      * 没有任何作用，仅表示按钮功能
      */
     private static final String BUTTON_ITEM = GenericUtils.ofIdentifier("button_item").toString();
-    /**
-     * 用于在客户端工具提示中添加右键单击整理物品栏文本
-     */
-    public static final String STOP_BUTTON_ITEM = GenericUtils.ofIdentifier("stop_button_item").toString();
     /**
      * 所有按钮的索引
      */
@@ -85,11 +88,16 @@ public class WithButtonPlayerInventory implements Container {
         this.actionPack = FetcherUtils.getActionPack(this.player);
         ButtonInventory stopAll = new StopButtonInventory(_ -> {
             ItemStack itemStack = OFF_STACK.copy();
-            Component component = LocalizationKeys.Button.Action.Stop.LEFT.builder().setItalic(false).setColor(ChatFormatting.WHITE).setBold().build();
-            itemStack.set(DataComponents.CUSTOM_NAME, component);
-            CompoundTag tag = new CompoundTag();
-            tag.putBoolean(STOP_BUTTON_ITEM, false);
-            itemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+            Component first = LocalizationKeys.Button.Action.Stop.LEFT.builder()
+                    .setItalic(false)
+                    .setColor(ChatFormatting.WHITE)
+                    .setBold()
+                    .build();
+            Component second = LocalizationKeys.Button.Action.Stop.RIGHT.builder()
+                    .setGrayItalic()
+                    .build();
+            itemStack.set(DataComponents.CUSTOM_NAME, first);
+            itemStack.set(DataComponents.LORE, new ItemLore(List.of(second)));
             return Map.entry(itemStack, itemStack);
         }, (_, pack) -> pack.stopAll());
         this.intervalAttack = new ButtonInventory(
@@ -255,24 +263,24 @@ public class WithButtonPlayerInventory implements Container {
 
     public static class SortInventory extends CombinedInventory implements SortableContainer {
         private final ServerPlayer player;
-        private final IntSupplier supplier;
+        private final IntSupplier mainHandSlotIndex;
 
         /**
-         * @param supplier 主手槽位的索引，用于在整理物品时忽略主手物品
+         * @param mainHandSlotIndex 主手槽位的索引，用于在整理物品时忽略主手物品
          */
-        public SortInventory(List<Container> containers, ServerPlayer player, IntSupplier supplier) {
+        public SortInventory(List<Container> containers, ServerPlayer player, IntSupplier mainHandSlotIndex) {
             super(containers);
             this.player = player;
-            this.supplier = supplier;
+            this.mainHandSlotIndex = mainHandSlotIndex;
         }
 
         @Override
         public boolean isValidSlot(int index) {
-            if (index == supplier.getAsInt()) {
+            if (index == this.mainHandSlotIndex.getAsInt()) {
                 return false;
             }
             ItemStack itemStack = this.getItem(index);
-            if (QuickShulkerScreenHandler.isOpenedShulkerBox(player, itemStack)) {
+            if (QuickShulkerScreenHandler.isOpenedShulkerBox(this.player, itemStack)) {
                 return false;
             }
             return SortableContainer.super.isValidSlot(index);
