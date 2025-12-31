@@ -101,6 +101,7 @@ loom {
             )
         }
     }
+    accessWidenerPath = file("src/main/resources/carpet-org-addition.accesswidener")
 }
 
 fabricApi {

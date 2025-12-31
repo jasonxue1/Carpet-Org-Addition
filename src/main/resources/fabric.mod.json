@@ -37,6 +37,7 @@
     "fabric-api": "*",
     "carpet": "*"
   },
+  "accessWidener": "carpet-org-addition.accesswidener",
   "custom": {
     "buildTimestamp": "${buildTimestamp}"
   }
