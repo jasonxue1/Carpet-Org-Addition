@@ -123,11 +123,6 @@ public class WithButtonPlayerInventoryScreenHandler extends ChestMenu implements
     }
 
     @Override
-    public boolean stillValid(Player player) {
-        return true;
-    }
-
-    @Override
     public Map<Integer, Identifier> getBackgroundSprite() {
         return BACKGROUND_SPRITE_MAP;
     }

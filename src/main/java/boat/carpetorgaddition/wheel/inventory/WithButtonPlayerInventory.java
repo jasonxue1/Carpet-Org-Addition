@@ -241,7 +241,7 @@ public class WithButtonPlayerInventory implements Container {
 
     @Override
     public boolean stillValid(@NonNull Player player) {
-        return this.inventory.stillValid(player);
+        return !this.player.isDeadOrDying() && !this.player.isRemoved();
     }
 
     @Override
