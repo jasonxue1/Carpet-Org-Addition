@@ -340,6 +340,11 @@ public class PlayerStorageInventory implements PlayerDecomposedContainer, Sortab
     }
 
     @Override
+    public ServerPlayer getPlayer() {
+        return this.player;
+    }
+
+    @Override
     public Inventory getPlayerInventory() {
         return this.playerInventory;
     }

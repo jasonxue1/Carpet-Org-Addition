@@ -1,8 +1,14 @@
 package boat.carpetorgaddition.wheel.inventory;
 
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.NonNull;
 
 public interface PlayerDecomposedContainer extends Container {
+    ServerPlayer getPlayer();
+
     Container getPlayerInventory();
 
     /**
@@ -23,7 +29,24 @@ public interface PlayerDecomposedContainer extends Container {
      * 获取玩家物品栏盔甲部分
      */
     default Container getArmor() {
-        return new ReverseInventroy(new SubInventory(this.getPlayerInventory(), 36, 40));
+        return new ReverseInventroy(new SubInventory(this.getPlayerInventory(), 36, 40)) {
+            @Override
+            public void setItem(int slot, @NonNull ItemStack itemStack) {
+                ItemStack oldStack = this.getItem(slot);
+                super.setItem(slot, itemStack);
+                ServerPlayer player = PlayerDecomposedContainer.this.getPlayer();
+                EquipmentSlot equipment = switch (slot) {
+                    case 0 -> EquipmentSlot.HEAD;
+                    case 1 -> EquipmentSlot.CHEST;
+                    case 2 -> EquipmentSlot.LEGS;
+                    case 3 -> EquipmentSlot.FEET;
+                    default -> null;
+                };
+                if (equipment != null) {
+                    player.onEquipItem(equipment, oldStack, itemStack);
+                }
+            }
+        };
     }
 
     /**

@@ -32,6 +32,11 @@ public class ServerPlayerInventory extends AbstractCustomSizeInventory implement
     }
 
     @Override
+    public ServerPlayer getPlayer() {
+        return this.player;
+    }
+
+    @Override
     public boolean stillValid(Player player) {
         // 玩家活着，并且玩家没有被删除
         return !this.player.isDeadOrDying() && !this.player.isRemoved();
