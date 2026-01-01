@@ -41,7 +41,7 @@ public class CustomClickEvents {
         NbtReader reader = context.getReader();
         UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
         PlayerInventoryType type = reader.getPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE);
-        PlayerCommandExtension.openInventory(context.getPlayer(), type, new PlayerCommandExtension.PlayerInventroyAccessor(context.getServer(), uuid));
+        PlayerCommandExtension.openInventory(context.getPlayer(), type, new PlayerCommandExtension.PlayerInventroyAccessor(context.getServer(), uuid, context.getPlayer()));
     });
     public static final Identifier QUERY_PLAYER_NAME = register("query_player_name", context -> {
         try {

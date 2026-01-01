@@ -61,7 +61,7 @@ public class PlayerCommandExtension {
         String name = getPlayerName(context);
         MinecraftServer server = source.getServer();
         ServerPlayer interviewee = getPlayerNullable(name, server);
-        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(interviewee, visitor));
+        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name, visitor) : new PlayerInventroyAccessor(interviewee, visitor));
         return openInventory(visitor, type, accessor);
     }
 
@@ -126,43 +126,55 @@ public class PlayerCommandExtension {
             // TODO 标题添加头像
             this.displayName = interviewee.getDisplayName();
             this.gameProfile = interviewee.getGameProfile();
-            this.inventory = (containerId, _, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
+            this.inventory = (containerId, inventory, _) -> {
+                if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
+                    return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
+                } else {
+                    return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
+                }
+            };
             this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, GameProfile gameProfile) throws CommandSyntaxException {
+        public PlayerInventroyAccessor(MinecraftServer server, GameProfile gameProfile, ServerPlayer visitor) throws CommandSyntaxException {
             this.gameProfile = gameProfile;
-            ServerPlayer player = server.getPlayerList().getPlayer(gameProfile.id());
-            checkCanBeOpened(player);
-            if (player == null) {
+            ServerPlayer interviewee = server.getPlayerList().getPlayer(gameProfile.id());
+            checkCanBeOpened(interviewee);
+            if (interviewee == null) {
                 FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
                 FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
                 this.displayName = LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(gameProfile.name());
                 this.inventory = (containerId, inventory, _) -> new OfflinePlayerInventoryScreenHandler(containerId, inventory, new OfflinePlayerInventory(accessor));
                 this.enderChest = (containerId, inventory, _) -> ChestMenu.threeRows(containerId, inventory, new OfflinePlayerEnderChestInventory(accessor));
             } else {
-                this.displayName = player.getDisplayName();
-                this.inventory = (containerId, inventory, _) -> new PlayerInventoryScreenHandler(containerId, inventory, player);
-                this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, player);
+                this.displayName = interviewee.getDisplayName();
+                this.inventory = (containerId, inventory, _) -> {
+                    if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
+                        return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
+                    } else {
+                        return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
+                    }
+                };
+                this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
             }
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, String name) throws CommandSyntaxException {
+        public PlayerInventroyAccessor(MinecraftServer server, String name, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(server.getPlayerList().getPlayer(name));
             Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(name, server);
             if (optional.isEmpty()) {
                 throw createNoFileFoundException();
             }
-            this(server, optional.get());
+            this(server, optional.get(), visitor);
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, UUID uuid) throws CommandSyntaxException {
+        public PlayerInventroyAccessor(MinecraftServer server, UUID uuid, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(server.getPlayerList().getPlayer(uuid));
             Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
             if (optional.isEmpty()) {
                 throw createNoFileFoundException();
             }
-            this(server, optional.get());
+            this(server, optional.get(), visitor);
         }
 
         public Component getDisplayName() {
