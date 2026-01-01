@@ -38,6 +38,7 @@
     "logger.FluidBlockMixin",
     "logger.HUDControllerMixin",
     "logger.WanderingTraderManagerMixin",
+    "network.ChestMenuMixin",
     "rule.AbstractBlockStateMixin",
     "rule.AbstractFurnaceBlockEntityMixin",
     "rule.BatEntityMixin",

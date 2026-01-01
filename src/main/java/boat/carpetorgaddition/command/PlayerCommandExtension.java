@@ -61,7 +61,7 @@ public class PlayerCommandExtension {
         String name = getPlayerName(context);
         MinecraftServer server = source.getServer();
         ServerPlayer interviewee = getPlayerNullable(name, server);
-        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(interviewee));
+        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name) : new PlayerInventroyAccessor(interviewee, visitor));
         return openInventory(visitor, type, accessor);
     }
 
@@ -121,12 +121,12 @@ public class PlayerCommandExtension {
         private final Component displayName;
         private final GameProfile gameProfile;
 
-        public PlayerInventroyAccessor(ServerPlayer interviewee) throws CommandSyntaxException {
+        public PlayerInventroyAccessor(ServerPlayer interviewee, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(interviewee);
             // TODO 标题添加头像
             this.displayName = interviewee.getDisplayName();
             this.gameProfile = interviewee.getGameProfile();
-            this.inventory = (containerId, inventory, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, inventory, interviewee);
+            this.inventory = (containerId, _, _) -> new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
             this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
         }
 

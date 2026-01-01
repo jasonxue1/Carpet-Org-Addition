@@ -1016,6 +1016,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 打开玩家物品栏GCA样式
      */
+    // TODO 为开关添加功能
     public static final Supplier<Boolean> playerCommandOpenPlayerInventoryGcaStyle = register(
             RuleFactory.create(Boolean.class, "playerCommandOpenPlayerInventoryGcaStyle", false)
                     .addCategories(RuleCategory.FEATURE)

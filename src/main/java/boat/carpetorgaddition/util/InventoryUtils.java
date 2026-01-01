@@ -8,7 +8,6 @@ import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -408,42 +407,24 @@ public class InventoryUtils {
     }
 
     /**
-     * @return 指定物品是否是头盔
+     * 获取玩家盔甲的序数
      */
-    public static boolean isHelmetItem(ItemStack itemStack) {
-        return canBeEquipped(itemStack, EquipmentSlot.HEAD);
-    }
-
-    /**
-     * @return 指定物品是否是胸甲
-     */
-    public static boolean isChestplateItem(ItemStack itemStack) {
-        return canBeEquipped(itemStack, EquipmentSlot.CHEST);
-    }
-
-    /**
-     * @return 指定物品是否是护腿
-     */
-    public static boolean isLeggingsItem(ItemStack itemStack) {
-        return canBeEquipped(itemStack, EquipmentSlot.LEGS);
-    }
-
-    /**
-     * @return 指定物品是否是靴子
-     */
-    public static boolean isBootsItem(ItemStack itemStack) {
-        return canBeEquipped(itemStack, EquipmentSlot.FEET);
-    }
-
-    /**
-     * @return 指定物品是否可以穿戴到指定槽位上
-     */
-    private static boolean canBeEquipped(ItemStack itemStack, EquipmentSlot slot) {
+    public static int getPlayerArmorOrdinal(ItemStack itemStack) {
         Equippable equippable = itemStack.get(DataComponents.EQUIPPABLE);
         if (equippable == null) {
-            return false;
+            return -1;
         }
-        return slot == equippable.slot();
+        return switch (equippable.slot()) {
+            // 头盔
+            case HEAD -> 0;
+            // 胸甲
+            case CHEST -> 1;
+            // 护腿
+            case LEGS -> 2;
+            // 靴子
+            case FEET -> 3;
+            default -> -1;
+        };
     }
 
     /**
