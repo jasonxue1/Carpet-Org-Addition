@@ -5,18 +5,23 @@ import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.MetaComment;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.Message;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.chat.contents.objects.PlayerSprite;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class TextBuilder {
@@ -50,6 +55,22 @@ public class TextBuilder {
     public static TextBuilder fromCombined(Object... args) {
         return new TextBuilder(combineAll(args));
     }
+
+    public static TextBuilder ofPlayerAvatar(Player player) {
+        GameProfile gameProfile = player.getGameProfile();
+        return ofPlayerAvatar(gameProfile);
+    }
+
+    public static TextBuilder ofPlayerAvatar(GameProfile gameProfile) {
+        ResolvableProfile profile = ResolvableProfile.createResolved(gameProfile);
+        return new TextBuilder(Component.object(new PlayerSprite(profile, true)));
+    }
+
+    public static TextBuilder ofPlayerAvatar(UUID uuid) {
+        ResolvableProfile profile = ResolvableProfile.createUnresolved(uuid);
+        return new TextBuilder(Component.object(new PlayerSprite(profile, true)));
+    }
+
 
     public static Component empty() {
         return Component.empty();

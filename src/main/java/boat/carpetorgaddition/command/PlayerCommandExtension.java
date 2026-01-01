@@ -14,12 +14,15 @@ import boat.carpetorgaddition.wheel.screen.PlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.WithButtonPlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
+import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -123,8 +126,11 @@ public class PlayerCommandExtension {
 
         public PlayerInventroyAccessor(ServerPlayer interviewee, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(interviewee);
-            // TODO 标题添加头像
-            this.displayName = interviewee.getDisplayName();
+            this.displayName = new TextJoiner()
+                    .append(TextBuilder.ofPlayerAvatar(interviewee).setColor(ChatFormatting.WHITE).build())
+                    .append(" ")
+                    .append(interviewee.getDisplayName())
+                    .join();
             this.gameProfile = interviewee.getGameProfile();
             this.inventory = (containerId, inventory, _) -> {
                 if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
@@ -143,11 +149,20 @@ public class PlayerCommandExtension {
             if (interviewee == null) {
                 FabricPlayerAccessManager accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
                 FabricPlayerAccessor accessor = accessManager.getOrCreate(gameProfile);
-                this.displayName = LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(gameProfile.name());
+                Component name = LocalizationKeys.Operation.OFFLINE_PLAYER_NAME.translate(gameProfile.name());
+                this.displayName = new TextJoiner()
+                        .append(TextBuilder.ofPlayerAvatar(gameProfile.id()).setColor(ChatFormatting.WHITE).build())
+                        .append(" ")
+                        .append(name)
+                        .join();
                 this.inventory = (containerId, inventory, _) -> new OfflinePlayerInventoryScreenHandler(containerId, inventory, new OfflinePlayerInventory(accessor));
                 this.enderChest = (containerId, inventory, _) -> ChestMenu.threeRows(containerId, inventory, new OfflinePlayerEnderChestInventory(accessor));
             } else {
-                this.displayName = interviewee.getDisplayName();
+                this.displayName = new TextJoiner()
+                        .append(TextBuilder.ofPlayerAvatar(interviewee).setColor(ChatFormatting.WHITE).build())
+                        .append(" ")
+                        .append(interviewee.getDisplayName())
+                        .join();
                 this.inventory = (containerId, inventory, _) -> {
                     if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
                         return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
