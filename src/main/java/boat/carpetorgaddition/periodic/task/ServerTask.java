@@ -8,11 +8,6 @@ import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.ServerTickRateManager;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 public abstract class ServerTask {
     protected final CommandSourceStack source;
     /**
@@ -20,20 +15,6 @@ public abstract class ServerTask {
      */
     private long executionTime;
     private long tickTaskStartTime = -1L;
-    private static final ThreadPoolExecutor EXECUTOR = new ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors() + 1,
-            Runtime.getRuntime().availableProcessors() + 1,
-            5,
-            TimeUnit.MINUTES,
-            new LinkedBlockingQueue<>(),
-            ServerTask::ofPlatformThread
-    );
-
-    static {
-        EXECUTOR.allowCoreThreadTimeOut(true);
-    }
-
-    private static final AtomicInteger CURRENT_THREAD_ID = new AtomicInteger(0);
 
     public ServerTask(CommandSourceStack source) {
         this.source = source;
@@ -179,20 +160,5 @@ public abstract class ServerTask {
      */
     public void markRemove() {
         this.remove = true;
-    }
-
-    protected void submit(Runnable task) {
-        EXECUTOR.submit(task);
-    }
-
-    /**
-     * 为线程池创建线程
-     */
-    private static Thread ofPlatformThread(Runnable runnable) {
-        return Thread.ofPlatform()
-                .daemon()
-                .name(ServerTask.class.getSimpleName() + "-Thread-" + CURRENT_THREAD_ID.getAndIncrement())
-                .uncaughtExceptionHandler((_, e) -> CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e))
-                .unstarted(runnable);
     }
 }

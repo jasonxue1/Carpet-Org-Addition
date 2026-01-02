@@ -56,6 +56,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -76,6 +79,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
     public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = FileNameDateFormatter.FORMATTER;
+    public static final ThreadPoolExecutor CPU_TASK_EXECUTOR = new ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() + 1,
+            Runtime.getRuntime().availableProcessors() + 1,
+            5,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<>(),
+            OfflinePlayerSearchTask::ofPlatformThread
+    );
+    /**
+     * 查找线程的ID
+     */
+    private static final AtomicInteger CURRENT_THREAD_ID = new AtomicInteger(0);
     /**
      * 当前任务的数量
      */
@@ -124,6 +139,10 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private final AtomicInteger completedCount = new AtomicInteger(0);
     public static final LocalizationKey KEY = ItemSearchTask.KEY.then("offline_player");
     private static final long PROGRESS_BAR_WAIT_TIME = 1000L;
+
+    static {
+        CPU_TASK_EXECUTOR.allowCoreThreadTimeOut(true);
+    }
 
     public OfflinePlayerSearchTask(CommandSourceStack source, ItemStackPredicate predicate, ServerPlayer player) {
         super(source);
@@ -198,7 +217,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     private void submit(File unsafe, UUID uuid) {
         this.taskCount.getAndIncrement();
-        this.submit(() -> {
+        CPU_TASK_EXECUTOR.submit(() -> {
             try {
                 if (INVALID_PLAYER_DATAS.contains(uuid)) {
                     return;
@@ -571,6 +590,17 @@ public class OfflinePlayerSearchTask extends ServerTask {
             }
         }
         return this.backupFileDirectory;
+    }
+
+    /**
+     * 为线程池创建线程
+     */
+    private static Thread ofPlatformThread(Runnable runnable) {
+        return Thread.ofPlatform()
+                .daemon()
+                .name(OfflinePlayerSearchTask.class.getSimpleName() + "-Thread-" + CURRENT_THREAD_ID.getAndIncrement())
+                .uncaughtExceptionHandler((_, e) -> CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e))
+                .unstarted(runnable);
     }
 
     /**
