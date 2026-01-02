@@ -86,8 +86,4 @@ public class DelayedLoginTask extends PlayerScheduleTask {
         return this.delayed < 0L;
     }
 
-    @Override
-    public String getLogName() {
-        return this.serial.getFakePlayerName() + "delayed login";
-    }
 }

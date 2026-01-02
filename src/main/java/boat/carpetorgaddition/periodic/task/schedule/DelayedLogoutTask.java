@@ -80,8 +80,4 @@ public class DelayedLogoutTask extends PlayerScheduleTask {
         return this.delayed < 0L;
     }
 
-    @Override
-    public String getLogName() {
-        return this.getPlayerName() + "delay logout";
-    }
 }

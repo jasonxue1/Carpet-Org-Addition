@@ -277,9 +277,4 @@ public class ItemSearchTask extends ServerTask {
         FEEDBACK,
         END
     }
-
-    @Override
-    public String getLogName() {
-        return "物品查找";
-    }
 }

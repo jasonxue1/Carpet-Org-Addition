@@ -186,9 +186,4 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         FEEDBACK,
         END
     }
-
-    @Override
-    public String getLogName() {
-        return "交易查找";
-    }
 }

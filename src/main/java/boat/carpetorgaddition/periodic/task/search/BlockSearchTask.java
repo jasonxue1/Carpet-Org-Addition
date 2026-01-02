@@ -182,11 +182,6 @@ public class BlockSearchTask extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "Block Search";
-    }
-
-    @Override
     public long getMaxExecutionTime() {
         return FinderCommand.MAX_SEARCH_TIME * 3;
     }

@@ -30,11 +30,6 @@ public class FakePlayerStartupActionTask extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "Fake Player Startup Action";
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
             FakePlayerStartupActionTask that = (FakePlayerStartupActionTask) obj;

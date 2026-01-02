@@ -31,11 +31,6 @@ public class SilentLogoutTask extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "静默延迟退出";
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return this == obj;
     }

@@ -79,7 +79,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     public static final ThreadLocal<UUID> CURRENT_UUID = new ThreadLocal<>();
     public static final String UNKNOWN = "[Unknown]";
     private static final DateTimeFormatter FORMATTER = FileNameDateFormatter.FORMATTER;
-    public static final ThreadPoolExecutor CPU_TASK_EXECUTOR = new ThreadPoolExecutor(
+    private static final ThreadPoolExecutor CPU_TASK_EXECUTOR = new ThreadPoolExecutor(
             Runtime.getRuntime().availableProcessors() + 1,
             Runtime.getRuntime().availableProcessors() + 1,
             5,
@@ -410,8 +410,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
         try {
             CURRENT_UUID.set(uuid);
             // 统计物品栏物品
-            statistics(this.getInventory(nbt), entry, unknownPlayer, false);
-            statistics(this.getEnderChest(nbt), entry, unknownPlayer, true);
+            statistics(this.getInventory(nbt), entry, unknownPlayer, PlayerInventoryType.INVENTORY);
+            statistics(this.getEnderChest(nbt), entry, unknownPlayer, PlayerInventoryType.ENDER_CHEST);
         } finally {
             CURRENT_UUID.remove();
         }
@@ -420,7 +420,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     /**
      * 统计物品
      */
-    private void statistics(Container inventory, NameAndId entry, boolean unknownPlayer, boolean isEnderChest) {
+    private void statistics(Container inventory, NameAndId entry, boolean unknownPlayer, PlayerInventoryType type) {
         ItemStackStatistics statistics = new ItemStackStatistics(this.predicate);
         statistics.statistics(inventory);
         if (statistics.getSum() == 0) {
@@ -430,7 +430,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (statistics.hasNestingItem()) {
             this.shulkerBox.set(true);
         }
-        Result result = new Result(entry, statistics, unknownPlayer, isEnderChest, this.server);
+        Result result = new Result(entry, statistics, unknownPlayer, type, this.server);
         this.results.add(result);
     }
 
@@ -505,26 +505,18 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return builder.build();
     }
 
-    private Component getContainerName(boolean isEnderChest) {
-        if (isEnderChest) {
-            return new TextBuilder(LocalizationKeys.Misc.ENDER_CHEST.translate())
-                    .setColor(ChatFormatting.DARK_PURPLE)
-                    .build();
-        } else {
-            return new TextBuilder(LocalizationKeys.Misc.INVENTORY.translate())
-                    .setColor(ChatFormatting.YELLOW)
-                    .build();
+    private Component getContainerName(PlayerInventoryType type) {
+        TextBuilder builder = new TextBuilder(type.getDisplayName());
+        switch (type) {
+            case INVENTORY -> builder.setColor(ChatFormatting.YELLOW);
+            case ENDER_CHEST -> builder.setColor(ChatFormatting.DARK_PURPLE);
         }
+        return builder.build();
     }
 
     @Override
     protected boolean stopped() {
         return this.taksState == State.STOP;
-    }
-
-    @Override
-    public String getLogName() {
-        return "Search For Items From Offline Player Inventory";
     }
 
     @Override
@@ -611,14 +603,13 @@ public class OfflinePlayerSearchTask extends ServerTask {
         private final NameAndId playerConfigEntry;
         private final ItemStackStatistics statistics;
         private final boolean isUnknown;
-        // TODO 不再使用布尔值
-        private final boolean isEnderChest;
+        private final PlayerInventoryType type;
 
-        private Result(NameAndId playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown, boolean isEnderChest, MinecraftServer server) {
+        private Result(NameAndId playerConfigEntry, ItemStackStatistics statistics, boolean isUnknown, PlayerInventoryType type, MinecraftServer server) {
             this.playerConfigEntry = playerConfigEntry;
             this.statistics = statistics;
             this.isUnknown = isUnknown;
-            this.isEnderChest = isEnderChest;
+            this.type = type;
             this.server = server;
         }
 
@@ -631,12 +622,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
             Component hover = TextBuilder.combineAll("UUID: %s\n".formatted(uuid), TextProvider.COPY_CLICK);
             // 获取物品数量，如果包含在潜影盒中找到的物品，就设置物品为斜体
             Component count = statistics().getCountText();
-            TextBuilder builder = getDisplayPlayerName(name, uuid, hover, count, this.isEnderChest);
+            TextBuilder builder = getDisplayPlayerName(name, uuid, hover, count, this.type);
             return builder.build();
         }
 
         // 获取玩家显示名称
-        private TextBuilder getDisplayPlayerName(String name, String uuid, Component hover, Component count, boolean isEnderChest) {
+        private TextBuilder getDisplayPlayerName(String name, String uuid, Component hover, Component count, PlayerInventoryType type) {
             boolean unknown = isUnknown();
             TextBuilder builder = new TextBuilder(unknown ? name : "[" + name + "]");
             if (unknown) {
@@ -647,11 +638,14 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 builder.append(createLoginButton())
                         .setCopyToClipboard(name, false);
             }
-            Component button = isEnderChest ? openEnderChestButton(this.playerConfigEntry()) : openInventoryButton(this.playerConfigEntry());
+            Component button = switch (type) {
+                case INVENTORY -> openInventoryButton(this.playerConfigEntry());
+                case ENDER_CHEST -> openEnderChestButton(this.playerConfigEntry());
+            };
             builder.append(button)
                     .setHover(hover)
                     .setColor(ChatFormatting.GRAY);
-            Component container = getContainerName(isEnderChest);
+            Component container = getContainerName(type);
             return KEY.then("each").builder(builder.build(), container, count);
         }
 

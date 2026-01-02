@@ -81,11 +81,6 @@ public class CreeperExplosionTask extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "苦力怕爆炸";
-    }
-
-    @Override
     public boolean equals(Object obj) {
         if (this.getClass() == obj.getClass()) {
             return this.player.equals(((CreeperExplosionTask) obj).player);

@@ -55,11 +55,6 @@ public class DrawParticleLineTask extends ServerTask {
     }
 
     @Override
-    public String getLogName() {
-        return "绘制粒子线";
-    }
-
-    @Override
     public boolean equals(Object obj) {
         return this == obj;
     }

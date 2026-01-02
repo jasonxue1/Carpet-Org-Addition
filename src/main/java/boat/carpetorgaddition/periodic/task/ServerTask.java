@@ -57,7 +57,7 @@ public abstract class ServerTask {
         } catch (TaskExecutionException e) {
             e.disposal();
         } catch (RuntimeException e) {
-            CarpetOrgAddition.LOGGER.error("{} encountered an unexpected error while executing the task", this.getLogName(), e);
+            CarpetOrgAddition.LOGGER.error("{} encountered an unexpected error while executing the task", this.getClass().getSimpleName(), e);
         }
         return true;
     }
@@ -133,13 +133,6 @@ public abstract class ServerTask {
      */
     protected void timeoutHandler() {
         MessageUtils.sendErrorMessage(this.source, LocalizationKeys.Operation.Timeout.TASK.translate());
-    }
-
-    /**
-     * @return 当前任务的名称，不在游戏中使用，只在日志中使用
-     */
-    public String getLogName() {
-        return this.getClass().getSimpleName();
     }
 
     @Override
