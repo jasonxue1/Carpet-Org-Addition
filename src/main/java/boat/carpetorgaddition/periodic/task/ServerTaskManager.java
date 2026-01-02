@@ -25,6 +25,7 @@ public class ServerTaskManager {
      */
     public void addTask(ServerTask task) throws CommandSyntaxException {
         if (this.tasks.add(task)) {
+            task.onStarted();
             return;
         }
         throw CommandUtils.createException(LocalizationKeys.Operation.WAIT_LAST.translate());
@@ -34,7 +35,13 @@ public class ServerTaskManager {
      * 执行每一条任务，并删除已经结束的任务
      */
     public void tick(ServerTickRateManager tickManager) {
-        this.tasks.removeIf(task -> task.execute(tickManager));
+        this.tasks.removeIf(task -> {
+            boolean completed = task.execute(tickManager);
+            if (completed) {
+                task.onStopped();
+            }
+            return completed;
+        });
     }
 
     public Stream<ServerTask> stream() {

@@ -161,4 +161,16 @@ public abstract class ServerTask {
     public void markRemove() {
         this.remove = true;
     }
+
+    /**
+     * 当任务开始时执行
+     */
+    public void onStarted() {
+    }
+
+    /**
+     * 当任务结束时执行
+     */
+    public void onStopped() {
+    }
 }
