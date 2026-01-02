@@ -201,6 +201,13 @@ public class MathUtils {
     }
 
     /**
+     * @return 指定时间到当前时间相差的毫秒数
+     */
+    public static long timeDifference(long time) {
+        return System.currentTimeMillis() - time;
+    }
+
+    /**
      * 求一个小数数组里所有数的平均值
      *
      * @param args 小数数组
@@ -249,6 +256,14 @@ public class MathUtils {
             return start;
         }
         return start > target ? start - 1 : start + 1;
+    }
+
+
+    /**
+     * 计算{@code current}相对于({@code end}-{@code start})区间长度的比例
+     */
+    public static double normalize(double current, double start, double end) {
+        return current / (end - start);
     }
 
     /**

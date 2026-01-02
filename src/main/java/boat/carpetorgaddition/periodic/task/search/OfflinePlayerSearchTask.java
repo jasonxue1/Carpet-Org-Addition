@@ -13,6 +13,7 @@ import boat.carpetorgaddition.rule.value.OpenPlayerInventory;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.ItemStackStatistics;
+import boat.carpetorgaddition.wheel.ProgressBar;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
@@ -108,7 +109,21 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private volatile WorldFormat backupFileDirectory;
     private final Object backupInitLock = new Object();
     private final PagedCollection pagedCollection;
+    /**
+     * 开始查找物品的时间
+     */
+    private long startTime;
+    /**
+     * 用于显示查找进度
+     */
+    @Nullable
+    private ProgressBar progressBar;
+    /**
+     * 已经完成查找的人数
+     */
+    private final AtomicInteger completedCount = new AtomicInteger(0);
     public static final LocalizationKey KEY = ItemSearchTask.KEY.then("offline_player");
+    private static final long PROGRESS_BAR_WAIT_TIME = 1000L;
 
     public OfflinePlayerSearchTask(CommandSourceStack source, ItemStackPredicate predicate, ServerPlayer player) {
         super(source);
@@ -131,10 +146,23 @@ public class OfflinePlayerSearchTask extends ServerTask {
             case START -> {
                 this.start();
                 this.taksState = State.RUNTIME;
+                this.startTime = System.currentTimeMillis();
             }
             case RUNTIME -> {
+                LocalizationKey key = KEY.then("progress");
                 if (this.taskCount.get() == 0) {
                     this.taksState = State.FEEDBACK;
+                    if (this.progressBar != null) {
+                        this.progressBar.setProgress(this.total);
+                    }
+                } else if (MathUtils.timeDifference(this.startTime) >= PROGRESS_BAR_WAIT_TIME) {
+                    if (this.progressBar == null) {
+                        this.progressBar = new ProgressBar(this.total);
+                    }
+                    this.progressBar.setProgress(this.completedCount.get());
+                }
+                if (this.progressBar != null) {
+                    MessageUtils.sendMessageToHud(this.player, key.translate(this.progressBar.getDisplay()));
                 }
             }
             case FEEDBACK -> {
@@ -150,7 +178,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 开始搜索物品
      */
     private void start() {
-        for (File file : files) {
+        for (File file : this.files) {
             if (file.getName().endsWith(".dat")) {
                 UUID uuid;
                 try {
@@ -187,6 +215,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 addCorruptedPlayerUUID(uuid);
             } finally {
                 this.taskCount.getAndDecrement();
+                this.completedCount.getAndIncrement();
             }
         });
     }
@@ -200,18 +229,22 @@ public class OfflinePlayerSearchTask extends ServerTask {
      */
     @Nullable
     private CompoundTag readNbt(File unsafe, UUID uuid) throws IOException {
-        CompoundTag nbt = NbtIo.readCompressed(unsafe.toPath(), NbtAccounter.unlimitedHeap());
+        CompoundTag nbt = readNbt(unsafe);
         int version = NbtUtils.getDataVersion(nbt, -1);
         // 使用<而不是==，因为存档可能降级
         if (this.isCorruptedPlayerData(uuid) || version < GenericUtils.getNbtDataVersion()) {
             // 升级或修复玩家数据
             if (this.server.isRunning() && this.backupAndUpdate(unsafe, uuid)) {
-                return NbtIo.readCompressed(unsafe.toPath(), NbtAccounter.unlimitedHeap());
+                return readNbt(unsafe);
             }
             return null;
         } else {
             return nbt;
         }
+    }
+
+    private CompoundTag readNbt(File file) throws IOException {
+        return NbtIo.readCompressed(file.toPath(), NbtAccounter.unlimitedHeap());
     }
 
     /**
@@ -264,7 +297,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
             INVALID_PLAYER_DATAS.add(uuid);
             return false;
         }
-        // TODO 显示进度条
         FabricPlayerAccessor accessor = this.accessManager.getOrCreateBlocking(entry);
         OfflinePlayerInventory inventory = new OfflinePlayerInventory(accessor);
         inventory.setShowLog(false);

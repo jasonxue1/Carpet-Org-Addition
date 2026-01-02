@@ -329,6 +329,7 @@
   "carpet-org-addition.command.finder.item.offline_player.each": "在%s的%s找到了%s个",
   "carpet-org-addition.command.finder.item.offline_player.total": "总计：%s",
   "carpet-org-addition.command.finder.item.offline_player.found": "已找到：%s",
+  "carpet-org-addition.command.finder.item.offline_player.progress": "正在从离线玩家物品栏查找物品：%s",
   "carpet-org-addition.command.finder.trade.item.cannot_find": "在周围找不到出售%s的%s",
   "carpet-org-addition.command.finder.trade.item.head": "在周围找到了%s个出售%s的%s",
   "carpet-org-addition.command.finder.trade.item.each": "位于%s的%s的第%s项交易出售该物品",
