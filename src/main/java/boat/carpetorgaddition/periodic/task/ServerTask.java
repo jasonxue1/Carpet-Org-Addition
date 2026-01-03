@@ -15,15 +15,14 @@ public abstract class ServerTask {
      */
     private long executionTime;
     private long tickTaskStartTime = -1L;
-
-    public ServerTask(CommandSourceStack source) {
-        this.source = source;
-    }
-
     /**
      * 该任务是否应该被删除
      */
     private boolean remove = false;
+
+    public ServerTask(CommandSourceStack source) {
+        this.source = source;
+    }
 
     /**
      * 每个游戏刻都调用此方法

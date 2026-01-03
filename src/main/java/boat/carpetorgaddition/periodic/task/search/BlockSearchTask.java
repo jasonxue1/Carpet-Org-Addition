@@ -8,6 +8,7 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.wheel.ProgressBar;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
@@ -40,6 +41,11 @@ public class BlockSearchTask extends ServerTask {
     private int count = 0;
     private final ArrayList<Result> results = new ArrayList<>();
     private final PagedCollection pagedCollection;
+    private final ProgressBar progressBar;
+    /**
+     * 已遍历过的方块数量
+     */
+    private int progress = 0;
     public static final LocalizationKey KEY = FinderCommand.KEY.then("block");
 
     public BlockSearchTask(ServerLevel world, BlockPos sourcePos, BlockPosTraverser traverser, CommandSourceStack source, BlockStatePredicate predicate) {
@@ -47,6 +53,7 @@ public class BlockSearchTask extends ServerTask {
         this.world = world;
         this.sourcePos = sourcePos;
         this.traverser = traverser.clamp(world);
+        this.progressBar = new ProgressBar(this.traverser.size());
         this.predicate = predicate;
         this.findState = FindState.SEARCH;
         PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
@@ -59,7 +66,13 @@ public class BlockSearchTask extends ServerTask {
         while (this.isTimeRemaining()) {
             try {
                 switch (this.findState) {
-                    case SEARCH -> this.searchBlock();
+                    case SEARCH -> {
+                        this.searchBlock();
+                        Component message = KEY
+                                .then("progress")
+                                .translate(this.predicate.getDisplayName(), this.progressBar.getDisplay());
+                        MessageUtils.sendMessageToHudIfPlayer(this.source, message);
+                    }
                     case SORT -> this.sort();
                     case FEEDBACK -> this.sendFeedback();
                     default -> {
@@ -89,11 +102,14 @@ public class BlockSearchTask extends ServerTask {
             }
             try {
                 this.iterate(blockPos);
+                this.progress++;
+                this.progressBar.setProgress(this.progress);
             } catch (ForceReturnException e) {
                 return;
             }
         }
         this.findState = FindState.SORT;
+        this.progressBar.setCompleted();
     }
 
     // TODO 显示进度条

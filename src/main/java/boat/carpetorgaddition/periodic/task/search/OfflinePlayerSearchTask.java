@@ -168,11 +168,12 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 this.startTime = System.currentTimeMillis();
             }
             case RUNTIME -> {
+                // TODO 显示物品名称
                 LocalizationKey key = KEY.then("progress");
                 if (this.taskCount.get() == 0) {
                     this.taksState = State.FEEDBACK;
                     if (this.progressBar != null) {
-                        this.progressBar.setProgress(this.total);
+                        this.progressBar.setCompleted();
                     }
                 } else if (MathUtils.timeDifference(this.startTime) >= PROGRESS_BAR_WAIT_TIME) {
                     if (this.progressBar == null) {

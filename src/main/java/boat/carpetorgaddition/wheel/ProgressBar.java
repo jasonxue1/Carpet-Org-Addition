@@ -15,7 +15,11 @@ public class ProgressBar {
     }
 
     public void setProgress(int current) {
-        this.progress = MathUtils.normalize(current, 0.0, this.end);
+        this.progress = Math.min(MathUtils.normalize(current, 0.0, this.end), 1);
+    }
+
+    public void setCompleted() {
+        this.progress = 1.0;
     }
 
     public Component getDisplay() {
