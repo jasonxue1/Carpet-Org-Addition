@@ -12,7 +12,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
@@ -46,11 +46,11 @@ public class DictionaryCommand extends AbstractClientCommand {
 
     @Override
     public void register(String name) {
-        LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommandManager.literal(name);
+        LiteralArgumentBuilder<FabricClientCommandSource> builder = ClientCommands.literal(name);
         // 注册每一项子命令
         for (DictionaryType value : DictionaryType.values()) {
-            builder.then(ClientCommandManager.literal(value.name)
-                    .then(ClientCommandManager.argument(value.name, value.getArgumentType())
+            builder.then(ClientCommands.literal(value.name)
+                    .then(ClientCommands.argument(value.name, value.getArgumentType())
                             .executes(context -> getId(context, value))));
         }
         this.dispatcher.register(builder);

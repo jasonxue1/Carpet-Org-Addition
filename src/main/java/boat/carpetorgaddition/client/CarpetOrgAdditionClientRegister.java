@@ -13,7 +13,7 @@ import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import boat.carpetorgaddition.wheel.screen.UnavailableSlotClientSide;
 import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -104,7 +104,7 @@ public class CarpetOrgAdditionClientRegister {
      */
     private static void registerKeyBinding() {
         // 清除高亮路径点
-        KeyBindingHelper.registerKeyBinding(CarpetOrgAdditionClient.CLEAR_WAYPOINT);
+        KeyMappingHelper.registerKeyMapping(CarpetOrgAdditionClient.CLEAR_WAYPOINT);
     }
 
     /**

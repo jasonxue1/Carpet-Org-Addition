@@ -6,10 +6,11 @@ import boat.carpetorgaddition.client.command.argument.ClientBlockPosArgumentType
 import boat.carpetorgaddition.client.renderer.waypoint.HighlightWaypoint;
 import boat.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import boat.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
+import boat.carpetorgaddition.client.util.ClientUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ObjectShare;
@@ -41,22 +42,22 @@ public class HighlightCommand extends AbstractClientCommand {
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(ClientCommandManager.literal(name)
-                .then(ClientCommandManager.argument("blockPos", ClientBlockPosArgumentType.blockPos())
+        this.dispatcher.register(ClientCommands.literal(name)
+                .then(ClientCommands.argument("blockPos", ClientBlockPosArgumentType.blockPos())
                         .executes(context -> highlight(context, 60 * 20L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
-                        .then(ClientCommandManager.argument("second", IntegerArgumentType.integer(1))
+                        .then(ClientCommands.argument("second", IntegerArgumentType.integer(1))
                                 .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"30", "60", "120"}, builder))
                                 .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 20L, false)))
-                        .then(ClientCommandManager.literal("continue")
+                        .then(ClientCommands.literal("continue")
                                 .executes(context -> highlight(context, 1L, true))))
-                .then(ClientCommandManager.literal("clear")
+                .then(ClientCommands.literal("clear")
                         .executes(_ -> clear())));
     }
 
     // 高亮路径点
     private int highlight(CommandContext<FabricClientCommandSource> context, long duration, boolean persistent) {
         Vec3 vec3d = ClientBlockPosArgumentType.getBlockPos(context, "blockPos").getCenter();
-        ClientLevel world = context.getSource().getWorld();
+        ClientLevel world = ClientUtils.getWorld();
         WaypointRenderer instance = WaypointRenderer.getInstance();
         List<Waypoint> list = instance.listRenderers(Waypoint.HIGHLIGHT);
         Waypoint newWaypoint = new HighlightWaypoint(world, vec3d, duration, persistent);

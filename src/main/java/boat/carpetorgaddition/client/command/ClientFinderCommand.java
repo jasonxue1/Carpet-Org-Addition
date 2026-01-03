@@ -15,7 +15,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
-import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.commands.CommandBuildContext;
@@ -32,26 +32,26 @@ public class ClientFinderCommand extends AbstractClientCommand {
 
     @Override
     public void register(String name) {
-        this.dispatcher.register(ClientCommandManager.literal(name)
-                .then(ClientCommandManager.literal("item")
-                        .then(ClientCommandManager.argument("item", new ClientItemArgumentType(true))
+        this.dispatcher.register(ClientCommands.literal(name)
+                .then(ClientCommands.literal("item")
+                        .then(ClientCommands.argument("item", new ClientItemArgumentType(true))
                                 .executes(context -> searchItem(context, 64))
-                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
+                                .then(ClientCommands.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> searchItem(context, IntegerArgumentType.getInteger(context, "range"))))
-                                .then(ClientCommandManager.literal("from")
-                                        .then(ClientCommandManager.literal("offline_player")
+                                .then(ClientCommands.literal("from")
+                                        .then(ClientCommands.literal("offline_player")
                                                 .executes(this::searchItem)))))
-                .then(ClientCommandManager.literal("block")
-                        .then(ClientCommandManager.argument("block", new ClientBlockArgumentType(true))
+                .then(ClientCommands.literal("block")
+                        .then(ClientCommands.argument("block", new ClientBlockArgumentType(true))
                                 .executes(context -> searchBlock(context, 64))
-                                .then(ClientCommandManager.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
+                                .then(ClientCommands.argument("range", IntegerArgumentType.integer(0, FinderCommand.MAX_HORIZONTAL_RANGE))
                                         .suggests(suggestionDefaultDistance())
                                         .executes(context -> searchBlock(context, IntegerArgumentType.getInteger(context, "range")))))));
     }
 
     private SuggestionProvider<FabricClientCommandSource> suggestionDefaultDistance() {
-        return (context, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
+        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
     }
 
     private int searchItem(CommandContext<FabricClientCommandSource> context, int range) {
