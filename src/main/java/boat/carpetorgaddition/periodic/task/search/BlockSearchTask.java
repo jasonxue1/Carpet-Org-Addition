@@ -112,7 +112,6 @@ public class BlockSearchTask extends ServerTask {
         this.progressBar.setCompleted();
     }
 
-    // TODO 显示进度条
     private void iterate(BlockPos begin) {
         HashMap<Block, Set<BlockPos>> group = new HashMap<>();
         BlockPos.breadthFirstTraversal(begin, Integer.MAX_VALUE, Integer.MAX_VALUE, MathUtils::allDirection, blockPos -> {

@@ -168,7 +168,6 @@ public class OfflinePlayerSearchTask extends ServerTask {
                 this.startTime = System.currentTimeMillis();
             }
             case RUNTIME -> {
-                // TODO 显示物品名称
                 LocalizationKey key = KEY.then("progress");
                 if (this.taskCount.get() == 0) {
                     this.taksState = State.FEEDBACK;
@@ -182,7 +181,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
                     this.progressBar.setProgress(this.completedCount.get());
                 }
                 if (this.progressBar != null) {
-                    MessageUtils.sendMessageToHud(this.player, key.translate(this.progressBar.getDisplay()));
+                    MessageUtils.sendMessageToHud(this.player, key.translate(this.predicate.getDisplayName(), this.progressBar.getDisplay()));
                 }
             }
             case FEEDBACK -> {
