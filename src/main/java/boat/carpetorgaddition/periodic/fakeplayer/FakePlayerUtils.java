@@ -83,6 +83,7 @@ public class FakePlayerUtils {
      * @param fakePlayer 要停止操作的假玩家
      * @param message    停止操作时在聊天栏输出的内容
      */
+    @Deprecated(forRemoval = true)
     public static void stopAction(CommandSourceStack source, EntityPlayerMPFake fakePlayer, Component message) {
         FetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
         MessageUtils.broadcastMessage(source.getServer(), TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", message));

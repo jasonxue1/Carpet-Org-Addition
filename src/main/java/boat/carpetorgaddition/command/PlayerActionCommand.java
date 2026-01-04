@@ -135,7 +135,10 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
                                 .executes(context -> this.raise(context, null))
                                 .then(Commands.argument("message", StringArgumentType.string())
-                                        .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))));
+                                        .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))
+                        .then(Commands.literal("closeScreen")
+                                .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                                .executes(this::closeScreen))));
     }
 
     private LiteralArgumentBuilder<CommandSourceStack> register(LiteralArgumentBuilder<CommandSourceStack> node) {
@@ -454,6 +457,16 @@ public class PlayerActionCommand extends AbstractServerCommand {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
             actionManager.setDebugExceptionMessage(message == null ? "Manually triggered debug exception" : message);
+            return 1;
+        }
+        return 0;
+    }
+
+    // 调试：关闭当前屏幕
+    private int closeScreen(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        if (CarpetOrgAddition.isDebugDevelopment()) {
+            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+            fakePlayer.closeContainer();
             return 1;
         }
         return 0;

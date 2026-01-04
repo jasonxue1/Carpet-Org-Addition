@@ -1,10 +1,12 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,6 +109,10 @@ public abstract class AbstractPlayerAction {
         }
         this.fakePlayer = fakePlayer;
         this.onAssignPlayer();
+    }
+
+    protected MinecraftServer getServer() {
+        return FetcherUtils.getServer(this.getFakePlayer());
     }
 
     public void clearFakePlayer() {

@@ -2,18 +2,18 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
+import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,7 @@ public class RenameAction extends AbstractPlayerAction {
      * 物品的新名称
      */
     private final String newName;
+    private boolean canSendMessage = true;
     public static final String ITEM = "item";
     public static final String NEW_NAME = "new_name";
     public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("rename");
@@ -40,12 +41,15 @@ public class RenameAction extends AbstractPlayerAction {
     @Override
     protected void tick() {
         // 如果假玩家对铁砧持续按住右键，就会一直打开新的铁砧界面，同时旧的铁砧界面会自动关闭，关闭旧的铁砧界面时，铁砧内的物品会回到玩家物品栏
-        if (getFakePlayer().containerMenu instanceof AnvilMenu anvilScreenHandler) {
-            // 如果假玩家没有足够的经验，直接介绍方法，创造玩家给物品重命名不需要消耗经验
-            CommandSourceStack source = getFakePlayer().createCommandSourceStack();
-            // TODO 改为自动暂停，且消息在服务器重启前只显示一次
-            if (getFakePlayer().experienceLevel < 1 && !getFakePlayer().isCreative()) {
-                FakePlayerUtils.stopAction(source, getFakePlayer(), KEY.then("error", "not_experience").translate());
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        if (fakePlayer.containerMenu instanceof AnvilMenu anvilScreenHandler) {
+            // 如果假玩家没有足够的经验，直接结束方法，创造玩家给物品重命名不需要消耗经验
+            if (fakePlayer.experienceLevel < 1 && !fakePlayer.isCreative()) {
+                if (this.canSendMessage) {
+                    LocalizationKey key = KEY.then("wait");
+                    MessageUtils.broadcastMessage(this.getServer(), key.translate(fakePlayer.getDisplayName(), this.getDisplayName()));
+                    this.canSendMessage = false;
+                }
                 return;
             }
             Slot oneSlot = anvilScreenHandler.getSlot(0);
@@ -58,7 +62,7 @@ public class RenameAction extends AbstractPlayerAction {
                 if (itemStack.getHoverName().getString().equals(newName) || !itemStack.is(item)) {
                     // 如果已经重命名，或者当前槽位不是指定物品，丢出该槽位的物品
                     // 因为该槽位的物品被丢弃，所以该槽位已经没有物品，没有必要继续判断，直接结束方法
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 0, getFakePlayer());
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 0, fakePlayer);
                     return;
                 } else {
                     // 判断当前物品堆栈对象是否为指定物品
@@ -75,7 +79,7 @@ public class RenameAction extends AbstractPlayerAction {
                 if (anvilScreenHandler.getSlot(index).hasItem()
                     && anvilScreenHandler.getSlot(index).getItem().is(item)) {
                     // 找到指定物品后，模拟按住Shift键将物品移动到铁砧输入槽，然后跳出for循环
-                    FakePlayerUtils.quickMove(anvilScreenHandler, index, getFakePlayer());
+                    FakePlayerUtils.quickMove(anvilScreenHandler, index, fakePlayer);
                     break;
                 }
                 // 如果遍历完物品栏还是没有找到指定物品，认为玩家物品栏中已经没有指定物品，结束方法
@@ -88,9 +92,9 @@ public class RenameAction extends AbstractPlayerAction {
             // 判断该槽位是否有物品
             if (twoSlot.hasItem()) {
                 // 如果有，移动到物品栏，如果不能移动，直接丢出
-                FakePlayerUtils.quickMove(anvilScreenHandler, 1, getFakePlayer());
+                FakePlayerUtils.quickMove(anvilScreenHandler, 1, fakePlayer);
                 if (twoSlot.hasItem()) {
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 1, getFakePlayer());
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 1, fakePlayer);
                 }
             }
             // 判断第一个输入槽是否正确，第二个格子是否没有物品
@@ -100,10 +104,7 @@ public class RenameAction extends AbstractPlayerAction {
                 // 判断是否可以取出输出槽的物品
                 if (anvilScreenHandler.getSlot(2).hasItem() && canTakeOutput(anvilScreenHandler)) {
                     // 丢出输出槽的物品
-                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 2, getFakePlayer());
-                } else {
-                    // 如果不能取出，可能玩家已经没有经验，停止重命名
-                    FakePlayerUtils.stopAction(source, getFakePlayer(), KEY.then("error").translate());
+                    FakePlayerUtils.pickupAndThrow(anvilScreenHandler, 2, fakePlayer);
                 }
             }
         }
@@ -135,8 +136,7 @@ public class RenameAction extends AbstractPlayerAction {
                     FakePlayerUtils.getWithCountHoverText(anvilScreenHandler.getSlot(2).getItem())));
         } else {
             // 将假玩家没有打开铁砧的信息添加到集合
-            // TODO Items.ANVIL.getName()改为Blocks.ANVIL.getName()
-            list.add(key.then("no_anvil").translate(playerName, Items.ANVIL.getName()));
+            list.add(key.then("no_anvil").translate(playerName, Blocks.ANVIL.getName()));
         }
         return list;
     }
