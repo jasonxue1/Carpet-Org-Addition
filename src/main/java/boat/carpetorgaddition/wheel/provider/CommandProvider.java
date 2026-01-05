@@ -21,10 +21,10 @@ public class CommandProvider {
     /**
      * 接收一件快递
      */
-    public static String receiveExpress(int id, boolean force) {
+    public static String collectExpress(int id, boolean force) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(MailCommand.class))
-                .add("receive")
+                .add("collect")
                 .add(String.valueOf(id));
         if (force) {
             joiner.add("true");
@@ -35,10 +35,10 @@ public class CommandProvider {
     /**
      * 撤回一件快递
      */
-    public static String cancelExpress(int id, boolean force) {
+    public static String recallExpress(int id, boolean force) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(MailCommand.class))
-                .add("cancel")
+                .add("recall")
                 .add(String.valueOf(id));
         if (force) {
             joiner.add("true");
@@ -63,15 +63,15 @@ public class CommandProvider {
     /**
      * 接收所有快递
      */
-    public static String receiveAllExpress() {
-        return "/%s receive".formatted(getCommandName(MailCommand.class));
+    public static String collectAllExpress() {
+        return "/%s collect".formatted(getCommandName(MailCommand.class));
     }
 
     /**
      * 撤回所有快递
      */
-    public static String cancelAllExpress() {
-        return "/%s cancel".formatted(getCommandName(MailCommand.class));
+    public static String recallAllExpress() {
+        return "/%s recall".formatted(getCommandName(MailCommand.class));
     }
 
     /**

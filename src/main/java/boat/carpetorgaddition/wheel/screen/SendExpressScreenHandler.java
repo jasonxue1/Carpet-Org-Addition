@@ -3,8 +3,8 @@ package boat.carpetorgaddition.wheel.screen;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.MailCommand;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.express.Express;
-import boat.carpetorgaddition.periodic.express.ExpressManager;
+import boat.carpetorgaddition.periodic.parcel.Parcel;
+import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.util.MessageUtils;
@@ -31,16 +31,16 @@ import org.jspecify.annotations.NonNull;
 import java.io.IOException;
 import java.util.Optional;
 
-public class ShipExpressScreenHandler extends ChestMenu {
+public class SendExpressScreenHandler extends ChestMenu {
     private final Container inventory;
-    private final ExpressManager expressManager;
+    private final ParcelManager parcelManager;
     private final MinecraftServer server;
     private final ServerPlayer sourcePlayer;
     private final GameProfile recipient;
     private static final LocalizationKey SEND = MailCommand.SEND.then("multiple");
     private static final LocalizationKey COLLECT = MailCommand.COLLECT.then("multiple");
 
-    public ShipExpressScreenHandler(
+    public SendExpressScreenHandler(
             int syncId,
             Inventory playerInventory,
             ServerPlayer sourcePlayer,
@@ -50,7 +50,7 @@ public class ShipExpressScreenHandler extends ChestMenu {
         super(MenuType.GENERIC_9x3, syncId, playerInventory, inventory, 3);
         this.inventory = inventory;
         this.server = FetcherUtils.getServer(sourcePlayer);
-        this.expressManager = ServerComponentCoordinator.getCoordinator(this.server).getExpressManager();
+        this.parcelManager = ServerComponentCoordinator.getCoordinator(this.server).getParcelManager();
         this.sourcePlayer = sourcePlayer;
         this.recipient = recipient;
     }
@@ -78,9 +78,9 @@ public class ShipExpressScreenHandler extends ChestMenu {
             if (stack.isEmpty()) {
                 break;
             }
-            Express express = new Express(this.server, this.sourcePlayer, this.recipient, stack, this.expressManager.generateNumber());
+            Parcel parcel = new Parcel(this.server, this.sourcePlayer, this.recipient, stack, this.parcelManager.generateNumber());
             try {
-                expressManager.putNoMessage(express);
+                parcelManager.putNoMessage(parcel);
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.error("Encountered an unexpected error while batch sending items", e);
                 CommandSourceStack source = this.sourcePlayer.createCommandSourceStack();
@@ -117,7 +117,7 @@ public class ShipExpressScreenHandler extends ChestMenu {
         }
         Optional<ServerPlayer> optional = GenericUtils.getPlayer(this.server, this.recipient);
         Component playerName = optional.map(Player::getDisplayName).orElse(TextBuilder.create(this.recipient.name()));
-        Component command = TextProvider.clickRun(CommandProvider.cancelAllExpress());
+        Component command = TextProvider.clickRun(CommandProvider.recallAllExpress());
         int count = inventory.count();
         Object[] args = switch (onlyOneKind) {
             case 0 -> {
@@ -149,10 +149,10 @@ public class ShipExpressScreenHandler extends ChestMenu {
             // 向物品接收者发送消息
             MessageUtils.sendMessage(player, COLLECT.translate(
                     this.sourcePlayer.getDisplayName(), args[1], args[2],
-                    TextProvider.clickRun(CommandProvider.receiveAllExpress())
+                    TextProvider.clickRun(CommandProvider.collectAllExpress())
             ));
-            Express.playXpOrbPickupSound(player);
-            Express.checkRecipientPermission(this.sourcePlayer, player);
+            Parcel.playXpOrbPickupSound(player);
+            Parcel.checkRecipientPermission(this.sourcePlayer, player);
         }
         // 日志输出
         if (onlyOneKind == 2) {

@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.express;
+package boat.carpetorgaddition.periodic.parcel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.MailCommand;
@@ -32,12 +32,12 @@ import java.util.stream.Stream;
 /**
  * 快递管理器
  */
-public class ExpressManager {
-    private final TreeSet<Express> expresses = new TreeSet<>();
+public class ParcelManager {
+    private final TreeSet<Parcel> parcels = new TreeSet<>();
     private final WorldFormat worldFormat;
     private final MinecraftServer server;
 
-    public ExpressManager(MinecraftServer server) {
+    public ParcelManager(MinecraftServer server) {
         this.server = server;
         this.worldFormat = new WorldFormat(server, "express");
         // 从文件读取快递信息
@@ -52,32 +52,32 @@ public class ExpressManager {
             if (nbt == null) {
                 continue;
             }
-            Express express = Express.readNbt(server, nbt);
+            Parcel parcel = Parcel.readNbt(server, nbt);
             // 快递对象物品为空，删除对应的文件
-            if (express.isComplete()) {
-                express.delete();
+            if (parcel.isComplete()) {
+                parcel.delete();
                 continue;
             }
-            this.expresses.add(express);
+            this.parcels.add(parcel);
         }
     }
 
     /**
      * 提示玩家接收快递
      */
-    public void promptToReceive(ServerPlayer player) {
-        List<Express> list = this.expresses.stream()
-                .filter(express -> express.isRecipient(player))
-                .filter(express -> !express.isCancel())
+    public void promptToCollect(ServerPlayer player) {
+        List<Parcel> list = this.parcels.stream()
+                .filter(parcel -> parcel.isRecipient(player))
+                .filter(parcel -> !parcel.isRecall())
                 .toList();
         if (list.isEmpty()) {
             return;
         }
         ArrayList<Supplier<Component>> messages = new ArrayList<>();
-        for (Express express : list) {
+        for (Parcel parcel : list) {
             messages.add(() -> {
-                Component clickRun = TextProvider.clickRun(CommandProvider.receiveExpress(express.getId(), false));
-                ItemStack stack = express.getExpress();
+                Component clickRun = TextProvider.clickRun(CommandProvider.collectExpress(parcel.getId(), false));
+                ItemStack stack = parcel.getExpress();
                 return MailCommand.KEY.then("prompt_collect").translate(stack.getCount(), stack.getDisplayName(), clickRun);
             });
         }
@@ -93,45 +93,45 @@ public class ExpressManager {
      * 每个游戏刻删除已经寄件完成的快递
      */
     public void tick() {
-        this.expresses.removeIf(Express::isComplete);
+        this.parcels.removeIf(Parcel::isComplete);
     }
 
     /**
      * 添加新快递
      */
-    public void put(Express express) throws IOException {
-        put(express, true);
+    public void put(Parcel parcel) throws IOException {
+        put(parcel, true);
     }
 
     /**
      * 添加新快递，但不发送消息
      */
-    public void putNoMessage(Express express) throws IOException {
-        put(express, false);
+    public void putNoMessage(Parcel parcel) throws IOException {
+        put(parcel, false);
     }
 
-    private void put(Express express, boolean message) throws IOException {
-        if (express.getExpress().isEmpty()) {
+    private void put(Parcel parcel, boolean message) throws IOException {
+        if (parcel.getExpress().isEmpty()) {
             CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
             return;
         }
-        this.expresses.add(express);
+        this.parcels.add(parcel);
         if (message) {
-            express.sending();
-            express.checkRecipientPermission();
+            parcel.sending();
+            parcel.checkRecipientPermission();
         }
         // 将快递信息写入本地文件
-        NbtIo.write(express.writeNbt(this.server), this.worldFormat.file(express.getId() + IOUtils.NBT_EXTENSION).toPath());
+        NbtIo.write(parcel.writeNbt(this.server), this.worldFormat.file(parcel.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
-    public Stream<Express> stream() {
-        return this.expresses.stream();
+    public Stream<Parcel> stream() {
+        return this.parcels.stream();
     }
 
-    public int receiveAll(ServerPlayer player) throws IOException, CommandSyntaxException {
-        List<Express> list = this.stream()
-                .filter(express -> express.isRecipient(player))
-                .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
+    public int collectAll(ServerPlayer player) throws IOException, CommandSyntaxException {
+        List<Parcel> list = this.stream()
+                .filter(parcel -> parcel.isRecipient(player))
+                .filter(parcel -> parcel.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
         LocalizationKey key = MailCommand.COLLECT;
         if (list.isEmpty()) {
@@ -142,25 +142,25 @@ public class ExpressManager {
         // 接收物品堆叠数
         int receive = 0;
         HashMap<String, Counter<Item>> hashMap = new HashMap<>();
-        for (Express express : list) {
+        for (Parcel parcel : list) {
             // 物品插入物品栏之前的堆叠数
-            int count = express.getExpress().getCount();
-            Item item = express.getExpress().getItem();
+            int count = parcel.getExpress().getCount();
+            Item item = parcel.getExpress().getItem();
             total += count;
-            Express.InsertResult each = express.receiveEach();
+            Parcel.InsertResult each = parcel.receiveEach();
             int result = switch (each) {
                 // 完全插入物品栏
                 case COMPLETE -> count;
                 // 部分插入物品栏
-                case PART -> count - express.getExpress().getCount();
+                case PART -> count - parcel.getExpress().getCount();
                 // 未插入物品栏
                 case FAIL -> 0;
             };
-            Counter<Item> counter = hashMap.get(express.getSender());
+            Counter<Item> counter = hashMap.get(parcel.getSender());
             if (counter == null) {
                 Counter<Item> value = new Counter<>();
                 value.add(item, result);
-                hashMap.put(express.getSender(), value);
+                hashMap.put(parcel.getSender(), value);
             } else {
                 counter.add(item, result);
             }
@@ -175,7 +175,7 @@ public class ExpressManager {
                 MessageUtils.sendMessage(player, key.then("partial_reception").translate(receive, total - receive));
             }
             // 播放物品拾取音效
-            Express.playItemPickupSound(player);
+            Parcel.playItemPickupSound(player);
             PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
             for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
                 // 通知发送者物品已接收
@@ -190,10 +190,10 @@ public class ExpressManager {
         return receive;
     }
 
-    public int cancelAll(ServerPlayer player) throws IOException, CommandSyntaxException {
-        List<Express> list = this.stream()
-                .filter(express -> express.isSender(player))
-                .filter(express -> express.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
+    public int recallAll(ServerPlayer player) throws IOException, CommandSyntaxException {
+        List<Parcel> list = this.stream()
+                .filter(parcel -> parcel.isSender(player))
+                .filter(parcel -> parcel.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
         LocalizationKey key = MailCommand.RECALL;
         if (list.isEmpty()) {
@@ -202,33 +202,33 @@ public class ExpressManager {
         // 总物品堆叠数
         int total = 0;
         // 撤回物品堆叠数
-        int cancel = 0;
+        int recall = 0;
         HashSet<String> players = new HashSet<>();
-        for (Express express : list) {
-            players.add(express.getRecipient());
+        for (Parcel parcel : list) {
+            players.add(parcel.getRecipient());
             // 物品插入物品栏之前的堆叠数
-            int count = express.getExpress().getCount();
+            int count = parcel.getExpress().getCount();
             total += count;
-            Express.InsertResult each = express.cancelEach();
-            cancel += switch (each) {
+            Parcel.InsertResult each = parcel.recallEach();
+            recall += switch (each) {
                 // 完全插入物品栏
                 case COMPLETE -> count;
                 // 部分插入物品栏
-                case PART -> count - express.getExpress().getCount();
+                case PART -> count - parcel.getExpress().getCount();
                 // 未插入物品栏
                 case FAIL -> 0;
             };
         }
-        if (cancel == 0) {
+        if (recall == 0) {
             MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
         } else {
-            if (cancel == total) {
-                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM));
+            if (recall == total) {
+                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM.translate()));
             } else {
-                MessageUtils.sendMessage(player, key.then("partial_reception").translate(cancel, total - cancel));
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(recall, total - recall));
             }
             // 播放物品拾取音效
-            Express.playItemPickupSound(player);
+            Parcel.playItemPickupSound(player);
             TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName()));
             builder.setGrayItalic();
             Component message = builder.build();
@@ -241,7 +241,7 @@ public class ExpressManager {
                 MessageUtils.sendMessage(receivePlayer, message);
             }
         }
-        return cancel;
+        return recall;
     }
 
     /**
@@ -263,8 +263,8 @@ public class ExpressManager {
      *
      * @param id 要查找的快递单号
      */
-    public Optional<Express> binarySearch(int id) {
-        List<Express> list = this.expresses.stream().toList();
+    public Optional<Parcel> binarySearch(int id) {
+        List<Parcel> list = this.parcels.stream().toList();
         int left = 0;
         int right = list.size() - 1;
         while (left <= right) {
@@ -286,18 +286,18 @@ public class ExpressManager {
      */
     public int generateNumber() {
         // 没有快递发出，快递单号为1
-        if (this.expresses.isEmpty()) {
+        if (this.parcels.isEmpty()) {
             return 1;
         }
         // 集合最后一个元素id等于集合长度，说明前面的单号都是连续的，新单号为集合长度+1
-        if (this.expresses.last().getId() == this.expresses.size()) {
-            return this.expresses.size() + 1;
+        if (this.parcels.last().getId() == this.parcels.size()) {
+            return this.parcels.size() + 1;
         }
         // 遍历集合找到空缺的单号
         int number = 0;
-        for (Express express : this.expresses) {
+        for (Parcel parcel : this.parcels) {
             number++;
-            if (number == express.getId()) {
+            if (number == parcel.getId()) {
                 continue;
             }
             return number;

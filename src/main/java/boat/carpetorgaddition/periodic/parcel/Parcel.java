@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.express;
+package boat.carpetorgaddition.periodic.parcel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
@@ -43,8 +43,7 @@ import java.util.function.Function;
 /**
  * 快递
  */
-// TODO 重命名为Parcel
-public class Express implements Comparable<Express> {
+public class Parcel implements Comparable<Parcel> {
     private static final String NBT_DATA_VERSION = "NbtDataVersion";
     /**
      * 寄件人
@@ -61,7 +60,7 @@ public class Express implements Comparable<Express> {
     /**
      * 快递是否已被撤回
      */
-    private boolean cancel = false;
+    private boolean recall = false;
     /**
      * 快递单号
      */
@@ -74,19 +73,19 @@ public class Express implements Comparable<Express> {
     private final int nbtDataVersion;
     public static final String EXPRESS = "express";
 
-    public Express(MinecraftServer server, ServerPlayer sender, ServerPlayer recipient, int id) throws CommandSyntaxException {
+    public Parcel(MinecraftServer server, ServerPlayer sender, ServerPlayer recipient, int id) throws CommandSyntaxException {
         this(server, sender, recipient.getGameProfile(), getPlayerHandStack(sender), id);
     }
 
-    public Express(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, ItemStack itemStack, int id) {
+    public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, ItemStack itemStack, int id) {
         this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
     }
 
-    public Express(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
+    public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
         this(server, sender, gameProfile, getPlayerHandStack(sender), id);
     }
 
-    private Express(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
+    private Parcel(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
         this.server = server;
         this.sender = sender;
         this.recipient = recipient;
@@ -123,12 +122,12 @@ public class Express implements Comparable<Express> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        Component cancelText = TextProvider.clickRun(CommandProvider.cancelExpress(this.getId(), false));
+        Component cancelText = TextProvider.clickRun(CommandProvider.recallExpress(this.getId(), false));
         Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), cancelText};
         LocalizationKey key = MailCommand.SEND;
         MessageUtils.sendMessage(senderPlayer, key.then("sender").translate(senderArray));
         // 向快递接受者发送发出快递的消息
-        Component receiveText = TextProvider.clickRun(CommandProvider.receiveExpress(this.getId(), false));
+        Component receiveText = TextProvider.clickRun(CommandProvider.collectExpress(this.getId(), false));
         Object[] recipientArray = {senderPlayer.getDisplayName(), this.express.getCount(), this.express.getDisplayName(), receiveText};
         if (recipientPlayer == null) {
             TextBuilder builder = new TextBuilder(key.then("offline").translate());
@@ -145,7 +144,7 @@ public class Express implements Comparable<Express> {
     /**
      * 接收快递
      */
-    public void receive() throws IOException {
+    public void collect() throws IOException {
         PlayerList playerManager = this.server.getPlayerList();
         ServerPlayer player = playerManager.getPlayerByName(this.recipient);
         if (player == null) {
@@ -153,7 +152,7 @@ public class Express implements Comparable<Express> {
             return;
         }
         LocalizationKey key = MailCommand.COLLECT;
-        if (this.cancel) {
+        if (this.recall) {
             // 快递已被撤回
             MessageUtils.sendMessage(player, key.then("recalled").translate());
             return;
@@ -167,7 +166,7 @@ public class Express implements Comparable<Express> {
                 MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
                 counter.add(copy.getItem(), count);
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -179,7 +178,7 @@ public class Express implements Comparable<Express> {
                 MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = _ -> ExpressManager.getReceiveNotice(player, counter);
+                Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
                 // 播放物品拾取音效
                 playItemPickupSound(player);
@@ -191,7 +190,7 @@ public class Express implements Comparable<Express> {
     /**
      * 撤回快递
      */
-    public void cancel() throws IOException {
+    public void recall() throws IOException {
         PlayerList playerManager = this.server.getPlayerList();
         ServerPlayer player = playerManager.getPlayerByName(this.sender);
         if (player == null) {
@@ -223,7 +222,7 @@ public class Express implements Comparable<Express> {
         // 如果接收者存在，向接收者发送物品被撤回的消息
         Function<ServerPlayer, Component> message = _ -> new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName())).setGrayItalic().build();
         this.sendMessageIfPlayerOnline(this.recipient, message);
-        this.cancel = true;
+        this.recall = true;
     }
 
     /**
@@ -301,7 +300,7 @@ public class Express implements Comparable<Express> {
     /**
      * 撤回每一件快递
      */
-    public InsertResult cancelEach() throws IOException {
+    public InsertResult recallEach() throws IOException {
         ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.sender);
         if (player == null) {
             CarpetOrgAddition.LOGGER.error("找不到撤回快递的玩家，正在停止撤回");
@@ -413,7 +412,7 @@ public class Express implements Comparable<Express> {
             if (this.uuid != null) {
                 nbt.putString("uuid", this.uuid.toString());
             }
-            nbt.putBoolean("cancel", this.cancel);
+            nbt.putBoolean("cancel", this.recall);
             nbt.putInt("id", this.id);
             int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
             nbt.putIntArray("time", args);
@@ -425,7 +424,7 @@ public class Express implements Comparable<Express> {
     /**
      * 从NBT读取快递信息
      */
-    public static Express readNbt(MinecraftServer server, CompoundTag nbt) {
+    public static Parcel readNbt(MinecraftServer server, CompoundTag nbt) {
         ProblemReporter.ScopedCollector logging = createErrorReporter();
         try (logging) {
             ValueInput view = TagValueInput.create(logging, server.registryAccess(), nbt);
@@ -438,14 +437,14 @@ public class Express implements Comparable<Express> {
             int id = view.getInt("id").orElse(-1);
             int[] times = view.getIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
             LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-            Express express = new Express(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
-            express.cancel = cancel;
-            return express;
+            Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
+            parcel.recall = cancel;
+            return parcel;
         }
     }
 
     private static ProblemReporter.ScopedCollector createErrorReporter() {
-        return new ProblemReporter.ScopedCollector(Express.class::toString, CarpetOrgAddition.LOGGER);
+        return new ProblemReporter.ScopedCollector(Parcel.class::toString, CarpetOrgAddition.LOGGER);
     }
 
     /**
@@ -495,8 +494,8 @@ public class Express implements Comparable<Express> {
     /**
      * @return 快递是否已被撤回
      */
-    public boolean isCancel() {
-        return cancel;
+    public boolean isRecall() {
+        return recall;
     }
 
     @Override
@@ -505,7 +504,7 @@ public class Express implements Comparable<Express> {
             return false;
         }
         if (this.getClass() == obj.getClass()) {
-            Express other = (Express) obj;
+            Parcel other = (Parcel) obj;
             if (other.isComplete()) {
                 return false;
             }
@@ -520,7 +519,7 @@ public class Express implements Comparable<Express> {
     }
 
     @Override
-    public int compareTo(@NotNull Express o) {
+    public int compareTo(@NotNull Parcel o) {
         return this.id - o.id;
     }
 

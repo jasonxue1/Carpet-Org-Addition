@@ -6,7 +6,7 @@ import boat.carpetorgaddition.command.SpectatorCommand;
 import boat.carpetorgaddition.config.GlobalConfigs;
 import boat.carpetorgaddition.logger.LoggerRegister;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.express.ExpressManager;
+import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import boat.carpetorgaddition.util.FetcherUtils;
@@ -56,8 +56,8 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ExpressManager expressManager = ServerComponentCoordinator.getCoordinator(FetcherUtils.getServer(player)).getExpressManager();
-        expressManager.promptToReceive(player);
+        ParcelManager parcelManager = ServerComponentCoordinator.getCoordinator(FetcherUtils.getServer(player)).getParcelManager();
+        parcelManager.promptToCollect(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
         MinecraftServer server = FetcherUtils.getServer(player);

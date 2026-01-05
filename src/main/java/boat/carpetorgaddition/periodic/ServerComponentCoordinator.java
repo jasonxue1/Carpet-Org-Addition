@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.periodic.express.ExpressManager;
+import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
 import boat.carpetorgaddition.rule.RuleConfig;
@@ -25,7 +25,7 @@ public class ServerComponentCoordinator {
     /**
      * 快递管理器
      */
-    private final ExpressManager expressManager;
+    private final ParcelManager parcelManager;
     /**
      * 服务器任务管理器
      */
@@ -42,7 +42,7 @@ public class ServerComponentCoordinator {
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.server = server;
-        this.expressManager = new ExpressManager(server);
+        this.parcelManager = new ParcelManager(server);
         this.pageManager = new PageManager(server);
         this.ruleSelfManager = new RuleSelfManager(server);
         this.playerSerializationManager = new PlayerSerializationManager(server);
@@ -52,15 +52,15 @@ public class ServerComponentCoordinator {
     }
 
     public void tick() {
-        this.expressManager.tick();
+        this.parcelManager.tick();
         ServerTickRateManager tickManager = this.server.tickRateManager();
         this.serverTaskManager.tick(tickManager);
         this.pageManager.tick();
         this.accessManager.tick();
     }
 
-    public ExpressManager getExpressManager() {
-        return this.expressManager;
+    public ParcelManager getParcelManager() {
+        return this.parcelManager;
     }
 
     public ServerTaskManager getServerTaskManager() {

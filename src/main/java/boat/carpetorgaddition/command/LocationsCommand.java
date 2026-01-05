@@ -151,8 +151,7 @@ public class LocationsCommand extends AbstractServerCommand {
                 // 显示路径点
                 messages.add(waypoint::line);
                 count++;
-            } catch (IOException | NullPointerException e) {
-                // TODO 捕获RuntimeException
+            } catch (IOException | RuntimeException e) {
                 // 无法解析坐标
                 CarpetOrgAddition.LOGGER.warn("Failed to parse waypoint [{}]", IOUtils.removeExtension(name), e);
             }
