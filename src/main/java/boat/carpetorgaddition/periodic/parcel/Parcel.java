@@ -4,11 +4,13 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.CommandRegister;
 import boat.carpetorgaddition.command.MailCommand;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
-import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
+import boat.carpetorgaddition.dataupdate.nbt.ParcelDataUpdater;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
+import boat.carpetorgaddition.wheel.nbt.NbtReader;
+import boat.carpetorgaddition.wheel.nbt.NbtVersion;
+import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -24,12 +26,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.storage.TagValueInput;
-import net.minecraft.world.level.storage.TagValueOutput;
-import net.minecraft.world.level.storage.ValueInput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,11 +38,12 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask.UNKNOWN;
+
 /**
  * 快递
  */
 public class Parcel implements Comparable<Parcel> {
-    private static final String NBT_DATA_VERSION = "NbtDataVersion";
     /**
      * 寄件人
      */
@@ -65,6 +64,9 @@ public class Parcel implements Comparable<Parcel> {
      * 快递单号
      */
     private final int id;
+    /**
+     * 物品接收者的UUID
+     */
     @Nullable
     private final UUID uuid;
     private final MinecraftServer server;
@@ -72,6 +74,7 @@ public class Parcel implements Comparable<Parcel> {
     private final WorldFormat worldFormat;
     private final int nbtDataVersion;
     public static final String EXPRESS = "express";
+    private static final NbtVersion CURRENT_VERSION = new NbtVersion(3, 0);
 
     public Parcel(MinecraftServer server, ServerPlayer sender, ServerPlayer recipient, int id) throws CommandSyntaxException {
         this(server, sender, recipient.getGameProfile(), getPlayerHandStack(sender), id);
@@ -402,49 +405,37 @@ public class Parcel implements Comparable<Parcel> {
      * 将快递内容写入NBT
      */
     public CompoundTag writeNbt(MinecraftServer server) {
-        ProblemReporter.ScopedCollector logging = createErrorReporter();
-        try (logging) {
-            TagValueOutput nbt = TagValueOutput.createWithContext(logging, server.registryAccess());
-            nbt.putInt(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
-            nbt.putInt(NBT_DATA_VERSION, GenericUtils.getNbtDataVersion());
-            nbt.putString("sender", this.sender);
-            nbt.putString("recipient", this.recipient);
-            if (this.uuid != null) {
-                nbt.putString("uuid", this.uuid.toString());
-            }
-            nbt.putBoolean("cancel", this.recall);
-            nbt.putInt("id", this.id);
-            int[] args = {time.getYear(), time.getMonthValue(), time.getDayOfMonth(), time.getHour(), time.getMinute(), time.getSecond()};
-            nbt.putIntArray("time", args);
-            nbt.store("item", ItemStack.CODEC, this.express);
-            return nbt.buildResult();
+        NbtWriter writer = new NbtWriter(server, CURRENT_VERSION);
+        writer.putInt("id", this.id);
+        writer.putString("sender", this.sender);
+        writer.putString("recipient", this.recipient);
+        if (this.uuid != null) {
+            writer.putUuid("uuid", this.uuid);
         }
+        writer.putBoolean("recall", this.recall);
+        writer.putItemStack("item", this.express);
+        writer.putLocalDateTime("time", this.time);
+        return writer.toNbt();
     }
 
     /**
      * 从NBT读取快递信息
      */
     public static Parcel readNbt(MinecraftServer server, CompoundTag nbt) {
-        ProblemReporter.ScopedCollector logging = createErrorReporter();
-        try (logging) {
-            ValueInput view = TagValueInput.create(logging, server.registryAccess(), nbt);
-            int nbtDataVersion = nbt.getInt(NBT_DATA_VERSION).orElse(-1);
-            String sender = view.getString("sender").orElse(OfflinePlayerSearchTask.UNKNOWN);
-            String recipient = view.getString("recipient").orElse(OfflinePlayerSearchTask.UNKNOWN);
-            UUID uuid = GenericUtils.uuidFromString(nbt.getString("uuid").orElse(null)).orElse(null);
-            boolean cancel = view.getBooleanOr("cancel", false);
-            ItemStack stack = view.read("item", ItemStack.CODEC).orElse(ItemStack.EMPTY);
-            int id = view.getInt("id").orElse(-1);
-            int[] times = view.getIntArray("time").orElse(new int[]{0, 0, 0, 0, 0, 0,});
-            LocalDateTime localDateTime = LocalDateTime.of(times[0], times[1], times[2], times[3], times[4], times[5]);
-            Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, localDateTime, nbtDataVersion);
-            parcel.recall = cancel;
-            return parcel;
-        }
-    }
-
-    private static ProblemReporter.ScopedCollector createErrorReporter() {
-        return new ProblemReporter.ScopedCollector(Parcel.class::toString, CarpetOrgAddition.LOGGER);
+        ParcelDataUpdater updater = new ParcelDataUpdater(server);
+        NbtVersion version = ParcelDataUpdater.getVersion(nbt);
+        int vanillaVersion = ParcelDataUpdater.getVanillaVersion(nbt);
+        NbtReader reader = new NbtReader(server, updater.update(nbt, version, vanillaVersion));
+        int id = reader.getIntOrThrow("id");
+        String sender = reader.getStringOrElse("sender", UNKNOWN);
+        String recipient = reader.getStringOrElse("recipient", UNKNOWN);
+        UUID uuid = reader.getUuidNullable("uuid").orElse(null);
+        boolean recall = reader.getBooleanOrElse("recall", false);
+        ItemStack stack = reader.getItemStack("item");
+        LocalDateTime time = reader.getLocalDateTime("time");
+        Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, time, -1);
+        parcel.recall = recall;
+        return parcel;
     }
 
     /**
@@ -523,6 +514,7 @@ public class Parcel implements Comparable<Parcel> {
         return this.id - o.id;
     }
 
+    @Deprecated(forRemoval = true)
     public int getNbtDataVersion() {
         return this.nbtDataVersion;
     }

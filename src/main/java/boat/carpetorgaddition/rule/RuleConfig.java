@@ -2,8 +2,8 @@ package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionExtension;
-import boat.carpetorgaddition.dataupdate.CarpetConfDataUpdater;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.CarpetConfDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import carpet.api.settings.CarpetRule;

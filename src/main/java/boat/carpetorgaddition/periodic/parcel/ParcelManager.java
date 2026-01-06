@@ -44,6 +44,7 @@ public class ParcelManager {
         for (File file : this.worldFormat.toImmutableFileList()) {
             CompoundTag nbt;
             try {
+                // TODO 改为使用文件名识别ID
                 nbt = NbtIo.read(file.toPath());
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.warn("Failed to read cached data from file {}", file, e);

@@ -31,7 +31,7 @@ import java.util.concurrent.RejectedExecutionException;
 public class CustomClickEvents {
     public static final Identifier OPEN_DIALOG = register("open_dialog", context -> {
         NbtReader reader = context.getReader();
-        Identifier id = reader.getIdentifier("id");
+        Identifier id = reader.getIdentifierOrThrow("id");
         MinecraftServer server = context.getServer();
         DialogProvider provider = FetcherUtils.getDialogProvider(server);
         Dialog dialog = provider.getDialog(id);
@@ -40,7 +40,7 @@ public class CustomClickEvents {
     public static final Identifier OPEN_INVENTORY = register("open_inventory", context -> {
         NbtReader reader = context.getReader();
         UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
-        PlayerInventoryType type = reader.getPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE);
+        PlayerInventoryType type = reader.getPlayerInventoryTypeOrThrow(CustomClickKeys.INVENTORY_TYPE);
         PlayerCommandExtension.openInventory(context.getPlayer(), type, new PlayerCommandExtension.PlayerInventroyAccessor(context.getServer(), uuid, context.getPlayer()));
     });
     public static final Identifier QUERY_PLAYER_NAME = register("query_player_name", context -> {
@@ -72,8 +72,8 @@ public class CustomClickEvents {
     });
     public static final Identifier TURN_THE_PAGE = register("turn_the_page", context -> {
         NbtReader reader = context.getReader();
-        int id = reader.getInt(CustomClickKeys.ID);
-        int page = reader.getInt(CustomClickKeys.PAGE_NUMBER);
+        int id = reader.getIntOrThrow(CustomClickKeys.ID);
+        int page = reader.getIntOrThrow(CustomClickKeys.PAGE_NUMBER);
         PageManager manager = FetcherUtils.getPageManager(context.getServer());
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {

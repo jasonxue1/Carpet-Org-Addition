@@ -6,12 +6,14 @@ import boat.carpetorgaddition.network.event.CustomClickEvents;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dialog.ActionButton;
 import net.minecraft.server.dialog.CommonButtonData;
 import net.minecraft.server.dialog.action.Action;
+import net.minecraft.server.dialog.action.StaticAction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -48,7 +50,8 @@ public class DialogUtils {
             CommonButtonData data = new CommonButtonData(LocalizationKeys.Button.BACK.translate(), CommonButtonData.DEFAULT_WIDTH);
             NbtWriter writer = new NbtWriter(server, CustomClickAction.CURRENT_VERSION);
             writer.putIdentifier("id", parent);
-            Action action = writer.toCustomAction(CustomClickEvents.OPEN_DIALOG, ActionSource.DIALOG);
+            writer.putActionSource(ActionSource.DIALOG);
+            Action action = new StaticAction(new ClickEvent.Custom(CustomClickEvents.OPEN_DIALOG, Optional.of(writer.toNbt())));
             return new ActionButton(data, Optional.of(action));
         }
     }

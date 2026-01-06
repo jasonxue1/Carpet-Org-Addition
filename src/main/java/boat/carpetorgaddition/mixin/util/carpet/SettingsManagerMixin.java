@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.util.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAdditionExtension;
-import boat.carpetorgaddition.dataupdate.CarpetConfDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.CarpetConfDataUpdater;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.OrgRule;
 import boat.carpetorgaddition.rule.RuleConfig;

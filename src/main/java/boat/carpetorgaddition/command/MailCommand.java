@@ -95,7 +95,10 @@ public class MailCommand extends AbstractServerCommand {
                         .executes(this::list))
                 .then(Commands.literal("multiple")
                         .then(Commands.argument(CommandUtils.PLAYER, GameProfileArgument.gameProfile())
-                                .executes(this::sendMultipleExpress))));
+                                .executes(this::sendMultipleExpress)))
+                .then(Commands.literal("override")
+                        .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                        .executes(this::override)));
     }
 
     // 自动补全快递单号
@@ -266,6 +269,22 @@ public class MailCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context.getSource(), message);
             return 0;
         }
+    }
+
+    // 调试：将快递数据写入文件
+    private int override(CommandContext<CommandSourceStack> context) {
+        if (CarpetOrgAddition.isDebugDevelopment()) {
+            ParcelManager manager = ServerComponentCoordinator.getCoordinator(context).getParcelManager();
+            manager.stream().forEach(parcel -> {
+                try {
+                    parcel.save();
+                } catch (IOException e) {
+                    IOUtils.loggerError(e);
+                }
+            });
+            return (int) manager.stream().count();
+        }
+        return 0;
     }
 
     private Component differentVersions(Component action, int dataVersion, Component button) {

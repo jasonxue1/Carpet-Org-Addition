@@ -1,6 +1,6 @@
-package boat.carpetorgaddition.dataupdate.player;
+package boat.carpetorgaddition.dataupdate.json.player;
 
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FillTheContainerAction;
 import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;

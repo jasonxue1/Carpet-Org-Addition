@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.rule;
 
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;

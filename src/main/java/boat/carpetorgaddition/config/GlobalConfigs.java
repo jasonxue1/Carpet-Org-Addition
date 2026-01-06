@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.config;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

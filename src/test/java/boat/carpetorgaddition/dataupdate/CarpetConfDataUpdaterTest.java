@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.dataupdate;
 
+import boat.carpetorgaddition.dataupdate.json.CarpetConfDataUpdater;
 import com.google.gson.JsonObject;
 import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.util.IOUtils;

@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.dataupdate;
+package boat.carpetorgaddition.dataupdate.json;
 
 import boat.carpetorgaddition.util.IOUtils;
 import com.google.gson.JsonObject;
@@ -15,12 +15,12 @@ public class WaypointDataUpdater implements DataUpdater {
             String illustrate = IOUtils.getJsonElement(json, "illustrate", "", String.class);
             JsonObject anotherPos = new JsonObject();
             if (IOUtils.jsonHasElement(json, "another_x", "another_y", "another_z")) {
-                int another_x = json.get("another_x").getAsInt();
-                int another_y = json.get("another_y").getAsInt();
-                int another_z = json.get("another_z").getAsInt();
-                anotherPos.addProperty("x", another_x);
-                anotherPos.addProperty("y", another_y);
-                anotherPos.addProperty("z", another_z);
+                int anotherX = json.get("another_x").getAsInt();
+                int anotherY = json.get("another_y").getAsInt();
+                int anotherZ = json.get("another_z").getAsInt();
+                anotherPos.addProperty("x", anotherX);
+                anotherPos.addProperty("y", anotherY);
+                anotherPos.addProperty("z", anotherZ);
             }
             JsonObject update = new JsonObject();
             JsonObject pos = new JsonObject();

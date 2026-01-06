@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

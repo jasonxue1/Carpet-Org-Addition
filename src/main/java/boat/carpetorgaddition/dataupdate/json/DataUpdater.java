@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.dataupdate;
+package boat.carpetorgaddition.dataupdate.json;
 
 import com.google.gson.JsonObject;
 

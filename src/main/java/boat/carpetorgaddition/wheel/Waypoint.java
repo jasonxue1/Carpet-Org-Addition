@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.command.LocationsCommand;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
-import boat.carpetorgaddition.dataupdate.WaypointDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.WaypointDataUpdater;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.WorldUtils;

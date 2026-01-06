@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.dataupdate.waypoint;
 
 import com.google.gson.JsonObject;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
-import boat.carpetorgaddition.dataupdate.WaypointDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.WaypointDataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Assertions;

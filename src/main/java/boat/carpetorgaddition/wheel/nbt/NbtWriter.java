@@ -1,19 +1,21 @@
 package boat.carpetorgaddition.wheel.nbt;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.nbt.NbtDataUpdater;
 import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.dialog.action.StaticAction;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.TagValueOutput;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
@@ -23,11 +25,20 @@ public class NbtWriter {
 
     public NbtWriter(MinecraftServer server, NbtVersion version) {
         this.output = TagValueOutput.createWithContext(REPORTER, server.registryAccess());
-        this.output.store(DataUpdater.DATA_VERSION, NbtVersion.CODEC, version);
+        this.output.store(NbtDataUpdater.DATA_VERSION, NbtVersion.CODEC, version);
+        this.output.putInt(NbtDataUpdater.VANILLA_DATA_VERSION, NbtDataUpdater.CURRENT_VANILLA_DATA_VERSION);
     }
 
     public void putInt(String key, int value) {
         this.output.putInt(key, value);
+    }
+
+    public void putBoolean(String key, boolean value) {
+        this.output.putBoolean(key, value);
+    }
+
+    public void putString(String key, String value) {
+        this.output.putString(key, value);
     }
 
     public void putIdentifier(String key, Identifier identifier) {
@@ -46,12 +57,21 @@ public class NbtWriter {
         this.output.store("action_source", ActionSource.CODEC, source);
     }
 
-    public CompoundTag toNbt() {
-        return this.output.buildResult();
+    public void putItemStack(String key, ItemStack itemStack) {
+        this.output.store(key, ItemStack.CODEC, itemStack);
     }
 
-    public StaticAction toCustomAction(Identifier identifier, ActionSource source) {
-        this.putActionSource(source);
-        return new StaticAction(new ClickEvent.Custom(identifier, Optional.of(this.toNbt())));
+    public void putLocalDateTime(String key, LocalDateTime time) {
+        this.output.store(key, CodecConstants.TIME_CODEC, time);
+    }
+
+    public void putInventory(String key, Container container) {
+        ArrayList<ItemStack> list = new ArrayList<>(container.getContainerSize());
+        container.forEach(list::add);
+        this.output.store(key, Codec.list(ItemStack.CODEC), list);
+    }
+
+    public CompoundTag toNbt() {
+        return this.output.buildResult();
     }
 }

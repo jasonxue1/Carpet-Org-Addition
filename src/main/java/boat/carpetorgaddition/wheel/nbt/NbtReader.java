@@ -1,18 +1,23 @@
 package boat.carpetorgaddition.wheel.nbt;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.dataupdate.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.network.event.ActionSource;
+import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtFormatException;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.ValueInput;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,14 +31,30 @@ public class NbtReader {
     }
 
     public String getString(String key) {
-        return this.input.getString(key).orElseThrow();
+        return this.getStringNullable(key).orElse("");
     }
 
-    public int getInt(String key) {
-        return this.input.getInt(key).orElseThrow();
+    public String getStringOrElse(String key, String other) {
+        return this.getStringNullable(key).orElse(other);
     }
 
-    public Identifier getIdentifier(String key) {
+    public Optional<String> getStringNullable(String key) {
+        return this.input.getString(key);
+    }
+
+    public int getIntOrThrow(String key) {
+        return this.getIntNullable(key).orElseThrow();
+    }
+
+    public Optional<Integer> getIntNullable(String key) {
+        return this.input.getInt(key);
+    }
+
+    public boolean getBooleanOrElse(String key, boolean other) {
+        return this.input.getBooleanOr(key, other);
+    }
+
+    public Identifier getIdentifierOrThrow(String key) {
         return getIdentifierNullable(key).orElseThrow();
     }
 
@@ -41,7 +62,7 @@ public class NbtReader {
         return this.input.read(key, Identifier.CODEC);
     }
 
-    public UUID getUuid(String key) {
+    public UUID getUuidOrThrow(String key) {
         return this.getUuidNullable(key).orElseThrow();
     }
 
@@ -49,16 +70,49 @@ public class NbtReader {
         return this.input.read(key, UUIDUtil.STRING_CODEC);
     }
 
-    public PlayerInventoryType getPlayerInventoryType(String key) {
-        return this.input.read(key, PlayerInventoryType.CODEC).orElseThrow();
+    public PlayerInventoryType getPlayerInventoryTypeOrThrow(String key) {
+        return getInventoryTypeNullable(key).orElseThrow();
+    }
+
+    private Optional<PlayerInventoryType> getInventoryTypeNullable(String key) {
+        return this.input.read(key, PlayerInventoryType.CODEC);
     }
 
     public ActionSource getActionSource() {
         return this.getActionSourceNullable().orElse(ActionSource.UNKNOWN);
     }
 
+    // TODO 键改为参数传递
     public Optional<ActionSource> getActionSourceNullable() {
         return this.input.read("action_source", ActionSource.CODEC);
+    }
+
+    public ItemStack getItemStack(String key) {
+        return this.getItemStackNullable(key).orElse(ItemStack.EMPTY);
+    }
+
+    public Optional<ItemStack> getItemStackNullable(String key) {
+        return this.input.read(key, ItemStack.CODEC);
+    }
+
+    public LocalDateTime getLocalDateTime(String key) {
+        return this.getLocalDateTimeNullable(key).orElse(CodecConstants.TIME_DEFAULT_VALUE);
+    }
+
+    public Optional<LocalDateTime> getLocalDateTimeNullable(String key) {
+        return this.input.read(key, CodecConstants.TIME_CODEC);
+    }
+
+    public ImmutableInventory getInventory(String key) {
+        return this.getInventoryNullable(key).orElse(ImmutableInventory.EMPTY);
+    }
+
+    public Optional<ImmutableInventory> getInventoryNullable(String key) {
+        Optional<List<ItemStack>> optional = this.input.read(key, Codec.list(ItemStack.CODEC));
+        if (optional.isEmpty()) {
+            return Optional.empty();
+        }
+        return optional.map(ImmutableInventory::new);
     }
 
     public NbtVersion getVersion() {
