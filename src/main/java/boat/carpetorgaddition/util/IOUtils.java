@@ -298,6 +298,15 @@ public class IOUtils {
     }
 
     /**
+     * 获取不带扩展名的文件名
+     */
+    public static String getFileNameWithoutExtension(File file) {
+        String name = file.getName();
+        int i = name.lastIndexOf(".");
+        return i == -1 ? name : name.substring(0, i);
+    }
+
+    /**
      * 删除文件扩展名
      */
     @Deprecated(forRemoval = true)

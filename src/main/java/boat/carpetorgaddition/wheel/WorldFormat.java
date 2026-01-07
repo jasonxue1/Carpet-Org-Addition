@@ -6,6 +6,7 @@ import boat.carpetorgaddition.util.IOUtils;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -105,7 +106,8 @@ public class WorldFormat {
      * @return 包含该目录所有文件的不可变的List集合
      * @apiNote Java貌似没有对中文的拼音排序做很好的支持，因此，中文的排序依然是无序的
      */
-    public List<File> toImmutableFileList() {
+    @Unmodifiable
+    public List<File> toFileList() {
         File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();
@@ -114,7 +116,8 @@ public class WorldFormat {
         return Stream.of(files).sorted(Comparator.comparing(file -> file.getName().toLowerCase())).toList();
     }
 
-    public List<File> toImmutableFileList(Predicate<File> filter) {
+    @Unmodifiable
+    public List<File> toFileList(Predicate<File> filter) {
         File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();

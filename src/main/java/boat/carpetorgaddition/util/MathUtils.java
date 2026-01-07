@@ -368,4 +368,15 @@ public class MathUtils {
             }
         }
     }
+
+    /**
+     * 尝试将字符串解析为整数
+     */
+    public static OptionalInt tryParseInt(String str) {
+        try {
+            return OptionalInt.of(Integer.parseInt(str));
+        } catch (NumberFormatException e) {
+            return OptionalInt.empty();
+        }
+    }
 }

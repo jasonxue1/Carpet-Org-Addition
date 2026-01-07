@@ -2,10 +2,7 @@ package boat.carpetorgaddition.periodic.parcel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.MailCommand;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.IOUtils;
-import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
@@ -43,11 +40,20 @@ public class ParcelManager {
     public ParcelManager(MinecraftServer server) {
         this.server = server;
         this.worldFormat = new WorldFormat(server, "express");
+        this.init();
+    }
+
+    private void init() {
         // 从文件读取快递信息
-        for (File file : this.worldFormat.toImmutableFileList()) {
+        for (File file : this.worldFormat.toFileList()) {
+            String name = IOUtils.getFileNameWithoutExtension(file);
+            OptionalInt optional = MathUtils.tryParseInt(name);
+            if (optional.isEmpty()) {
+                continue;
+            }
+            int id = optional.getAsInt();
             CompoundTag nbt;
             try {
-                // TODO 改为使用文件名识别ID
                 nbt = NbtIo.read(file.toPath());
             } catch (IOException e) {
                 CarpetOrgAddition.LOGGER.warn("Failed to read cached data from file {}", file, e);
@@ -56,7 +62,7 @@ public class ParcelManager {
             if (nbt == null) {
                 continue;
             }
-            Parcel parcel = Parcel.readNbt(server, nbt);
+            Parcel parcel = Parcel.readNbt(this.server, nbt, id);
             // 快递对象物品为空，删除对应的文件
             if (parcel.isComplete()) {
                 parcel.delete();

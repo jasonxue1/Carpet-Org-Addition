@@ -84,7 +84,7 @@ public class LocationsCommand extends AbstractServerCommand {
     public static SuggestionProvider<CommandSourceStack> suggestion() {
         return (context, builder) -> {
             WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), Waypoint.WAYPOINT);
-            return SharedSuggestionProvider.suggest(worldFormat.toImmutableFileList()
+            return SharedSuggestionProvider.suggest(worldFormat.toFileList()
                     .stream()
                     .map(File::getName)
                     .filter(name -> name.endsWith(IOUtils.JSON_EXTENSION))
@@ -129,7 +129,7 @@ public class LocationsCommand extends AbstractServerCommand {
     private int listWayPoint(CommandContext<CommandSourceStack> context, @Nullable String filter) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
-        List<File> list = worldFormat.toImmutableFileList();
+        List<File> list = worldFormat.toFileList();
         LocalizationKey key = KEY.then("list", "empty");
         if (list.isEmpty()) {
             MessageUtils.sendMessage(context, key.translate());

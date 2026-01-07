@@ -354,7 +354,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             return false;
         }
         // 正常情况下，list元素数量不多于1个
-        List<String> list = this.worldFormat.toImmutableFileList()
+        List<String> list = this.worldFormat.toFileList()
                 .stream()
                 .filter(File::isDirectory)
                 .map(File::getName)

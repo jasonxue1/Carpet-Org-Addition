@@ -40,7 +40,7 @@ public class PlayerSerializationManager {
 
     private void init() {
         try {
-            List<File> list = this.worldFormat.toImmutableFileList(WorldFormat.JSON_EXTENSIONS);
+            List<File> list = this.worldFormat.toFileList(WorldFormat.JSON_EXTENSIONS);
             for (File file : list) {
                 try {
                     this.serializers.add(new FakePlayerSerializer(file));

@@ -379,7 +379,9 @@ public class Parcel implements Comparable<Parcel> {
      * 将快递信息保存到本地文件
      */
     public void save() throws IOException {
-        NbtIo.write(this.writeNbt(this.server), this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION).toPath());
+        File file = this.worldFormat.file(this.getId() + IOUtils.NBT_EXTENSION);
+        CompoundTag nbt = this.writeNbt(this.server);
+        NbtIo.write(nbt, file.toPath());
     }
 
     /**
@@ -405,7 +407,6 @@ public class Parcel implements Comparable<Parcel> {
      */
     public CompoundTag writeNbt(MinecraftServer server) {
         NbtWriter writer = new NbtWriter(server, CURRENT_VERSION);
-        writer.putInt("id", this.id);
         writer.putString("sender", this.sender);
         writer.putString("recipient", this.recipient);
         if (this.uuid != null) {
@@ -420,12 +421,11 @@ public class Parcel implements Comparable<Parcel> {
     /**
      * 从NBT读取快递信息
      */
-    public static Parcel readNbt(MinecraftServer server, CompoundTag nbt) {
+    public static Parcel readNbt(MinecraftServer server, CompoundTag nbt, int id) {
         ParcelDataUpdater updater = new ParcelDataUpdater(server);
         NbtVersion version = ParcelDataUpdater.getVersion(nbt);
         int vanillaVersion = ParcelDataUpdater.getVanillaVersion(nbt);
         NbtReader reader = new NbtReader(server, updater.update(nbt, version, vanillaVersion));
-        int id = reader.getIntOrThrow("id");
         String sender = reader.getStringOrElse("sender", UNKNOWN);
         String recipient = reader.getStringOrElse("recipient", UNKNOWN);
         UUID uuid = reader.getUuidNullable("uuid").orElse(null);
