@@ -121,7 +121,7 @@ public class ParcelManager {
         }
         this.parcels.add(parcel);
         if (message) {
-            parcel.sending();
+            parcel.send();
             parcel.checkRecipientPermission();
         }
         // 将快递信息写入本地文件

@@ -114,7 +114,7 @@ public class Parcel implements Comparable<Parcel> {
     /**
      * 发送快递
      */
-    public void sending() {
+    public void send() {
         PlayerList playerManager = this.server.getPlayerList();
         ServerPlayer senderPlayer = playerManager.getPlayerByName(this.sender);
         ServerPlayer recipientPlayer = playerManager.getPlayerByName(this.recipient);
