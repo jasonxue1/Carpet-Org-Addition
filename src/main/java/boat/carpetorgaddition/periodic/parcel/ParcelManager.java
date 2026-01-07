@@ -2,7 +2,10 @@ package boat.carpetorgaddition.periodic.parcel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.MailCommand;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.IOUtils;
+import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
@@ -132,7 +135,6 @@ public class ParcelManager {
     public int collectAll(ServerPlayer player) throws IOException, CommandSyntaxException {
         List<Parcel> list = this.stream()
                 .filter(parcel -> parcel.isRecipient(player))
-                .filter(parcel -> parcel.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
         LocalizationKey key = MailCommand.COLLECT;
         if (list.isEmpty()) {
@@ -194,7 +196,6 @@ public class ParcelManager {
     public int recallAll(ServerPlayer player) throws IOException, CommandSyntaxException {
         List<Parcel> list = this.stream()
                 .filter(parcel -> parcel.isSender(player))
-                .filter(parcel -> parcel.getNbtDataVersion() == GenericUtils.CURRENT_DATA_VERSION)
                 .toList();
         LocalizationKey key = MailCommand.RECALL;
         if (list.isEmpty()) {

@@ -12,16 +12,13 @@ import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
-import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.screen.SendExpressScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
-import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -54,8 +51,6 @@ public class MailCommand extends AbstractServerCommand {
     public static final LocalizationKey RECALL = KEY.then("recall");
     public static final LocalizationKey INTERCEPT = KEY.then("intercept");
     public static final LocalizationKey NOTICE = KEY.then("notice");
-    public static final LocalizationKey ACTION = KEY.then("action");
-    public static final LocalizationKey VERSION = KEY.then("version");
     public static final LocalizationKey LIST = KEY.then("list");
 
     public MailCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
@@ -73,24 +68,18 @@ public class MailCommand extends AbstractServerCommand {
                         .executes(this::collectAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(collectSuggests(true))
-                                .executes(context -> collect(context, false))
-                                .then(Commands.argument("force", BoolArgumentType.bool())
-                                        .executes(context -> collect(context, BoolArgumentType.getBool(context, "force"))))))
+                                .executes(this::collect)))
                 .then(Commands.literal("recall")
                         .executes(this::recallAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(collectSuggests(false))
-                                .executes(context -> recall(context, false))
-                                .then(Commands.argument("force", BoolArgumentType.bool())
-                                        .executes(context -> recall(context, BoolArgumentType.getBool(context, "force"))))))
+                                .executes(this::recall)))
                 // TODO 快递可以同时接收，同时也可以拦截，可接收的物品不应该可以拦截
                 .then(Commands.literal("intercept")
                         .requires(intercept)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(interceptSuggests())
-                                .executes(context -> intercept(context, false))
-                                .then(Commands.argument("force", BoolArgumentType.bool())
-                                        .executes(context -> intercept(context, BoolArgumentType.getBool(context, "force"))))))
+                                .executes(this::intercept)))
                 .then(Commands.literal("list")
                         .executes(this::list))
                 .then(Commands.literal("multiple")
@@ -178,29 +167,20 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 接收快递
-    private int collect(CommandContext<CommandSourceStack> context, boolean force) throws CommandSyntaxException {
+    private int collect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取快递
         Parcel parcel = getExpress(context);
-        int dataVersion = parcel.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
-            // 只能接收发送给自己的快递
-            if (parcel.isRecipient(player)) {
-                try {
-                    parcel.collect();
-                } catch (IOException e) {
-                    throw CommandExecuteIOException.of(e);
-                }
-                return 1;
+        // 只能接收发送给自己的快递
+        if (parcel.isRecipient(player)) {
+            try {
+                parcel.collect();
+            } catch (IOException e) {
+                throw CommandExecuteIOException.of(e);
             }
-            throw CommandUtils.createException(COLLECT.then("not_myself").translate());
-        } else {
-            Component action = ACTION.then("collect").translate();
-            Component button = TextProvider.clickRun(CommandProvider.collectExpress(parcel.getId(), true));
-            Component message = this.differentVersions(action, dataVersion, button);
-            MessageUtils.sendMessage(context.getSource(), message);
-            return 0;
+            return 1;
         }
+        throw CommandUtils.createException(COLLECT.then("not_myself").translate());
     }
 
     // 接收所有快递
@@ -215,27 +195,18 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 撤回快递
-    private int recall(CommandContext<CommandSourceStack> context, boolean force) throws CommandSyntaxException {
+    private int recall(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         Parcel parcel = getExpress(context);
-        int dataVersion = parcel.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
-            if (parcel.isSender(player)) {
-                try {
-                    parcel.recall();
-                } catch (IOException e) {
-                    throw CommandExecuteIOException.of(e);
-                }
-                return 1;
+        if (parcel.isSender(player)) {
+            try {
+                parcel.recall();
+            } catch (IOException e) {
+                throw CommandExecuteIOException.of(e);
             }
-            throw CommandUtils.createException(RECALL.then("not_myself").translate());
-        } else {
-            Component action = ACTION.then("recall").translate();
-            Component button = TextProvider.clickRun(CommandProvider.recallExpress(parcel.getId(), true));
-            Component message = this.differentVersions(action, dataVersion, button);
-            MessageUtils.sendMessage(context.getSource(), message);
-            return 0;
+            return 1;
         }
+        throw CommandUtils.createException(RECALL.then("not_myself").translate());
     }
 
     // 撤回所有快递
@@ -251,24 +222,15 @@ public class MailCommand extends AbstractServerCommand {
     /**
      * 拦截一件快递
      */
-    private int intercept(CommandContext<CommandSourceStack> context, boolean force) throws CommandSyntaxException {
+    private int intercept(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         Parcel parcel = getExpress(context);
-        int dataVersion = parcel.getNbtDataVersion();
-        if (force || dataVersion == -1 || dataVersion == GenericUtils.CURRENT_DATA_VERSION) {
-            try {
-                parcel.intercept(player);
-            } catch (IOException e) {
-                IOUtils.loggerError(e);
-            }
-            return parcel.getId();
-        } else {
-            Component action = ACTION.then("intercept").translate();
-            Component button = TextProvider.clickRun(CommandProvider.interceptExpress(parcel.getId(), true));
-            Component message = this.differentVersions(action, dataVersion, button);
-            MessageUtils.sendMessage(context.getSource(), message);
-            return 0;
+        try {
+            parcel.intercept(player);
+        } catch (IOException e) {
+            IOUtils.loggerError(e);
         }
+        return parcel.getId();
     }
 
     // 调试：将快递数据写入文件
@@ -285,16 +247,6 @@ public class MailCommand extends AbstractServerCommand {
             return (int) manager.stream().count();
         }
         return 0;
-    }
-
-    private Component differentVersions(Component action, int dataVersion, Component button) {
-        Component component = VERSION.then(dataVersion > GenericUtils.CURRENT_DATA_VERSION ? "new" : "old").translate();
-        TextBuilder builder = new TextBuilder(component);
-        TextJoiner joiner = new TextJoiner();
-        joiner.newline(VERSION.then("expect").translate(GenericUtils.CURRENT_DATA_VERSION));
-        joiner.newline(VERSION.then("actual").translate(dataVersion));
-        builder.setHover(joiner.join());
-        return VERSION.then("fail").translate(action, builder.build(), button, action);
     }
 
     // 列出快递

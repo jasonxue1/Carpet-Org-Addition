@@ -72,7 +72,6 @@ public class Parcel implements Comparable<Parcel> {
     private final MinecraftServer server;
     private final LocalDateTime time;
     private final WorldFormat worldFormat;
-    private final int nbtDataVersion;
     public static final String EXPRESS = "express";
     private static final NbtVersion CURRENT_VERSION = new NbtVersion(3, 0);
 
@@ -81,14 +80,14 @@ public class Parcel implements Comparable<Parcel> {
     }
 
     public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, ItemStack itemStack, int id) {
-        this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now(), GenericUtils.getNbtDataVersion());
+        this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now());
     }
 
     public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
         this(server, sender, gameProfile, getPlayerHandStack(sender), id);
     }
 
-    private Parcel(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time, int nbtDataVersion) {
+    private Parcel(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, ItemStack express, int id, LocalDateTime time) {
         this.server = server;
         this.sender = sender;
         this.recipient = recipient;
@@ -97,7 +96,6 @@ public class Parcel implements Comparable<Parcel> {
         this.id = id;
         this.time = time;
         this.worldFormat = new WorldFormat(server, EXPRESS);
-        this.nbtDataVersion = nbtDataVersion;
     }
 
     private static ItemStack getPlayerHandStack(ServerPlayer player) throws CommandSyntaxException {
@@ -433,7 +431,7 @@ public class Parcel implements Comparable<Parcel> {
         boolean recall = reader.getBooleanOrElse("recall", false);
         ItemStack stack = reader.getItemStack("item");
         LocalDateTime time = reader.getLocalDateTime("time");
-        Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, time, -1);
+        Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, time);
         parcel.recall = recall;
         return parcel;
     }
@@ -512,11 +510,6 @@ public class Parcel implements Comparable<Parcel> {
     @Override
     public int compareTo(@NotNull Parcel o) {
         return this.id - o.id;
-    }
-
-    @Deprecated(forRemoval = true)
-    public int getNbtDataVersion() {
-        return this.nbtDataVersion;
     }
 
     /**

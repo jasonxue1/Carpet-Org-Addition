@@ -22,6 +22,7 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -181,6 +182,7 @@ public class GenericUtils {
     /**
      * @return 当前游戏的NBT数据版本
      */
+    @Contract(pure = true)
     public static int getNbtDataVersion() {
         return SharedConstants.getCurrentVersion().dataVersion().version();
     }
