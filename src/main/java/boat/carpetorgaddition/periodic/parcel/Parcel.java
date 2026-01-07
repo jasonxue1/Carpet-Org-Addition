@@ -161,7 +161,7 @@ public class Parcel implements Comparable<Parcel> {
         int count = this.express.getCount();
         ItemStack copy = this.express.copy();
         Counter<Item> counter = new Counter<>();
-        switch (insertStack(player)) {
+        switch (insertStack(player, false)) {
             case COMPLETE -> {
                 // 物品完全接收
                 MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
@@ -202,7 +202,8 @@ public class Parcel implements Comparable<Parcel> {
         ItemStack copy = this.express.copy();
         // 将快递内容放入物品栏
         final LocalizationKey key = MailCommand.RECALL;
-        switch (insertStack(player)) {
+        this.recall = true;
+        switch (insertStack(player, true)) {
             case COMPLETE -> {
                 MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
                 // 播放物品拾取音效
@@ -223,7 +224,6 @@ public class Parcel implements Comparable<Parcel> {
         // 如果接收者存在，向接收者发送物品被撤回的消息
         Function<ServerPlayer, Component> message = _ -> new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName())).setGrayItalic().build();
         this.sendMessageIfPlayerOnline(this.recipient, message);
-        this.recall = true;
     }
 
     /**
@@ -233,7 +233,7 @@ public class Parcel implements Comparable<Parcel> {
         int count = this.express.getCount();
         ItemStack copy = this.express.copy();
         LocalizationKey key = MailCommand.INTERCEPT;
-        switch (insertStack(operator)) {
+        switch (insertStack(operator, false)) {
             case COMPLETE -> {
                 MessageUtils.sendMessage(operator, key.then("success").translate(count, copy.getDisplayName()));
                 playItemPickupSound(operator);
@@ -292,10 +292,9 @@ public class Parcel implements Comparable<Parcel> {
     public InsertResult receiveEach() throws IOException {
         ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.recipient);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("找不到接收快递的玩家，正在停止接收");
-            throw new NullPointerException();
+            throw new IllegalStateException("Cannot find player to receive the delivery");
         }
-        return this.insertStack(player);
+        return this.insertStack(player, false);
     }
 
     /**
@@ -304,20 +303,22 @@ public class Parcel implements Comparable<Parcel> {
     public InsertResult recallEach() throws IOException {
         ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.sender);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("找不到撤回快递的玩家，正在停止撤回");
-            throw new NullPointerException();
+            throw new IllegalStateException("Cannot find player to recall the delivery");
         }
-        return this.insertStack(player);
+        return this.insertStack(player, false);
     }
 
     /**
      * 向物品栏里插入物品
      */
-    private InsertResult insertStack(ServerPlayer player) throws IOException {
+    private InsertResult insertStack(ServerPlayer player, boolean forceSave) throws IOException {
         int count = this.express.getCount();
         player.getInventory().add(this.express);
         // 物品没有插入
         if (count == this.express.getCount()) {
+            if (forceSave) {
+                this.save();
+            }
             return InsertResult.FAIL;
         }
         // 物品完全插入
@@ -389,7 +390,7 @@ public class Parcel implements Comparable<Parcel> {
         if (file.delete()) {
             return;
         }
-        CarpetOrgAddition.LOGGER.warn("未能成功删除名为{}的文件", file);
+        CarpetOrgAddition.LOGGER.warn("Failed to successfully delete file: {}", file);
     }
 
     /**
