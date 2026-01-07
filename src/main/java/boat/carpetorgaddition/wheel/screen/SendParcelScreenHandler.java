@@ -31,7 +31,7 @@ import org.jspecify.annotations.NonNull;
 import java.io.IOException;
 import java.util.Optional;
 
-public class SendExpressScreenHandler extends ChestMenu {
+public class SendParcelScreenHandler extends ChestMenu {
     private final Container inventory;
     private final ParcelManager parcelManager;
     private final MinecraftServer server;
@@ -40,7 +40,7 @@ public class SendExpressScreenHandler extends ChestMenu {
     private static final LocalizationKey SEND = MailCommand.SEND.then("multiple");
     private static final LocalizationKey COLLECT = MailCommand.COLLECT.then("multiple");
 
-    public SendExpressScreenHandler(
+    public SendParcelScreenHandler(
             int syncId,
             Inventory playerInventory,
             ServerPlayer sourcePlayer,

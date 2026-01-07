@@ -12,7 +12,7 @@ import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
-import boat.carpetorgaddition.wheel.screen.SendExpressScreenHandler;
+import boat.carpetorgaddition.wheel.screen.SendParcelScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -159,7 +159,7 @@ public class MailCommand extends AbstractServerCommand {
         }
         SimpleContainer inventory = new SimpleContainer(27);
         SimpleMenuProvider screen = new SimpleMenuProvider(
-                (i, inv, _) -> new SendExpressScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
+                (i, inv, _) -> new SendParcelScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
                 SEND.then("multiple", "gui").translate()
         );
         sourcePlayer.openMenu(screen);
