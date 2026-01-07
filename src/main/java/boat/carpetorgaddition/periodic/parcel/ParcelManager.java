@@ -87,7 +87,7 @@ public class ParcelManager {
         for (Parcel parcel : list) {
             messages.add(() -> {
                 Component clickRun = TextProvider.clickRun(CommandProvider.collectExpress(parcel.getId(), false));
-                ItemStack stack = parcel.getExpress();
+                ItemStack stack = parcel.getParcel();
                 return MailCommand.KEY.then("prompt_collect").translate(stack.getCount(), stack.getDisplayName(), clickRun);
             });
         }
@@ -121,7 +121,7 @@ public class ParcelManager {
     }
 
     private void put(Parcel parcel, boolean message) throws IOException {
-        if (parcel.getExpress().isEmpty()) {
+        if (parcel.getParcel().isEmpty()) {
             CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
             return;
         }
@@ -153,15 +153,15 @@ public class ParcelManager {
         HashMap<String, Counter<Item>> hashMap = new HashMap<>();
         for (Parcel parcel : list) {
             // 物品插入物品栏之前的堆叠数
-            int count = parcel.getExpress().getCount();
-            Item item = parcel.getExpress().getItem();
+            int count = parcel.getParcel().getCount();
+            Item item = parcel.getParcel().getItem();
             total += count;
             Parcel.InsertResult each = parcel.receiveEach();
             int result = switch (each) {
                 // 完全插入物品栏
                 case COMPLETE -> count;
                 // 部分插入物品栏
-                case PART -> count - parcel.getExpress().getCount();
+                case PART -> count - parcel.getParcel().getCount();
                 // 未插入物品栏
                 case FAIL -> 0;
             };
@@ -215,14 +215,14 @@ public class ParcelManager {
         for (Parcel parcel : list) {
             players.add(parcel.getRecipient());
             // 物品插入物品栏之前的堆叠数
-            int count = parcel.getExpress().getCount();
+            int count = parcel.getParcel().getCount();
             total += count;
             Parcel.InsertResult each = parcel.recallEach();
             recall += switch (each) {
                 // 完全插入物品栏
                 case COMPLETE -> count;
                 // 部分插入物品栏
-                case PART -> count - parcel.getExpress().getCount();
+                case PART -> count - parcel.getParcel().getCount();
                 // 未插入物品栏
                 case FAIL -> 0;
             };

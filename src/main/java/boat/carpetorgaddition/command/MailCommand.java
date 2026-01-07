@@ -304,7 +304,7 @@ public class MailCommand extends AbstractServerCommand {
         list.add(LIST.then("id").translate(parcel.getId()));
         list.add(LIST.then("sender").translate(parcel.getSender()));
         list.add(LIST.then("recipient").translate(parcel.getRecipient()));
-        ItemStack itemStack = parcel.getExpress();
+        ItemStack itemStack = parcel.getParcel();
         list.add(LIST.then("item").translate(itemStack.getItem().getName(), itemStack.getCount()));
         list.add(LIST.then("time").translate(parcel.getTime()));
         // 拼接字符串
