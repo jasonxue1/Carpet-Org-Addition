@@ -2,6 +2,7 @@ package boat.carpetorgaddition.dataupdate.nbt;
 
 import boat.carpetorgaddition.wheel.nbt.NbtVersion;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 
@@ -23,6 +24,11 @@ public class ParcelDataUpdater extends NbtDataUpdater {
                 switch (key) {
                     case "NbtDataVersion" -> nbt.put("vanilla_data_version", value);
                     case "cancel" -> nbt.put("recall", value);
+                    case "item" -> {
+                        ListTag tags = new ListTag();
+                        tags.add(value);
+                        nbt.put("items", tags);
+                    }
                     default -> nbt.put(key, value);
                 }
             }
@@ -37,12 +43,18 @@ public class ParcelDataUpdater extends NbtDataUpdater {
             CompoundTag nbt = new CompoundTag();
             for (Map.Entry<String, Tag> entry : old.entrySet()) {
                 String key = entry.getKey();
-                if ("item".equals(key)) {
-                    nbt.put(key, this.updateItemStack(entry.getValue(), version));
-                } else if ("vanilla_data_version".equals(key)) {
-                    nbt.putInt(key, CURRENT_VANILLA_DATA_VERSION);
-                } else {
-                    nbt.put(key, entry.getValue());
+                switch (key) {
+                    case "items" -> {
+                        ListTag newTags = new ListTag();
+                        if (entry.getValue() instanceof ListTag oldTags) {
+                            for (Tag tag : oldTags) {
+                                newTags.add(this.updateItemStack(tag, version));
+                            }
+                        }
+                        nbt.put(key, newTags);
+                    }
+                    case "vanilla_data_version" -> nbt.putInt(key, CURRENT_VANILLA_DATA_VERSION);
+                    default -> nbt.put(key, entry.getValue());
                 }
             }
             return nbt;
