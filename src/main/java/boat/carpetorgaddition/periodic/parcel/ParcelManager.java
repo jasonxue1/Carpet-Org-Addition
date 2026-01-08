@@ -34,7 +34,7 @@ public class ParcelManager {
 
     public ParcelManager(MinecraftServer server) {
         this.server = server;
-        this.worldFormat = new WorldFormat(server, "express");
+        this.worldFormat = new WorldFormat(server, Parcel.EXPRESS);
         this.init();
     }
 
@@ -81,7 +81,7 @@ public class ParcelManager {
         ArrayList<Supplier<Component>> messages = new ArrayList<>();
         for (Parcel parcel : list) {
             messages.add(() -> {
-                Component clickRun = TextProvider.clickRun(CommandProvider.collectExpress(parcel.getId(), false));
+                Component clickRun = TextProvider.clickRun(CommandProvider.collectParcel(parcel.getId(), false));
                 return MailCommand.KEY.then("prompt_collect").translate(parcel.getCount(), parcel.getDisplayName(), clickRun);
             });
         }
@@ -105,14 +105,14 @@ public class ParcelManager {
      */
     public void put(Parcel parcel) throws IOException {
         if (parcel.isComplete()) {
-            CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
+            CarpetOrgAddition.LOGGER.warn("Attempted to send an empty item, ignored");
             return;
         }
         this.parcels.add(parcel);
         parcel.send();
         parcel.checkRecipientPermission();
         // 将快递信息写入本地文件
-        NbtIo.write(parcel.writeNbt(this.server), this.worldFormat.file(parcel.getId() + IOUtils.NBT_EXTENSION).toPath());
+        parcel.save();
     }
 
     public Stream<Parcel> stream() {

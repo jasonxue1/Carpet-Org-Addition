@@ -137,16 +137,16 @@ public class Parcel implements Comparable<Parcel> {
         ServerPlayer senderPlayer = playerManager.getPlayerByName(this.sender);
         ServerPlayer recipientPlayer = playerManager.getPlayerByName(this.recipient);
         if (senderPlayer == null) {
-            CarpetOrgAddition.LOGGER.error("The express delivery is sent by non-existent player");
+            CarpetOrgAddition.LOGGER.error("The parcel delivery is sent by non-existent player");
             return;
         }
         // 向快递发送者发送发出快递的消息
-        Component recall = TextProvider.clickRun(CommandProvider.recallExpress(this.getId(), false));
+        Component recall = TextProvider.clickRun(CommandProvider.recallParcel(this.getId(), false));
         LocalizationKey key = MailCommand.SEND;
         Object name = recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName();
         MessageUtils.sendMessage(senderPlayer, key.then("sender").translate(name, this.getCount(), this.getDisplayName(), recall));
         // 向快递接受者发送发出快递的消息
-        Component receive = TextProvider.clickRun(CommandProvider.collectExpress(this.getId(), false));
+        Component receive = TextProvider.clickRun(CommandProvider.collectParcel(this.getId(), false));
         if (recipientPlayer == null) {
             TextBuilder builder = new TextBuilder(key.then("offline").translate());
             builder.setGrayItalic();

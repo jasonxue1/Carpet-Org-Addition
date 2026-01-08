@@ -21,7 +21,7 @@ public class CommandProvider {
     /**
      * 接收一件快递
      */
-    public static String collectExpress(int id, boolean force) {
+    public static String collectParcel(int id, boolean force) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(MailCommand.class))
                 .add("collect")
@@ -35,7 +35,7 @@ public class CommandProvider {
     /**
      * 撤回一件快递
      */
-    public static String recallExpress(int id, boolean force) {
+    public static String recallParcel(int id, boolean force) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(MailCommand.class))
                 .add("recall")
@@ -49,7 +49,7 @@ public class CommandProvider {
     /**
      * 拦截一件快递
      */
-    public static String interceptExpress(int id, boolean force) {
+    public static String interceptParcel(int id, boolean force) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(MailCommand.class))
                 .add("intercept")
@@ -58,20 +58,6 @@ public class CommandProvider {
             joiner.add("true");
         }
         return joiner.toString();
-    }
-
-    /**
-     * 接收所有快递
-     */
-    public static String collectAllExpress() {
-        return "/%s collect".formatted(getCommandName(MailCommand.class));
-    }
-
-    /**
-     * 撤回所有快递
-     */
-    public static String recallAllExpress() {
-        return "/%s recall".formatted(getCommandName(MailCommand.class));
     }
 
     /**

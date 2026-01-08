@@ -81,7 +81,7 @@ public class MailCommand extends AbstractServerCommand {
                         .executes(this::list))
                 .then(Commands.literal("multiple")
                         .then(Commands.argument(CommandUtils.PLAYER, GameProfileArgument.gameProfile())
-                                .executes(this::sendMultipleExpress)))
+                                .executes(this::sendMultipleParcel)))
                 .then(Commands.literal("override")
                         .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
                         .executes(this::override)));
@@ -146,7 +146,7 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 发送多个快递
-    private int sendMultipleExpress(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private int sendMultipleParcel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
         GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
@@ -167,7 +167,7 @@ public class MailCommand extends AbstractServerCommand {
     private int collect(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取快递
-        Parcel parcel = getExpress(context);
+        Parcel parcel = getParcel(context);
         // 只能接收发送给自己的快递
         if (parcel.isRecipient(player)) {
             try {
@@ -183,7 +183,7 @@ public class MailCommand extends AbstractServerCommand {
     // 撤回快递
     private int recall(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        Parcel parcel = getExpress(context);
+        Parcel parcel = getParcel(context);
         if (parcel.isSender(player)) {
             try {
                 parcel.recall();
@@ -200,7 +200,7 @@ public class MailCommand extends AbstractServerCommand {
      */
     private int intercept(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        Parcel parcel = getExpress(context);
+        Parcel parcel = getParcel(context);
         try {
             parcel.intercept(player);
         } catch (IOException e) {
@@ -255,7 +255,7 @@ public class MailCommand extends AbstractServerCommand {
             // TODO 改为[C] Collect
             builder = new TextBuilder("[R]");
             // 点击接收
-            builder.setCommand(CommandProvider.collectExpress(parcel.getId(), false));
+            builder.setCommand(CommandProvider.collectParcel(parcel.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
             list.add(LIST.then("collect").translate());
             list.add(TextBuilder.empty());
@@ -263,14 +263,14 @@ public class MailCommand extends AbstractServerCommand {
             // TODO 改为[R] Recall
             builder = new TextBuilder("[C]");
             // 点击撤回
-            builder.setCommand(CommandProvider.recallExpress(parcel.getId(), false));
+            builder.setCommand(CommandProvider.recallParcel(parcel.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
             list.add(LIST.then("recall").translate());
             list.add(TextBuilder.empty());
         } else if (intercept.test(player.createCommandSourceStack())) {
             builder = new TextBuilder("[I]");
             // 点击拦截
-            builder.setCommand(CommandProvider.interceptExpress(parcel.getId(), false));
+            builder.setCommand(CommandProvider.interceptParcel(parcel.getId(), false));
             builder.setColor(ChatFormatting.AQUA);
             list.add(LIST.then("intercept").translate());
             list.add(TextBuilder.empty());
@@ -295,7 +295,7 @@ public class MailCommand extends AbstractServerCommand {
     }
 
     // 获取快递
-    private Parcel getExpress(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private Parcel getParcel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ParcelManager manager = ServerComponentCoordinator.getCoordinator(context).getParcelManager();
         // 获取快递单号
         int id = IntegerArgumentType.getInteger(context, "id");
