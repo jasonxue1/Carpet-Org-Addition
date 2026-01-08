@@ -8,6 +8,8 @@ import boat.carpetorgaddition.dataupdate.nbt.ParcelDataUpdater;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
+import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import boat.carpetorgaddition.wheel.nbt.NbtVersion;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
@@ -26,6 +28,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -53,9 +56,9 @@ public class Parcel implements Comparable<Parcel> {
      */
     private final String recipient;
     /**
-     * 快递的内容
+     * 快递中包含的物品
      */
-    private final ItemStack parcel;
+    private final Container parcels;
     /**
      * 快递是否已被撤回
      */
@@ -92,10 +95,25 @@ public class Parcel implements Comparable<Parcel> {
         this.sender = sender;
         this.recipient = recipient;
         this.uuid = uuid;
-        this.parcel = parcel;
+        this.parcels = new ImmutableInventory(parcel);
         this.id = id;
         this.time = time;
         this.worldFormat = new WorldFormat(server, EXPRESS);
+    }
+
+    private Parcel(MinecraftServer server, String sender, String recipient, @Nullable UUID uuid, Container container, int id, LocalDateTime time) {
+        this.server = server;
+        this.sender = sender;
+        this.recipient = recipient;
+        this.uuid = uuid;
+        this.parcels = InventoryUtils.stream(container).filter(InventoryUtils::nonEmpty).collect(InventoryUtils.toInventory());
+        this.id = id;
+        this.time = time;
+        this.worldFormat = new WorldFormat(server, EXPRESS);
+    }
+
+    public Parcel(MinecraftServer server, ServerPlayer sourcePlayer, GameProfile recipient, AutoGrowInventory autoGrowInventory, int id) {
+        this(server, FetcherUtils.getPlayerName(sourcePlayer), recipient.name(), recipient.id(), autoGrowInventory, id, LocalDateTime.now());
     }
 
     private static ItemStack getPlayerHandStack(ServerPlayer player) throws CommandSyntaxException {
@@ -123,23 +141,22 @@ public class Parcel implements Comparable<Parcel> {
             return;
         }
         // 向快递发送者发送发出快递的消息
-        Component cancelText = TextProvider.clickRun(CommandProvider.recallExpress(this.getId(), false));
-        Object[] senderArray = {recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName(), this.parcel.getCount(), this.parcel.getDisplayName(), cancelText};
+        Component recall = TextProvider.clickRun(CommandProvider.recallExpress(this.getId(), false));
         LocalizationKey key = MailCommand.SEND;
-        MessageUtils.sendMessage(senderPlayer, key.then("sender").translate(senderArray));
+        Object name = recipientPlayer == null ? this.recipient : recipientPlayer.getDisplayName();
+        MessageUtils.sendMessage(senderPlayer, key.then("sender").translate(name, this.getCount(), this.getDisplayName(), recall));
         // 向快递接受者发送发出快递的消息
-        Component receiveText = TextProvider.clickRun(CommandProvider.collectExpress(this.getId(), false));
-        Object[] recipientArray = {senderPlayer.getDisplayName(), this.parcel.getCount(), this.parcel.getDisplayName(), receiveText};
+        Component receive = TextProvider.clickRun(CommandProvider.collectExpress(this.getId(), false));
         if (recipientPlayer == null) {
             TextBuilder builder = new TextBuilder(key.then("offline").translate());
             builder.setGrayItalic();
             MessageUtils.sendMessage(senderPlayer, builder.build());
         } else {
-            MessageUtils.sendMessage(recipientPlayer, key.then("recipient").translate(recipientArray));
+            MessageUtils.sendMessage(recipientPlayer, key.then("recipient").translate(senderPlayer.getDisplayName(), this.getCount(), this.getDisplayName(), receive));
             // 在接收者位置播放音效
             playXpOrbPickupSound(recipientPlayer);
         }
-        CarpetOrgAddition.LOGGER.info("{} sent {} {} to {}", this.sender, this.parcel.getCount(), this.parcel.getItem().getName().getString(), this.recipient);
+        CarpetOrgAddition.LOGGER.info("{} sent {} {} to {}", this.sender, this.getCount(), this.getDisplayName().getString(), this.recipient);
     }
 
     /**
@@ -149,7 +166,7 @@ public class Parcel implements Comparable<Parcel> {
         PlayerList playerManager = this.server.getPlayerList();
         ServerPlayer player = playerManager.getPlayerByName(this.recipient);
         if (player == null) {
-            CarpetOrgAddition.LOGGER.error("The player who received the package does not exist");
+            CarpetOrgAddition.LOGGER.warn("The player who received the package does not exist");
             return;
         }
         LocalizationKey key = MailCommand.COLLECT;
@@ -158,14 +175,25 @@ public class Parcel implements Comparable<Parcel> {
             MessageUtils.sendMessage(player, key.then("recalled").translate());
             return;
         }
-        int count = this.parcel.getCount();
-        ItemStack copy = this.parcel.copy();
+        // 接收之前的物品数量
+        int count = this.getCount();
+        Component name = this.getDisplayName();
+        Counter<Item> before = new Counter<>();
+        this.parcels.forEach(itemStack -> before.add(itemStack.getItem(), itemStack.getCount()));
+        InsertResult result = insertStack(player, false);
+        Counter<Item> after = new Counter<>();
+        this.parcels.forEach(itemStack -> after.add(itemStack.getItem(), itemStack.getCount()));
         Counter<Item> counter = new Counter<>();
-        switch (insertStack(player, false)) {
+        for (Item item : before) {
+            int remaining = before.getCount(item) - after.getCount(item);
+            if (remaining > 0) {
+                counter.add(item, remaining);
+            }
+        }
+        switch (result) {
             case COMPLETE -> {
                 // 物品完全接收
-                MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
-                counter.add(copy.getItem(), count);
+                MessageUtils.sendMessage(player, key.then("success").translate(count, name));
                 // 通知发送者物品已接收
                 Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
@@ -174,10 +202,9 @@ public class Parcel implements Comparable<Parcel> {
             }
             case PART -> {
                 // 剩余的物品数量
-                int surplusCount = this.parcel.getCount();
+                int surplusCount = this.getCount();
                 // 物品部分放入物品栏
                 MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
-                counter.add(copy.getItem(), count - surplusCount);
                 // 通知发送者物品已接收
                 Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
                 this.sendMessageIfPlayerOnline(this.sender, message);
@@ -198,22 +225,23 @@ public class Parcel implements Comparable<Parcel> {
             CarpetOrgAddition.LOGGER.error("The player who recall the package does not exist");
             return;
         }
-        int count = this.parcel.getCount();
-        ItemStack copy = this.parcel.copy();
+        // 接收之前的物品数量
+        int count = this.getCount();
+        Component name = this.getDisplayName();
         // 将快递内容放入物品栏
         final LocalizationKey key = MailCommand.RECALL;
         this.recall = true;
         switch (insertStack(player, true)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(player, key.then("success").translate(count, copy.getDisplayName()));
+                MessageUtils.sendMessage(player, key.then("success").translate(count, name));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
             case PART -> {
                 // 剩余的物品数量
-                int surplusCount = this.parcel.getCount();
+                int remaining = this.getCount();
                 // 物品部分放入物品栏
-                MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
+                MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - remaining, remaining));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -230,17 +258,17 @@ public class Parcel implements Comparable<Parcel> {
      * 拦截快递
      */
     public void intercept(ServerPlayer operator) throws IOException {
-        int count = this.parcel.getCount();
-        ItemStack copy = this.parcel.copy();
+        int count = this.getCount();
+        Component name = this.getDisplayName();
         LocalizationKey key = MailCommand.INTERCEPT;
         switch (insertStack(operator, false)) {
             case COMPLETE -> {
-                MessageUtils.sendMessage(operator, key.then("success").translate(count, copy.getDisplayName()));
+                MessageUtils.sendMessage(operator, key.then("success").translate(count, name));
                 playItemPickupSound(operator);
             }
             case PART -> {
                 // 剩余的物品数量
-                int surplusCount = this.parcel.getCount();
+                int surplusCount = this.getCount();
                 MessageUtils.sendMessage(operator, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 playItemPickupSound(operator);
             }
@@ -249,7 +277,7 @@ public class Parcel implements Comparable<Parcel> {
                 return;
             }
         }
-        Component hover = TextBuilder.combineAll(copy.getItem().getName(), "*", count - this.parcel.getCount());
+        Component hover = TextBuilder.combineAll(name, "*", count - this.getCount());
         LocalizationKey noticeKey = MailCommand.NOTICE.then("intercept");
         sendMessageIfPlayerOnline(this.sender, player -> {
             Component text = getOperatorPlayerName(operator, player);
@@ -287,42 +315,20 @@ public class Parcel implements Comparable<Parcel> {
     }
 
     /**
-     * 接收每一件快递
-     */
-    public InsertResult receiveEach() throws IOException {
-        ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.recipient);
-        if (player == null) {
-            throw new IllegalStateException("Cannot find player to receive the delivery");
-        }
-        return this.insertStack(player, false);
-    }
-
-    /**
-     * 撤回每一件快递
-     */
-    public InsertResult recallEach() throws IOException {
-        ServerPlayer player = this.server.getPlayerList().getPlayerByName(this.sender);
-        if (player == null) {
-            throw new IllegalStateException("Cannot find player to recall the delivery");
-        }
-        return this.insertStack(player, false);
-    }
-
-    /**
      * 向物品栏里插入物品
      */
     private InsertResult insertStack(ServerPlayer player, boolean forceSave) throws IOException {
-        int count = this.parcel.getCount();
-        player.getInventory().add(this.parcel);
+        int count = this.getCount();
+        this.parcels.forEach(player.getInventory()::add);
         // 物品没有插入
-        if (count == this.parcel.getCount()) {
+        if (count == this.getCount()) {
             if (forceSave) {
                 this.save();
             }
             return InsertResult.FAIL;
         }
         // 物品完全插入
-        if (this.parcel.isEmpty()) {
+        if (this.parcels.isEmpty()) {
             // 删除NBT文件
             this.delete();
             return InsertResult.COMPLETE;
@@ -399,7 +405,7 @@ public class Parcel implements Comparable<Parcel> {
      * 完成寄件
      */
     public boolean isComplete() {
-        return this.parcel.isEmpty();
+        return this.parcels.isEmpty();
     }
 
     /**
@@ -413,7 +419,7 @@ public class Parcel implements Comparable<Parcel> {
             writer.putUuid("uuid", this.uuid);
         }
         writer.putBoolean("recall", this.recall);
-        writer.putItemStack("item", this.parcel);
+        writer.putInventory("items", this.parcels);
         writer.putLocalDateTime("time", this.time);
         return writer.toNbt();
     }
@@ -430,9 +436,9 @@ public class Parcel implements Comparable<Parcel> {
         String recipient = reader.getStringOrElse("recipient", UNKNOWN);
         UUID uuid = reader.getUuidNullable("uuid").orElse(null);
         boolean recall = reader.getBooleanOrElse("recall", false);
-        ItemStack stack = reader.getItemStack("item");
+        ImmutableInventory inventory = reader.getInventory("items");
         LocalDateTime time = reader.getLocalDateTime("time");
-        Parcel parcel = new Parcel(server, sender, recipient, uuid, stack, id, time);
+        Parcel parcel = new Parcel(server, sender, recipient, uuid, inventory, id, time);
         parcel.recall = recall;
         return parcel;
     }
@@ -463,10 +469,6 @@ public class Parcel implements Comparable<Parcel> {
         );
     }
 
-    public ItemStack getParcel() {
-        return parcel;
-    }
-
     /**
      * @return 指定玩家是否是当前快递的发送者
      */
@@ -486,6 +488,42 @@ public class Parcel implements Comparable<Parcel> {
      */
     public boolean isRecall() {
         return recall;
+    }
+
+    public int getCount() {
+        int count = 0;
+        for (ItemStack itemStack : this.parcels) {
+            count += itemStack.getCount();
+        }
+        return count;
+    }
+
+    public Component getDisplayName() {
+        int size = this.parcels.getContainerSize();
+        if (size == 0) {
+            return ItemStack.EMPTY.getItem().getName();
+        }
+        ItemStack first = this.parcels.getItem(0);
+        if (size == 1) {
+            return first.getDisplayName();
+        }
+        boolean exactlyTheSame = true;
+        for (int i = 0; i < this.parcels.getContainerSize(); i++) {
+            ItemStack stack = this.parcels.getItem(i);
+            // 比较物品和物品NBT
+            if (InventoryUtils.canMerge(first, stack)) {
+                continue;
+            }
+            exactlyTheSame = false;
+            // 只比较物品
+            if (first.is(stack.getItem())) {
+                continue;
+            }
+            // 物品栏中有多种物品
+            return LocalizationKeys.Item.ITEM.translate();
+        }
+        // 物品栏中所有物品类型都相同，如果为true表示物品组件也完全相同
+        return exactlyTheSame ? first.getDisplayName() : first.getItem().getName();
     }
 
     @Override

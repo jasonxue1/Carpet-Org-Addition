@@ -9,19 +9,14 @@ import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
-import boat.carpetorgaddition.wheel.text.LocalizationKey;
-import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -87,8 +82,7 @@ public class ParcelManager {
         for (Parcel parcel : list) {
             messages.add(() -> {
                 Component clickRun = TextProvider.clickRun(CommandProvider.collectExpress(parcel.getId(), false));
-                ItemStack stack = parcel.getParcel();
-                return MailCommand.KEY.then("prompt_collect").translate(stack.getCount(), stack.getDisplayName(), clickRun);
+                return MailCommand.KEY.then("prompt_collect").translate(parcel.getCount(), parcel.getDisplayName(), clickRun);
             });
         }
         PageManager pageManager = FetcherUtils.getPageManager(this.server);
@@ -110,146 +104,19 @@ public class ParcelManager {
      * 添加新快递
      */
     public void put(Parcel parcel) throws IOException {
-        put(parcel, true);
-    }
-
-    /**
-     * 添加新快递，但不发送消息
-     */
-    public void putNoMessage(Parcel parcel) throws IOException {
-        put(parcel, false);
-    }
-
-    private void put(Parcel parcel, boolean message) throws IOException {
-        if (parcel.getParcel().isEmpty()) {
+        if (parcel.isComplete()) {
             CarpetOrgAddition.LOGGER.info("Attempted to send an empty item, ignored");
             return;
         }
         this.parcels.add(parcel);
-        if (message) {
-            parcel.send();
-            parcel.checkRecipientPermission();
-        }
+        parcel.send();
+        parcel.checkRecipientPermission();
         // 将快递信息写入本地文件
         NbtIo.write(parcel.writeNbt(this.server), this.worldFormat.file(parcel.getId() + IOUtils.NBT_EXTENSION).toPath());
     }
 
     public Stream<Parcel> stream() {
         return this.parcels.stream();
-    }
-
-    public int collectAll(ServerPlayer player) throws IOException, CommandSyntaxException {
-        List<Parcel> list = this.stream()
-                .filter(parcel -> parcel.isRecipient(player))
-                .toList();
-        LocalizationKey key = MailCommand.COLLECT;
-        if (list.isEmpty()) {
-            throw CommandUtils.createException(key.then("no_parcels").translate());
-        }
-        // 总物品堆叠数
-        int total = 0;
-        // 接收物品堆叠数
-        int receive = 0;
-        HashMap<String, Counter<Item>> hashMap = new HashMap<>();
-        for (Parcel parcel : list) {
-            // 物品插入物品栏之前的堆叠数
-            int count = parcel.getParcel().getCount();
-            Item item = parcel.getParcel().getItem();
-            total += count;
-            Parcel.InsertResult each = parcel.receiveEach();
-            int result = switch (each) {
-                // 完全插入物品栏
-                case COMPLETE -> count;
-                // 部分插入物品栏
-                case PART -> count - parcel.getParcel().getCount();
-                // 未插入物品栏
-                case FAIL -> 0;
-            };
-            Counter<Item> counter = hashMap.get(parcel.getSender());
-            if (counter == null) {
-                Counter<Item> value = new Counter<>();
-                value.add(item, result);
-                hashMap.put(parcel.getSender(), value);
-            } else {
-                counter.add(item, result);
-            }
-            receive += result;
-        }
-        if (receive == 0) {
-            MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
-        } else {
-            if (receive == total) {
-                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM.translate()));
-            } else {
-                MessageUtils.sendMessage(player, key.then("partial_reception").translate(receive, total - receive));
-            }
-            // 播放物品拾取音效
-            Parcel.playItemPickupSound(player);
-            PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
-            for (Map.Entry<String, Counter<Item>> entry : hashMap.entrySet()) {
-                // 通知发送者物品已接收
-                Component message = getReceiveNotice(player, entry.getValue());
-                ServerPlayer playerEntity = playerManager.getPlayerByName(entry.getKey());
-                if (playerEntity == null) {
-                    continue;
-                }
-                MessageUtils.sendMessage(playerEntity, message);
-            }
-        }
-        return receive;
-    }
-
-    public int recallAll(ServerPlayer player) throws IOException, CommandSyntaxException {
-        List<Parcel> list = this.stream()
-                .filter(parcel -> parcel.isSender(player))
-                .toList();
-        LocalizationKey key = MailCommand.RECALL;
-        if (list.isEmpty()) {
-            throw CommandUtils.createException(key.then("no_parcels").translate());
-        }
-        // 总物品堆叠数
-        int total = 0;
-        // 撤回物品堆叠数
-        int recall = 0;
-        HashSet<String> players = new HashSet<>();
-        for (Parcel parcel : list) {
-            players.add(parcel.getRecipient());
-            // 物品插入物品栏之前的堆叠数
-            int count = parcel.getParcel().getCount();
-            total += count;
-            Parcel.InsertResult each = parcel.recallEach();
-            recall += switch (each) {
-                // 完全插入物品栏
-                case COMPLETE -> count;
-                // 部分插入物品栏
-                case PART -> count - parcel.getParcel().getCount();
-                // 未插入物品栏
-                case FAIL -> 0;
-            };
-        }
-        if (recall == 0) {
-            MessageUtils.sendMessage(player, key.then("insufficient_capacity").translate());
-        } else {
-            if (recall == total) {
-                MessageUtils.sendMessage(player, key.then("success").translate(total, LocalizationKeys.Item.ITEM.translate()));
-            } else {
-                MessageUtils.sendMessage(player, key.then("partial_reception").translate(recall, total - recall));
-            }
-            // 播放物品拾取音效
-            Parcel.playItemPickupSound(player);
-            TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName()));
-            builder.setGrayItalic();
-            Component message = builder.build();
-            for (String name : players) {
-                PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
-                ServerPlayer receivePlayer = playerManager.getPlayerByName(name);
-                if (receivePlayer == null) {
-                    continue;
-                }
-                MessageUtils.sendMessage(receivePlayer, message);
-            }
-        }
-        return recall;
     }
 
     /**

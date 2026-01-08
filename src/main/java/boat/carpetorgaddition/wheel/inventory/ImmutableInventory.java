@@ -58,16 +58,19 @@ public final class ImmutableInventory implements Container, Iterable<ItemStack> 
         return this.inventory.getItem(slot);
     }
 
+    @Deprecated(forRemoval = true)
     @Override
     public ItemStack removeItem(int slot, int amount) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated(forRemoval = true)
     @Override
     public ItemStack removeItemNoUpdate(int slot) {
         throw new UnsupportedOperationException();
     }
 
+    @Deprecated(forRemoval = true)
     @Override
     public void setItem(int slot, ItemStack stack) {
         throw new UnsupportedOperationException();
@@ -83,6 +86,7 @@ public final class ImmutableInventory implements Container, Iterable<ItemStack> 
         return this.inventory.stillValid(player);
     }
 
+    @Deprecated(forRemoval = true)
     @Override
     public void clearContent() {
         throw new UnsupportedOperationException();

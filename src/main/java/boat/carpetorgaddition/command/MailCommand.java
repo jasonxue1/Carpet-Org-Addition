@@ -34,7 +34,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.item.ItemStack;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -65,12 +64,10 @@ public class MailCommand extends AbstractServerCommand {
                         .then(Commands.argument(CommandUtils.PLAYER, GameProfileArgument.gameProfile())
                                 .executes(this::send)))
                 .then(Commands.literal("collect")
-                        .executes(this::collectAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(collectSuggests(true))
                                 .executes(this::collect)))
                 .then(Commands.literal("recall")
-                        .executes(this::recallAll)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(collectSuggests(false))
                                 .executes(this::recall)))
@@ -183,17 +180,6 @@ public class MailCommand extends AbstractServerCommand {
         throw CommandUtils.createException(COLLECT.then("not_myself").translate());
     }
 
-    // 接收所有快递
-    private int collectAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        try {
-            // TODO 未检查是否已撤回
-            return ServerComponentCoordinator.getCoordinator(context).getParcelManager().collectAll(player);
-        } catch (IOException e) {
-            throw CommandExecuteIOException.of(e);
-        }
-    }
-
     // 撤回快递
     private int recall(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
@@ -207,16 +193,6 @@ public class MailCommand extends AbstractServerCommand {
             return 1;
         }
         throw CommandUtils.createException(RECALL.then("not_myself").translate());
-    }
-
-    // 撤回所有快递
-    private int recallAll(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        try {
-            return ServerComponentCoordinator.getCoordinator(context).getParcelManager().recallAll(player);
-        } catch (IOException e) {
-            throw CommandExecuteIOException.of(e);
-        }
     }
 
     /**
@@ -304,15 +280,14 @@ public class MailCommand extends AbstractServerCommand {
         list.add(LIST.then("id").translate(parcel.getId()));
         list.add(LIST.then("sender").translate(parcel.getSender()));
         list.add(LIST.then("recipient").translate(parcel.getRecipient()));
-        ItemStack itemStack = parcel.getParcel();
-        list.add(LIST.then("item").translate(itemStack.getItem().getName(), itemStack.getCount()));
+        list.add(LIST.then("item").translate(parcel.getDisplayName(), parcel.getCount()));
         list.add(LIST.then("time").translate(parcel.getTime()));
         // 拼接字符串
         builder.setHover(TextBuilder.joinList(list));
         // TODO 改为单号：%s，物品：%s，然后直接添加按钮
         return LIST.then("each").translate(
                 parcel.getId(),
-                itemStack.getDisplayName(),
+                parcel.getDisplayName(),
                 parcel.getSender(),
                 parcel.getRecipient(),
                 builder.build()

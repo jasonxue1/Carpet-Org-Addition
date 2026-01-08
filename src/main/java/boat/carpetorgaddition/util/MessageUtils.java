@@ -13,6 +13,7 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 public class MessageUtils {
     private MessageUtils() {
@@ -105,12 +106,29 @@ public class MessageUtils {
     /**
      * 如果是玩家，则向HUD发送消息
      */
+    @Deprecated
     public static void sendMessageToHudIfPlayer(CommandSourceStack source, Component message) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {
             return;
         }
         sendMessageToHud(player, message);
+    }
+
+    public static void sendMessageToHudIfPlayer(CommandSourceStack source, Supplier<Component> supplier) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            return;
+        }
+        sendMessageToHud(player, supplier.get());
+    }
+
+    public static void sendMessageIfPlayerOnline(MinecraftServer server, String name, Supplier<Component> supplier) {
+        ServerPlayer player = server.getPlayerList().getPlayerByName(name);
+        if (player == null) {
+            return;
+        }
+        sendMessage(player, supplier.get());
     }
 
     public static void sendErrorMessageToHud(CommandSourceStack source, CommandSyntaxException e) {
