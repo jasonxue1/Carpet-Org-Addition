@@ -15,20 +15,22 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.contents.objects.PlayerSprite;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.ResolvableProfile;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NullMarked;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@NullMarked
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class TextBuilder {
-    @NotNull
     private MutableComponent text;
 
-    private TextBuilder(@NotNull MutableComponent text) {
+    private TextBuilder(MutableComponent text) {
         this.text = text;
     }
 
@@ -104,11 +106,12 @@ public class TextBuilder {
      * 设置文本颜色
      */
     public TextBuilder setColor(ChatFormatting color) {
-        if (color == null) {
-            return this;
-        }
         this.text.withStyle(style -> style.withColor(color));
         return this;
+    }
+
+    public TextBuilder setColor(Rarity rarity) {
+        return this.setColor(rarity.color());
     }
 
     /**
@@ -133,6 +136,11 @@ public class TextBuilder {
 
     public TextBuilder setHover(String hover) {
         return this.setHover(create(hover));
+    }
+
+    public TextBuilder setHover(ItemStack itemStack) {
+        this.text.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(itemStack)));
+        return this;
     }
 
     /**

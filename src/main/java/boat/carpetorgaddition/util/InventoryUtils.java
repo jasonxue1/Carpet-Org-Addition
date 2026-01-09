@@ -461,6 +461,13 @@ public class InventoryUtils {
     }
 
     /**
+     * 将物品栏中的非空气物品放入一个新物品栏中
+     */
+    public static Container removeEmpty(Container container) {
+        return InventoryUtils.stream(container).filter(InventoryUtils::nonEmpty).collect(toInventory());
+    }
+
+    /**
      * 检查一个物品是否非空
      *
      * @apiNote 此方法是为了在方法引用中使用（{@code InventoryUtils::nonEmpty}）

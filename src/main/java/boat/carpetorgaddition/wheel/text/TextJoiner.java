@@ -67,6 +67,10 @@ public class TextJoiner {
         return this;
     }
 
+    public TextJoiner append(Number number) {
+        return this.append(number.toString());
+    }
+
     /**
      * 进入下一缩进层级并追加文本
      */

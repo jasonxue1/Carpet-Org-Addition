@@ -16,6 +16,7 @@ import boat.carpetorgaddition.wheel.screen.SendParcelScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -71,7 +72,6 @@ public class MailCommand extends AbstractServerCommand {
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
                                 .suggests(collectSuggests(false))
                                 .executes(this::recall)))
-                // TODO 快递可以同时接收，同时也可以拦截，可接收的物品不应该可以拦截
                 .then(Commands.literal("intercept")
                         .requires(intercept)
                         .then(Commands.argument("id", IntegerArgumentType.integer(1))
@@ -202,6 +202,8 @@ public class MailCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         Parcel parcel = getParcel(context);
         try {
+            // 快递被部分撤回后，如果发送者从此不再登录游戏，则物品将永远无法取出
+            // 当管理员玩家无法以接收的方式取出物品时，则可以以拦截的方式取出
             parcel.intercept(player);
         } catch (IOException e) {
             IOUtils.loggerError(e);
@@ -244,52 +246,37 @@ public class MailCommand extends AbstractServerCommand {
         }
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(source);
+        MessageUtils.sendMessage(source, LIST.then("head").translate(list.size()));
         collection.print();
         return list.size();
     }
 
     private Component line(ServerPlayer player, Parcel parcel) {
-        ArrayList<Component> list = new ArrayList<>();
-        TextBuilder builder;
-        if (parcel.isRecipient(player)) {
-            // TODO 改为[C] Collect
-            builder = new TextBuilder("[R]");
-            // 点击接收
-            builder.setCommand(CommandProvider.collectParcel(parcel.getId(), false));
-            builder.setColor(ChatFormatting.AQUA);
-            list.add(LIST.then("collect").translate());
-            list.add(TextBuilder.empty());
-        } else if (parcel.isSender(player)) {
-            // TODO 改为[R] Recall
-            builder = new TextBuilder("[C]");
-            // 点击撤回
-            builder.setCommand(CommandProvider.recallParcel(parcel.getId(), false));
-            builder.setColor(ChatFormatting.AQUA);
-            list.add(LIST.then("recall").translate());
-            list.add(TextBuilder.empty());
-        } else if (intercept.test(player.createCommandSourceStack())) {
-            builder = new TextBuilder("[I]");
-            // 点击拦截
-            builder.setCommand(CommandProvider.interceptParcel(parcel.getId(), false));
-            builder.setColor(ChatFormatting.AQUA);
-            list.add(LIST.then("intercept").translate());
-            list.add(TextBuilder.empty());
-        } else {
-            builder = new TextBuilder("[?]");
-        }
-        list.add(LIST.then("id").translate(parcel.getId()));
-        list.add(LIST.then("sender").translate(parcel.getSender()));
-        list.add(LIST.then("recipient").translate(parcel.getRecipient()));
-        list.add(LIST.then("item").translate(parcel.getDisplayName(), parcel.getCount()));
-        list.add(LIST.then("time").translate(parcel.getTime()));
-        // 拼接字符串
-        builder.setHover(TextBuilder.joinList(list));
-        // TODO 改为单号：%s，物品：%s，然后直接添加按钮
+        Parcel.Operation operation = parcel.getPlayerOperation(player);
+        TextBuilder builder = switch (operation) {
+            case COLLECT -> new TextBuilder(LIST.then("collect").translate())
+                    .setCommand(CommandProvider.collectParcel(parcel.getId(), false))
+                    .setColor(ChatFormatting.AQUA);
+            case RECALL -> new TextBuilder(LIST.then("recall").translate())
+                    .setCommand(CommandProvider.recallParcel(parcel.getId(), false))
+                    .setColor(ChatFormatting.AQUA);
+            case INTERCEPT -> new TextBuilder(LIST.then("intercept").translate())
+                    .setCommand(CommandProvider.interceptParcel(parcel.getId(), false))
+                    .setColor(ChatFormatting.AQUA);
+            case VIEW -> new TextBuilder(LIST.then("view").translate())
+                    .setColor(ChatFormatting.GRAY);
+        };
+        TextJoiner joiner = new TextJoiner();
+        joiner.newline(LIST.then("id").translate(parcel.getId()));
+        joiner.newline(LIST.then("sender").translate(parcel.getSender()));
+        joiner.newline(LIST.then("recipient").translate(parcel.getRecipient()));
+        joiner.newline(LIST.then("item").translate(parcel.getDisplayName(), parcel.getCount()));
+        joiner.newline(LIST.then("time").translate(parcel.getTime()));
+        builder.setHover(joiner.join());
         return LIST.then("each").translate(
                 parcel.getId(),
                 parcel.getDisplayName(),
-                parcel.getSender(),
-                parcel.getRecipient(),
+                parcel.getCount(),
                 builder.build()
         );
     }
