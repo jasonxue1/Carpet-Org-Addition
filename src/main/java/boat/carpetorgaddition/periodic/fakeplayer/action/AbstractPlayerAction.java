@@ -93,6 +93,11 @@ public abstract class AbstractPlayerAction {
     public void onStop() {
     }
 
+    public void stop() {
+        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(this.fakePlayer);
+        actionManager.setAction(new StopAction(this.fakePlayer));
+    }
+
     @NotNull
     protected EntityPlayerMPFake getFakePlayer() {
         return Objects.requireNonNull(this.fakePlayer);

@@ -6,6 +6,7 @@ import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -80,7 +81,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         }
     }
 
-    private void craftingTableCraft(AutoGrowInventory inventory, CraftingMenu craftingScreenHandler) {
+    private void craftingTableCraft(AutoGrowInventory inventory, CraftingMenu screenHandler) {
         // 定义变量记录成功完成合成的次数
         int craftCount = 0;
         // 记录循环次数用来在游戏可能进入死循环时抛出异常
@@ -94,10 +95,11 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             // 定义变量记录找到正确合成材料的次数
             int successCount = 0;
             // 依次获取每一个合成材料和遍历合成格
+            EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             for (int index = 1; index <= 9; index++) {
                 //依次获取每一个合成材料
                 ItemStackPredicate predicate = this.predicates[index - 1];
-                Slot slot = craftingScreenHandler.getSlot(index);
+                Slot slot = screenHandler.getSlot(index);
                 // 如果合成格的指定槽位不是所需要合成材料，则丢出该物品
                 if (slot.hasItem()) {
                     ItemStack itemStack = slot.getItem();
@@ -105,7 +107,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                         // 合成表格上已经有正确的合成材料，找到正确的合成材料次数自增
                         successCount++;
                     } else {
-                        FakePlayerUtils.throwItem(craftingScreenHandler, index, this.getFakePlayer());
+                        FakePlayerUtils.throwItem(screenHandler, index, fakePlayer);
                     }
                 } else {
                     // 如果指定合成材料是空气，则不需要遍历物品栏，直接跳过该物品，并增加找到正确合成材料的次数
@@ -114,13 +116,13 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                         continue;
                     }
                     // 遍历物品栏找到需要的合成材料
-                    int size = craftingScreenHandler.slots.size();
+                    int size = screenHandler.slots.size();
                     for (int inventoryIndex = 10; inventoryIndex < size; inventoryIndex++) {
-                        ItemStack itemStack = craftingScreenHandler.getSlot(inventoryIndex).getItem();
+                        ItemStack itemStack = screenHandler.getSlot(inventoryIndex).getItem();
                         if (predicate.test(itemStack)) {
                             // 光标拾取和移动物品
-                            if (FakePlayerUtils.withKeepPickupAndMoveItemStack(craftingScreenHandler,
-                                    inventoryIndex, index, this.getFakePlayer())) {
+                            if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler,
+                                    inventoryIndex, index, fakePlayer)) {
                                 // 找到正确合成材料的次数自增
                                 successCount++;
                                 break;
@@ -129,11 +131,11 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                             ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, predicate);
                             if (!contentItemStack.isEmpty()) {
                                 // 丢弃光标上的物品（如果有）
-                                FakePlayerUtils.dropCursorStack(craftingScreenHandler, getFakePlayer());
+                                FakePlayerUtils.dropCursorStack(screenHandler, fakePlayer);
                                 // 将光标上的物品设置为从潜影盒中取出来的物品
-                                craftingScreenHandler.setCarried(contentItemStack);
+                                screenHandler.setCarried(contentItemStack);
                                 // 将光标上的物品放在合成方格的槽位上
-                                FakePlayerUtils.pickupCursorStack(craftingScreenHandler, index, getFakePlayer());
+                                FakePlayerUtils.pickupCursorStack(screenHandler, index, fakePlayer);
                                 successCount++;
                                 break;
                             }
@@ -149,8 +151,8 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             // 正确材料找到的次数等于9说明全部找到，可以合成
             if (successCount == 9) {
                 // 工作台输出槽里有物品，说明配方正确并且前面的合成没有问题，可以取出合成的物品
-                if (craftingScreenHandler.getSlot(0).hasItem()) {
-                    FakePlayerUtils.collectItem(craftingScreenHandler, 0, inventory, this.getFakePlayer());
+                if (screenHandler.getSlot(0).hasItem()) {
+                    FakePlayerUtils.collectItem(screenHandler, 0, inventory, fakePlayer);
                     // 合成成功，合成计数器自增
                     craftCount++;
                     // 避免在一个游戏刻内合成太多物品造成巨量卡顿
@@ -159,21 +161,20 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 如果没有输出物品，说明之前的合成步骤有误，停止合成
-                    FakePlayerUtils.stopCraftAction(this.getFakePlayer().createCommandSourceStack(), this.getFakePlayer());
+                    this.stop();
+                    MessageUtils.broadcastMessage(this.getServer(), KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
             } else {
                 if (successCount > 9) {
                     // 找到正确合成材料的次数不应该大于合成槽位数量，如果超过了说明前面的操作出了问题，抛出异常结束方法
-                    throw new IllegalStateException(FetcherUtils.getPlayerName(this.getFakePlayer()) + "找到正确合成材料的次数为"
-                                                    + successCount + "，正常不应该超过9");
+                    throw new IllegalStateException("Incorrect number of correct crafting materials found");
                 }
                 // 遍历完物品栏后，如果找到正确合成材料小于9，认为玩家身上没有足够的合成材料了，直接结束方法
                 return;
             }
         }
     }
-
 
     @Override
     public List<Component> info() {

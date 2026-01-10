@@ -1,18 +1,13 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
-import boat.carpetorgaddition.periodic.fakeplayer.action.StopAction;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
-import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -74,19 +69,6 @@ public class FakePlayerUtils {
      */
     public static void throwItem(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
         screenHandler.clicked(slotIndex, THROW_CTRL_Q, ContainerInput.THROW, player);
-    }
-
-    /**
-     * 让假玩家停止当前的操作
-     *
-     * @param source     用来获取玩家管理器对象，然后通过玩家管理器发送消息，source本身不需要发送消息
-     * @param fakePlayer 要停止操作的假玩家
-     * @param message    停止操作时在聊天栏输出的内容
-     */
-    @Deprecated(forRemoval = true)
-    public static void stopAction(CommandSourceStack source, EntityPlayerMPFake fakePlayer, Component message) {
-        FetcherUtils.getFakePlayerActionManager(fakePlayer).setAction(new StopAction(fakePlayer));
-        MessageUtils.broadcastMessage(source.getServer(), TextBuilder.combineAll(fakePlayer.getDisplayName(), ": ", message));
     }
 
     /**
@@ -217,7 +199,7 @@ public class FakePlayerUtils {
      * @throws IllegalStateException 如果调用时光标上存在物品
      */
     public static void collectItem(AbstractContainerMenu screenHandler, int slotIndex, AutoGrowInventory inventory, EntityPlayerMPFake fakePlayer) {
-        InventoryUtils.assertEmptyStack(screenHandler.getCarried(), () -> "光标上物品非空");
+        InventoryUtils.assertEmptyStack(screenHandler.getCarried(), () -> "The item on the cursor is not empty");
         // 取出物品的过程中，输出槽位的物品可能会随着输入物品的改变而改变
         // 物品改变后，应停止取出物品，避免合成错误的物品
         Item item = screenHandler.getSlot(slotIndex).getItem().getItem();
@@ -330,15 +312,5 @@ public class FakePlayerUtils {
             return false;
         }
         return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
-    }
-
-    /**
-     * 假玩家停止物品合成操作，并广播停止合成的消息
-     *
-     * @param source       发送消息的消息源
-     * @param playerMPFake 需要停止操作的假玩家
-     */
-    public static void stopCraftAction(CommandSourceStack source, EntityPlayerMPFake playerMPFake) {
-        stopAction(source, playerMPFake, CraftingTableCraftAction.KEY.then("error").translate());
     }
 }

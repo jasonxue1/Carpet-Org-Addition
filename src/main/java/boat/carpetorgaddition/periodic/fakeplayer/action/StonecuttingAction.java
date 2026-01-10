@@ -6,14 +6,15 @@ import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.StonecutterMenu;
 import net.minecraft.world.item.Item;
@@ -68,7 +69,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
     }
 
     private void stonecutting(AutoGrowInventory inventory) {
-        if (getFakePlayer().containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        if (fakePlayer.containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
             // 定义变量记录成功完成合成的次数
             int craftCount = 0;
             // 用于循环次数过多时抛出异常结束循环
@@ -90,7 +92,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                         needToTraverseInventory = false;
                     } else {
                         // 如果不是指定物品，丢出该物品
-                        FakePlayerUtils.throwItem(stonecutterScreenHandler, 0, this.getFakePlayer());
+                        FakePlayerUtils.throwItem(stonecutterScreenHandler, 0, fakePlayer);
                     }
                 }
                 // 如果需要遍历物品栏
@@ -101,13 +103,13 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 }
                 // 模拟单击切石机按钮
-                stonecutterScreenHandler.clickMenuButton(this.getFakePlayer(), this.button);
+                stonecutterScreenHandler.clickMenuButton(fakePlayer, this.button);
                 // 获取切石机输出槽对象
                 Slot outputSlot = stonecutterScreenHandler.getSlot(1);
                 // 如果输出槽有物品
                 if (outputSlot.hasItem()) {
                     // 收集产物
-                    FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, this.getFakePlayer());
+                    FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, fakePlayer);
                     craftCount++;
                     // 限制每个游戏刻合成次数
                     int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
@@ -116,8 +118,9 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     }
                 } else {
                     // 否则，认为前面的操作有误，停止合成，结束方法
-                    CommandSourceStack source = this.getFakePlayer().createCommandSourceStack();
-                    FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
+                    this.stop();
+                    MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+                    MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
             }

@@ -6,8 +6,8 @@ import boat.carpetorgaddition.command.SpectatorCommand;
 import boat.carpetorgaddition.config.GlobalConfigs;
 import boat.carpetorgaddition.logger.LoggerRegister;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
+import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
@@ -17,11 +17,13 @@ import carpet.CarpetExtension;
 import carpet.CarpetServer;
 import carpet.api.settings.SettingsManager;
 import carpet.patches.EntityPlayerMPFake;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
@@ -51,7 +53,8 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     @Override
     public void onPlayerLoggedIn(ServerPlayer player) {
         if (CarpetOrgAddition.isDebugDevelopment()) {
-            CarpetOrgAddition.LOGGER.info(player.getGameProfile().toString());
+            GameProfile gameProfile = player.getGameProfile();
+            CarpetOrgAddition.LOGGER.info(new NameAndId(gameProfile).toString());
         }
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);

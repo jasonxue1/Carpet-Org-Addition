@@ -7,11 +7,11 @@ import boat.carpetorgaddition.mixin.accessor.MerchantScreenHandlerAccessor;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -62,7 +62,8 @@ public class TradeAction extends AbstractPlayerAction {
     protected void tick() {
         // 获取按钮的索引
         // 判断当前打开的GUI是否为交易界面
-        if (this.getFakePlayer().containerMenu instanceof MerchantMenu merchantScreenHandler) {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        if (fakePlayer.containerMenu instanceof MerchantMenu merchantScreenHandler) {
             // 获取计时器，记录村民距离上次被加载的时间是否超过了1游戏刻（区块卸载后村民似乎不会立即卸载）
             if (this.voidTrade) {
                 // 获取正在接受交易的村民
@@ -87,22 +88,23 @@ public class TradeAction extends AbstractPlayerAction {
             }
             // 判断按钮索引是否越界
             if (merchantScreenHandler.getOffers().size() <= this.index) {
-                CommandSourceStack source = this.getFakePlayer().createCommandSourceStack();
-                FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
+                MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+                MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName()));
+                this.stop();
                 return;
             }
             // 尝试交易物品
             tryTrade(merchantScreenHandler);
             if (this.voidTrade) {
                 // 如果是虚空交易，交易完毕后关闭交易GUI
-                this.getFakePlayer().closeContainer();
+                fakePlayer.closeContainer();
             }
         }
     }
 
     // 尝试交易物品
     private void tryTrade(MerchantMenu screenHandler) {
-        CommandSourceStack source = this.getFakePlayer().createCommandSourceStack();
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         int loopCount = 0;
         // 如果村民无限交易未启用或当前交易不是虚空交易，则只循环一次
         do {
@@ -123,15 +125,14 @@ public class TradeAction extends AbstractPlayerAction {
                 Slot outputSlot = screenHandler.getSlot(2);
                 // 假玩家可能交易出其他交易选项的物品，请参阅：https://bugs.mojang.com/browse/MC-215441
                 if (outputSlot.hasItem()) {
-                    FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getResult(), this.getFakePlayer());
+                    FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getResult(), fakePlayer);
                     if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()
                         && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
                         && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
                         return;
                     }
                 } else {
-                    FakePlayerUtils.stopAction(source, this.getFakePlayer(), KEY.then("error").translate());
-                    return;
+                    throw new IllegalStateException("Villager failed to provide the trade item");
                 }
             } else {
                 // 除非假玩家物品栏内已经没有足够的物品用来交易，否则填充交易槽位不会失败
