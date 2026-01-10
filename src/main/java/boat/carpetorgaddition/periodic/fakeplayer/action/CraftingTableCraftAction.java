@@ -156,7 +156,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                     // 合成成功，合成计数器自增
                     craftCount++;
                     // 避免在一个游戏刻内合成太多物品造成巨量卡顿
-                    if (FakePlayerUtils.shouldStop(craftCount)) {
+                    if (shouldStop(craftCount)) {
                         return;
                     }
                 } else {
@@ -256,6 +256,20 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                 .space()
                 .append(FakePlayerUtils.getWithCountHoverText(screenHandler.getSlot(9).getItem()));
     }
+
+    /**
+     * 是否应该因为合成次数过多而停止合成
+     *
+     * @param craftCount 当前合成次数
+     * @return 是否应该停止
+     */
+    public static boolean shouldStop(int craftCount) {
+        if (CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() < 0) {
+            return false;
+        }
+        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
+    }
+
 
     @Override
     public JsonObject toJson() {

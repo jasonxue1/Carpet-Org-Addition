@@ -17,6 +17,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.MerchantMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
@@ -125,7 +127,7 @@ public class TradeAction extends AbstractPlayerAction {
                 Slot outputSlot = screenHandler.getSlot(2);
                 // 假玩家可能交易出其他交易选项的物品，请参阅：https://bugs.mojang.com/browse/MC-215441
                 if (outputSlot.hasItem()) {
-                    FakePlayerUtils.compareAndThrow(screenHandler, 2, tradeOffer.getResult(), fakePlayer);
+                    this.compareAndThrow(screenHandler, 2, tradeOffer.getResult(), fakePlayer);
                     if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()
                         && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
                         && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
@@ -238,6 +240,21 @@ public class TradeAction extends AbstractPlayerAction {
             predicate = stack -> ItemStack.isSameItemSameComponents(slotItem, stack);
         }
         return predicate;
+    }
+
+    /**
+     * 比较并丢出槽位物品<br>
+     * 如果槽位上的物品与预期物品相同，则丢出槽位上的物品
+     *
+     * @see <a href="https://bugs.mojang.com/browse/MC-157977">MC-157977</a>
+     * @see <a href="https://bugs.mojang.com/browse/MC-215441">MC-215441</a>
+     */
+    public void compareAndThrow(AbstractContainerMenu screenHandler, int slotIndex, ItemStack itemStack, EntityPlayerMPFake player) {
+        InventoryUtils.assertEmptyStack(screenHandler.getCarried());
+        Slot slot = screenHandler.getSlot(slotIndex);
+        while (slot.hasItem() && ItemStack.isSameItemSameComponents(itemStack, slot.getItem()) && slot.mayPickup(player)) {
+            screenHandler.clicked(slotIndex, FakePlayerUtils.THROW_Q, ContainerInput.THROW, player);
+        }
     }
 
     // 是否应该等待区块卸载

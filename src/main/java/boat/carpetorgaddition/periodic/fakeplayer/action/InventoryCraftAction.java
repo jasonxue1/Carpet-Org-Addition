@@ -43,7 +43,6 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         }
     }
 
-
     private void inventoryCraft(AutoGrowInventory inventory) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         InventoryMenu playerScreenHandler = fakePlayer.inventoryMenu;
@@ -116,7 +115,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                     // 合成成功，合成计数器自增
                     craftCount++;
                     // 避免在一个游戏刻内合成太多物品造成巨量卡顿
-                    if (FakePlayerUtils.shouldStop(craftCount)) {
+                    if (CraftingTableCraftAction.shouldStop(craftCount)) {
                         return;
                     }
                 } else {

@@ -178,22 +178,6 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 比较并丢出槽位物品<br>
-     * 如果槽位上的物品与预期物品相同，则丢出槽位上的物品
-     *
-     * @apiNote 本方法用来丢弃村民交易槽位上的物品
-     * @see <a href="https://bugs.mojang.com/browse/MC-157977">MC-157977</a>
-     * @see <a href="https://bugs.mojang.com/browse/MC-215441">MC-215441</a>
-     */
-    public static void compareAndThrow(AbstractContainerMenu screenHandler, int slotIndex, ItemStack itemStack, EntityPlayerMPFake player) {
-        InventoryUtils.assertEmptyStack(screenHandler.getCarried());
-        Slot slot = screenHandler.getSlot(slotIndex);
-        while (slot.hasItem() && ItemStack.isSameItemSameComponents(itemStack, slot.getItem()) && slot.mayPickup(player)) {
-            screenHandler.clicked(slotIndex, THROW_Q, ContainerInput.THROW, player);
-        }
-    }
-
-    /**
      * 收集槽位上的物品
      *
      * @throws IllegalStateException 如果调用时光标上存在物品
@@ -276,41 +260,22 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 获取物品堆栈的可变文本形式：物品名称*堆叠数量
+     * 获取物品堆栈的文本表示形式<br>
+     * 返回格式为 [物品ID首字母大写]，可以通过鼠标悬停查看物品名称和数量
      */
     public static Component getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
             return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(ChatFormatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
-        String capitalizeFirstLetter = getInitial(itemStack);
-        Component hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
-        return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
-    }
-
-    /**
-     * 获取物品ID的首字母，然后转为大写，再放进中括号里
-     */
-    public static String getInitial(ItemStack itemStack) {
         // 将物品名称的字符串切割为命名空间（如果有）和物品id
         String name = BuiltInRegistries.ITEM.getKey(itemStack.getItem()).toString();
         String[] split = name.split(":");
         // 获取数组的索引，如果有命名空间，返回1索引，否则返回0索引，即舍弃命名空间
         int index = (split.length == 1) ? 0 : 1;
         // 获取物品id的首字母，然后大写
-        return "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
-    }
-
-    /**
-     * 是否应该因为合成次数过多而停止合成
-     *
-     * @param craftCount 当前合成次数
-     * @return 是否应该停止
-     */
-    public static boolean shouldStop(int craftCount) {
-        if (CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() < 0) {
-            return false;
-        }
-        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
+        String capitalizeFirstLetter = "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
+        Component hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
+        return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
     }
 }
