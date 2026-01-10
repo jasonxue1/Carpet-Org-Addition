@@ -22,10 +22,10 @@ repositories {
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
     // Carpet: https://github.com/gnembon/fabric-carpet
-    implementation(files("lib/fabric-carpet-26.1-beta-1+v251217.jar"))
-    // implementation("curse.maven:carpet-349239:${project.carpet_version}")
+    // implementation(files("lib/fabric-carpet-26.1-beta-1+v251217.jar"))
+    implementation("curse.maven:carpet-349239:${project.carpet_version}")
     // MixinExtras: https://github.com/LlamaLad7/MixinExtras
     include(implementation(annotationProcessor("io.github.llamalad7:mixinextras-fabric:${mixinextras_version}")))
     testImplementation "net.fabricmc:fabric-loader-junit:${project.loader_version}"

@@ -42,13 +42,13 @@ public class ChunkTraverser extends WorldTraverser<Optional<ChunkAccess>> {
             ChunkPos maxChunkPos = maxChunk.getPos();
             this.start = minChunkPos;
             this.end = maxChunkPos;
-            this.currentX = minChunkPos.x;
-            this.currentZ = minChunkPos.z;
+            this.currentX = minChunkPos.x();
+            this.currentZ = minChunkPos.z();
         }
 
         @Override
         public boolean hasNext() {
-            return this.currentZ <= end.z;
+            return this.currentZ <= end.z();
         }
 
         @Nullable
@@ -57,8 +57,8 @@ public class ChunkTraverser extends WorldTraverser<Optional<ChunkAccess>> {
             if (this.hasNext()) {
                 ChunkAccess chunk = this.world.getChunk(currentX, currentZ, ChunkStatus.FULL, false);
                 this.currentX++;
-                if (currentX > end.x) {
-                    this.currentX = start.x;
+                if (currentX > end.x()) {
+                    this.currentX = start.x();
                     this.currentZ++;
                 }
                 return Optional.ofNullable(chunk);
