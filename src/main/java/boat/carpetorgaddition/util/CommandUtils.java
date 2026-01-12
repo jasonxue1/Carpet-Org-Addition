@@ -14,6 +14,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.*;
 import net.minecraft.server.players.NameAndId;
@@ -73,8 +74,7 @@ public class CommandUtils {
      */
     public static EntityPlayerMPFake getArgumentFakePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = EntityArgument.getPlayer(context, PLAYER);
-        assertFakePlayer(player);
-        return (EntityPlayerMPFake) player;
+        return requireFakePlayer(player);
     }
 
     public static Collection<NameAndId> getGameProfiles(CommandContext<CommandSourceStack> context, String arguments) throws CommandSyntaxException {
@@ -178,22 +178,33 @@ public class CommandUtils {
     /**
      * 指定玩家不是假玩家
      */
-    public static CommandSyntaxException createNotFakePlayerException(Player fakePlayer) {
-        return createException(LocalizationKeys.Operation.NOT_FAKE_PLAYER.translate(fakePlayer.getDisplayName()));
+    public static CommandSyntaxException createNotFakePlayerException(Player player) {
+        return createException(LocalizationKeys.Operation.NOT_FAKE_PLAYER.translate(player.getDisplayName()));
+    }
+
+    public static EntityPlayerMPFake getFakePlayer(MinecraftServer server, String name) throws CommandSyntaxException {
+        return requireFakePlayer(getPlayer(server, name));
+    }
+
+    public static ServerPlayer getPlayer(MinecraftServer server, String name) throws CommandSyntaxException {
+        ServerPlayer player = server.getPlayerList().getPlayer(name);
+        if (player == null) {
+            throw createPlayerNotFoundException();
+        }
+        return player;
     }
 
     /**
      * 断言指定玩家为假玩家。<br>
      *
-     * @param fakePlayer 要检查是否为假玩家的玩家对象
+     * @param player 要检查是否为假玩家的玩家对象
      * @throws CommandSyntaxException 如果指定玩家不是假玩家
      */
-    public static void assertFakePlayer(Player fakePlayer) throws CommandSyntaxException {
-        if (fakePlayer instanceof EntityPlayerMPFake) {
-            return;
+    public static EntityPlayerMPFake requireFakePlayer(Player player) throws CommandSyntaxException {
+        if (player instanceof EntityPlayerMPFake) {
+            return (EntityPlayerMPFake) player;
         }
-        // 不是假玩家时抛出异常
-        throw createNotFakePlayerException(fakePlayer);
+        throw createNotFakePlayerException(player);
     }
 
     /**

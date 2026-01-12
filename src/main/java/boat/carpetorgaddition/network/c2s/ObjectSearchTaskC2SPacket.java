@@ -8,8 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jspecify.annotations.NonNull;
 
-public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key,
-                                        JsonObject json) implements CustomPacketPayload {
+public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, JsonObject json) implements CustomPacketPayload {
     public static final int CURRENT_VERSION = 1;
     public static final CustomPacketPayload.Type<ObjectSearchTaskC2SPacket> ID = PacketUtils.createId("object_search_task");
     public static final StreamCodec<RegistryFriendlyByteBuf, ObjectSearchTaskC2SPacket> CODEC = new StreamCodec<>() {
@@ -30,12 +29,10 @@ public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key,
             }
             ObjectSearchTaskC2SPacket.Type type = switch (buf.readUtf()) {
                 case "item" -> ObjectSearchTaskC2SPacket.Type.ITEM;
-                case "offline_player_item" ->
-                        ObjectSearchTaskC2SPacket.Type.OFFLINE_PLAYER_ITEM;
+                case "offline_player_item" -> ObjectSearchTaskC2SPacket.Type.OFFLINE_PLAYER_ITEM;
                 case "block" -> ObjectSearchTaskC2SPacket.Type.BLOCK;
                 case "trade_item" -> ObjectSearchTaskC2SPacket.Type.TRADE_ITEM;
-                case "trade_enchanted_book" ->
-                        ObjectSearchTaskC2SPacket.Type.TRADE_ENCHANTED_BOOK;
+                case "trade_enchanted_book" -> ObjectSearchTaskC2SPacket.Type.TRADE_ENCHANTED_BOOK;
                 default -> ObjectSearchTaskC2SPacket.Type.INVALID;
             };
             String jsonString = buf.readUtf();

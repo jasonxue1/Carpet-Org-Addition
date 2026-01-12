@@ -42,6 +42,7 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             CommandUtils.handlingException(e, source);
             return;
         }
+        // TODO 在网络包中添加谓词名称信息
         ServerTask serverTask = switch (packet.key()) {
             case ITEM -> {
                 ObjectSearchTaskCodecs.ItemSearchContext decode = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.decode(packet.json());

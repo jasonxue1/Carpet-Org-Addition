@@ -12,7 +12,7 @@ import org.jspecify.annotations.NonNull;
  */
 public final class WaypointClearS2CPacket implements CustomPacketPayload {
     public static final Type<WaypointClearS2CPacket> ID = PacketUtils.createId("waypoint_clear");
-    public static final StreamCodec<RegistryFriendlyByteBuf, WaypointClearS2CPacket> CODEC = StreamCodec.ofMember((buf, value) -> GenericUtils.pass(), buf -> new WaypointClearS2CPacket());
+    public static final StreamCodec<RegistryFriendlyByteBuf, WaypointClearS2CPacket> CODEC = StreamCodec.ofMember((_, _) -> GenericUtils.pass(), _ -> new WaypointClearS2CPacket());
     public static final WaypointClearS2CPacket INSTANCE = new WaypointClearS2CPacket();
 
     private WaypointClearS2CPacket() {

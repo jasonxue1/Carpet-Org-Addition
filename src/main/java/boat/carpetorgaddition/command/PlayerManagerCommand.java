@@ -98,10 +98,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .executes(context -> addDelayedLogoutTask(context, unit)));
         }
         // 玩家启动任务节点
-        RequiredArgumentBuilder<CommandSourceStack, String> startupNameNode = Commands.argument("name", StringArgumentType.string())
-                .suggests(defaultSuggests());
+        LiteralArgumentBuilder<CommandSourceStack> startupNode = Commands.literal("startup");
         for (FakePlayerStartupAction action : FakePlayerStartupAction.values()) {
-            startupNameNode.then(Commands.literal(action.toString())
+            startupNode.then(Commands.literal(action.toString())
                     .executes(context -> this.addStartupFunction(context, action, 1))
                     .then(Commands.argument("delay", TimeArgument.time(1))
                             .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
@@ -109,8 +108,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .then(Commands.literal("clear")
                             .executes(context -> this.addStartupFunction(context, action, -1))));
         }
-        LiteralArgumentBuilder<CommandSourceStack> startupNode = Commands.literal("startup");
-        startupNode.then(startupNameNode);
         this.dispatcher.register(Commands.literal(name)
                 .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.commandPlayerManager))
                 .then(Commands.literal("save")
@@ -123,17 +120,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .suggests(defaultSuggests())
                                 .executes(this::spawnPlayer)))
                 .then(Commands.literal("modify")
-                        // TODO 交换参数与子命令顺序
-                        .then(Commands.literal("comment")
-                                .then(Commands.argument("name", StringArgumentType.string())
-                                        .suggests(defaultSuggests())
-                                        .executes(context -> setComment(context, true))
+                        .then(Commands.argument("name", StringArgumentType.string())
+                                .suggests(defaultSuggests())
+                                .then(Commands.literal("comment")
                                         .then(Commands.argument("comment", StringArgumentType.string())
-                                                .executes(context -> setComment(context, false)))))
-                        .then(Commands.literal("resave")
-                                .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
-                                        .executes(this::modifyPlayer)))
-                        .then(startupNode))
+                                                .executes(this::setComment)))
+                                .then(Commands.literal("resave")
+                                        .executes(this::modifyPlayer))
+                                .then(startupNode)))
                 .then(Commands.literal("group")
                         // TODO 一次性召唤所有玩家，并在list添加一键召唤按钮
                         .then(Commands.literal("add")
@@ -605,15 +599,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 设置注释
-    private int setComment(CommandContext<CommandSourceStack> context, boolean remove) throws CommandSyntaxException {
+    private int setComment(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         // 修改注释
-        String comment = remove ? null : StringArgumentType.getString(context, "comment");
+        String comment = StringArgumentType.getString(context, "comment");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         serializer.setComment(comment);
         LocalizationKey key = KEY.then("comment");
         // 发送命令反馈
-        if (remove) {
+        if (comment.isEmpty()) {
             // 移除注释
             MessageUtils.sendMessage(context, key.then("remove").translate(serializer.getDisplayName()));
         } else {
@@ -673,13 +667,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 修改玩家数据
     private int modifyPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        String name = FetcherUtils.getPlayerName(fakePlayer);
+        String name = StringArgumentType.getString(context, "name");
+        CommandSourceStack source = context.getSource();
+        MinecraftServer server = source.getServer();
+        EntityPlayerMPFake fakePlayer = CommandUtils.getFakePlayer(server, name);
         FakePlayerSerializer oldSerializer = getFakePlayerSerializer(context, name);
-        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer());
+        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
         FakePlayerSerializer newSerializer = new FakePlayerSerializer(fakePlayer, oldSerializer);
         manager.add(newSerializer);
-        MessageUtils.sendMessage(context.getSource(), KEY.then("resave").translate(fakePlayer.getDisplayName()));
+        MessageUtils.sendMessage(source, KEY.then("resave").translate(fakePlayer.getDisplayName()));
         return 1;
     }
 
@@ -754,7 +750,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     throw CommandUtils.createPlayerNotFoundException();
                 } else {
                     // 目标玩家不是假玩家
-                    CommandUtils.assertFakePlayer(player);
+                    CommandUtils.requireFakePlayer(player);
                 }
                 manager.addTask(new ReLoginTask((EntityPlayerMPFake) player, interval, server, context.getSource()));
             } else {

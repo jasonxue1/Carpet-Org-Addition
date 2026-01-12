@@ -30,6 +30,7 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void copyFrom(ServerPlayer oldPlayer) {
         super.copyFrom(oldPlayer);
+        // TODO 可以为null吗？
         if (this.fakePlayerActionManager != null) {
             this.fakePlayerActionManager.setActionFromOldPlayer((EntityPlayerMPFake) oldPlayer);
         }
