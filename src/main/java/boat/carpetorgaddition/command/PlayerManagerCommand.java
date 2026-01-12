@@ -127,7 +127,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                 .executes(this::setComment)))
                                 .then(Commands.literal("resave")
                                         .executes(this::modifyPlayer))
-                                .then(startupNode)))
+                                .then(startupNode)
+                                .then(Commands.literal("autologin")
+                                        .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
+                                        .then(Commands.argument("autologin", BoolArgumentType.bool())
+                                                .executes(context -> this.setAutoLogin(context, false))))))
                 .then(Commands.literal("group")
                         // TODO 一次性召唤所有玩家，并在list添加一键召唤按钮
                         .then(Commands.literal("add")
@@ -164,7 +168,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(defaultSuggests())
                                 .then(Commands.argument("autologin", BoolArgumentType.bool())
-                                        .executes(this::setAutoLogin))))
+                                        .executes(context -> this.setAutoLogin(context, true)))))
                 .then(Commands.literal("list")
                         .executes(context -> list(context, null))
                         .then(Commands.argument("filter", StringArgumentType.string())
@@ -618,13 +622,18 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 设置自动登录
-    private int setAutoLogin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private int setAutoLogin(CommandContext<CommandSourceStack> context, boolean displayWarning) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         boolean autologin = BoolArgumentType.getBool(context, "autologin");
+        LocalizationKey key = KEY.then("autologin");
+        if (displayWarning) {
+            String command = CommandProvider.playerManagerAutologin(name, autologin);
+            Component component = key.then("warn").builder(command).setGrayItalic().build();
+            MessageUtils.sendMessage(context, component);
+        }
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
         // 设置自动登录
         serializer.setAutologin(autologin);
-        LocalizationKey key = KEY.then("autologin");
         // 发送命令反馈
         if (autologin) {
             MessageUtils.sendMessage(context, key.then("set").translate(serializer.getDisplayName()));

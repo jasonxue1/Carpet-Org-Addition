@@ -78,7 +78,11 @@ public class CommandProvider {
      * 将一名玩家重新保存到玩家管理器
      */
     public static String playerManagerResave(String playerName) {
-        return "/%s modify resave %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
+        return "/%s modify %s resave".formatted(getCommandName(PlayerManagerCommand.class), playerName);
+    }
+
+    public static String playerManagerAutologin(String name, boolean autologin) {
+        return "/%s modify %s autologin %s".formatted(getCommandName(PlayerManagerCommand.class), name, autologin);
     }
 
     /**
