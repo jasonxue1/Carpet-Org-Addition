@@ -1,7 +1,11 @@
 package boat.carpetorgaddition.util;
 
-import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
+import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
+import carpet.patches.EntityPlayerMPFake;
+import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
+import net.minecraft.SharedConstants;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -12,18 +16,32 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-public class WorldUtils {
-    private WorldUtils() {
-    }
-
+public class ServerUtils {
+    /**
+     * 当假玩家正在生成时，执行此函数
+     */
+    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+    /**
+     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3, double, double, ResourceKey, GameType, boolean)}内部的lambda表达式执行时，调用次函数
+     */
+    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
+    /**
+     * 当前{@code Minecraft}的NBT数据版本
+     */
+    public static final int CURRENT_DATA_VERSION = getVanillaDataVersion();
     public static final String OVERWORLD = "minecraft:overworld";
     public static final String THE_NETHER = "minecraft:the_nether";
     public static final String THE_END = "minecraft:the_end";
@@ -31,30 +49,71 @@ public class WorldUtils {
     public static final String SIMPLE_THE_NETHER = "the_nether";
     public static final String SIMPLE_THE_END = "the_end";
 
+    private ServerUtils() {
+    }
+
     /**
-     * 获取区域内所有方块坐标的集合
-     *
-     * @param box 用来指定的区域盒子对象
-     * @return 盒子内所有的方块坐标
-     * @see BlockPosTraverser
-     * @deprecated 如果Box对象的范围比较大，则会将这个范围内的所有方块坐标对象全部返回，
-     * 这对内存是一个较大的负担。例如：如果Box的范围是长宽高各256，那么将有256*256*256=16777216个对象被创建，
-     * 并且在集合对象使用完毕之前不会被回收，短时间内多次调用时，容易导致{@link OutOfMemoryError}
+     * 根据UUID获取实体
      */
-    @Deprecated(forRemoval = true)
-    public static ArrayList<BlockPos> allBlockPos(AABB box) {
-        int endX = (int) box.maxX;
-        int endY = (int) box.maxY;
-        int endZ = (int) box.maxZ;
-        ArrayList<BlockPos> list = new ArrayList<>();
-        for (int startX = (int) box.minX; startX < endX; startX++) {
-            for (int startY = (int) box.minY; startY < endY; startY++) {
-                for (int startZ = (int) box.minZ; startZ < endZ; startZ++) {
-                    list.add(new BlockPos(startX, startY, startZ));
-                }
+    public static Optional<Entity> getEntity(MinecraftServer server, UUID uuid) {
+        for (ServerLevel world : server.getAllLevels()) {
+            Entity entity = world.getEntity(uuid);
+            if (entity != null) {
+                return Optional.of(entity);
             }
         }
-        return list;
+        return Optional.empty();
+    }
+
+    /**
+     * 根据UUID获取玩家
+     */
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, UUID uuid) {
+        return Optional.ofNullable(server.getPlayerList().getPlayer(uuid));
+    }
+
+    /**
+     * 根据名称获取玩家
+     */
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, String name) {
+        return Optional.ofNullable(server.getPlayerList().getPlayerByName(name));
+    }
+
+    public static Optional<ServerPlayer> getPlayer(MinecraftServer server, GameProfile gameProfile) {
+        return getPlayer(server, gameProfile.name());
+    }
+
+    public static ResourceKey<Level> getWorld(String worldId) {
+        return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
+    }
+
+    /**
+     * 创建一个假玩家
+     */
+    public static void createFakePlayer(String username, MinecraftServer server, FakePlayerCreateContext context) {
+        createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
+    }
+
+    /**
+     * 创建一个假玩家
+     *
+     * @param consumer 玩家生成时执行的函数
+     */
+    public static void createFakePlayer(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimension, GameType gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
+        try {
+            FAKE_PLAYER_SPAWNING.set(consumer);
+            EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying);
+        } finally {
+            FAKE_PLAYER_SPAWNING.remove();
+        }
+    }
+
+    /**
+     * @return 当前游戏的NBT数据版本
+     */
+    @Contract(pure = true)
+    public static int getVanillaDataVersion() {
+        return SharedConstants.getCurrentVersion().dataVersion().version();
     }
 
     /**
@@ -98,42 +157,6 @@ public class WorldUtils {
     }
 
     /**
-     * 根据维度获取世界对象
-     *
-     * @param server    游戏当前的服务器
-     * @param dimension 一个维度的id
-     */
-    public static ServerLevel getWorld(MinecraftServer server, String dimension) {
-        String[] split = dimension.split(":");
-        Identifier identifier;
-        if (split.length == 1) {
-            identifier = Identifier.fromNamespaceAndPath("minecraft", dimension);
-        } else if (split.length == 2) {
-            identifier = Identifier.fromNamespaceAndPath(split[0], split[1]);
-        } else {
-            throw new IllegalArgumentException();
-        }
-        return server.getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
-    }
-
-    /**
-     * 将字符串解析为世界ID
-     *
-     * @param worldId 世界的ID，如果指定了命名空间，则使用指定的，否则使用minecraft
-     * @return 世界类型的注册表项
-     */
-    public static ResourceKey<Level> getWorld(String worldId) {
-        if (worldId.contains(":")) {
-            String[] split = worldId.split(":");
-            if (split.length != 2) {
-                throw new IllegalArgumentException();
-            }
-            return ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath(split[0], split[1]));
-        }
-        return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
-    }
-
-    /**
      * 从服务器寻找一个指定UUID的实体
      */
     @Nullable
@@ -162,7 +185,7 @@ public class WorldUtils {
      * @param soundCategory 声音类别
      */
     public static void playSound(ServerPlayer player, SoundEvent soundEvent, SoundSource soundCategory) {
-        Level world = FetcherUtils.getWorld(player);
+        Level world = getWorld(player);
         world.playSound(null, player.getX(), player.getY(), player.getZ(), soundEvent, soundCategory, 1F, 1F);
     }
 
@@ -243,5 +266,68 @@ public class WorldUtils {
 
     public static boolean isTheNether(ResourceKey<Level> key) {
         return Level.NETHER.equals(key);
+    }
+
+    /**
+     * 根据维度获取世界对象
+     *
+     * @param server    游戏当前的服务器
+     * @param dimension 维度的id
+     */
+    public static ServerLevel getWorld(MinecraftServer server, String dimension) {
+        String[] split = dimension.split(":");
+        Identifier identifier;
+        if (split.length == 1) {
+            identifier = Identifier.fromNamespaceAndPath("minecraft", dimension);
+        } else if (split.length == 2) {
+            identifier = Identifier.fromNamespaceAndPath(split[0], split[1]);
+        } else {
+            throw new IllegalArgumentException();
+        }
+        return server.getLevel(ResourceKey.create(Registries.DIMENSION, identifier));
+    }
+
+    /**
+     * 获取一名玩家的字符串形式的玩家名
+     *
+     * @param player 要获取字符串形式玩家名的玩家
+     * @return 玩家名的字符串形式
+     */
+    public static String getPlayerName(Player player) {
+        return player.getGameProfile().name();
+    }
+
+    @Contract("_ -> !null")
+    public static MinecraftServer getServer(ServerPlayer player) {
+        return getWorld(player).getServer();
+    }
+
+    @Nullable
+    public static MinecraftServer getServer(Entity entity) {
+        return getWorld(entity).getServer();
+    }
+
+    public static ServerLevel getWorld(ServerPlayer player) {
+        return player.level();
+    }
+
+    public static Level getWorld(Entity entity) {
+        return entity.level();
+    }
+
+    public static ServerLevel getWorld(CommandSourceStack source) {
+        return source.getLevel();
+    }
+
+    public static Level getWorld(BlockEntity blockEntity) {
+        return blockEntity.getLevel();
+    }
+
+    public static Vec3 getFootPos(Entity entity) {
+        return entity.position();
+    }
+
+    public static Vec3 getEyePos(Entity entity) {
+        return entity.getEyePosition();
     }
 }

@@ -4,7 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.network.event.CustomClickEvents;
 import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.periodic.dialog.builder.*;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -125,6 +125,6 @@ public class DialogProvider {
     }
 
     private static Identifier getDialogIdentifier(String id) {
-        return GenericUtils.ofIdentifier("dialog/" + id);
+        return IdentifierUtils.ofIdentifier("dialog/" + id);
     }
 }

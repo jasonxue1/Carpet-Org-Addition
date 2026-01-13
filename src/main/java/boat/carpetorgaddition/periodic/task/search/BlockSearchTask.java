@@ -68,10 +68,10 @@ public class BlockSearchTask extends ServerTask {
                 switch (this.findState) {
                     case SEARCH -> {
                         this.searchBlock();
-                        Component message = KEY
+                        MessageUtils.sendMessageToHudIfPlayer(this.source, () -> KEY
                                 .then("progress")
-                                .translate(this.predicate.getDisplayName(), this.progressBar.getDisplay());
-                        MessageUtils.sendMessageToHudIfPlayer(this.source, message);
+                                .translate(this.predicate.getDisplayName(), this.progressBar.getDisplay())
+                        );
                     }
                     case SORT -> this.sort();
                     case FEEDBACK -> this.sendFeedback();

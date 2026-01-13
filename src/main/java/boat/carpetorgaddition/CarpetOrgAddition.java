@@ -148,6 +148,14 @@ public class CarpetOrgAddition implements ModInitializer {
     }
 
     /**
+     * 空方法
+     *
+     * @apiNote 用于在方法引用中使用
+     */
+    public static void pass(Object... ignored) {
+    }
+
+    /**
      * @return 当前环境是否为调试模式的开发环境
      */
     public static boolean isDebugDevelopment() {

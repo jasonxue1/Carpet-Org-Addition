@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.network.s2c;
 
+import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.network.PacketUtils;
-import boat.carpetorgaddition.util.GenericUtils;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -12,7 +12,7 @@ import org.jspecify.annotations.NonNull;
  */
 public final class WaypointClearS2CPacket implements CustomPacketPayload {
     public static final Type<WaypointClearS2CPacket> ID = PacketUtils.createId("waypoint_clear");
-    public static final StreamCodec<RegistryFriendlyByteBuf, WaypointClearS2CPacket> CODEC = StreamCodec.ofMember((_, _) -> GenericUtils.pass(), _ -> new WaypointClearS2CPacket());
+    public static final StreamCodec<RegistryFriendlyByteBuf, WaypointClearS2CPacket> CODEC = StreamCodec.ofMember((_, _) -> CarpetOrgAddition.pass(), _ -> new WaypointClearS2CPacket());
     public static final WaypointClearS2CPacket INSTANCE = new WaypointClearS2CPacket();
 
     private WaypointClearS2CPacket() {

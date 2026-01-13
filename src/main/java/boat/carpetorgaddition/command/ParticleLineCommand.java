@@ -4,10 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.DrawParticleLineTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.*;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -46,7 +43,7 @@ public class ParticleLineCommand {
         CommandSourceStack source = context.getSource();
         if (isUuid) {
             String uuid = StringArgumentType.getString(context, "uuid");
-            Entity entity = WorldUtils.getEntityFromUUID(source.getServer(), CommandUtils.parseUuidFromString(uuid));
+            Entity entity = ServerUtils.getEntityFromUUID(source.getServer(), CommandUtils.parseUuidFromString(uuid));
             if (entity == null) {
                 throw EntityArgument.NO_ENTITIES_FOUND.create();
             }
@@ -65,7 +62,7 @@ public class ParticleLineCommand {
         }
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
         // 新建绘制粒子线任务
-        manager.addTask(new DrawParticleLineTask(source, FetcherUtils.getWorld(player), mainParticle, from, to));
+        manager.addTask(new DrawParticleLineTask(source, ServerUtils.getWorld(player), mainParticle, from, to));
         // 发送箭头
         sendArrow(player, to);
         // 返回值为粒子线的长度

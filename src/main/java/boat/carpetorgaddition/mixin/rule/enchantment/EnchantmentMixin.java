@@ -2,7 +2,7 @@ package boat.carpetorgaddition.mixin.rule.enchantment;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.EnchantmentUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +32,7 @@ public class EnchantmentMixin {
             if (player == null) {
                 return;
             }
-            if (EnchantmentUtils.isSpecified(FetcherUtils.getWorld(player), Enchantments.KNOCKBACK, thisEnchantment)) {
+            if (EnchantmentUtils.isSpecified(ServerUtils.getWorld(player), Enchantments.KNOCKBACK, thisEnchantment)) {
                 cir.setReturnValue(true);
             }
         }

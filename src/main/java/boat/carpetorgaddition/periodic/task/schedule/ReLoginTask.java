@@ -6,8 +6,8 @@ import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.Messenger;
@@ -67,7 +67,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 this.remainingTick = this.interval;
                 if (player instanceof EntityPlayerMPFake fakePlayer) {
                     // 如果假玩家坠入虚空，设置任务为停止
-                    if (fakePlayer.getY() < FetcherUtils.getWorld(fakePlayer).getMinY() - 64) {
+                    if (fakePlayer.getY() < ServerUtils.getWorld(fakePlayer).getMinY() - 64) {
                         this.stop();
                     }
                     // 让假玩家退出游戏
@@ -120,7 +120,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                 return;
             }
         }
-        MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+        MinecraftServer server = ServerUtils.getServer(fakePlayer);
         server.schedule(new TickTask(server.getTickCount(), () -> {
             try {
                 CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);

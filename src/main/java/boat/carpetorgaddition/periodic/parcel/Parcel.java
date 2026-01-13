@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.Function;
 
 import static boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask.UNKNOWN;
 
@@ -86,7 +85,7 @@ public class Parcel implements Comparable<Parcel> {
     }
 
     public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, ItemStack itemStack, int id) {
-        this(server, FetcherUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now());
+        this(server, ServerUtils.getPlayerName(sender), gameProfile.name(), gameProfile.id(), itemStack, id, LocalDateTime.now());
     }
 
     public Parcel(MinecraftServer server, ServerPlayer sender, GameProfile gameProfile, int id) throws CommandSyntaxException {
@@ -116,7 +115,7 @@ public class Parcel implements Comparable<Parcel> {
     }
 
     public Parcel(MinecraftServer server, ServerPlayer sourcePlayer, GameProfile recipient, AutoGrowInventory autoGrowInventory, int id) {
-        this(server, FetcherUtils.getPlayerName(sourcePlayer), recipient.name(), recipient.id(), autoGrowInventory, id, LocalDateTime.now());
+        this(server, ServerUtils.getPlayerName(sourcePlayer), recipient.name(), recipient.id(), autoGrowInventory, id, LocalDateTime.now());
     }
 
     private static ItemStack getPlayerHandStack(ServerPlayer player) throws CommandSyntaxException {
@@ -198,8 +197,7 @@ public class Parcel implements Comparable<Parcel> {
                 // 物品完全接收
                 MessageUtils.sendMessage(player, key.then("success").translate(count, name));
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
-                this.sendMessageIfPlayerOnline(this.sender, message);
+                MessageUtils.sendMessageIfPlayerOnline(this.server, this.sender, () -> ParcelManager.getReceiveNotice(player, counter));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -209,8 +207,7 @@ public class Parcel implements Comparable<Parcel> {
                 // 物品部分放入物品栏
                 MessageUtils.sendMessage(player, key.then("partial_reception").translate(count - surplusCount, surplusCount));
                 // 通知发送者物品已接收
-                Function<ServerPlayer, Component> message = _ -> ParcelManager.getReceiveNotice(player, counter);
-                this.sendMessageIfPlayerOnline(this.sender, message);
+                MessageUtils.sendMessageIfPlayerOnline(this.server, this.sender, () -> ParcelManager.getReceiveNotice(player, counter));
                 // 播放物品拾取音效
                 playItemPickupSound(player);
             }
@@ -253,8 +250,12 @@ public class Parcel implements Comparable<Parcel> {
             default -> throw new IllegalStateException();
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
-        Function<ServerPlayer, Component> message = _ -> new TextBuilder(MailCommand.NOTICE.then("recall").translate(player.getDisplayName())).setGrayItalic().build();
-        this.sendMessageIfPlayerOnline(this.recipient, message);
+        MessageUtils.sendMessageIfPlayerOnline(this.server, this.recipient,
+                () -> new TextBuilder(MailCommand.NOTICE.then("recall")
+                        .translate(player.getDisplayName()))
+                        .setGrayItalic()
+                        .build()
+        );
     }
 
     /**
@@ -282,14 +283,14 @@ public class Parcel implements Comparable<Parcel> {
         }
         Component hover = TextBuilder.combineAll(name, "*", count - this.getCount());
         LocalizationKey noticeKey = MailCommand.NOTICE.then("intercept");
-        sendMessageIfPlayerOnline(this.sender, player -> {
+        MessageUtils.sendMessageIfPlayerOnline(this.server, this.sender, player -> {
             Component text = getOperatorPlayerName(operator, player);
             TextBuilder builder = new TextBuilder(noticeKey.then("sender").translate(text, this.recipient));
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
         });
-        sendMessageIfPlayerOnline(this.recipient, player -> {
+        MessageUtils.sendMessageIfPlayerOnline(this.server, this.recipient, player -> {
             Component text = getOperatorPlayerName(operator, player);
             TextBuilder builder = new TextBuilder(noticeKey.then("recipient").translate(text, this.sender));
             builder.setGrayItalic();
@@ -307,14 +308,14 @@ public class Parcel implements Comparable<Parcel> {
      * 播放物品拾取音效
      */
     public static void playItemPickupSound(@NotNull ServerPlayer player) {
-        WorldUtils.playSound(player, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS);
+        ServerUtils.playSound(player, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS);
     }
 
     /**
      * 播放经验球拾取音效
      */
     public static void playXpOrbPickupSound(@NotNull ServerPlayer player) {
-        WorldUtils.playSound(player, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS);
+        ServerUtils.playSound(player, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS);
     }
 
     /**
@@ -340,20 +341,6 @@ public class Parcel implements Comparable<Parcel> {
         // 修改NBT文件
         this.save();
         return InsertResult.PART;
-    }
-
-    /**
-     * 如果指定玩家存在，则向该玩家发送消息
-     *
-     * @param playerName 要查找的玩家名称
-     * @param message    要发送的消息，使用Supplier包装，只在玩家存在时获取消息
-     */
-    private void sendMessageIfPlayerOnline(String playerName, Function<ServerPlayer, Component> message) {
-        ServerPlayer player = this.server.getPlayerList().getPlayerByName(playerName);
-        if (player == null) {
-            return;
-        }
-        MessageUtils.sendMessage(player, message.apply(player));
     }
 
     /**
@@ -476,14 +463,14 @@ public class Parcel implements Comparable<Parcel> {
      * @return 指定玩家是否是当前快递的发送者
      */
     public boolean isSender(ServerPlayer player) {
-        return Objects.equals(this.sender, FetcherUtils.getPlayerName(player));
+        return Objects.equals(this.sender, ServerUtils.getPlayerName(player));
     }
 
     /**
      * @return 指定玩家是否是当前快递的接收者
      */
     public boolean isRecipient(ServerPlayer player) {
-        return Objects.equals(this.recipient, FetcherUtils.getPlayerName(player));
+        return Objects.equals(this.recipient, ServerUtils.getPlayerName(player));
     }
 
     /**

@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
@@ -90,7 +90,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             this.setValid();
         }
         this.previous = blockPos;
-        Vec3 pos = FetcherUtils.getFootPos(this.getFakePlayer());
+        Vec3 pos = ServerUtils.getFootPos(this.getFakePlayer());
         this.directTravelTime--;
         if (this.updateTime > 0) {
             this.updateTime--;
@@ -128,7 +128,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
             Direction direction = fakePlayer.getMotionDirection();
             BlockPos down = fakePlayer.blockPosition().below();
-            Level world = FetcherUtils.getWorld(fakePlayer);
+            Level world = ServerUtils.getWorld(fakePlayer);
             BlockState blockState = world.getBlockState(down);
             if (blockState.isAir() || blockState.isFaceSturdy(world, down, Direction.UP)) {
                 BlockPos offset = down.relative(direction);
@@ -196,10 +196,10 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
         BlockPos blockPos = fakePlayer.blockPosition();
         BlockPos from = blockPos.offset(-FOLLOW_RANGE, -FOLLOW_RANGE, -FOLLOW_RANGE);
         BlockPos to = blockPos.offset(FOLLOW_RANGE, FOLLOW_RANGE, FOLLOW_RANGE);
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         PathNavigationRegion chunkCache = new PathNavigationRegion(world, from, to);
         WalkNodeEvaluator maker = new WalkNodeEvaluator();
-        Vec3 pos = FetcherUtils.getFootPos(fakePlayer);
+        Vec3 pos = ServerUtils.getFootPos(fakePlayer);
         DummyEntity entity = new DummyEntity(world, pos);
         PathFinder navigator = new PathFinder(maker, FOLLOW_RANGE * 16);
         Path path = navigator.findPath(chunkCache, entity, Set.of(optional.get()), FOLLOW_RANGE, 0, 1F);
@@ -226,7 +226,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
     public boolean arrivedAtAnyNode() {
         for (int i = this.currentIndex; i < this.nodes.size(); i++) {
             Vec3 current = this.nodes.get(i);
-            Vec3 pos = FetcherUtils.getFootPos(this.getFakePlayer());
+            Vec3 pos = ServerUtils.getFootPos(this.getFakePlayer());
             if (current.distanceTo(pos) <= 0.5) {
                 if (i > 0) {
                     this.setValid();
@@ -247,7 +247,7 @@ public class GeneralPathfinder implements FakePlayerPathfinder {
             return false;
         }
         for (int i = 0; i < this.currentIndex; i++) {
-            if (this.nodes.get(i).distanceTo(FetcherUtils.getFootPos(this.getFakePlayer())) < 0.5) {
+            if (this.nodes.get(i).distanceTo(ServerUtils.getFootPos(this.getFakePlayer())) < 0.5) {
                 return true;
             }
         }

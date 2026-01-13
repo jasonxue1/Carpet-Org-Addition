@@ -2,9 +2,9 @@ package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
-import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.ChatFormatting;
@@ -152,32 +152,6 @@ public class FakePlayerUtils {
     }
 
     /**
-     * 使用循环一个个丢弃槽位中的物品
-     *
-     * @param screenHandler 玩家当前打开的GUI
-     * @param slotIndex     玩家当前操作槽位的索引
-     * @param player        当前操作该GUI的玩家
-     */
-    @SuppressWarnings("unused")
-    public static void loopThrowItem(AbstractContainerMenu screenHandler, int slotIndex, EntityPlayerMPFake player) {
-        // 如果光标不为空，那么将无法丢弃槽位上的物品
-        InventoryUtils.assertEmptyStack(screenHandler.getCarried());
-        Slot slot = screenHandler.getSlot(slotIndex);
-        Item item = slot.getItem().getItem();
-        while (true) {
-            ItemStack itemStack = slot.getItem();
-            if (itemStack.isEmpty()) {
-                return;
-            }
-            if (itemStack.is(item) && slot.mayPickup(player)) {
-                screenHandler.clicked(slotIndex, THROW_Q, ContainerInput.THROW, player);
-                continue;
-            }
-            return;
-        }
-    }
-
-    /**
      * 收集槽位上的物品
      *
      * @throws IllegalStateException 如果调用时光标上存在物品
@@ -232,31 +206,17 @@ public class FakePlayerUtils {
      * 让玩家看向某个方向
      */
     public static void look(EntityPlayerMPFake fakePlayer, Direction direction) {
-        EntityPlayerActionPack actionPack = getActionPack(fakePlayer);
+        EntityPlayerActionPack actionPack = PlayerUtils.getActionPack(fakePlayer);
         actionPack.look(direction);
     }
 
     public static void click(EntityPlayerMPFake fakePlayer, InteractionHand hand) {
-        EntityPlayerActionPack actionPack = getActionPack(fakePlayer);
+        EntityPlayerActionPack actionPack = PlayerUtils.getActionPack(fakePlayer);
         EntityPlayerActionPack.ActionType type = switch (hand) {
             case MAIN_HAND -> EntityPlayerActionPack.ActionType.ATTACK;
             case OFF_HAND -> EntityPlayerActionPack.ActionType.USE;
         };
         actionPack.start(type, EntityPlayerActionPack.Action.once());
-    }
-
-    public static EntityPlayerActionPack getActionPack(ServerPlayer player) {
-        return ((ServerPlayerInterface) player).getActionPack();
-    }
-
-    /**
-     * 交互主副手物品
-     */
-    @SuppressWarnings("unused")
-    public static void swapHand(EntityPlayerMPFake fakePlayer) {
-        ItemStack temp = fakePlayer.getItemInHand(InteractionHand.OFF_HAND);
-        fakePlayer.setItemInHand(InteractionHand.OFF_HAND, fakePlayer.getItemInHand(InteractionHand.MAIN_HAND));
-        fakePlayer.setItemInHand(InteractionHand.MAIN_HAND, temp);
     }
 
     /**

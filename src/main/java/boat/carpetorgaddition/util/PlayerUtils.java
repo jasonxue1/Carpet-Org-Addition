@@ -2,6 +2,8 @@ package boat.carpetorgaddition.util;
 
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
+import carpet.fakes.ServerPlayerInterface;
+import carpet.helpers.EntityPlayerActionPack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
@@ -12,7 +14,14 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Predicate;
 
-public class ScreenUtils {
+public class PlayerUtils {
+    private PlayerUtils() {
+    }
+
+    public static EntityPlayerActionPack getActionPack(ServerPlayer player) {
+        return ((ServerPlayerInterface) player).getActionPack();
+    }
+
     public static void openScreenHandler(ServerPlayer player, MenuConstructor baseFactory, Component name) {
         SimpleMenuProvider factory = new SimpleMenuProvider(baseFactory, name);
         player.openMenu(factory);

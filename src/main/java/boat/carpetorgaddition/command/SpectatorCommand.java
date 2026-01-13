@@ -70,7 +70,7 @@ public class SpectatorCommand extends AbstractServerCommand {
             gameMode = GameType.SURVIVAL;
             if (!isFakePlayer) {
                 // 假玩家切换游戏模式不需要回到原位置
-                loadPlayerPos(FetcherUtils.getServer(player), player);
+                loadPlayerPos(ServerUtils.getServer(player), player);
             }
         } else {
             gameMode = GameType.SPECTATOR;
@@ -79,7 +79,7 @@ public class SpectatorCommand extends AbstractServerCommand {
                 // Mojang真的修复MC-146582了吗？（https://bugs.mojang.com/browse/MC-146582）
                 player.teleportRelative(0.0, 0.2, 0.0);
             } else {
-                savePlayerPos(FetcherUtils.getServer(player), player);
+                savePlayerPos(ServerUtils.getServer(player), player);
             }
         }
         player.setGameMode(gameMode);
@@ -95,14 +95,14 @@ public class SpectatorCommand extends AbstractServerCommand {
         this.requireSpectator(player);
         ServerLevel dimension = DimensionArgument.getDimension(context, "dimension");
         if (player.level().dimension() == Level.OVERWORLD && dimension.dimension() == Level.NETHER) {
-            WorldUtils.teleport(player, dimension, player.getX() / 8, player.getY(), player.getZ() / 8, player.getYRot(), player.getXRot());
+            ServerUtils.teleport(player, dimension, player.getX() / 8, player.getY(), player.getZ() / 8, player.getYRot(), player.getXRot());
         } else if (player.level().dimension() == Level.NETHER && dimension.dimension() == Level.OVERWORLD) {
-            WorldUtils.teleport(player, dimension, player.getX() * 8, player.getY(), player.getZ() * 8, player.getYRot(), player.getXRot());
+            ServerUtils.teleport(player, dimension, player.getX() * 8, player.getY(), player.getZ() * 8, player.getYRot(), player.getXRot());
         } else {
-            WorldUtils.teleport(player, dimension, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
+            ServerUtils.teleport(player, dimension, player.getX(), player.getY(), player.getZ(), player.getYRot(), player.getXRot());
         }
         // 发送命令反馈
-        MessageUtils.sendMessage(context, TELEPORT.then("success").translate(player.getDisplayName(), WorldUtils.getDimensionId(dimension)));
+        MessageUtils.sendMessage(context, TELEPORT.then("success").translate(player.getDisplayName(), ServerUtils.getDimensionId(dimension)));
         return 1;
     }
 
@@ -113,7 +113,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         requireSpectator(player);
         ServerLevel dimension = DimensionArgument.getDimension(context, "dimension");
         Vec3 location = Vec3Argument.getVec3(context, "location");
-        WorldUtils.teleport(player, dimension, location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
+        ServerUtils.teleport(player, dimension, location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
         // 发送命令反馈
         MessageUtils.sendMessage(
                 context,
@@ -133,7 +133,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         // 检查玩家是不是旁观模式
         requireSpectator(player);
         Entity entity = EntityArgument.getEntity(context, "entity");
-        WorldUtils.teleport(player, (ServerLevel) FetcherUtils.getWorld(entity), entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
+        ServerUtils.teleport(player, (ServerLevel) ServerUtils.getWorld(entity), entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
         // 发送命令反馈
         MessageUtils.sendMessage(
                 context,
@@ -162,12 +162,12 @@ public class SpectatorCommand extends AbstractServerCommand {
         json.addProperty("z", MathUtils.numberToTwoDecimalString(player.getZ()));
         json.addProperty("yaw", MathUtils.numberToTwoDecimalString(player.getYRot()));
         json.addProperty("pitch", MathUtils.numberToTwoDecimalString(player.getXRot()));
-        json.addProperty("dimension", WorldUtils.getDimensionId(FetcherUtils.getWorld(player)));
+        json.addProperty("dimension", ServerUtils.getDimensionId(ServerUtils.getWorld(player)));
         File file = worldFormat.file(player.getStringUUID() + IOUtils.JSON_EXTENSION);
         try {
             IOUtils.write(file, json);
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", FetcherUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.warn("Unable to write the location information of {} to the file normally", ServerUtils.getPlayerName(player), e);
         }
     }
 
@@ -186,11 +186,11 @@ public class SpectatorCommand extends AbstractServerCommand {
                 float yaw = json.get("yaw").getAsFloat();
                 float pitch = json.get("pitch").getAsFloat();
                 String dimension = json.get("dimension").getAsString();
-                ServerLevel world = WorldUtils.getWorld(server, dimension);
-                WorldUtils.teleport(player, world, x, y, z, yaw, pitch);
+                ServerLevel world = ServerUtils.getWorld(server, dimension);
+                ServerUtils.teleport(player, world, x, y, z, yaw, pitch);
             }
         } catch (IOException | NullPointerException e) {
-            CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", FetcherUtils.getPlayerName(player));
+            CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", ServerUtils.getPlayerName(player));
         }
     }
 

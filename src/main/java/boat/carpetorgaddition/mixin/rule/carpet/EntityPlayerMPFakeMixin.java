@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.rule.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.server.MinecraftServer;
@@ -27,7 +27,7 @@ public class EntityPlayerMPFakeMixin extends ServerPlayer {
     private void fakePlayerTick(CallbackInfo ci) {
         // 假玩家回血
         if (CarpetOrgAdditionSettings.fakePlayerHeal.get()) {
-            long time = FetcherUtils.getWorld(thisPlayer).getGameTime();
+            long time = ServerUtils.getWorld(thisPlayer).getGameTime();
             if (time % 40 == 0) {
                 // 回复血量
                 thisPlayer.heal(1);

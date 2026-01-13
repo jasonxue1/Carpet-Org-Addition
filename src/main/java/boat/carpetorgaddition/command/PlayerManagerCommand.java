@@ -381,7 +381,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             List<String> onlineList = server.getPlayerList()
                     .getPlayers()
                     .stream()
-                    .map(FetcherUtils::getPlayerName)
+                    .map(ServerUtils::getPlayerName)
                     .toList();
             HashSet<String> players = new HashSet<>();
             players.addAll(taskList);
@@ -476,7 +476,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 保存或删除安全挂机阈值
     private void saveSafeAfkThreshold(CommandContext<CommandSourceStack> context, float threshold, EntityPlayerMPFake fakePlayer) throws IOException {
-        String playerName = FetcherUtils.getPlayerName(fakePlayer);
+        String playerName = ServerUtils.getPlayerName(fakePlayer);
         WorldFormat worldFormat = new WorldFormat(context.getSource().getServer(), null);
         File file = worldFormat.file(SAFEAFK_PROPERTIES);
         // 文件存在或者文件成功创建
@@ -507,7 +507,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      */
     public static void loadSafeAfk(ServerPlayer player) {
         if (player instanceof EntityPlayerMPFake) {
-            WorldFormat worldFormat = new WorldFormat(FetcherUtils.getServer(player), null);
+            WorldFormat worldFormat = new WorldFormat(ServerUtils.getServer(player), null);
             File file = worldFormat.file(SAFEAFK_PROPERTIES);
             // 文件必须存在
             if (file.isFile()) {
@@ -524,7 +524,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 try {
                     // 设置安全挂机阈值
                     FakePlayerSafeAfkInterface safeAfk = (FakePlayerSafeAfkInterface) player;
-                    String value = properties.getProperty(FetcherUtils.getPlayerName(player));
+                    String value = properties.getProperty(ServerUtils.getPlayerName(player));
                     if (value == null) {
                         return;
                     }
@@ -533,9 +533,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     // 广播阈值设置的消息
                     TextBuilder builder = new TextBuilder(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
                     builder.setGrayItalic();
-                    MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
+                    MessageUtils.broadcastMessage(ServerUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
-                    CarpetOrgAddition.LOGGER.error("Failed to set the AFK safety threshold for {}", FetcherUtils.getPlayerName(player), e);
+                    CarpetOrgAddition.LOGGER.error("Failed to set the AFK safety threshold for {}", ServerUtils.getPlayerName(player), e);
                 }
             }
         }
@@ -649,7 +649,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
         // 玩家数据是否已存在
-        String name = FetcherUtils.getPlayerName(fakePlayer);
+        String name = ServerUtils.getPlayerName(fakePlayer);
         if (IOUtils.isValidFileName(name)) {
             throw CommandUtils.createException(LocalizationKeys.File.INVALID_NAME.translate());
         }
@@ -776,7 +776,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
      * 批量生成玩家
      */
     private int batchSpawn(CommandContext<CommandSourceStack> context, boolean at) throws CommandSyntaxException {
-        return batchSpawn(context, at, GenericUtils::pass);
+        return batchSpawn(context, at, CarpetOrgAddition::pass);
     }
 
     /**
@@ -818,7 +818,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     vec3d,
                     0,
                     0,
-                    FetcherUtils.getWorld(source).dimension(),
+                    ServerUtils.getWorld(source).dimension(),
                     GameType.SURVIVAL,
                     false,
                     consumer
@@ -829,7 +829,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     vec3d,
                     player.getYRot(),
                     player.getXRot(),
-                    FetcherUtils.getWorld(player).dimension(),
+                    ServerUtils.getWorld(player).dimension(),
                     player.gameMode.getGameModeForPlayer(),
                     player.getAbilities().flying,
                     consumer

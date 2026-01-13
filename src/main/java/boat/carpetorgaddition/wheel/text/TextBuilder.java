@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.wheel.text;
 
 import boat.carpetorgaddition.network.event.ActionSource;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.wheel.MetaComment;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
@@ -130,7 +130,7 @@ public class TextBuilder {
     }
 
     public TextBuilder setHover(Throwable e) {
-        String error = GenericUtils.getExceptionString(e);
+        String error = CommandUtils.getExceptionString(e);
         return this.setHover(create(error));
     }
 

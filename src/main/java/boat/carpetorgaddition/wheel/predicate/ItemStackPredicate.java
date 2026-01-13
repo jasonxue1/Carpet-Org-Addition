@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.wheel.predicate;
 
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.wheel.CommandRegistryAccessor;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -68,7 +68,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
 
     public ItemStackPredicate(@NotNull Item item) {
         this.predicate = itemStack -> itemStack.is(item);
-        this.input = GenericUtils.getIdAsString(item);
+        this.input = IdentifierUtils.getIdAsString(item);
         this.isWildcard = false;
         this.convert = item;
     }
@@ -86,7 +86,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         this.predicate = itemStack -> set.contains(itemStack.getItem());
         StringJoiner joiner = new StringJoiner(", ", "[", "]");
         for (Item item : set) {
-            joiner.add(GenericUtils.getIdAsString(item));
+            joiner.add(IdentifierUtils.getIdAsString(item));
         }
         this.input = joiner.toString();
         this.isWildcard = false;
@@ -258,7 +258,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 Component result = TextBuilder.combineAll(substring, ellipsis);
                 StringJoiner joiner = new StringJoiner(",\n");
                 for (Item item : this.items) {
-                    joiner.add(GenericUtils.getIdAsString(item));
+                    joiner.add(IdentifierUtils.getIdAsString(item));
                 }
                 return new TextBuilder(result).setGrayItalic().setHover(joiner.toString()).build();
             }

@@ -1,9 +1,9 @@
 package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.core.BlockPos;
@@ -25,7 +25,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     @Override
     public void tick() {
         Component text;
-        if (FetcherUtils.getWorld(this.player).equals(this.world)) {
+        if (ServerUtils.getWorld(this.player).equals(this.world)) {
             Component in = TextProvider.simpleBlockPos(this.blockPos);
             int distance = MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos);
             text = getHUDText(this.blockPos.getCenter(), in, distance);
@@ -53,7 +53,7 @@ public class BlockPosNavigator extends AbstractNavigator {
     @Override
     protected boolean isArrive() {
         // 玩家与目的地在同一维度
-        if (FetcherUtils.getWorld(this.player).equals(this.world)) {
+        if (ServerUtils.getWorld(this.player).equals(this.world)) {
             if (MathUtils.getBlockIntegerDistance(this.player.blockPosition(), this.blockPos) <= 8) {
                 // 到达目的地，停止追踪
                 MessageUtils.sendMessageToHud(this.player, REACH.translate());

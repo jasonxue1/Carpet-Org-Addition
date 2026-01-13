@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IOUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import carpet.api.settings.CarpetRule;
 import com.google.common.collect.BiMap;
@@ -43,7 +43,7 @@ public class RuleSelfManager {
         if (this.rules.isEmpty()) {
             return false;
         }
-        HashSet<String> rules = this.rules.get(FetcherUtils.getPlayerName(player));
+        HashSet<String> rules = this.rules.get(ServerUtils.getPlayerName(player));
         if (rules == null) {
             return false;
         }
@@ -59,7 +59,7 @@ public class RuleSelfManager {
      * 设置规则是否对自己生效
      */
     public void setEnabled(ServerPlayer player, String rule, boolean enabled) {
-        String playerName = FetcherUtils.getPlayerName(player);
+        String playerName = ServerUtils.getPlayerName(player);
         HashSet<String> rules = this.rules.get(playerName);
         if (rules == null) {
             if (enabled) {

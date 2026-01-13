@@ -2,6 +2,7 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
@@ -117,7 +118,7 @@ public abstract class AbstractPlayerAction {
     }
 
     protected MinecraftServer getServer() {
-        return FetcherUtils.getServer(this.getFakePlayer());
+        return ServerUtils.getServer(this.getFakePlayer());
     }
 
     public void clearFakePlayer() {

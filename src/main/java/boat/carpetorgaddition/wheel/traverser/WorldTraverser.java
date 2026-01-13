@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.wheel.traverser;
 
 import boat.carpetorgaddition.util.MathUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -30,10 +30,10 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
     public WorldTraverser(Level world, BlockPos sourcePos, int range) {
         this(
                 sourcePos.getX() - range,
-                WorldUtils.getMinArchitectureAltitude(world),
+                ServerUtils.getMinArchitectureAltitude(world),
                 sourcePos.getZ() - range,
                 sourcePos.getX() + range,
-                WorldUtils.getMaxArchitectureAltitude(world),
+                ServerUtils.getMaxArchitectureAltitude(world),
                 sourcePos.getZ() + range
         );
     }

@@ -2,10 +2,7 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Waypoint;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -166,11 +163,11 @@ public class NavigatorCommand extends AbstractServerCommand {
     private int navigateToBlock(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = BlockPosArgument.getBlockPos(context, "blockPos");
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         // 设置导航器，维度为玩家当前所在维度
         PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈
-        Component pos = TextProvider.blockPos(blockPos, WorldUtils.getColor(world));
+        Component pos = TextProvider.blockPos(blockPos, ServerUtils.getColor(world));
         Component name = player.getDisplayName();
         MessageUtils.sendMessage(context, START_NAVIGATION.translate(name, pos));
         return 1;
@@ -183,7 +180,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         try {
             LevelData.RespawnData respawnData = Objects.requireNonNull(player.getRespawnConfig()).respawnData();
             BlockPos respawnPos = respawnData.pos();
-            ServerLevel world = FetcherUtils.getServer(player).getLevel(respawnData.dimension());
+            ServerLevel world = ServerUtils.getServer(player).getLevel(respawnData.dimension());
             PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException(KEY.then("unable_to_find").translate(player.getDisplayName(), spawnPoint));

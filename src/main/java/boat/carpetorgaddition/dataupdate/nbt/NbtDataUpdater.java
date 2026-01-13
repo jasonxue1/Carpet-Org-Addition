@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.dataupdate.nbt;
 
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtVersion;
 import com.mojang.datafixers.DataFixer;
 import com.mojang.serialization.Dynamic;
@@ -24,7 +24,7 @@ public abstract class NbtDataUpdater {
     /**
      * 当前{@code Minecraft}的NBT数据版本
      */
-    public static final int CURRENT_VANILLA_DATA_VERSION = GenericUtils.getNbtDataVersion();
+    public static final int CURRENT_VANILLA_DATA_VERSION = ServerUtils.getVanillaDataVersion();
 
     public NbtDataUpdater(MinecraftServer server) {
         this.server = server;

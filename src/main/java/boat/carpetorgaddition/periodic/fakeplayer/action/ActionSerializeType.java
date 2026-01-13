@@ -1,11 +1,11 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
-import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.util.JsonUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.Vec3;
 
@@ -82,7 +82,7 @@ public enum ActionSerializeType {
      * 自动重命名物品
      */
     RENAME(json -> {
-        Item item = GenericUtils.getItem(json.get(RenameAction.ITEM).getAsString());
+        Item item = IdentifierUtils.getItem(json.get(RenameAction.ITEM).getAsString());
         String newName = json.get(RenameAction.NEW_NAME).getAsString();
         return new RenameAction(null, item, newName);
     }),
@@ -90,7 +90,7 @@ public enum ActionSerializeType {
      * 自动使用切石机
      */
     STONECUTTING(json -> {
-        Item item = GenericUtils.getItem(json.get(StonecuttingAction.ITEM).getAsString());
+        Item item = IdentifierUtils.getItem(json.get(StonecuttingAction.ITEM).getAsString());
         int index = json.get(StonecuttingAction.BUTTON).getAsInt();
         return new StonecuttingAction(null, item, index);
     }),
@@ -121,13 +121,13 @@ public enum ActionSerializeType {
             case "cuboid" -> {
                 JsonArray from = json.getAsJsonArray("from");
                 JsonArray to = json.getAsJsonArray("to");
-                return new BedrockAction(null, JsonUtils.toBlockPos(from), JsonUtils.toBlockPos(to), ai, timedMaterialRecycling);
+                return new BedrockAction(null, toBlockPos(from), toBlockPos(to), ai, timedMaterialRecycling);
             }
             case "cylinder" -> {
                 JsonArray center = json.getAsJsonArray("center");
                 int radius = json.get("radius").getAsInt();
                 int height = json.get("height").getAsInt();
-                return new BedrockAction(null, JsonUtils.toBlockPos(center), radius, height, ai, timedMaterialRecycling);
+                return new BedrockAction(null, toBlockPos(center), radius, height, ai, timedMaterialRecycling);
             }
             default -> {
                 return new StopAction(null);
@@ -153,5 +153,26 @@ public enum ActionSerializeType {
      */
     public String getSerializedName() {
         return this.serializedName;
+    }
+
+    /**
+     * 将一个方块坐标转换为json数组
+     */
+    public static JsonArray toJson(BlockPos blockPos) {
+        JsonArray array = new JsonArray();
+        array.add(blockPos.getX());
+        array.add(blockPos.getY());
+        array.add(blockPos.getZ());
+        return array;
+    }
+
+    /**
+     * 将一个json数组转换成一个方块坐标
+     */
+    public static BlockPos toBlockPos(JsonArray array) {
+        int x = array.get(0).getAsInt();
+        int y = array.get(1).getAsInt();
+        int z = array.get(2).getAsInt();
+        return new BlockPos(x, y, z);
     }
 }

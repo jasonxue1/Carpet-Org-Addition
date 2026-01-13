@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
@@ -32,8 +32,8 @@ public abstract class ServerPlayerEntityMixin {
             restock(inventory);
         }
         // 自动同步玩家状态
-        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && FetcherUtils.getWorld(thisPlayer).getGameTime() % 30 == 0) {
-            FetcherUtils.getServer(thisPlayer).getPlayerList().sendAllPlayerInfo(thisPlayer);
+        if (CarpetOrgAdditionSettings.autoSyncPlayerStatus.get() && ServerUtils.getWorld(thisPlayer).getGameTime() % 30 == 0) {
+            ServerUtils.getServer(thisPlayer).getPlayerList().sendAllPlayerInfo(thisPlayer);
             BlockPos blockPos = thisPlayer.blockPosition();
             int range = (int) Math.min(thisPlayer.blockInteractionRange() + 1, 8);
             BlockPosTraverser traverser = new BlockPosTraverser(blockPos.offset(-range, -range, -range), blockPos.offset(range, range, range));

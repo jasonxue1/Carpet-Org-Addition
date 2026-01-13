@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.wheel;
 
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,14 +23,14 @@ public record FakePlayerCreateContext(
 ) {
     @SuppressWarnings("unused")
     public FakePlayerCreateContext(ServerPlayer player) {
-        this(player, GenericUtils::pass);
+        this(player, CarpetOrgAddition::pass);
     }
 
     public FakePlayerCreateContext(ServerPlayer player, @NotNull Consumer<EntityPlayerMPFake> consumer) {
-        this(FetcherUtils.getFootPos(player),
+        this(ServerUtils.getFootPos(player),
                 player.getYRot(),
                 player.getXRot(),
-                FetcherUtils.getWorld(player).dimension(),
+                ServerUtils.getWorld(player).dimension(),
                 player.gameMode.getGameModeForPlayer(),
                 player.getAbilities().flying,
                 consumer

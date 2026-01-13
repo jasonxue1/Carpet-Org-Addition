@@ -6,7 +6,7 @@ import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.CreeperExplosionTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -40,8 +40,8 @@ public class CreeperCommand extends AbstractServerCommand {
         if (sourcePlayer != null) {
             CarpetOrgAddition.LOGGER.info(
                     "{} triggered a creeper explosion around {}",
-                    FetcherUtils.getPlayerName(sourcePlayer),
-                    FetcherUtils.getPlayerName(targetPlayer)
+                    ServerUtils.getPlayerName(sourcePlayer),
+                    ServerUtils.getPlayerName(targetPlayer)
             );
         }
         return 1;

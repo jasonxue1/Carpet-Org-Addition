@@ -4,7 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.ThreadContextPropagator;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
@@ -34,16 +34,16 @@ import java.util.function.Consumer;
 public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> whenCompleteAsync(CompletableFuture<Optional<GameProfile>> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        Consumer<EntityPlayerMPFake> onFakePlayerSpawning = GenericUtils.FAKE_PLAYER_SPAWNING.get();
+        Consumer<EntityPlayerMPFake> onFakePlayerSpawning = ServerUtils.FAKE_PLAYER_SPAWNING.get();
         if (onFakePlayerSpawning == null) {
             return original.call(instance, action, executor);
         }
         BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> {
             try {
-                GenericUtils.INTERNAL_FAKE_PLAYER_SPAWNING.set(onFakePlayerSpawning);
+                ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.set(onFakePlayerSpawning);
                 action.accept(value, throwable);
             } finally {
-                GenericUtils.INTERNAL_FAKE_PLAYER_SPAWNING.remove();
+                ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.remove();
             }
         };
         return original.call(instance, biConsumer, executor);
@@ -69,7 +69,7 @@ public class EntityPlayerMPFakeMixin {
 
     @Inject(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
     private static void spawn(CallbackInfo ci, @Local(name = "instance") EntityPlayerMPFake fakePlayer) {
-        Consumer<EntityPlayerMPFake> consumer = GenericUtils.INTERNAL_FAKE_PLAYER_SPAWNING.get();
+        Consumer<EntityPlayerMPFake> consumer = ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.get();
         if (consumer == null) {
             return;
         }

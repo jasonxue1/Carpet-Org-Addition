@@ -5,9 +5,9 @@ import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.mixin.accessor.MerchantScreenHandlerAccessor;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
@@ -90,7 +90,7 @@ public class TradeAction extends AbstractPlayerAction {
             }
             // 判断按钮索引是否越界
             if (merchantScreenHandler.getOffers().size() <= this.index) {
-                MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+                MinecraftServer server = ServerUtils.getServer(fakePlayer);
                 MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName()));
                 this.stop();
                 return;
@@ -261,10 +261,10 @@ public class TradeAction extends AbstractPlayerAction {
     private boolean shouldWait(AbstractVillager merchant) {
         // 如果村民所在区块没有被加载，可以交易
         ChunkPos chunkPos = merchant.chunkPosition();
-        if (FetcherUtils.getWorld(merchant).hasChunk(chunkPos.x(), chunkPos.z())) {
+        if (ServerUtils.getWorld(merchant).hasChunk(chunkPos.x(), chunkPos.z())) {
             // 检查村民是否存在于任何一个维度，如果不存在，可以交易
             UUID uuid = merchant.getUUID();
-            MinecraftServer server = FetcherUtils.getServer(merchant);
+            MinecraftServer server = ServerUtils.getServer(merchant);
             if (server == null) {
                 return true;
             }

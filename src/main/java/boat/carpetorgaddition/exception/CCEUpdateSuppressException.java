@@ -1,8 +1,7 @@
 package boat.carpetorgaddition.exception;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ServerGamePacketListener;
@@ -27,7 +26,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
      */
     public void onCatch(ServerPlayer player, Packet<ServerGamePacketListener> packet) {
         StringBuilder builder = new StringBuilder();
-        builder.append(FetcherUtils.getPlayerName(player)).append(" triggered CCE update suppression while ");
+        builder.append(ServerUtils.getPlayerName(player)).append(" triggered CCE update suppression while ");
         if (packet instanceof ServerboundPlayerActionPacket actionC2SPacket) {
             // 破坏方块
             switch (actionC2SPacket.getAction()) {
@@ -46,7 +45,7 @@ public class CCEUpdateSuppressException extends ClassCastException {
             // 其它异常
             builder.append("sending a ").append(packet.getClass().getSimpleName()).append(" packet");
         }
-        String worldPos = WorldUtils.toWorldPosString(FetcherUtils.getWorld(player), this.triggerPos);
+        String worldPos = ServerUtils.toWorldPosString(ServerUtils.getWorld(player), this.triggerPos);
         builder.append(" at ").append(worldPos);
         CarpetOrgAddition.LOGGER.info(builder.toString());
     }

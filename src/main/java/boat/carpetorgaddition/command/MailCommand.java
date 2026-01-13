@@ -125,7 +125,7 @@ public class MailCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
         GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
-        Optional<ServerPlayer> optional = GenericUtils.getPlayer(server, gameProfile);
+        Optional<ServerPlayer> optional = ServerUtils.getPlayer(server, gameProfile);
         ParcelManager manager = ServerComponentCoordinator.getCoordinator(context).getParcelManager();
         Parcel parcel;
         if (optional.isEmpty()) {
@@ -150,7 +150,7 @@ public class MailCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
         GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
-        Optional<ServerPlayer> optional = GenericUtils.getPlayer(server, gameProfile);
+        Optional<ServerPlayer> optional = ServerUtils.getPlayer(server, gameProfile);
         if (optional.isPresent()) {
             checkPlayer(sourcePlayer, optional.get());
         }

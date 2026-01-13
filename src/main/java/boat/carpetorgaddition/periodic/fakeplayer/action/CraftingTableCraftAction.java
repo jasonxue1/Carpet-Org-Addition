@@ -4,9 +4,9 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -64,8 +64,8 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             list.add(optional.get().getDefaultInstance());
         }
         CraftingInput input = CraftingInput.of(widthHeight, widthHeight, list);
-        Level world = FetcherUtils.getWorld(fakePlayer);
-        Optional<RecipeHolder<CraftingRecipe>> optional = FetcherUtils.getServer(fakePlayer).getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, world);
+        Level world = ServerUtils.getWorld(fakePlayer);
+        Optional<RecipeHolder<CraftingRecipe>> optional = ServerUtils.getServer(fakePlayer).getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, world);
         return optional.map(recipe -> recipe.value().assemble(input, world.registryAccess())).orElse(ItemStack.EMPTY);
     }
 

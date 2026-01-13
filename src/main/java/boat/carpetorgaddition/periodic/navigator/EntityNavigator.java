@@ -2,10 +2,7 @@ package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
-import boat.carpetorgaddition.util.MathUtils;
-import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
@@ -46,7 +43,7 @@ public class EntityNavigator extends AbstractNavigator {
         this.entity = Objects.requireNonNull(entity);
         this.isContinue = isContinue;
         this.prevPos = entity.getEyePosition();
-        this.prevWorld = FetcherUtils.getWorld(entity);
+        this.prevWorld = ServerUtils.getWorld(entity);
     }
 
     @Override
@@ -57,9 +54,9 @@ public class EntityNavigator extends AbstractNavigator {
             this.clear();
             return;
         }
-        Level world = FetcherUtils.getWorld(this.entity);
+        Level world = ServerUtils.getWorld(this.entity);
         Component text;
-        if (FetcherUtils.getWorld(this.player).equals(world)) {
+        if (ServerUtils.getWorld(this.player).equals(world)) {
             // 获取翻译后的文本信息
             Component in = IN.translate(entity.getName(), TextProvider.simpleBlockPos(entity.blockPosition()));
             int distance = MathUtils.getBlockIntegerDistance(player.blockPosition(), entity.blockPosition());
@@ -67,24 +64,24 @@ public class EntityNavigator extends AbstractNavigator {
             Vec3 eyePos = this.entity.getEyePosition();
             text = getHUDText(eyePos, in, distance);
         } else {
-            Component dimension = TextProvider.dimension(FetcherUtils.getWorld(this.entity));
+            Component dimension = TextProvider.dimension(ServerUtils.getWorld(this.entity));
             Component pos = TextProvider.simpleBlockPos(entity.blockPosition());
             text = IN.translate(entity.getName(), TextBuilder.combineAll(dimension, pos));
         }
         MessageUtils.sendMessageToHud(this.player, text);
         this.syncWaypoint(false);
         this.prevPos = this.entity.getEyePosition();
-        this.prevWorld = FetcherUtils.getWorld(this.entity);
+        this.prevWorld = ServerUtils.getWorld(this.entity);
     }
 
     @Override
     protected WaypointUpdateS2CPacket createPacket() {
-        return new WaypointUpdateS2CPacket(this.entity.getEyePosition(), FetcherUtils.getWorld(this.entity));
+        return new WaypointUpdateS2CPacket(this.entity.getEyePosition(), ServerUtils.getWorld(this.entity));
     }
 
     @Override
     protected boolean updateRequired() {
-        return !(this.prevPos.equals(this.entity.getEyePosition()) && this.prevWorld.equals(FetcherUtils.getWorld(this.entity)));
+        return !(this.prevPos.equals(this.entity.getEyePosition()) && this.prevWorld.equals(ServerUtils.getWorld(this.entity)));
     }
 
     /**
@@ -95,7 +92,7 @@ public class EntityNavigator extends AbstractNavigator {
         if (this.isContinue) {
             return false;
         }
-        if (FetcherUtils.getWorld(this.player).equals(FetcherUtils.getWorld(this.entity))
+        if (ServerUtils.getWorld(this.player).equals(ServerUtils.getWorld(this.entity))
             && MathUtils.getBlockDistance(player.blockPosition(), entity.blockPosition()) <= 8) {
             // 停止追踪
             MessageUtils.sendMessageToHud(this.player, REACH.translate());
@@ -118,7 +115,7 @@ public class EntityNavigator extends AbstractNavigator {
                     // 就从服务器的玩家管理器中查找新的玩家实体对象，如果找到了，设置目标为新玩家，如果找不到，玩家的追踪器对象不变
                     // 只要这个玩家在线，就不需要清除这个追踪器，因为玩家可以复活
                     UUID uuid = corpse.getUUID();
-                    Optional<ServerPlayer> optional = GenericUtils.getPlayer(this.server, uuid);
+                    Optional<ServerPlayer> optional = ServerUtils.getPlayer(this.server, uuid);
                     if (optional.isEmpty()) {
                         // 如果玩家已经下线，返回true
                         yield true;
@@ -142,7 +139,7 @@ public class EntityNavigator extends AbstractNavigator {
         // 如果找到，重新设置玩家的追踪实体对象
         // 否则，以实体消失的位置为目标继续导航，并在下一个游戏刻继续查找
         UUID uuid = corpse.getUUID();
-        Optional<Entity> optional = GenericUtils.getEntity(this.server, uuid);
+        Optional<Entity> optional = ServerUtils.getEntity(this.server, uuid);
         optional.ifPresent(value -> this.entity = value);
         return false;
     }

@@ -7,8 +7,8 @@ import boat.carpetorgaddition.exception.ProductionEnvironmentError;
 import boat.carpetorgaddition.mixin.debug.accessor.ExperienceOrbEntityAccessor;
 import boat.carpetorgaddition.mixin.debug.accessor.HandledScreenAccessor;
 import boat.carpetorgaddition.mixin.debug.accessor.ScreenAccessor;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.blaze3d.platform.Window;
@@ -61,7 +61,7 @@ public class HudDebugRendererRegister {
 
     static {
         // 显示方块挖掘速度
-        renders.put(GenericUtils.ofIdentifier("block_destroy_speed"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("block_destroy_speed"), (context, _) -> {
             if (DebugSettings.showBlockBreakingSpeed.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -70,7 +70,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     LocalPlayer player = ClientUtils.getPlayer();
-                    ServerLevel world = getServer().getLevel(FetcherUtils.getWorld(player).dimension());
+                    ServerLevel world = getServer().getLevel(ServerUtils.getWorld(player).dimension());
                     if (world == null) {
                         return;
                     }
@@ -90,7 +90,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染比较器强度
-        renders.put(GenericUtils.ofIdentifier("comparator_level"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("comparator_level"), (context, _) -> {
             if (DebugSettings.showComparatorLevel.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -99,7 +99,7 @@ public class HudDebugRendererRegister {
                 if (hitResult instanceof BlockHitResult blockHitResult) {
                     BlockPos blockPos = blockHitResult.getBlockPos();
                     LocalPlayer player = ClientUtils.getPlayer();
-                    ServerLevel world = getServer().getLevel(FetcherUtils.getWorld(player).dimension());
+                    ServerLevel world = getServer().getLevel(ServerUtils.getWorld(player).dimension());
                     if (world == null) {
                         return;
                     }
@@ -115,7 +115,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染灵魂沙物品数量
-        renders.put(GenericUtils.ofIdentifier("soul_sand_item_count"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("soul_sand_item_count"), (context, _) -> {
             if (showSoulSandItemCount()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -173,7 +173,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.put(GenericUtils.ofIdentifier("hud_information_display"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("hud_information_display"), (context, _) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
                 Minecraft client = ClientUtils.getClient();
                 Screen screen = ClientUtils.getCurrentScreen();
@@ -213,7 +213,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.put(GenericUtils.ofIdentifier("show_player_experience"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("show_player_experience"), (context, _) -> {
             if (DebugSettings.showPlayerExperience.get() && ClientUtils.getCrosshairTarget() instanceof EntityHitResult hitResult) {
                 Entity entity = hitResult.getEntity();
                 if (entity instanceof Player) {

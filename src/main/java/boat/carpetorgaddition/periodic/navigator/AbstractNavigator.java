@@ -5,7 +5,7 @@ import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
@@ -28,7 +28,7 @@ public abstract class AbstractNavigator {
 
     public AbstractNavigator(ServerPlayer player) {
         this.player = player;
-        this.server = FetcherUtils.getServer(player);
+        this.server = ServerUtils.getServer(player);
         this.manager = PlayerComponentCoordinator.getManager(this.player).getNavigatorManager();
     }
 

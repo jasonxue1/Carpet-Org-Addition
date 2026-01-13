@@ -13,6 +13,7 @@ import net.minecraft.server.players.PlayerList;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class MessageUtils {
@@ -37,7 +38,7 @@ public class MessageUtils {
      * 广播一条错误消息
      */
     public static void broadcastErrorMessage(MinecraftServer server, Component component, Throwable e) {
-        String error = GenericUtils.getExceptionString(e);
+        String error = CommandUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
         builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
@@ -52,7 +53,7 @@ public class MessageUtils {
      */
     public static void sendMessage(ServerPlayer player, Component message) {
         player.sendSystemMessage(message);
-        writeLog(FetcherUtils.getPlayerName(player), message.getString());
+        writeLog(ServerUtils.getPlayerName(player), message.getString());
     }
 
     /**
@@ -82,7 +83,7 @@ public class MessageUtils {
     }
 
     public static void sendErrorMessage(CommandSourceStack source, Component message, Throwable e) {
-        String error = GenericUtils.getExceptionString(e);
+        String error = CommandUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(message);
         builder.setColor(ChatFormatting.RED);
         builder.setHover(error);
@@ -106,7 +107,7 @@ public class MessageUtils {
     /**
      * 如果是玩家，则向HUD发送消息
      */
-    @Deprecated
+    @SuppressWarnings("unused")
     public static void sendMessageToHudIfPlayer(CommandSourceStack source, Component message) {
         ServerPlayer player = source.getPlayer();
         if (player == null) {
@@ -129,6 +130,14 @@ public class MessageUtils {
             return;
         }
         sendMessage(player, supplier.get());
+    }
+
+    public static void sendMessageIfPlayerOnline(MinecraftServer server, String name, Function<ServerPlayer, Component> function) {
+        ServerPlayer player = server.getPlayerList().getPlayerByName(name);
+        if (player == null) {
+            return;
+        }
+        sendMessage(player, function.apply(player));
     }
 
     public static void sendErrorMessageToHud(CommandSourceStack source, CommandSyntaxException e) {

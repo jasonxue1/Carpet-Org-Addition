@@ -4,7 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MathUtils;
-import boat.carpetorgaddition.util.ScreenUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -39,7 +39,7 @@ public abstract class ScreenHandlerMixin {
             if (this.canOpenShulker() && InventoryUtils.isOperableSulkerBox(stack) && this.getCarried().isEmpty()) {
                 // 创造模式物品栏是一个客户端屏幕，因此点击潜影盒不会打开物品栏
                 if (player instanceof ServerPlayer) {
-                    ScreenUtils.openShulkerScreenHandler((ServerPlayer) player, stack);
+                    PlayerUtils.openShulkerScreenHandler((ServerPlayer) player, stack);
                 }
                 ci.cancel();
             }

@@ -2,8 +2,8 @@ package boat.carpetorgaddition.mixin.rule.displayplayersummoner;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -52,12 +52,12 @@ public class EntityPlayerMPFakeMixin {
             }
             TextBuilder builder = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER.builder(player.getDisplayName());
             builder.setGrayItalic();
-            Component dimension = TextProvider.dimension(FetcherUtils.getWorld(fakePlayer));
+            Component dimension = TextProvider.dimension(ServerUtils.getWorld(fakePlayer));
             Component blockPos = TextProvider.simpleBlockPos(fakePlayer.blockPosition());
             Component pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
-            MessageUtils.broadcastMessage(FetcherUtils.getServer(player), builder.build());
-            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", FetcherUtils.getPlayerName(player), FetcherUtils.getPlayerName(fakePlayer), pos.getString());
+            MessageUtils.broadcastMessage(ServerUtils.getServer(player), builder.build());
+            CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", ServerUtils.getPlayerName(player), ServerUtils.getPlayerName(fakePlayer), pos.getString());
         }
     }
 }

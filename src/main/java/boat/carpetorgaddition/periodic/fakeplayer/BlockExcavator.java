@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -59,7 +59,7 @@ public class BlockExcavator {
         if (breakingCooldown && this.blockBreakingCooldown > 0) {
             return false;
         }
-        Level world = FetcherUtils.getWorld(this.player);
+        Level world = ServerUtils.getWorld(this.player);
         ServerPlayerGameMode interactionManager = this.player.gameMode;
         GameType gameMode = interactionManager.getGameModeForPlayer();
         // 当前方块是可以破坏的
@@ -146,7 +146,7 @@ public class BlockExcavator {
      * @return 破坏当前方块还需要多少个游戏刻
      */
     public int computingRemainingMiningTime(BlockPos blockPos) {
-        Level world = FetcherUtils.getWorld(this.player);
+        Level world = ServerUtils.getWorld(this.player);
         if (this.player.isCreative()) {
             return 1;
         }
@@ -156,7 +156,7 @@ public class BlockExcavator {
     }
 
     private void breakingAction(Action action, BlockPos blockPos, Direction direction) {
-        Level world = FetcherUtils.getWorld(this.player);
+        Level world = ServerUtils.getWorld(this.player);
         this.player.gameMode.handleBlockBreakAction(blockPos, action, direction, world.getMaxY(), -1);
     }
 
@@ -168,7 +168,7 @@ public class BlockExcavator {
      * @return 玩家是否可以破坏指定位置的方块
      */
     public static boolean canBreak(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         BlockState blockState = world.getBlockState(blockPos);
         Block block = blockState.getBlock();
         // 非管理员不能破坏管理员方块

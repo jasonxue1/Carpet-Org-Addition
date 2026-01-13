@@ -2,7 +2,7 @@ package boat.carpetorgaddition.dataupdate.json.player;
 
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FillTheContainerAction;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import com.google.gson.JsonObject;
 
@@ -22,7 +22,7 @@ public class FillTheContainerActionDataUpdater implements DataUpdater {
             } else if (json.has(FillTheContainerAction.ITEM)) {
                 // 匹配指定物品
                 String itemId = json.get(FillTheContainerAction.ITEM).getAsString();
-                predicate = new ItemStackPredicate(GenericUtils.getItem(itemId));
+                predicate = new ItemStackPredicate(IdentifierUtils.getItem(itemId));
             } else {
                 predicate = ItemStackPredicate.WILDCARD;
             }

@@ -180,7 +180,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (this.tickCurrentWork()) {
             return;
         }
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         this.removeIf(context -> {
             if (context.getState() == BreakingState.COMPLETE) {
                 return true;
@@ -410,7 +410,7 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private StepResult placePiston(BlockPos bedrockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         if (this.aboveHasFallingBlockEntity(bedrockPos)) {
             return StepResult.COMPLETION;
         }
@@ -490,7 +490,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private StepResult placeAndActivateTheLever(BedrockBreakingContext context) {
         BlockPos bedrockPos = context.getBedrockPos();
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         ServerPlayerGameMode interactionManager = fakePlayer.gameMode;
         Direction direction = null;
         for (Direction value : MathUtils.HORIZONTAL) {
@@ -585,7 +585,7 @@ public class BedrockAction extends AbstractPlayerAction {
         BlockPos bedrockPos = context.getBedrockPos();
         BlockPos up = bedrockPos.above();
         // 基岩上方方块是活塞
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         BlockState blockState = world.getBlockState(up);
         if (blockState.is(Blocks.PISTON) && blockState.getValue(PistonBaseBlock.EXTENDED)) {
             BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
@@ -625,7 +625,7 @@ public class BedrockAction extends AbstractPlayerAction {
      * 关闭周围所有可能激活活塞的拉杆
      */
     private void closeTheSurroundingLevers(BlockPos pistonPos) {
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         Consumer<BlockPos> consumer = blockPos -> {
             BlockState blockState = world.getBlockState(blockPos);
             if (blockState.isAir()) {
@@ -674,7 +674,7 @@ public class BedrockAction extends AbstractPlayerAction {
      */
     private boolean cleanPiston(BlockPos blockPos) {
         BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
-        BlockState blockState = FetcherUtils.getWorld(this.getFakePlayer()).getBlockState(blockPos);
+        BlockState blockState = ServerUtils.getWorld(this.getFakePlayer()).getBlockState(blockPos);
         if (blockState.isAir()) {
             return true;
         }
@@ -691,7 +691,7 @@ public class BedrockAction extends AbstractPlayerAction {
 
     private StepResult tickBreakBlock(BlockExcavator blockExcavator, BlockPos blockPos) {
         EntityPlayerMPFake player = blockExcavator.getPlayer();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         if (FallingBlock.isFree(world.getBlockState(blockPos.above()))) {
             // 等待上方下落的方块实体落下
             if (aboveHasFallingBlockEntity(blockPos)) {
@@ -761,9 +761,9 @@ public class BedrockAction extends AbstractPlayerAction {
 
     private boolean hasFallingSand(int range, BlockPos blockPos) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         BlockPos from = new BlockPos(blockPos.getX() - range, blockPos.getY(), blockPos.getZ() - range);
-        BlockPos to = new BlockPos(blockPos.getX() + range, WorldUtils.getMaxArchitectureAltitude(world), blockPos.getZ() + range);
+        BlockPos to = new BlockPos(blockPos.getX() + range, ServerUtils.getMaxArchitectureAltitude(world), blockPos.getZ() + range);
         return new EntityTraverser<>(world, from, to, FallingBlockEntity.class).isPresent();
     }
 
@@ -776,7 +776,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private boolean breakBlock(BlockExcavator blockExcavator, BlockPos blockPos, boolean switchTool) {
         this.hasAction = true;
         EntityPlayerMPFake player = blockExcavator.getPlayer();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
             switchTool(blockState, world, blockPos, player);
@@ -823,7 +823,7 @@ public class BedrockAction extends AbstractPlayerAction {
         this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.PISTON));
         // 放置活塞
         BlockHitResult hitResult = new BlockHitResult(Vec3.upFromBottomCenterOf(bedrockPos, 1.0), direction, bedrockPos.above(), false);
-        InteractionResult result = interactionManager.useItemOn(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
+        InteractionResult result = interactionManager.useItemOn(fakePlayer, ServerUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
         if (result.consumesAction()) {
             this.hasAction = true;
         }
@@ -838,7 +838,7 @@ public class BedrockAction extends AbstractPlayerAction {
         ServerPlayerGameMode interactionManager = fakePlayer.gameMode;
         fakePlayer.lookAt(EntityAnchorArgument.Anchor.EYES, blockPos.getCenter());
         BlockHitResult hitResult = new BlockHitResult(Vec3.upFromBottomCenterOf(blockPos, 1.0), Direction.DOWN, blockPos, false);
-        interactionManager.useItemOn(fakePlayer, FetcherUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
+        interactionManager.useItemOn(fakePlayer, ServerUtils.getWorld(fakePlayer), fakePlayer.getOffhandItem(), InteractionHand.OFF_HAND, hitResult);
     }
 
     /**
@@ -847,7 +847,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private void interactionLever(BlockPos leverPos) {
         ServerPlayerGameMode interactionManager = this.getFakePlayer().gameMode;
         BlockHitResult hitResult = new BlockHitResult(leverPos.getCenter(), Direction.UP, leverPos, false);
-        InteractionResult result = interactionManager.useItemOn(this.getFakePlayer(), FetcherUtils.getWorld(this.getFakePlayer()), this.getFakePlayer().getMainHandItem(), InteractionHand.MAIN_HAND, hitResult);
+        InteractionResult result = interactionManager.useItemOn(this.getFakePlayer(), ServerUtils.getWorld(this.getFakePlayer()), this.getFakePlayer().getMainHandItem(), InteractionHand.MAIN_HAND, hitResult);
         if (result.consumesAction()) {
             this.hasAction = true;
         }
@@ -880,7 +880,7 @@ public class BedrockAction extends AbstractPlayerAction {
         while (iterator.hasNext()) {
             BlockPos blockPos = iterator.next();
             EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-            Level world = FetcherUtils.getWorld(fakePlayer);
+            Level world = ServerUtils.getWorld(fakePlayer);
             if (this.canInteract(blockPos) &&
                 (this.inventory.replenishment(InteractionHand.OFF_HAND, canDrainFluid(world, blockPos)) ||
                  this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.PISTON)))) {
@@ -920,7 +920,7 @@ public class BedrockAction extends AbstractPlayerAction {
             if (this.getFakePlayer().getUseItem().isEmpty()) {
                 if (this.inventory.replenishment(InventoryUtils::isFoodItem)) {
                     ServerPlayerGameMode interactionManager = this.getFakePlayer().gameMode;
-                    Level world = FetcherUtils.getWorld(this.getFakePlayer());
+                    Level world = ServerUtils.getWorld(this.getFakePlayer());
                     ItemStack food = this.getFakePlayer().getMainHandItem();
                     interactionManager.useItem(this.getFakePlayer(), world, food, InteractionHand.MAIN_HAND);
                 } else {
@@ -955,7 +955,7 @@ public class BedrockAction extends AbstractPlayerAction {
         }
         if (this.itemEntities.isEmpty()) {
             AABB box = this.traverser.toBox().inflate(10.0);
-            List<ItemEntity> list = FetcherUtils.getWorld(this.getFakePlayer()).getEntitiesOfClass(ItemEntity.class, box)
+            List<ItemEntity> list = ServerUtils.getWorld(this.getFakePlayer()).getEntitiesOfClass(ItemEntity.class, box)
                     .stream()
                     .filter(itemEntity -> isMaterial(itemEntity.getItem()))
                     .toList();
@@ -984,7 +984,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private void dropGarbageAndCollectMaterial() {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
         Inventory inventory = fakePlayer.getInventory();
-        Level world = FetcherUtils.getWorld(fakePlayer);
+        Level world = ServerUtils.getWorld(fakePlayer);
         BlockPos blockPos = fakePlayer.blockPosition();
         ItemStack mostStack = ItemStack.EMPTY;
         for (int i = 0; i < inventory.getNonEquipmentItems().size(); i++) {
@@ -1130,13 +1130,13 @@ public class BedrockAction extends AbstractPlayerAction {
         switch (this.regionType) {
             case CUBOID -> {
                 BlockPos minBlockPos = this.traverser.getMinBlockPos();
-                json.add("from", JsonUtils.toJson(minBlockPos));
+                json.add("from", ActionSerializeType.toJson(minBlockPos));
                 BlockPos maxBlockPos = this.traverser.getMaxBlockPos();
-                json.add("to", JsonUtils.toJson(maxBlockPos));
+                json.add("to", ActionSerializeType.toJson(maxBlockPos));
             }
             case CYLINDER -> {
                 CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
-                json.add("center", JsonUtils.toJson(iterator.getCenter()));
+                json.add("center", ActionSerializeType.toJson(iterator.getCenter()));
                 json.addProperty("radius", iterator.getRadius());
                 json.addProperty("height", iterator.getHeight());
             }
@@ -1179,7 +1179,7 @@ public class BedrockAction extends AbstractPlayerAction {
     public Optional<BlockPos> getMovingTarget() {
         switch (this.getPhase()) {
             case WORK -> {
-                Level world = FetcherUtils.getWorld(this.getFakePlayer());
+                Level world = ServerUtils.getWorld(this.getFakePlayer());
                 if (this.bedrockTarget == null) {
                     return Optional.empty();
                 }

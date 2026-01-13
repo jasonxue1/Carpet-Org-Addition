@@ -130,7 +130,7 @@ public class CommandUtils {
      * @param e         异常的原因，作为文本的悬停提示
      */
     public static CommandSyntaxException createException(Component component, Throwable e) {
-        String message = GenericUtils.getExceptionString(e);
+        String message = getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
         builder.setHover(message);
         return new SimpleCommandExceptionType(builder.build()).create();
@@ -187,11 +187,7 @@ public class CommandUtils {
     }
 
     public static ServerPlayer getPlayer(MinecraftServer server, String name) throws CommandSyntaxException {
-        ServerPlayer player = server.getPlayerList().getPlayer(name);
-        if (player == null) {
-            throw createPlayerNotFoundException();
-        }
-        return player;
+        return ServerUtils.getPlayer(server, name).orElseThrow(CommandUtils::createPlayerNotFoundException);
     }
 
     /**
@@ -316,6 +312,16 @@ public class CommandUtils {
 
     public static boolean canUseCommand(CommandSourceStack source, String rule) {
         return CommandHelper.canUseCommand(source, rule);
+    }
+
+    /**
+     * @return 获取异常的类名+消息形式，如果没有消息，返回异常类的简单类名
+     * @apiNote 不使用 {@code toString} 方法是因为方法可能被子类重写
+     */
+    public static String getExceptionString(Throwable throwable) {
+        String name = throwable.getClass().getSimpleName();
+        String message = throwable.getMessage();
+        return message == null ? name : name + ": " + message;
     }
 
     @FunctionalInterface

@@ -3,7 +3,7 @@ package boat.carpetorgaddition.mixin.rule.canminespawner;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.rule.CustomRuleControls;
 import boat.carpetorgaddition.util.EnchantmentUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -54,7 +54,7 @@ public abstract class SpawnerBlockMixin extends BaseEntityBlock {
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if (!world.isClientSide() && blockEntity instanceof SpawnerBlockEntity spawner) {
                 ItemStack itemStack = new ItemStack(Items.SPAWNER);
-                MinecraftServer server = FetcherUtils.getServer(player);
+                MinecraftServer server = ServerUtils.getServer(player);
                 if (server != null) {
                     TagValueOutput view = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, server.registryAccess());
                     BaseSpawner logic = spawner.getSpawner();

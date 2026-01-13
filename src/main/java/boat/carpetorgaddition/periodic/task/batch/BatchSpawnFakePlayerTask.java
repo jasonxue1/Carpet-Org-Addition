@@ -3,9 +3,8 @@ package boat.carpetorgaddition.periodic.task.batch;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.periodic.task.ServerTask;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import net.minecraft.commands.CommandSourceStack;
@@ -91,13 +90,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             });
         }
         this.count = count;
-        this.startTime = FetcherUtils.getWorld(this.source).getGameTime();
+        this.startTime = ServerUtils.getWorld(this.source).getGameTime();
     }
 
     @Override
     protected void tick() {
         int size = this.players.size();
-        long time = FetcherUtils.getWorld(this.source).getGameTime();
+        long time = ServerUtils.getWorld(this.source).getGameTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
@@ -105,14 +104,12 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             if (size < this.count) {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
-                    Component message = key.translate(size, this.count);
-                    MessageUtils.sendMessageToHudIfPlayer(this.source, message);
+                    MessageUtils.sendMessageToHudIfPlayer(this.source, () -> key.translate(size, this.count));
                 }
                 return;
             }
             if (progress) {
-                Component message = key.then("done").translate();
-                MessageUtils.sendMessageToHudIfPlayer(this.source, message);
+                MessageUtils.sendMessageToHudIfPlayer(this.source, () -> key.then("done").translate());
             }
             this.isPreload = false;
         }
@@ -130,7 +127,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                     return;
                 }
                 NameAndId entry = iterator.next();
-                GenericUtils.createFakePlayer(entry.name(), this.server, this.context);
+                ServerUtils.createFakePlayer(entry.name(), this.server, this.context);
             }
         } finally {
             batchSpawnHiddenMessage.set(false);

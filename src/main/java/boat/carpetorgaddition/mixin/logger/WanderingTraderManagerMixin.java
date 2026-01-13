@@ -6,10 +6,7 @@ import boat.carpetorgaddition.logger.Loggers;
 import boat.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import boat.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import boat.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -63,7 +60,7 @@ public class WanderingTraderManagerMixin {
         original.call(trader, pos, i);
         if (LoggerRegister.wanderingTrader && WanderingTraderSpawnLogger.spawnCountdownNonNull()) {
             // 获取流浪商人所在的服务器
-            MinecraftServer server = FetcherUtils.getServer(trader);
+            MinecraftServer server = ServerUtils.getServer(trader);
             if (server == null) {
                 return;
             }
@@ -91,7 +88,7 @@ public class WanderingTraderManagerMixin {
                     MessageUtils.sendMessage(player, message);
                 }
                 // 播放音效通知流浪商人生成
-                WorldUtils.playSound(FetcherUtils.getWorld(trader), player.blockPosition(), trader.getNotifyTradeSound(), trader.getSoundSource());
+                ServerUtils.playSound(ServerUtils.getWorld(trader), player.blockPosition(), trader.getNotifyTradeSound(), trader.getSoundSource());
             }
         }
     }

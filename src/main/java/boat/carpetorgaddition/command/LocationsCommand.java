@@ -118,9 +118,9 @@ public class LocationsCommand extends AbstractServerCommand {
             // 将路径点写入本地文件
             waypoint.save();
             // 成功添加路径点
-            MessageUtils.sendMessage(context.getSource(), key.then("success").translate(name, WorldUtils.toPosString(blockPos)));
+            MessageUtils.sendMessage(context.getSource(), key.then("success").translate(name, ServerUtils.toPosString(blockPos)));
         } catch (IOException e) {
-            CarpetOrgAddition.LOGGER.error("{} encountered an unexpected issue while attempting to write waypoints to the local file: ", FetcherUtils.getPlayerName(player), e);
+            CarpetOrgAddition.LOGGER.error("{} encountered an unexpected issue while attempting to write waypoints to the local file: ", ServerUtils.getPlayerName(player), e);
         }
         return 1;
     }
@@ -278,29 +278,29 @@ public class LocationsCommand extends AbstractServerCommand {
     private int sendSelfLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         BlockPos blockPos = player.blockPosition();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         LocalizationKey key = KEY.then("here");
-        Component text = switch (WorldUtils.getDimensionId(world)) {
-            case WorldUtils.OVERWORLD -> key.then("cross").translate(
+        Component text = switch (ServerUtils.getDimensionId(world)) {
+            case ServerUtils.OVERWORLD -> key.then("cross").translate(
                     player.getDisplayName(),
                     LocalizationKeys.Dimension.OVERWORLD.translate(),
                     TextProvider.blockPos(blockPos, ChatFormatting.GREEN),
                     TextProvider.blockPos(MathUtils.getTheNetherPos(player), ChatFormatting.RED)
             );
-            case WorldUtils.THE_NETHER -> key.then("cross").translate(
+            case ServerUtils.THE_NETHER -> key.then("cross").translate(
                     player.getDisplayName(),
                     LocalizationKeys.Dimension.THE_NETHER.translate(),
                     TextProvider.blockPos(blockPos, ChatFormatting.RED),
                     TextProvider.blockPos(MathUtils.getOverworldPos(player), ChatFormatting.GREEN)
             );
-            case WorldUtils.THE_END -> key.translate(
+            case ServerUtils.THE_END -> key.translate(
                     player.getDisplayName(),
                     LocalizationKeys.Dimension.THE_END.translate(),
                     TextProvider.blockPos(blockPos, ChatFormatting.DARK_PURPLE)
             );
             default -> key.translate(
                     player.getDisplayName(),
-                    WorldUtils.getDimensionId(world),
+                    ServerUtils.getDimensionId(world),
                     TextProvider.blockPos(blockPos, null)
             );
         };

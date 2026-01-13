@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.task;
 
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
@@ -32,12 +32,12 @@ public class CreeperExplosionTask extends ServerTask {
 
     // 将苦力怕传送到合适位置
     private static Creeper teleport(ServerPlayer player) {
-        Creeper creeper = new Creeper(EntityType.CREEPER, FetcherUtils.getWorld(player));
+        Creeper creeper = new Creeper(EntityType.CREEPER, ServerUtils.getWorld(player));
         BlockPos playerPos = player.blockPosition();
         Vec3 fromPos = new Vec3(playerPos.getX() - 3, playerPos.getY() - 1, playerPos.getZ() - 3);
         Vec3 toPos = new Vec3(playerPos.getX() + 3, playerPos.getY() + 1, playerPos.getZ() + 3);
         ArrayList<BlockPos> list = new ArrayList<>();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         // 获取符合条件的坐标
         for (BlockPos blockPos : new BlockPosTraverser(new AABB(fromPos, toPos))) {
             // 当前方块是空气
@@ -51,7 +51,7 @@ public class CreeperExplosionTask extends ServerTask {
         }
         // 将苦力怕传送到随机坐标
         BlockPos randomPos = list.isEmpty() ? playerPos : list.get(MathUtils.randomInt(1, list.size()) - 1);
-        TeleportTransition target = new TeleportTransition(FetcherUtils.getWorld(player), randomPos.getBottomCenter(), Vec3.ZERO, 0F, 0F, TeleportTransition.DO_NOTHING);
+        TeleportTransition target = new TeleportTransition(ServerUtils.getWorld(player), randomPos.getBottomCenter(), Vec3.ZERO, 0F, 0F, TeleportTransition.DO_NOTHING);
         return (Creeper) creeper.teleport(target);
     }
 
@@ -65,7 +65,7 @@ public class CreeperExplosionTask extends ServerTask {
         this.countdown--;
         if (this.countdown == 0) {
             // 产生爆炸
-            FetcherUtils.getWorld(this.player).explode(creeper, this.creeper.getX(), this.player.getY(),
+            ServerUtils.getWorld(this.player).explode(creeper, this.creeper.getX(), this.player.getY(),
                     this.player.getZ(), 3F, false, Level.ExplosionInteraction.NONE);
         }
     }

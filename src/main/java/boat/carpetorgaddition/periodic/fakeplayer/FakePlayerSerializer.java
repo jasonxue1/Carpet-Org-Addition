@@ -106,17 +106,17 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     private final File file;
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
-        this.fakePlayerName = FetcherUtils.getPlayerName(fakePlayer);
-        this.playerPos = FetcherUtils.getFootPos(fakePlayer);
+        this.fakePlayerName = ServerUtils.getPlayerName(fakePlayer);
+        this.playerPos = ServerUtils.getFootPos(fakePlayer);
         this.yaw = fakePlayer.getYRot();
         this.pitch = fakePlayer.getXRot();
-        this.dimension = WorldUtils.getDimensionId(FetcherUtils.getWorld(fakePlayer));
+        this.dimension = ServerUtils.getDimensionId(ServerUtils.getWorld(fakePlayer));
         this.gameMode = fakePlayer.gameMode.getGameModeForPlayer();
         this.flying = fakePlayer.getAbilities().flying;
         this.sneaking = fakePlayer.isShiftKeyDown();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
-        this.file = new WorldFormat(FetcherUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
+        this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
     }
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
@@ -234,13 +234,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             }
         };
         // 生成假玩家
-        GenericUtils.createFakePlayer(
+        ServerUtils.createFakePlayer(
                 this.fakePlayerName,
                 server,
                 this.playerPos,
                 this.yaw,
                 this.pitch,
-                WorldUtils.getWorld(this.dimension),
+                ServerUtils.getWorld(this.dimension),
                 this.gameMode,
                 this.flying,
                 consumer

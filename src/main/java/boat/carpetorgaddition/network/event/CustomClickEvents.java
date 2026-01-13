@@ -4,7 +4,7 @@ import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
@@ -120,7 +120,7 @@ public class CustomClickEvents {
     }
 
     public static Identifier register(String id, CustomClickAction.CustomClickActionProcessor processor) {
-        Identifier identifier = GenericUtils.ofIdentifier(id);
+        Identifier identifier = IdentifierUtils.ofIdentifier(id);
         CustomClickAction.register(identifier, processor);
         return identifier;
     }

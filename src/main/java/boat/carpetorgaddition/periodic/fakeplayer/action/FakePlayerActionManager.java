@@ -5,6 +5,7 @@ import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.DebugTriggerException;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +37,12 @@ public class FakePlayerActionManager {
         } catch (RuntimeException e) {
             CarpetOrgAddition.LOGGER.error(
                     "{} encountered an unexpected error while executing '{}': ",
-                    FetcherUtils.getPlayerName(this.fakePlayer),
+                    ServerUtils.getPlayerName(this.fakePlayer),
                     this.getAction().getClass().getSimpleName(),
                     e
             );
             MessageUtils.broadcastErrorMessage(
-                    FetcherUtils.getServer(this.fakePlayer),
+                    ServerUtils.getServer(this.fakePlayer),
                     PlayerActionCommand.KEY.then("error")
                             .translate(this.fakePlayer.getDisplayName(), this.getAction().getDisplayName()),
                     e

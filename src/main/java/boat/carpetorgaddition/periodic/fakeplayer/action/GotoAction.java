@@ -2,8 +2,7 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
@@ -41,7 +40,7 @@ public class GotoAction extends AbstractPlayerAction {
 
     public GotoAction(@NotNull EntityPlayerMPFake fakePlayer, Entity entity) {
         super(fakePlayer);
-        this.target = new EntityTracker(this::getFakePlayer, FetcherUtils.getWorld(entity), entity);
+        this.target = new EntityTracker(this::getFakePlayer, ServerUtils.getWorld(entity), entity);
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this.target);
         this.targetType = TargetType.ENTITY;
         this.displayName = entity.getDisplayName();
@@ -56,7 +55,7 @@ public class GotoAction extends AbstractPlayerAction {
                 }
                 case ENTITY -> this.target.get().ifPresent(blockPos -> {
                     EntityTracker tracker = (EntityTracker) this.target;
-                    Vec3 pos = FetcherUtils.getFootPos(tracker.entity);
+                    Vec3 pos = ServerUtils.getFootPos(tracker.entity);
                     if (blockPos.getBottomCenter().distanceTo(pos) > 3) {
                         tracker.update();
                         pathfinder.pathfinding();
@@ -169,7 +168,7 @@ public class GotoAction extends AbstractPlayerAction {
             }
             this.lastUpdateTime = time;
             this.target = this.entity.blockPosition();
-            MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+            MinecraftServer server = ServerUtils.getServer(fakePlayer);
             // 实体已被删除
             if (this.entity.isRemoved()) {
                 switch (this.entity) {
@@ -201,7 +200,7 @@ public class GotoAction extends AbstractPlayerAction {
                             return Optional.empty();
                         }
                         // 实体被可逆的删除，例如区块卸载，跨越维度
-                        Optional<Entity> optional = GenericUtils.getEntity(server, this.entityUuid);
+                        Optional<Entity> optional = ServerUtils.getEntity(server, this.entityUuid);
                         optional.ifPresent(value -> this.entity = value);
                     }
                     default -> {
@@ -210,7 +209,7 @@ public class GotoAction extends AbstractPlayerAction {
                     }
                 }
             }
-            if (FetcherUtils.getWorld(fakePlayer) == this.getWorld()) {
+            if (ServerUtils.getWorld(fakePlayer) == this.getWorld()) {
                 return Optional.of(this.target);
             }
             // 玩家与目标实体不在同一维度
@@ -222,7 +221,7 @@ public class GotoAction extends AbstractPlayerAction {
         }
 
         private Level getWorld() {
-            return FetcherUtils.getWorld(this.entity);
+            return ServerUtils.getWorld(this.entity);
         }
     }
 }

@@ -2,7 +2,7 @@ package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.ServerTickRateManager;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,7 +20,7 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void tick() {
         super.tick();
-        ServerTickRateManager tickManager = FetcherUtils.getServer(this.getPlayer()).tickRateManager();
+        ServerTickRateManager tickManager = ServerUtils.getServer(this.getPlayer()).tickRateManager();
         if (tickManager.runsNormally()) {
             this.fakePlayerActionManager.tick();
         }

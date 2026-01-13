@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.world.entity.ExperienceOrb;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -60,7 +60,7 @@ public abstract class ExperienceOrbEntityMixin {
      */
     @Unique
     private boolean combine() {
-        long time = FetcherUtils.getWorld(thisEntity).getGameTime();
+        long time = ServerUtils.getWorld(thisEntity).getGameTime();
         return Math.sin(time / 10.0) > 0;
     }
 }

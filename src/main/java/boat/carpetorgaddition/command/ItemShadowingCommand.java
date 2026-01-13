@@ -55,23 +55,23 @@ public class ItemShadowingCommand extends AbstractServerCommand {
     }
 
     private void logItemShadowing(ServerPlayer player, ItemStack itemStack) {
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         if (InventoryUtils.isShulkerBoxItem(itemStack)) {
             // 获取潜影盒的物品栏
             ImmutableInventory inventory = InventoryUtils.getInventory(itemStack);
             if (inventory.isEmpty()) {
                 CarpetOrgAddition.LOGGER.info("{} created an empty [{}] item shadow at {} | Coordinates: [{}]",
-                        FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
-                        WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
+                        ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                        ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
             } else {
                 CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow containing {} at {} | Coordinates: [{}]",
-                        FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
-                        inventory, WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
+                        ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                        inventory, ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
             }
         } else {
             CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow at {} | Coordinates: [{}]",
-                    FetcherUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
-                    WorldUtils.getDimensionId(world), WorldUtils.toPosString(player.blockPosition()));
+                    ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                    ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
         }
     }
 

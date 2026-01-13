@@ -11,7 +11,7 @@ import boat.carpetorgaddition.periodic.task.search.ItemSearchTask;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import boat.carpetorgaddition.periodic.task.search.TradeItemSearchTask;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
@@ -31,9 +31,9 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
     @Override
     public void receive(ObjectSearchTaskC2SPacket packet, ServerPlayNetworking.Context context) {
         ServerPlayer player = context.player();
-        MinecraftServer server = FetcherUtils.getServer(player);
+        MinecraftServer server = ServerUtils.getServer(player);
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        ServerLevel world = FetcherUtils.getWorld(player);
+        ServerLevel world = ServerUtils.getWorld(player);
         CommandSourceStack source = player.createCommandSourceStack();
         BlockPos blockPos = player.blockPosition();
         try {

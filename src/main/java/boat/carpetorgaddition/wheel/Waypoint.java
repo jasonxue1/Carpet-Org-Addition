@@ -3,9 +3,8 @@ package boat.carpetorgaddition.wheel;
 import boat.carpetorgaddition.command.LocationsCommand;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.dataupdate.json.WaypointDataUpdater;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IOUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys.Dimension;
@@ -46,7 +45,7 @@ public class Waypoint {
     }
 
     public Waypoint(BlockPos blockPos, String name, ServerPlayer player) {
-        this(blockPos, name, FetcherUtils.getWorld(player), FetcherUtils.getPlayerName(player), FetcherUtils.getServer(player));
+        this(blockPos, name, ServerUtils.getWorld(player), ServerUtils.getPlayerName(player), ServerUtils.getServer(player));
     }
 
     // 将路径点写入本地文件
@@ -93,10 +92,10 @@ public class Waypoint {
         int z = pos.get("z").getAsInt();
         BlockPos blockPos = new BlockPos(x, y, z);
         // 路径点的维度
-        String dimension = IOUtils.jsonHasElement(json, "dimension") ? json.get("dimension").getAsString() : WorldUtils.OVERWORLD;
+        String dimension = IOUtils.jsonHasElement(json, "dimension") ? json.get("dimension").getAsString() : ServerUtils.OVERWORLD;
         // 路径点的创建者
         String creator = IOUtils.jsonHasElement(json, "creator") ? json.get("creator").getAsString() : "#none";
-        ServerLevel world = WorldUtils.getWorld(server, dimension);
+        ServerLevel world = ServerUtils.getWorld(server, dimension);
         Waypoint waypoint = new Waypoint(blockPos, name, world, creator, server);
         // 添加路径点的另一个坐标
         if (json.has("another_pos")) {
@@ -119,30 +118,30 @@ public class Waypoint {
         String worldId = this.getWorldAsString();
         if (this.anotherBlockPos == null) {
             Map.Entry<Component, ChatFormatting> entry = switch (worldId) {
-                case WorldUtils.OVERWORLD -> Map.entry(Dimension.OVERWORLD.translate(), ChatFormatting.GREEN);
-                case WorldUtils.THE_NETHER -> Map.entry(Dimension.THE_NETHER.translate(), ChatFormatting.RED);
-                case WorldUtils.THE_END -> Map.entry(Dimension.THE_END.translate(), ChatFormatting.DARK_PURPLE);
+                case ServerUtils.OVERWORLD -> Map.entry(Dimension.OVERWORLD.translate(), ChatFormatting.GREEN);
+                case ServerUtils.THE_NETHER -> Map.entry(Dimension.THE_NETHER.translate(), ChatFormatting.RED);
+                case ServerUtils.THE_END -> Map.entry(Dimension.THE_END.translate(), ChatFormatting.DARK_PURPLE);
                 default -> Map.entry(TextBuilder.create(worldId), ChatFormatting.GREEN);
             };
             return where.translate(this.formatName(), entry.getKey(), TextProvider.blockPos(this.blockPos, entry.getValue()));
         } else {
             LocalizationKey cross = where.then("cross");
             return switch (worldId) {
-                case WorldUtils.OVERWORLD -> cross.translate(
+                case ServerUtils.OVERWORLD -> cross.translate(
                         this.formatName(),
                         Dimension.OVERWORLD.translate(),
                         TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN),
                         Dimension.THE_NETHER.translate(),
                         TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.RED)
                 );
-                case WorldUtils.THE_NETHER -> cross.translate(
+                case ServerUtils.THE_NETHER -> cross.translate(
                         this.formatName(),
                         Dimension.THE_NETHER.translate(),
                         TextProvider.blockPos(this.blockPos, ChatFormatting.RED),
                         Dimension.OVERWORLD.translate(),
                         TextProvider.blockPos(this.anotherBlockPos, ChatFormatting.GREEN)
                 );
-                case WorldUtils.THE_END ->
+                case ServerUtils.THE_END ->
                         where.translate(this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.DARK_PURPLE));
                 default ->
                         where.translate(this.formatName(), TextProvider.blockPos(this.blockPos, ChatFormatting.GREEN));
@@ -185,7 +184,7 @@ public class Waypoint {
     }
 
     public String getWorldAsString() {
-        return WorldUtils.getDimensionId(this.world);
+        return ServerUtils.getDimensionId(this.world);
     }
 
     public String getName() {

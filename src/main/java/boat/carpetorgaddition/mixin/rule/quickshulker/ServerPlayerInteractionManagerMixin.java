@@ -2,7 +2,7 @@ package boat.carpetorgaddition.mixin.rule.quickshulker;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.InventoryUtils;
-import boat.carpetorgaddition.util.ScreenUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerPlayerGameMode;
 import net.minecraft.world.InteractionHand;
@@ -22,7 +22,7 @@ public class ServerPlayerInteractionManagerMixin {
             return;
         }
         if (CarpetOrgAdditionSettings.quickShulker.get() && InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1) {
-            ScreenUtils.openShulkerScreenHandler(player, stack);
+            PlayerUtils.openShulkerScreenHandler(player, stack);
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }

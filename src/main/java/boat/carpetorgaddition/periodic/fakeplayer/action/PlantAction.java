@@ -5,6 +5,7 @@ import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.traverser.BlockPosTraverser;
@@ -93,7 +94,7 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否需要继续循环
      */
     private boolean plantingCrops(ItemStack itemStack, BlockPos blockPos) {
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         if (!world.getBlockState(blockPos).is(Blocks.FARMLAND)) {
             return true;
         }
@@ -143,7 +144,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     // 种植竹子
     private boolean plantingBamboo(BlockPos plantablePos) {
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         // 是否可以种植竹子
         if (!world.getBlockState(plantablePos).is(BlockTags.BAMBOO_PLANTABLE_ON)
             // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉

@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.client.util;
 
-import boat.carpetorgaddition.util.GenericUtils;
+import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.player.LocalPlayer;
@@ -26,7 +26,7 @@ public class ClientMessageUtils {
     }
 
     public static void sendErrorMessage(Component component, Throwable e) {
-        String error = GenericUtils.getExceptionString(e);
+        String error = CommandUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
         builder.setHover(error);
         builder.setColor(ChatFormatting.RED);

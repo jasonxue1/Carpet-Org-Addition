@@ -3,10 +3,7 @@ package boat.carpetorgaddition.command;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.value.OpenPlayerInventory;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
@@ -87,10 +84,10 @@ public class PlayerCommandExtension {
         // 断言指定玩家为假玩家
         CommandUtils.requireFakePlayer(fakePlayer);
         // 在假玩家位置播放潜影贝传送音效
-        FetcherUtils.getWorld(fakePlayer).playSound(null, fakePlayer.getX(), fakePlayer.getY(), fakePlayer.getZ(),
+        ServerUtils.getWorld(fakePlayer).playSound(null, fakePlayer.getX(), fakePlayer.getY(), fakePlayer.getZ(),
                 SoundEvents.SHULKER_TELEPORT, fakePlayer.getSoundSource(), 1.0f, 1.0f);
         // 传送玩家
-        WorldUtils.teleport(fakePlayer, player);
+        ServerUtils.teleport(fakePlayer, player);
         // 获取假玩家名和命令执行玩家名
         Component fakePlayerName = fakePlayer.getDisplayName();
         Component playerName = player.getDisplayName();

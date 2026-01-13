@@ -4,7 +4,7 @@ import boat.carpetorgaddition.client.command.AbstractClientCommand;
 import boat.carpetorgaddition.client.command.ClientCommandRegister;
 import boat.carpetorgaddition.client.command.HighlightCommand;
 import boat.carpetorgaddition.command.*;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.core.BlockPos;
@@ -90,7 +90,7 @@ public class CommandProvider {
      */
     public static String setupSafeAfkPermanentlyChange(EntityPlayerMPFake player, float threshold) {
         String commandName = getCommandName(PlayerManagerCommand.class);
-        String playerName = FetcherUtils.getPlayerName(player);
+        String playerName = ServerUtils.getPlayerName(player);
         return "/%s safeafk set %s %s true".formatted(commandName, playerName, threshold);
     }
 
@@ -99,7 +99,7 @@ public class CommandProvider {
      */
     public static String cancelSafeAfkPermanentlyChange(EntityPlayerMPFake player) {
         String commandName = getCommandName(PlayerManagerCommand.class);
-        String playerName = FetcherUtils.getPlayerName(player);
+        String playerName = ServerUtils.getPlayerName(player);
         return "/%s safeafk set %s -1 true".formatted(commandName, playerName);
     }
 
@@ -181,7 +181,7 @@ public class CommandProvider {
      * 打开玩家物品栏
      */
     public static String openPlayerInventory(Player player) {
-        return openPlayerInventory(FetcherUtils.getPlayerName(player));
+        return openPlayerInventory(ServerUtils.getPlayerName(player));
     }
 
     public static String openPlayerInventory(String name) {
@@ -190,7 +190,7 @@ public class CommandProvider {
 
     @SuppressWarnings("unused")
     public static String openPlayerEnderChest(Player player) {
-        return openPlayerEnderChest(FetcherUtils.getPlayerName(player));
+        return openPlayerEnderChest(ServerUtils.getPlayerName(player));
     }
 
     public static String openPlayerEnderChest(String name) {
@@ -205,14 +205,14 @@ public class CommandProvider {
      * 打开玩家设置合成GUI
      */
     public static String openPlayerCraftGui(EntityPlayerMPFake fakePlayer) {
-        return "/playerAction %s craft gui".formatted(FetcherUtils.getPlayerName(fakePlayer));
+        return "/playerAction %s craft gui".formatted(ServerUtils.getPlayerName(fakePlayer));
     }
 
     /**
      * 打开玩家设置切石机GUI
      */
     public static String openPlayerStonecuttingGui(EntityPlayerMPFake fakePlayer) {
-        return "/playerAction %s stonecutting gui".formatted(FetcherUtils.getPlayerName(fakePlayer));
+        return "/playerAction %s stonecutting gui".formatted(ServerUtils.getPlayerName(fakePlayer));
     }
 
     private static <T extends AbstractServerCommand> String getCommandName(Class<T> clazz) {

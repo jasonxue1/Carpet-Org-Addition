@@ -6,7 +6,7 @@ import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.periodic.task.search.*;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.predicate.BlockStatePredicate;
@@ -141,7 +141,7 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取玩家所在的位置，这是命令开始执行的坐标
         BlockPos sourceBlockPos = player.blockPosition();
         // 查找周围容器中的物品
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
         ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
@@ -159,7 +159,7 @@ public class FinderCommand extends AbstractServerCommand {
         // 获取要查找的物品
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 计算要查找的区域
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, from, to);
         this.checkBoxSize(traverser);
         ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
@@ -186,7 +186,7 @@ public class FinderCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.blockPosition();
-        ServerLevel world = FetcherUtils.getWorld(player);
+        ServerLevel world = ServerUtils.getWorld(player);
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
@@ -205,7 +205,7 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPos to = BlockPosArgument.getBlockPos(context, "to");
         // 获取命令执行时的方块坐标
         final BlockPos sourceBlockPos = player.blockPosition();
-        ServerLevel world = FetcherUtils.getWorld(player);
+        ServerLevel world = ServerUtils.getWorld(player);
         BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
@@ -226,7 +226,7 @@ public class FinderCommand extends AbstractServerCommand {
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(FetcherUtils.getWorld(player), player.blockPosition(), traverser, context.getSource(), predicate);
+        BlockSearchTask task = new BlockSearchTask(ServerUtils.getWorld(player), player.blockPosition(), traverser, context.getSource(), predicate);
         ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
         return 1;
     }
@@ -241,7 +241,7 @@ public class FinderCommand extends AbstractServerCommand {
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
         // 获取玩家所在的坐标
         BlockPos sourcePos = player.blockPosition();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         // 查找范围
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
         this.checkBoxSize(traverser);
@@ -264,7 +264,7 @@ public class FinderCommand extends AbstractServerCommand {
         EnchantedBookPredicate predicate = new EnchantedBookPredicate(server, enchantment);
         // 获取玩家所在的位置
         BlockPos sourcePos = player.blockPosition();
-        Level world = FetcherUtils.getWorld(player);
+        Level world = ServerUtils.getWorld(player);
         // 查找范围
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
         this.checkBoxSize(traverser);

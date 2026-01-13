@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.client.renderer.waypoint;
 
 import boat.carpetorgaddition.client.util.ClientUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -153,11 +153,11 @@ public abstract class Waypoint {
         }
         Camera camera = ClientUtils.getCamera();
         // 玩家在主世界，路径点在下界，将路径点坐标换算成主世界坐标
-        if (WorldUtils.isOverworld(key) && WorldUtils.isTheNether(this.registryKey)) {
+        if (ServerUtils.isOverworld(key) && ServerUtils.isTheNether(this.registryKey)) {
             return new Vec3(interpolation.x() * 8, camera.position().y(), interpolation.z() * 8);
         }
         // 玩家在下界，路径点在主世界，将路径点坐标换算成下界坐标
-        if (WorldUtils.isTheNether(key) && WorldUtils.isOverworld(this.registryKey)) {
+        if (ServerUtils.isTheNether(key) && ServerUtils.isOverworld(this.registryKey)) {
             return new Vec3(interpolation.x() / 8, camera.position().y(), interpolation.z() / 8);
         }
         return null;

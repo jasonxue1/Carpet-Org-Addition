@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -70,7 +70,7 @@ public class AStarPathfinder implements FakePlayerPathfinder {
             opens.remove(first);
             openCaches.remove(first.blockPos);
             clones.add(first.blockPos);
-            Level world = FetcherUtils.getWorld(this.getFakePlayer());
+            Level world = ServerUtils.getWorld(this.getFakePlayer());
             this.addSearchNode(world, first, target, opens, openCaches, clones);
         }
     }

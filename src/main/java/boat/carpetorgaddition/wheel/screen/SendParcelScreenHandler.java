@@ -5,8 +5,8 @@ import boat.carpetorgaddition.command.MailCommand;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.parcel.Parcel;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import com.mojang.authlib.GameProfile;
@@ -39,7 +39,7 @@ public class SendParcelScreenHandler extends ChestMenu {
     ) {
         super(MenuType.GENERIC_9x3, syncId, playerInventory, inventory, 3);
         this.inventory = inventory;
-        this.server = FetcherUtils.getServer(sourcePlayer);
+        this.server = ServerUtils.getServer(sourcePlayer);
         this.parcelManager = ServerComponentCoordinator.getCoordinator(this.server).getParcelManager();
         this.sourcePlayer = sourcePlayer;
         this.recipient = recipient;

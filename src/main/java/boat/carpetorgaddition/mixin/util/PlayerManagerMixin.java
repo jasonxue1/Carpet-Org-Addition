@@ -3,7 +3,7 @@ package boat.carpetorgaddition.mixin.util;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.network.Connection;
@@ -41,7 +41,7 @@ public class PlayerManagerMixin {
      */
     @Inject(method = "placeNewPlayer", at = @At("HEAD"))
     private void closePlayerInventory(Connection connection, ServerPlayer player, CommonListenerCookie clientData, CallbackInfo ci) {
-        MinecraftServer server = FetcherUtils.getServer(player);
+        MinecraftServer server = ServerUtils.getServer(player);
         ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
         FabricPlayerAccessManager accessManager = coordinator.getAccessManager();
         if (accessManager.hasViewers()) {

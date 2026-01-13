@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.network.chat.Component;
@@ -36,7 +36,7 @@ public enum FakePlayerStartupAction implements Consumer<EntityPlayerMPFake> {
         return switch (this) {
             case USE -> fakePlayer -> FakePlayerUtils.click(fakePlayer, InteractionHand.OFF_HAND);
             case ATTACK -> fakePlayer -> FakePlayerUtils.click(fakePlayer, InteractionHand.MAIN_HAND);
-            case KILL -> fakePlayer -> fakePlayer.kill(FetcherUtils.getWorld(fakePlayer));
+            case KILL -> fakePlayer -> fakePlayer.kill(ServerUtils.getWorld(fakePlayer));
         };
     }
 

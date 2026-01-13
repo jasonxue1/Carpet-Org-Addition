@@ -148,7 +148,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         super(source);
         this.predicate = predicate;
         this.player = player;
-        this.server = FetcherUtils.getServer(this.player);
+        this.server = ServerUtils.getServer(this.player);
         this.files = server.getWorldPath(LevelResource.PLAYER_DATA_DIR).toFile().listFiles();
         if (this.files == null) {
             throw new IllegalStateException("Unable to read \"playerdata\" folder");
@@ -251,7 +251,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         CompoundTag nbt = readNbt(unsafe);
         int version = NbtUtils.getDataVersion(nbt, -1);
         // 使用<而不是==，因为存档可能降级
-        if (this.isCorruptedPlayerData(uuid) || version < GenericUtils.getNbtDataVersion()) {
+        if (this.isCorruptedPlayerData(uuid) || version < ServerUtils.getVanillaDataVersion()) {
             // 升级或修复玩家数据
             if (this.server.isRunning() && this.backupAndUpdate(unsafe, uuid)) {
                 return readNbt(unsafe);
@@ -379,7 +379,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
      * 检查文件夹名称是否是备份文件夹的名称
      */
     private boolean parseDirectoryName(String name) {
-        String end = "_" + GenericUtils.CURRENT_DATA_VERSION;
+        String end = "_" + ServerUtils.CURRENT_DATA_VERSION;
         if (name.endsWith(end)) {
             String dateTimeFormat = name.substring(0, name.length() - end.length());
             try {
@@ -447,7 +447,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     @SuppressWarnings("JavadocReference")
     protected Container getEnderChest(CompoundTag nbt) {
         PlayerEnderChestContainer inventory = new PlayerEnderChestContainer();
-        ValueInput readView = TagValueInput.create(ProblemReporter.DISCARDING, FetcherUtils.getWorld(this.player).registryAccess(), nbt);
+        ValueInput readView = TagValueInput.create(ProblemReporter.DISCARDING, ServerUtils.getWorld(this.player).registryAccess(), nbt);
         inventory.fromSlots(readView.listOrEmpty("EnderItems", ItemStackWithSlot.CODEC));
         return inventory;
     }
@@ -577,7 +577,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
     private WorldFormat getBackupFileDirectory() {
         if (this.backupFileDirectory == null) {
             synchronized (this.backupInitLock) {
-                String time = LocalDateTime.now().format(FORMATTER) + "_" + GenericUtils.getNbtDataVersion();
+                String time = LocalDateTime.now().format(FORMATTER) + "_" + ServerUtils.getVanillaDataVersion();
                 this.backupFileDirectory = this.worldFormat.resolve(time);
             }
         }

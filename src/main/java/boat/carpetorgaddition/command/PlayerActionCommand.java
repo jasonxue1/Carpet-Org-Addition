@@ -7,6 +7,7 @@ import boat.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionTy
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -329,7 +330,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         SimpleMenuProvider screen = new SimpleMenuProvider((i, inventory, _) -> {
-            ContainerLevelAccess screenHandlerContext = ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition());
+            ContainerLevelAccess screenHandlerContext = ContainerLevelAccess.create(ServerUtils.getWorld(player), player.blockPosition());
             return new StonecutterSetRecipeScreenHandler(i, inventory, screenHandlerContext, fakePlayer);
         }, StonecuttingAction.KEY.then("gui").translate());
         player.openMenu(screen);
@@ -445,7 +446,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         // 打开合成GUI
         SimpleMenuProvider screen = new SimpleMenuProvider((i, playerInventory, _)
                 -> new CraftingSetRecipeScreenHandler(i, playerInventory, fakePlayer,
-                ContainerLevelAccess.create(FetcherUtils.getWorld(player), player.blockPosition())),
+                ContainerLevelAccess.create(ServerUtils.getWorld(player), player.blockPosition())),
                 CraftingTableCraftAction.KEY.then("gui").translate());
         player.openMenu(screen);
         return 1;

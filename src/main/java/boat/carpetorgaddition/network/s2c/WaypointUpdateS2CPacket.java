@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.network.s2c;
 
 import boat.carpetorgaddition.network.PacketUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -39,11 +39,11 @@ public record WaypointUpdateS2CPacket(Vec3 target, String worldId) implements Cu
     };
 
     public WaypointUpdateS2CPacket(Vec3 target, Level world) {
-        this(target, WorldUtils.getDimensionId(world));
+        this(target, ServerUtils.getDimensionId(world));
     }
 
     public WaypointUpdateS2CPacket(BlockPos blockPos, Level world) {
-        this(blockPos.getCenter(), WorldUtils.getDimensionId(world));
+        this(blockPos.getCenter(), ServerUtils.getDimensionId(world));
     }
 
     @Override

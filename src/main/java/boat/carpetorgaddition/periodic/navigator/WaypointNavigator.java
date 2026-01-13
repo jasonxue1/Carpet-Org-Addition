@@ -1,10 +1,7 @@
 package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.MathUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Waypoint;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -46,13 +43,13 @@ public class WaypointNavigator extends AbstractNavigator {
         this.target = blockPos;
         this.secondTarget = this.waypoint.getAnotherBlockPos();
         this.world = waypoint.getWorld();
-        this.playerWorld = FetcherUtils.getWorld(player);
+        this.playerWorld = ServerUtils.getWorld(player);
         this.prevPlayerWorld = this.world;
     }
 
     @Override
     public void tick() {
-        this.playerWorld = FetcherUtils.getWorld(this.player);
+        this.playerWorld = ServerUtils.getWorld(this.player);
         // 玩家所在的方块位置
         BlockPos playerPos = this.player.blockPosition();
         // 玩家所在维度
@@ -74,7 +71,7 @@ public class WaypointNavigator extends AbstractNavigator {
                 MessageUtils.sendMessageToHud(this.player, text);
             } else {
                 // 玩家和路径点在不同维度
-                Component dimensionName = TextProvider.dimension(WorldUtils.getWorld(FetcherUtils.getServer(this.player), this.waypoint.getWorldAsString()));
+                Component dimensionName = TextProvider.dimension(ServerUtils.getWorld(ServerUtils.getServer(this.player), this.waypoint.getWorldAsString()));
                 Component in = IN.translate(waypoint.getName(), TextBuilder.combineAll(dimensionName, TextProvider.simpleBlockPos(this.target)));
                 MessageUtils.sendMessageToHud(this.player, in);
             }
@@ -88,7 +85,7 @@ public class WaypointNavigator extends AbstractNavigator {
         if (second == null) {
             return false;
         }
-        return WorldUtils.canMappingPos(this.world, this.playerWorld);
+        return ServerUtils.canMappingPos(this.world, this.playerWorld);
     }
 
     @Override

@@ -5,7 +5,7 @@ import boat.carpetorgaddition.logger.LoggerNames;
 import boat.carpetorgaddition.logger.LoggerRegister;
 import boat.carpetorgaddition.logger.Loggers;
 import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.WorldUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -36,7 +36,7 @@ public class FluidBlockMixin {
                 FunctionLogger logger = Loggers.getObsidianLogger();
                 for (ServerPlayer player : server.getPlayerList().getPlayers()) {
                     if (logger.isSubscribed(player)) {
-                        Component text = TextProvider.blockPos(pos, WorldUtils.getColor(world));
+                        Component text = TextProvider.blockPos(pos, ServerUtils.getColor(world));
                         MessageUtils.sendMessage(player, KEY.then("generate").translate(text));
                     }
                 }

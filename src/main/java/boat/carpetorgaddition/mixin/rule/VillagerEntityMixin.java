@@ -1,7 +1,7 @@
 package boat.carpetorgaddition.mixin.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.screen.VillagerScreenHandler;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -44,7 +44,7 @@ public abstract class VillagerEntityMixin extends AbstractVillager {
     @Inject(method = "customServerAiStep", at = @At("HEAD"))
     private void heal(CallbackInfo ci) {
         if (CarpetOrgAdditionSettings.villagerHeal.get()) {
-            long worldTime = FetcherUtils.getWorld(thisVillager).getGameTime();
+            long worldTime = ServerUtils.getWorld(thisVillager).getGameTime();
             // 每四秒回一次血
             if (worldTime % 80 == 0) {
                 thisVillager.heal(1.0F);

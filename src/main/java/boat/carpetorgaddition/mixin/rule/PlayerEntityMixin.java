@@ -4,7 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.rule.CustomRuleControls;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -123,7 +123,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 最大方块交互距离
     @Inject(method = "blockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getBlockInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (FetcherUtils.getWorld(thisPlayer).isClientSide() && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
+        if (ServerUtils.getWorld(thisPlayer).isClientSide() && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
             return;
         }
         if (RuleUtils.isDefaultDistance()) {
@@ -181,7 +181,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
             double maxY = box.maxY + range;
             double maxZ = box.maxZ + range;
             AABB expand = new AABB(minX, minY, minZ, maxX, maxY, maxZ);
-            List<Entity> list = FetcherUtils.getWorld(this.thisPlayer)
+            List<Entity> list = ServerUtils.getWorld(this.thisPlayer)
                     .getEntities(this.thisPlayer, expand)
                     .stream()
                     .filter(entity -> !entity.isRemoved())

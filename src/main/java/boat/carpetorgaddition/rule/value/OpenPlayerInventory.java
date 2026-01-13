@@ -3,7 +3,7 @@ package boat.carpetorgaddition.rule.value;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
@@ -77,7 +77,7 @@ public enum OpenPlayerInventory {
         if (player.permissions().hasPermission(new Permission.HasCommandLevel(PermissionLevel.GAMEMASTERS))) {
             return;
         }
-        PlayerList playerManager = FetcherUtils.getServer(player).getPlayerList();
+        PlayerList playerManager = ServerUtils.getServer(player).getPlayerList();
         NameAndId entry = new NameAndId(gameProfile);
         if (playerManager.isWhiteListed(entry) || playerManager.isOp(entry)) {
             throw CommandUtils.createException(PlayerCommandExtension.INVENTORY.then("permission").translate());

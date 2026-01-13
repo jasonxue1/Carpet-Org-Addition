@@ -4,9 +4,9 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -119,7 +119,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 } else {
                     // 否则，认为前面的操作有误，停止合成，结束方法
                     this.stop();
-                    MinecraftServer server = FetcherUtils.getServer(fakePlayer);
+                    MinecraftServer server = ServerUtils.getServer(fakePlayer);
                     MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
@@ -166,7 +166,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         // 创建一个物品栏对象用来获取配方的输出物品
         SingleRecipeInput input = new SingleRecipeInput(this.item.getDefaultInstance());
         // 获取假玩家所在的世界对象
-        Level world = FetcherUtils.getWorld(this.getFakePlayer());
+        Level world = ServerUtils.getWorld(this.getFakePlayer());
         ItemStack outputItemStack;
         try {
             // 获取与配方对应的物品

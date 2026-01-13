@@ -4,8 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.exception.OperationTimeoutException;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.ExperienceTransfer;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -255,8 +255,8 @@ public class XpTransferCommand extends AbstractServerCommand {
             BigInteger point
     ) {
         ServerPlayer player = source.getPlayer();
-        String output = player == outputPlayer ? "themself" : FetcherUtils.getPlayerName(outputPlayer);
-        String input = player == inputPlayer ? "themself" : FetcherUtils.getPlayerName(inputPlayer);
+        String output = player == outputPlayer ? "themself" : ServerUtils.getPlayerName(outputPlayer);
+        String input = player == inputPlayer ? "themself" : ServerUtils.getPlayerName(inputPlayer);
         CarpetOrgAddition.LOGGER.info(
                 "{} transferred {} experience points from {} to {}",
                 source.getTextName(),
