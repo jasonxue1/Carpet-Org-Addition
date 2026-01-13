@@ -160,7 +160,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(Commands.literal("all")
                                         .executes(context -> listAll(context, _ -> true))
                                         .then(Commands.argument("filter", StringArgumentType.string())
-                                                .executes(context -> listAll(context, serializerPredicate(context)))))))
+                                                .executes(context -> listAll(context, serializerPredicate(context))))))
+                        .then(Commands.literal("spawn")
+                                .then(Commands.argument("group", StringArgumentType.string())
+                                        .suggests(groupSuggests())
+                                        .executes(this::spawnGroupPlayer))))
                 .then(Commands.literal("reload")
                         .executes(this::reload))
                 .then(Commands.literal("autologin")
@@ -239,7 +243,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int listGroup(CommandContext<CommandSourceStack> context, Predicate<FakePlayerSerializer> predicate) throws CommandSyntaxException {
         String group = StringArgumentType.getString(context, "group");
         MinecraftServer server = context.getSource().getServer();
-        PlayerSerializationManager manager = FetcherUtils.getFakePlayerSerializationManager(server);
+        PlayerSerializationManager manager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
         HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(predicate);
         HashSet<FakePlayerSerializer> set = map.get(group);
         // 不存在的组
@@ -308,6 +312,25 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return 1;
     }
 
+    private int spawnGroupPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        String group = StringArgumentType.getString(context, "group");
+        MinecraftServer server = context.getSource().getServer();
+        PlayerSerializationManager manager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
+        HashMap<String, HashSet<FakePlayerSerializer>> map = manager.listGroup(_ -> true);
+        HashSet<FakePlayerSerializer> set = map.get(group);
+        // 不存在的组
+        if (set == null) {
+            throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
+        }
+        // 如果玩家不存在则生成
+        for (FakePlayerSerializer serializer : set) {
+            if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
+                serializer.spawn(server);
+            }
+        }
+        return set.size();
+    }
+
     /**
      * 重新加载玩家数据
      */
@@ -332,7 +355,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private boolean serializerPredicate(FakePlayerSerializer serializer, String filter) {
         Predicate<String> predicate = s -> s.contains(filter.toLowerCase(Locale.ROOT));
-        return predicate.test(serializer.getFakePlayerName().toLowerCase()) || predicate.test(serializer.getComment());
+        return predicate.test(serializer.getName().toLowerCase()) || predicate.test(serializer.getComment());
     }
 
     // cancel子命令自动补全
@@ -351,7 +374,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             Stream<String> stream = FetcherUtils.getFakePlayerSerializationManager(context.getSource().getServer())
                     .list()
                     .stream()
-                    .map(FakePlayerSerializer::getFakePlayerName)
+                    .map(FakePlayerSerializer::getName)
                     .map(StringArgumentType::escapeIfRequired);
             return SharedSuggestionProvider.suggest(stream, builder);
         };

@@ -151,7 +151,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     @Override
     @Contract(pure = true)
     public String getPlayerName() {
-        return this.serializer.getFakePlayerName();
+        return this.serializer.getName();
     }
 
     @Override

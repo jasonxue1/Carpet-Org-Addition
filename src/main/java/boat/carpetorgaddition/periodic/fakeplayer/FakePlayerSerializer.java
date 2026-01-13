@@ -43,7 +43,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 玩家名称
      */
-    private final String fakePlayerName;
+    private final String name;
     /**
      * 注释
      */
@@ -106,7 +106,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     private final File file;
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
-        this.fakePlayerName = ServerUtils.getPlayerName(fakePlayer);
+        this.name = ServerUtils.getPlayerName(fakePlayer);
         this.playerPos = ServerUtils.getFootPos(fakePlayer);
         this.yaw = fakePlayer.getYRot();
         this.pitch = fakePlayer.getXRot();
@@ -116,7 +116,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.sneaking = fakePlayer.isShiftKeyDown();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
-        this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.fakePlayerName, "json");
+        this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.name, "json");
     }
 
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
@@ -143,7 +143,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             json = dataUpdater.update(json, version);
         }
         // 玩家名
-        this.fakePlayerName = file.getName().split("\\.")[0];
+        this.name = file.getName().split("\\.")[0];
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -217,7 +217,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     // 从json加载并生成假玩家
     public void spawn(MinecraftServer server) throws CommandSyntaxException {
-        if (server.getPlayerList().getPlayerByName(this.fakePlayerName) != null) {
+        if (ServerUtils.getPlayer(server, name).isPresent()) {
             throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
         }
         CommandSourceStack source = server.createCommandSourceStack();
@@ -235,7 +235,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         };
         // 生成假玩家
         ServerUtils.createFakePlayer(
-                this.fakePlayerName,
+                this.name,
                 server,
                 this.playerPos,
                 this.yaw,
@@ -380,13 +380,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     // 获取玩家名
-    public String getFakePlayerName() {
-        return this.fakePlayerName;
+    public String getName() {
+        return this.name;
     }
 
     // 获取显示名称
     public Component getDisplayName() {
-        return new TextBuilder(this.fakePlayerName).setHover(this.info()).build();
+        return new TextBuilder(this.name).setHover(this.info()).build();
     }
 
     public Supplier<Component> toTextSupplier() {
@@ -394,7 +394,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     private Component toText() {
-        String name = this.getFakePlayerName();
+        String name = this.getName();
         String logonCommand = CommandProvider.playerManagerSpawn(name);
         String logoutCommand = CommandProvider.killFakePlayer(name);
         Component login = new TextBuilder("[↑]")
@@ -490,17 +490,17 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     @Override
     public boolean equals(Object obj) {
-        return this == obj || (this.getClass() == obj.getClass() && this.fakePlayerName.equals(((FakePlayerSerializer) obj).fakePlayerName));
+        return this == obj || (this.getClass() == obj.getClass() && this.name.equals(((FakePlayerSerializer) obj).name));
     }
 
     @Override
     public int hashCode() {
-        return this.fakePlayerName.hashCode();
+        return this.name.hashCode();
     }
 
     @Override
     public int compareTo(@NotNull FakePlayerSerializer o) {
-        return this.fakePlayerName.compareTo(o.fakePlayerName);
+        return this.name.compareTo(o.name);
     }
 
     public boolean remove() {

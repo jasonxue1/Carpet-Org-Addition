@@ -35,9 +35,9 @@ public class DelayedLoginTask extends PlayerScheduleTask {
                 try {
                     serial.spawn(server);
                 } catch (CommandSyntaxException e) {
-                    CarpetOrgAddition.LOGGER.error("Player {} already exists", this.serial.getFakePlayerName(), e);
+                    CarpetOrgAddition.LOGGER.error("Player {} already exists", this.serial.getName(), e);
                 } catch (RuntimeException e) {
-                    CarpetOrgAddition.LOGGER.error("Player {} failed to log in within the specified time", this.serial.getFakePlayerName(), e);
+                    CarpetOrgAddition.LOGGER.error("Player {} failed to log in within the specified time", this.serial.getName(), e);
                 }
             } finally {
                 // 将此任务设为已执行结束
@@ -50,7 +50,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     @Override
     public String getPlayerName() {
-        return serial.getFakePlayerName();
+        return serial.getName();
     }
 
     @Override

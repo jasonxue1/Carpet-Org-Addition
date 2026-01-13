@@ -15,7 +15,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Contract;
 
-@SuppressWarnings("unused")
+@Deprecated
 public class FetcherUtils {
     private FetcherUtils() {
     }

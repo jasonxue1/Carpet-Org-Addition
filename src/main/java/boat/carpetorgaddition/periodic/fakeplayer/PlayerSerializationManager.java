@@ -95,7 +95,7 @@ public class PlayerSerializationManager {
             throw new IllegalArgumentException();
         }
         for (FakePlayerSerializer serializer : this.serializers) {
-            if (Objects.equals(serializer.getFakePlayerName(), name)) {
+            if (Objects.equals(serializer.getName(), name)) {
                 return Optional.of(serializer);
             }
         }
