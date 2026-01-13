@@ -4,10 +4,10 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import boat.carpetorgaddition.wheel.nbt.NbtVersion;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.dialog.Dialog;
 import org.jspecify.annotations.NullMarked;
@@ -49,7 +49,7 @@ public class CustomClickAction {
                 case DIALOG -> {
                     DialogProvider provider = FetcherUtils.getDialogProvider(context.getServer());
                     Dialog dialog = provider.createErrorNoticeDialog(e);
-                    context.getPlayer().openDialog(Holder.direct(dialog));
+                    PlayerUtils.openDialog(context.getPlayer(), dialog);
                 }
                 case SIGN -> MessageUtils.sendErrorMessageToHud(context.getSource(), e);
                 case UNKNOWN -> {

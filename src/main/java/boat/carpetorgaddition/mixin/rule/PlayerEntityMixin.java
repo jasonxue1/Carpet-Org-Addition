@@ -168,7 +168,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     }
 
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
-    private void pickupItem(CallbackInfo ci, @Local AABB box) {
+    private void pickupItem(CallbackInfo ci, @Local(name = "pickupArea") AABB box) {
         if (this.thisPlayer instanceof ServerPlayer player) {
             int range = CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND.getRuleValue(player);
             if (range == 0) {

@@ -9,6 +9,7 @@ import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -29,7 +30,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dialog.Dialog;
@@ -86,7 +86,7 @@ public class OrangeCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         DialogProvider provider = FetcherUtils.getDialogProvider(server);
         Dialog dialog = provider.getDialog(DialogProvider.START);
-        player.openDialog(Holder.direct(dialog));
+        PlayerUtils.openDialog(player, dialog);
         return 1;
     }
 

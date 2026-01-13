@@ -2,10 +2,7 @@ package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
-import boat.carpetorgaddition.util.IdentifierUtils;
-import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
@@ -16,7 +13,6 @@ import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
@@ -35,7 +31,7 @@ public class CustomClickEvents {
         MinecraftServer server = context.getServer();
         DialogProvider provider = FetcherUtils.getDialogProvider(server);
         Dialog dialog = provider.getDialog(id);
-        context.getPlayer().openDialog(Holder.direct(dialog));
+        PlayerUtils.openDialog(context.getPlayer(), dialog);
     });
     public static final Identifier OPEN_INVENTORY = register("open_inventory", context -> {
         NbtReader reader = context.getReader();

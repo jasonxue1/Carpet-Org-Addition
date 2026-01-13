@@ -2,7 +2,9 @@ package boat.carpetorgaddition.periodic.navigator;
 
 import boat.carpetorgaddition.command.NavigatorCommand;
 import boat.carpetorgaddition.network.s2c.WaypointUpdateS2CPacket;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.network.chat.Component;
@@ -42,7 +44,7 @@ public class EntityNavigator extends AbstractNavigator {
         super(player);
         this.entity = Objects.requireNonNull(entity);
         this.isContinue = isContinue;
-        this.prevPos = entity.getEyePosition();
+        this.prevPos = ServerUtils.getEyePos(entity);
         this.prevWorld = ServerUtils.getWorld(entity);
     }
 
@@ -61,7 +63,7 @@ public class EntityNavigator extends AbstractNavigator {
             Component in = IN.translate(entity.getName(), TextProvider.simpleBlockPos(entity.blockPosition()));
             int distance = MathUtils.getBlockIntegerDistance(player.blockPosition(), entity.blockPosition());
             // 添加上下箭头
-            Vec3 eyePos = this.entity.getEyePosition();
+            Vec3 eyePos = ServerUtils.getEyePos(this.entity);
             text = getHUDText(eyePos, in, distance);
         } else {
             Component dimension = TextProvider.dimension(ServerUtils.getWorld(this.entity));
@@ -70,18 +72,18 @@ public class EntityNavigator extends AbstractNavigator {
         }
         MessageUtils.sendMessageToHud(this.player, text);
         this.syncWaypoint(false);
-        this.prevPos = this.entity.getEyePosition();
+        this.prevPos = ServerUtils.getEyePos(this.entity);
         this.prevWorld = ServerUtils.getWorld(this.entity);
     }
 
     @Override
     protected WaypointUpdateS2CPacket createPacket() {
-        return new WaypointUpdateS2CPacket(this.entity.getEyePosition(), ServerUtils.getWorld(this.entity));
+        return new WaypointUpdateS2CPacket(ServerUtils.getEyePos(this.entity), ServerUtils.getWorld(this.entity));
     }
 
     @Override
     protected boolean updateRequired() {
-        return !(this.prevPos.equals(this.entity.getEyePosition()) && this.prevWorld.equals(ServerUtils.getWorld(this.entity)));
+        return !(this.prevPos.equals(ServerUtils.getEyePos(this.entity)) && this.prevWorld.equals(ServerUtils.getWorld(this.entity)));
     }
 
     /**

@@ -73,7 +73,6 @@ public class TextBuilder {
         return new TextBuilder(Component.object(new PlayerSprite(profile, true)));
     }
 
-
     public static Component empty() {
         return Component.empty();
     }
@@ -105,7 +104,7 @@ public class TextBuilder {
     /**
      * 设置文本颜色
      */
-    public TextBuilder setColor(ChatFormatting color) {
+    public TextBuilder setColor(@Nullable ChatFormatting color) {
         this.text.withStyle(style -> style.withColor(color));
         return this;
     }

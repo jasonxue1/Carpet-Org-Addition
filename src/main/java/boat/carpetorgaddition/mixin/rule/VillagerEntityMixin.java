@@ -1,11 +1,11 @@
 package boat.carpetorgaddition.mixin.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.screen.VillagerScreenHandler;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.entity.npc.villager.Villager;
@@ -32,10 +32,11 @@ public abstract class VillagerEntityMixin extends AbstractVillager {
     @Inject(method = "mobInteract", at = @At(value = "HEAD"), cancellable = true)
     private void clearVillagerInventory(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (CarpetOrgAdditionSettings.openVillagerInventory.get() && player.isShiftKeyDown()) {
-            SimpleMenuProvider screen =
-                    new SimpleMenuProvider((i, inventory, playerEntity)
-                            -> new VillagerScreenHandler(i, inventory, thisVillager), thisVillager.getName());
-            player.openMenu(screen);
+            PlayerUtils.openScreenHandler(
+                    player,
+                    (syncId, inventory, _) -> new VillagerScreenHandler(syncId, inventory, thisVillager),
+                    thisVillager.getName()
+            );
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }

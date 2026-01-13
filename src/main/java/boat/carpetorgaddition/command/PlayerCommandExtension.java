@@ -3,7 +3,10 @@ package boat.carpetorgaddition.command;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.value.OpenPlayerInventory;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.*;
 import boat.carpetorgaddition.wheel.screen.OfflinePlayerInventoryScreenHandler;
 import boat.carpetorgaddition.wheel.screen.PlayerEnderChestScreenHandler;
@@ -26,7 +29,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -68,8 +70,11 @@ public class PlayerCommandExtension {
     @NullMarked
     public static int openInventory(ServerPlayer player, PlayerInventoryType type, PlayerInventroyAccessor accessor) throws CommandSyntaxException {
         CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().checkPermission(player, accessor.getGameProfile());
-        SimpleMenuProvider factory = new SimpleMenuProvider((containerId, inventory, serverPlayer) -> accessor.createMenu(containerId, inventory, serverPlayer, type), accessor.getDisplayName());
-        player.openMenu(factory);
+        PlayerUtils.openScreenHandler(
+                player,
+                (containerId, inventory, serverPlayer) -> accessor.createMenu(containerId, inventory, serverPlayer, type),
+                accessor.getDisplayName()
+        );
         return 1;
     }
 

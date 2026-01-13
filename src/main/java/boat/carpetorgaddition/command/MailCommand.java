@@ -34,7 +34,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.SimpleMenuProvider;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -148,18 +147,18 @@ public class MailCommand extends AbstractServerCommand {
     // 发送多个快递
     private int sendMultipleParcel(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
-        ServerPlayer sourcePlayer = CommandUtils.getSourcePlayer(context);
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
         GameProfile gameProfile = CommandUtils.getGameProfile(context, "player");
         Optional<ServerPlayer> optional = ServerUtils.getPlayer(server, gameProfile);
         if (optional.isPresent()) {
-            checkPlayer(sourcePlayer, optional.get());
+            checkPlayer(player, optional.get());
         }
         SimpleContainer inventory = new SimpleContainer(27);
-        SimpleMenuProvider screen = new SimpleMenuProvider(
-                (i, inv, _) -> new SendParcelScreenHandler(i, inv, sourcePlayer, gameProfile, inventory),
+        PlayerUtils.openScreenHandler(
+                player,
+                (i, inv, _) -> new SendParcelScreenHandler(i, inv, player, gameProfile, inventory),
                 SEND.then("multiple", "gui").translate()
         );
-        sourcePlayer.openMenu(screen);
         return 1;
     }
 

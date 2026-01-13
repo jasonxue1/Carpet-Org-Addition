@@ -4,7 +4,9 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.DrawParticleLineTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -76,7 +78,7 @@ public class ParticleLineCommand {
      */
     private static void sendArrow(ServerPlayer player, Vec3 to) {
         // 获取玩家眼睛的位置
-        Vec3 eyePos = player.getEyePosition();
+        Vec3 eyePos = ServerUtils.getEyePos(player);
         Vec3 vec3d2 = new Vec3(0.0, 0.0, -1.0).xRot(-player.getXRot() * ((float) Math.PI / 180)).yRot(-player.getYRot() * ((float) Math.PI / 180));
         Vec3 vec3d3 = new Vec3(0.0, 1.0, 0.0).xRot(-player.getXRot() * ((float) Math.PI / 180)).yRot(-player.getYRot() * ((float) Math.PI / 180));
         Vec3 vec3d4 = vec3d2.cross(vec3d3);
