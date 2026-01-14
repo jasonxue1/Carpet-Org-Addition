@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.wheel;
 
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import net.minecraft.core.component.DataComponents;
@@ -68,14 +69,14 @@ public class ItemStackStatistics {
         int count = itemStack.getCount();
         ItemContainerContents container = itemStack.get(DataComponents.CONTAINER);
         if (container != null) {
-            this.statistics(container.nonEmptyItems(), true, count);
+            this.statistics(container.nonEmptyItemCopyStream().toList(), true, count);
             // 不考虑一个物品同时有容器物品组件和收纳袋物品组件的情况
             return;
         }
         // 收纳袋物品
         BundleContents bundleContents = itemStack.get(DataComponents.BUNDLE_CONTENTS);
         if (bundleContents != null) {
-            this.statistics(bundleContents.items(), true, count);
+            this.statistics(bundleContents.itemCopyStream().toList(), true, count);
         }
     }
 
@@ -121,11 +122,11 @@ public class ItemStackStatistics {
         for (Item item : this.counter) {
             Component itemCount = itemCount(this.counter.getCount(item), item.getDefaultMaxStackSize());
             if (this.nestingItem.contains(item)) {
-                TextBuilder builder = TextBuilder.fromCombined(item.getName(), " ", itemCount);
+                TextBuilder builder = TextBuilder.fromCombined(ServerUtils.getName(item), " ", itemCount);
                 builder.setItalic();
                 list.add(builder.build());
             } else {
-                list.add(TextBuilder.combineAll(item.getName(), " ", itemCount));
+                list.add(TextBuilder.combineAll(ServerUtils.getName(item), " ", itemCount));
             }
         }
         Component text = TextBuilder.create(this.getSum());

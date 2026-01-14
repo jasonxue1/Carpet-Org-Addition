@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.wheel.predicate;
 
 import boat.carpetorgaddition.util.IdentifierUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.CommandRegistryAccessor;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -155,7 +156,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         if (this.isEmpty()) {
             TextBuilder builder = new TextBuilder("[A]");
             builder.setColor(ChatFormatting.DARK_GRAY);
-            builder.setHover(Items.AIR.getName());
+            builder.setHover(ServerUtils.getName(Items.AIR));
             return builder.build();
         }
         TextBuilder builder = null;
@@ -174,7 +175,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         String[] split = this.input.split(":");
         int index = split.length == 1 ? 0 : 1;
         builder = new TextBuilder("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
-        Component name = BuiltInRegistries.ITEM.getValue(Identifier.parse(this.input)).getName();
+        Component name = ServerUtils.getName(BuiltInRegistries.ITEM.getValue(Identifier.parse(this.input)));
         return builder.setHover(name).build();
     }
 
@@ -186,13 +187,13 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      */
     public Component getDisplayName() throws IdentifierException {
         if (this.isEmpty()) {
-            return Items.AIR.getName();
+            return ServerUtils.getName(Items.AIR);
         }
         if (this.isWildcard) {
             return LocalizationKeys.Item.ANY_ITEM.translate();
         }
         if (this.convert != null) {
-            return this.convert.getName();
+            return ServerUtils.getName(this.convert);
         }
         if (this.input.length() > 30) {
             String substring = this.input.substring(0, 30);

@@ -2,7 +2,10 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -61,16 +64,16 @@ public class ItemShadowingCommand extends AbstractServerCommand {
             ImmutableInventory inventory = InventoryUtils.getInventory(itemStack);
             if (inventory.isEmpty()) {
                 CarpetOrgAddition.LOGGER.info("{} created an empty [{}] item shadow at {} | Coordinates: [{}]",
-                        ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                        ServerUtils.getPlayerName(player), ServerUtils.getName(itemStack.getItem()).getString(),
                         ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
             } else {
                 CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow containing {} at {} | Coordinates: [{}]",
-                        ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                        ServerUtils.getPlayerName(player), ServerUtils.getName(itemStack.getItem()).getString(),
                         inventory, ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
             }
         } else {
             CarpetOrgAddition.LOGGER.info("{} created a [{}] item shadow at {} | Coordinates: [{}]",
-                    ServerUtils.getPlayerName(player), itemStack.getItem().getName().getString(),
+                    ServerUtils.getPlayerName(player), ServerUtils.getName(itemStack.getItem()).getString(),
                     ServerUtils.getDimensionId(world), ServerUtils.toPosString(player.blockPosition()));
         }
     }

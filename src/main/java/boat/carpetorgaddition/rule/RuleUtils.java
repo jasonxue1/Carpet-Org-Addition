@@ -3,6 +3,7 @@ package boat.carpetorgaddition.rule;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
+import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
@@ -22,6 +23,8 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.CombatEntry;
 import net.minecraft.world.damagesource.CombatTracker;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.item.ItemInstance;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
@@ -176,5 +179,15 @@ public class RuleUtils {
                 yield directCause.is(DamageTypeTags.BYPASSES_INVULNERABILITY);
             }
         };
+    }
+
+    /**
+     * 潜影盒堆叠是否已启用，并且物品是空潜影盒
+     */
+    public static boolean shulkerBoxStackableEnabled(ItemInstance instance) {
+        return instance instanceof ItemStack itemStack
+               && CarpetOrgAdditionSettings.shulkerBoxStackable.get()
+               && InventoryUtils.isShulkerBoxItem(itemStack)
+               && InventoryUtils.isEmptyShulkerBox(itemStack);
     }
 }

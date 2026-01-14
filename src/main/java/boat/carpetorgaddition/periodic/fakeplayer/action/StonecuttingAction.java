@@ -187,7 +187,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
         LocalizationKey key = this.getInfoLocalizationKey();
         list.add(key.translate(
                         this.getFakePlayer().getDisplayName(),
-                        Items.STONECUTTER.getName(),
+                        ServerUtils.getName(Items.STONECUTTER),
                         this.item.getDefaultInstance().getDisplayName(),
                         itemName
                 )
@@ -201,7 +201,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     FakePlayerUtils.getWithCountHoverText(stonecutterScreenHandler.getSlot(1).getItem())));
         } else {
             // 将假玩家没有打开切石机的消息添加到集合
-            list.add(key.then("no_stonecutter").translate(this.getFakePlayer().getDisplayName(), Items.STONECUTTER.getName()));
+            list.add(key.then("no_stonecutter").translate(this.getFakePlayer().getDisplayName(), ServerUtils.getName(Items.STONECUTTER)));
         }
         return list;
     }
@@ -215,7 +215,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
             }
             StonecutterRecipe recipe = optional.get().value();
             if (recipe.matches(input, fakePlayer.level())) {
-                return recipe.assemble(input, world.registryAccess());
+                return recipe.assemble(input);
             }
         }
         return ItemStack.EMPTY;

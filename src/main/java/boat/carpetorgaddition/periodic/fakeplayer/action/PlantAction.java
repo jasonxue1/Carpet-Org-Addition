@@ -146,8 +146,8 @@ public class PlantAction extends AbstractPlayerAction {
     private boolean plantingBamboo(BlockPos plantablePos) {
         Level world = ServerUtils.getWorld(this.getFakePlayer());
         // 是否可以种植竹子
-        if (!world.getBlockState(plantablePos).is(BlockTags.BAMBOO_PLANTABLE_ON)
-            // 竹子和竹笋自身也有“bamboo_plantable_on”标签，需要排除掉
+        if (!world.getBlockState(plantablePos).is(BlockTags.SUPPORTS_BAMBOO)
+            // 竹子和竹笋自身也有“supports_bamboo”标签，需要排除掉
             || world.getBlockState(plantablePos).is(Blocks.BAMBOO)
             || world.getBlockState(plantablePos).is(Blocks.BAMBOO_SAPLING)) {
             return true;

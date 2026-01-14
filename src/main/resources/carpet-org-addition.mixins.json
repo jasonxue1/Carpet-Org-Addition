@@ -6,7 +6,6 @@
   "plugin": "boat.carpetorgaddition.debug.DebugIMixinConfigPlugin",
   "mixins": [
     "accessor.AbstractHorseEntityAccessor",
-    "accessor.ContainerComponentAccessor",
     "accessor.DamageTrackerAccessor",
     "accessor.FishingBobberEntityAccessor",
     "accessor.HorseScreenHandlerAccessor",
@@ -46,7 +45,6 @@
     "rule.BiomeMixin",
     "rule.CommandManagerMixin",
     "rule.ComparatorBlockMixin",
-    "rule.ContainerComponentMixin",
     "rule.CreeperEntityMixin",
     "rule.EnchantmentHelperMixin",
     "rule.EndermanEntityMixin",
@@ -106,6 +104,7 @@
     "rule.shulkerboxstackable.DropperBlockMixin",
     "rule.shulkerboxstackable.HopperBlockEntityMixin",
     "rule.shulkerboxstackable.HopperMinecartEntityMixin",
+    "rule.shulkerboxstackable.ItemInstanceMixin",
     "rule.shulkerboxstackable.ItemStackMixin",
     "rule.shulkerboxstackable.ScreenHandlerMixin",
     "util.CommandRegistryAccessMixin",

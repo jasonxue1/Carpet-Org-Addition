@@ -492,7 +492,7 @@ public class Parcel implements Comparable<Parcel> {
         Container inventory = this.getParcels();
         int size = inventory.getContainerSize();
         if (size == 0) {
-            return new TextBuilder(Items.AIR.getName()).build();
+            return new TextBuilder(ServerUtils.getName(Items.AIR)).build();
         }
         ItemStack first = inventory.getItem(0);
         boolean exactlyTheSame = true;
@@ -512,15 +512,16 @@ public class Parcel implements Comparable<Parcel> {
                 return LocalizationKeys.Item.ITEM.builder().setItalic().setHover(this.getItemList()).build();
             }
         }
+        Component name = ServerUtils.getName(first.getItem());
         // 物品栏中所有物品类型都相同
         if (exactlyTheSame) {
             // 物品组件也完全相同
-            return new TextBuilder(first.getItem().getName())
+            return new TextBuilder(name)
                     .setColor(first.getRarity())
                     .setHover(first)
                     .build();
         } else {
-            return first.getItem().getName();
+            return name;
         }
     }
 
@@ -534,7 +535,7 @@ public class Parcel implements Comparable<Parcel> {
         }
         TextJoiner joiner = new TextJoiner();
         for (Item item : counter) {
-            joiner.newline(new TextJoiner().append(item.getName()).append("*").append(counter.getCount(item)).join());
+            joiner.newline(new TextJoiner().append(ServerUtils.getName(item)).append("*").append(counter.getCount(item)).join());
         }
         return joiner.join();
     }

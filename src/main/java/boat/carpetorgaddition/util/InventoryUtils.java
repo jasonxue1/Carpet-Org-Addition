@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.util;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.wheel.ContainerDeepCopy;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
@@ -51,8 +50,6 @@ public class InventoryUtils {
     @CheckReturnValue
     public static ItemStack pickItemFromShulkerBox(ItemStack shulkerBox, Predicate<ItemStack> predicate) {
         if (isOperableSulkerBox(shulkerBox)) {
-            // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
-            InventoryUtils.deepCopyContainer(shulkerBox);
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             return inventory.pinkStack(predicate);
         }
@@ -70,8 +67,6 @@ public class InventoryUtils {
             return ItemStack.EMPTY;
         }
         if (isOperableSulkerBox(shulkerBox)) {
-            // 将潜影盒内的物品栏组件替换为该组件的深拷贝副本
-            InventoryUtils.deepCopyContainer(shulkerBox);
             ContainerComponentInventory inventory = new ContainerComponentInventory(shulkerBox);
             return inventory.pinkStack(predicate, count);
         }
@@ -105,7 +100,7 @@ public class InventoryUtils {
         if (component == null || component == ItemContainerContents.EMPTY) {
             return itemStack.getMaxStackSize() * ContainerComponentInventory.CONTAINER_SIZE;
         }
-        List<ItemStack> list = component.nonEmptyStream().toList();
+        List<ItemStack> list = component.nonEmptyItemCopyStream().toList();
         int count = 0;
         for (ItemStack stack : list) {
             if (stack.getCount() == stack.getMaxStackSize()) {
@@ -130,7 +125,7 @@ public class InventoryUtils {
             if (component == null || component == ItemContainerContents.EMPTY) {
                 return ItemStack.EMPTY;
             }
-            Iterator<ItemStack> iterator = component.nonEmptyStream().iterator();
+            Iterator<ItemStack> iterator = component.nonEmptyItemCopyStream().iterator();
             return iterator.hasNext() ? iterator.next() : ItemStack.EMPTY;
         }
         return ItemStack.EMPTY;
@@ -183,24 +178,9 @@ public class InventoryUtils {
         ItemContainerContents component = shulkerBox.get(DataComponents.CONTAINER);
         // 因为有空潜影盒的判断，shulkerBox.get(DataComponentTypes.CONTAINER)不会返回null
         //noinspection DataFlowIssue
-        return new ImmutableInventory(component.nonEmptyStream().toList());
+        return new ImmutableInventory(component.nonEmptyItemCopyStream().toList());
     }
 
-
-    /**
-     * 在创造模式下使用鼠标中键复制的物品时，物品组件只是被浅拷贝了，这些被复制的物品还是共享同一个组件地址，当直接对其中一个组件进行操作时，所有被复制的物品都会受到影响，换句话说，当其中一个潜影盒中的物品被本类中的方法取出来后，所有被复制的潜影盒中这个物品都会消失，假玩家也就不能正确的从潜影盒中拿取物品。所以本方法的作用是将物品组件替换为它的深克隆对象。
-     *
-     * @param shulkerBox 要替换组件的潜影盒
-     * @see <a href="https://bugs.mojang.com/browse/MC-271123">MC-271123</a>
-     */
-    public static void deepCopyContainer(ItemStack shulkerBox) {
-        ItemContainerContents component = shulkerBox.get(DataComponents.CONTAINER);
-        if (component == null || component == ItemContainerContents.EMPTY) {
-            return;
-        }
-        ItemContainerContents copy = ((ContainerDeepCopy) (Object) component).carpet_Org_Addition$copy();
-        shulkerBox.set(DataComponents.CONTAINER, copy);
-    }
 
     /**
      * 判断指定物品是否为潜影盒
@@ -353,7 +333,7 @@ public class InventoryUtils {
         if (component == null || component == ItemContainerContents.EMPTY) {
             return acceptEmptyShulker;
         }
-        return component.nonEmptyStream().allMatch(itemStack -> canMerge(itemStack, target));
+        return component.nonEmptyItemCopyStream().allMatch(itemStack -> canMerge(itemStack, target));
     }
 
     /**
@@ -364,7 +344,7 @@ public class InventoryUtils {
         if (component == null || component == ItemContainerContents.EMPTY) {
             return false;
         }
-        List<ItemStack> list = component.nonEmptyStream().toList();
+        List<ItemStack> list = component.nonEmptyItemCopyStream().toList();
         // 潜影盒为空或只有一个物品
         if (list.size() < 2) {
             return false;

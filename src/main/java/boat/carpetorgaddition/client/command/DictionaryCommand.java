@@ -4,6 +4,7 @@ import boat.carpetorgaddition.client.command.argument.ClientObjectArgumentType;
 import boat.carpetorgaddition.client.util.ClientMessageUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.util.EnchantmentUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -178,7 +179,7 @@ public class DictionaryCommand extends AbstractClientCommand {
             // 获取注册管理器
             RegistryAccess.Frozen registry = player.connection.registryAccess();
             return switch (this) {
-                case ITEM -> ((Item) obj).getName();
+                case ITEM -> ServerUtils.getName((Item) obj);
                 case BLOCK -> ((Block) obj).getName();
                 case ENTITY -> ((EntityType<?>) obj).getDescription();
                 case ENCHANTMENT -> EnchantmentUtils.getName((Enchantment) obj);

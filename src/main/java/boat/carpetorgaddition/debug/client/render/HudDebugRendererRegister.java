@@ -161,7 +161,7 @@ public class HudDebugRendererRegister {
                         List<Component> list = new ArrayList<>();
                         for (Item item : counter) {
                             int count = counter.getCount(item);
-                            list.add(TextBuilder.combineAll(item.getName(), "*", count));
+                            list.add(TextBuilder.combineAll(ServerUtils.getName(item), "*", count));
                         }
                         if (experienceOrbEntityCount != 0) {
                             list.add(TextBuilder.combineAll("经验球实体数量：", experienceOrbEntityCount));

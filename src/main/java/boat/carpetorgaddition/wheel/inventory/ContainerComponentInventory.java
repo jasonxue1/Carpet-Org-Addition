@@ -23,7 +23,6 @@ public class ContainerComponentInventory extends SimpleContainer implements Comp
 
     public ContainerComponentInventory(ItemStack itemStack) {
         super(CONTAINER_SIZE);
-        InventoryUtils.deepCopyContainer(itemStack);
         this.itemStack = itemStack;
         ItemContainerContents component = this.itemStack.get(DataComponents.CONTAINER);
         if (component != null) {

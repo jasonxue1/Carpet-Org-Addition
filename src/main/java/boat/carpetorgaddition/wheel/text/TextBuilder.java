@@ -16,6 +16,7 @@ import net.minecraft.network.chat.contents.objects.PlayerSprite;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.component.ResolvableProfile;
 import org.jetbrains.annotations.Nullable;
@@ -138,7 +139,9 @@ public class TextBuilder {
     }
 
     public TextBuilder setHover(ItemStack itemStack) {
-        this.text.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(itemStack)));
+        if (!itemStack.isEmpty()) {
+            this.text.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowItem(ItemStackTemplate.fromNonEmptyStack(itemStack))));
+        }
         return this;
     }
 

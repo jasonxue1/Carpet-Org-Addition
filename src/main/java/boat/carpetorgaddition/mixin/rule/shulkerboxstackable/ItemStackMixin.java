@@ -1,41 +1,23 @@
 package boat.carpetorgaddition.mixin.rule.shulkerboxstackable;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.rule.RuleUtils;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ItemStack.class)
 public class ItemStackMixin {
     @Unique
-    private final ItemStack thisStack = (ItemStack) (Object) this;
-
-    @Inject(method = "getMaxStackSize", at = @At("RETURN"), cancellable = true)
-    private void getMaxCount(CallbackInfoReturnable<Integer> cir) {
-        if (this.shulkerBoxStackableEnabled() && CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get()) {
-            if (cir.getReturnValue() == 1) {
-                cir.setReturnValue(64);
-            }
-        }
-    }
+    private final ItemStack self = (ItemStack) (Object) this;
 
     @Inject(method = "limitSize", at = @At("HEAD"), cancellable = true)
     private void capCount(int maxCount, CallbackInfo ci) {
-        if (this.shulkerBoxStackableEnabled() && !CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get()) {
+        if (!CarpetOrgAdditionSettings.shulkerBoxStackCountChanged.get() && RuleUtils.shulkerBoxStackableEnabled(this.self)) {
             ci.cancel();
         }
-    }
-
-    // 规则是否已启用，并且当前物品是空潜影盒
-    @Unique
-    private boolean shulkerBoxStackableEnabled() {
-        return CarpetOrgAdditionSettings.shulkerBoxStackable.get()
-                && InventoryUtils.isShulkerBoxItem(thisStack)
-                && InventoryUtils.isEmptyShulkerBox(thisStack);
     }
 }

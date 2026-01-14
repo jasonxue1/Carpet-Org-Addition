@@ -125,7 +125,7 @@ public class ParcelManager {
     public static Component getReceiveNotice(ServerPlayer player, Counter<Item> counter) {
         ArrayList<Component> list = new ArrayList<>();
         for (Item item : counter) {
-            list.add(TextBuilder.combineAll(item.getName(), "*", counter.getCount(item)));
+            list.add(TextBuilder.combineAll(ServerUtils.getName(item), "*", counter.getCount(item)));
         }
         TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("collect").translate(player.getDisplayName()));
         builder.setGrayItalic();

@@ -3,6 +3,7 @@ package boat.carpetorgaddition.periodic.fakeplayer;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.helpers.EntityPlayerActionPack;
@@ -225,7 +226,7 @@ public class FakePlayerUtils {
      */
     public static Component getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return new TextBuilder("[A]").setHover(Items.AIR.getName()).setColor(ChatFormatting.DARK_GRAY).build();
+            return new TextBuilder("[A]").setHover(ServerUtils.getName(Items.AIR)).setColor(ChatFormatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         // 将物品名称的字符串切割为命名空间（如果有）和物品id
@@ -235,7 +236,7 @@ public class FakePlayerUtils {
         int index = (split.length == 1) ? 0 : 1;
         // 获取物品id的首字母，然后大写
         String capitalizeFirstLetter = "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
-        Component hover = TextBuilder.combineAll(itemStack.getItem().getName(), "*" + itemStack.getCount());
+        Component hover = TextBuilder.combineAll(ServerUtils.getDefaultName(itemStack), "*" + itemStack.getCount());
         return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
     }
 }

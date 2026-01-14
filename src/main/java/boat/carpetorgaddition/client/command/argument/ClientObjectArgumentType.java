@@ -4,6 +4,7 @@ import boat.carpetorgaddition.client.util.ClientCommandUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.EnchantmentUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.StringReader;
@@ -175,7 +176,7 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
 
         @Override
         protected String objectToString(Item item) {
-            return item.getName().getString();
+            return ServerUtils.getName(item).getString();
         }
 
         @Override

@@ -5,6 +5,7 @@ import boat.carpetorgaddition.exception.InfiniteLoopException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -147,7 +148,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = CraftingTableCraftAction.getCraftOutput(this.predicates, 2, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : craftOutput.getItem().getName();
+        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : ServerUtils.getName(craftOutput.getItem());
         LocalizationKey key = this.getInfoLocalizationKey();
         joiner.newline(key.translate(name, itemText));
         joiner.enter(() -> this.addCraftRecipe(joiner, craftOutput));

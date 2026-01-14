@@ -66,7 +66,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         CraftingInput input = CraftingInput.of(widthHeight, widthHeight, list);
         Level world = ServerUtils.getWorld(fakePlayer);
         Optional<RecipeHolder<CraftingRecipe>> optional = ServerUtils.getServer(fakePlayer).getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, world);
-        return optional.map(recipe -> recipe.value().assemble(input, world.registryAccess())).orElse(ItemStack.EMPTY);
+        return optional.map(recipe -> recipe.value().assemble(input)).orElse(ItemStack.EMPTY);
     }
 
     @Override
@@ -185,7 +185,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         // 将可变文本“<玩家>正在合成物品，配方:”添加到集合
         ItemStack craftOutput = getCraftOutput(this.predicates, 3, this.getFakePlayer());
         // 如果可以合成物品，返回合成的结果物品，否则返回固定文本“物品”
-        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : craftOutput.getItem().getName();
+        Component itemText = craftOutput.isEmpty() ? LocalizationKeys.Item.ITEM.translate() : ServerUtils.getName(craftOutput.getItem());
         Component displayName = this.getFakePlayer().getDisplayName();
         LocalizationKey key = this.getInfoLocalizationKey();
         joiner.newline(key.translate(displayName, itemText));
@@ -198,7 +198,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
             joiner.enter(() -> this.addCraftGridState(currentScreenHandler, joiner));
         } else {
             // 如果没有打开工作台，将未打开工作台的信息添加到集合
-            joiner.newline(key.then("no_crafting_table").translate(displayName, Items.CRAFTING_TABLE.getName()));
+            joiner.newline(key.then("no_crafting_table").translate(displayName, ServerUtils.getName(Items.CRAFTING_TABLE)));
         }
         return joiner.collect();
     }

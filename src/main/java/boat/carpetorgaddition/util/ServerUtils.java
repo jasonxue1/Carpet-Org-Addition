@@ -7,7 +7,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -17,6 +20,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -329,5 +334,13 @@ public class ServerUtils {
 
     public static Vec3 getEyePos(Entity entity) {
         return entity.getEyePosition();
+    }
+
+    public static Component getName(Item item) {
+        return item.components().getOrDefault(DataComponents.ITEM_NAME, CommonComponents.EMPTY);
+    }
+
+    public static Component getDefaultName(ItemStack itemStack) {
+        return getName(itemStack.getItem());
     }
 }
