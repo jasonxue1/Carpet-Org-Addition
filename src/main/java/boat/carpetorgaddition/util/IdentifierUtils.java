@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
 public class IdentifierUtils {
     private IdentifierUtils() {
     }
@@ -31,6 +30,7 @@ public class IdentifierUtils {
         return BuiltInRegistries.BLOCK.getKey(block);
     }
 
+    @SuppressWarnings("unused")
     public static Optional<Identifier> getId(Level world, Enchantment enchantment) {
         Holder<Enchantment> entry = Holder.direct(enchantment);
         entry.unwrapKey().map(ResourceKey::identifier);
@@ -74,6 +74,7 @@ public class IdentifierUtils {
         return BuiltInRegistries.BLOCK.getValue(Identifier.parse(id));
     }
 
+    @SuppressWarnings("unused")
     public static Optional<UUID> uuidFromString(@Nullable String str) {
         if (str == null || str.isEmpty()) {
             return Optional.empty();

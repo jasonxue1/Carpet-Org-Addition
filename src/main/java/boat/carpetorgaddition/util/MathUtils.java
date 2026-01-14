@@ -8,7 +8,6 @@ import net.minecraft.world.phys.Vec3;
 import java.util.*;
 import java.util.function.Consumer;
 
-@SuppressWarnings("unused")
 public class MathUtils {
     /**
      * 数学工具类，私有化构造方法
@@ -146,6 +145,7 @@ public class MathUtils {
     /**
      * 计算两个方块坐标的最小边界点
      */
+    @SuppressWarnings("unused")
     public static BlockPos toMinBlockPos(BlockPos pos1, BlockPos pos2) {
         return new BlockPos(
                 Math.min(pos1.getX(), pos2.getX()),
@@ -157,6 +157,7 @@ public class MathUtils {
     /**
      * 计算两个方块坐标的最大边界点
      */
+    @SuppressWarnings("unused")
     public static BlockPos toMaxBlockPos(BlockPos pos1, BlockPos pos2) {
         return new BlockPos(
                 Math.max(pos1.getX(), pos2.getX()),

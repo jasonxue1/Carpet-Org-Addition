@@ -5,17 +5,21 @@ import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import com.google.gson.JsonParseException;
 import net.minecraft.server.MinecraftServer;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
 
+@NullMarked
 public class PlayerSerializationManager {
     public static final String PLAYER_DATA = "player_data";
     public static final String SCRIPT_ACTION = "script_action";
     private final WorldFormat worldFormat;
     private final HashSet<FakePlayerSerializer> serializers = new HashSet<>();
+    // TODO 已排序
+    private final Map<String, TreeSet<FakePlayerSerializer>> groups = new HashMap<>();
     private boolean initialize = false;
 
     public PlayerSerializationManager(MinecraftServer server) {
@@ -43,7 +47,11 @@ public class PlayerSerializationManager {
             List<File> list = this.worldFormat.toFileList(WorldFormat.JSON_EXTENSIONS);
             for (File file : list) {
                 try {
-                    this.serializers.add(new FakePlayerSerializer(file));
+                    FakePlayerSerializer serializer = new FakePlayerSerializer(file, this);
+                    this.serializers.add(serializer);
+                    for (String group : serializer.getGroups()) {
+                        this.addGroup(group, serializer);
+                    }
                 } catch (IOException | JsonParseException | NullPointerException e) {
                     // 译：未能成功加载玩家数据
                     CarpetOrgAddition.LOGGER.warn("Failed to load player data successfully", e);
@@ -81,6 +89,14 @@ public class PlayerSerializationManager {
         return map;
     }
 
+    public Set<FakePlayerSerializer> listGroup(String group) {
+        Set<FakePlayerSerializer> set = this.groups.get(group);
+        if (set == null) {
+            return Set.of();
+        }
+        return set;
+    }
+
     public void add(FakePlayerSerializer serializer) {
         this.initializeIfNeeded();
         this.serializers.remove(serializer);
@@ -100,6 +116,19 @@ public class PlayerSerializationManager {
             }
         }
         return Optional.empty();
+    }
+
+    public void addGroup(String group, FakePlayerSerializer serializer) {
+        Set<FakePlayerSerializer> set = this.groups.computeIfAbsent(group, _ -> new TreeSet<>());
+        set.add(serializer);
+    }
+
+    public void removeGroup(String group, FakePlayerSerializer serializer) {
+        Set<FakePlayerSerializer> set = this.groups.get(group);
+        if (set == null) {
+            return;
+        }
+        set.remove(serializer);
     }
 
     public int size() {

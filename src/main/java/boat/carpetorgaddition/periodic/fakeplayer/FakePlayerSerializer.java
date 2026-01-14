@@ -10,7 +10,10 @@ import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSeriali
 import boat.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
 import boat.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.IOUtils;
+import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
@@ -27,11 +30,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,47 +45,44 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+@NullMarked
 public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 玩家名称
      */
-    private final String name;
+    private String name;
     /**
      * 注释
      */
-    @NotNull
     private String comment = "";
     /**
      * 位置
      */
-    @NotNull
-    private final Vec3 playerPos;
+    private Vec3 playerPos;
     /**
      * 偏航角
      */
-    private final float yaw;
+    private float yaw;
     /**
      * 俯仰角
      */
-    private final float pitch;
+    private float pitch;
     /**
      * 维度
      */
-    @NotNull
-    private final String dimension;
+    private String dimension;
     /**
      * 游戏模式
      */
-    @NotNull
-    private final GameType gameMode;
+    private GameType gameMode;
     /**
      * 是否飞行
      */
-    private final boolean flying;
+    private boolean flying;
     /**
      * 是否潜行
      */
-    private final boolean sneaking;
+    private boolean sneaking;
     /**
      * 是否自动登录
      */
@@ -87,25 +90,25 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 假玩家手部动作
      */
-    @NotNull
-    private final EntityPlayerActionPackSerial interactiveAction;
+    private EntityPlayerActionPackSerial interactiveAction;
     /**
      * 假玩家自动动作
      */
-    @NotNull
-    private final FakePlayerActionSerializer autoAction;
+    private FakePlayerActionSerializer autoAction;
     /**
-     * 玩家所在的组，集合中可能包含null元素
+     * 玩家所在的组
      */
-    private final HashSet<@Nullable String> groups = new HashSet<>();
+    private final HashSet<String> groups = new HashSet<>();
     private final EnumMap<FakePlayerStartupAction, Integer> startups = new EnumMap<>(FakePlayerStartupAction.class);
     /**
      * 当前对象是否已经修改，即是否需要重新保存
      */
     private boolean isChanged = false;
     private final File file;
+    @Nullable
+    private final PlayerSerializationManager serializationManager;
 
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, @Nullable PlayerSerializationManager manager) {
         this.name = ServerUtils.getPlayerName(fakePlayer);
         this.playerPos = ServerUtils.getFootPos(fakePlayer);
         this.yaw = fakePlayer.getYRot();
@@ -116,25 +119,11 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.sneaking = fakePlayer.isShiftKeyDown();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
+        this.serializationManager = manager;
         this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.name, "json");
     }
 
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, FakePlayerSerializer serializer) {
-        this(fakePlayer);
-        // this.groups可能传入一个null
-        this.groups.addAll(serializer.getGroups());
-        this.startups.putAll(serializer.startups);
-        this.autologin = serializer.autologin;
-        this.setComment(serializer.comment);
-        this.isChanged = true;
-    }
-
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, String comment) {
-        this(fakePlayer);
-        this.setComment(comment);
-    }
-
-    public FakePlayerSerializer(File file) throws IOException {
+    public FakePlayerSerializer(File file, PlayerSerializationManager manager) throws IOException {
         JsonObject json = IOUtils.loadJson(file);
         int version = DataUpdater.getVersion(json);
         if (version < DataUpdater.VERSION) {
@@ -143,7 +132,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             json = dataUpdater.update(json, version);
         }
         // 玩家名
-        this.name = file.getName().split("\\.")[0];
+        this.name = IOUtils.getFileNameWithoutExtension(file);
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -181,6 +170,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         if (json.has("group")) {
             JsonArray array = json.getAsJsonArray("group");
             for (JsonElement group : array) {
+                // Json null在正常情况下不会出现，这个检查是为了与早期测试时的Json文件兼容
                 if (group.isJsonNull()) {
                     continue;
                 }
@@ -202,6 +192,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 this.startups.put(optional.get(), delay);
             }
         }
+        this.serializationManager = manager;
         this.file = file;
     }
 
@@ -234,17 +225,8 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             }
         };
         // 生成假玩家
-        ServerUtils.createFakePlayer(
-                this.name,
-                server,
-                this.playerPos,
-                this.yaw,
-                this.pitch,
-                ServerUtils.getWorld(this.dimension),
-                this.gameMode,
-                this.flying,
-                consumer
-        );
+        ResourceKey<Level> world = ServerUtils.getWorld(this.dimension);
+        ServerUtils.createFakePlayer(this.name, server, this.playerPos, this.yaw, this.pitch, world, this.gameMode, this.flying, consumer);
     }
 
     // 显示文本信息
@@ -291,7 +273,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 }
             });
         }
-        if (this.hasComment()) {
+        if (!this.comment.isEmpty()) {
             // 添加注释
             joiner.newline(key.then("comment").translate(this.comment));
         }
@@ -331,9 +313,6 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 添加玩家组
         JsonArray groups = new JsonArray();
         for (String group : this.groups) {
-            if (group == null) {
-                continue;
-            }
             groups.add(group);
         }
         json.add("group", groups);
@@ -348,9 +327,26 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         return json;
     }
 
+    /**
+     * 更新玩家数据
+     */
+    public void update(EntityPlayerMPFake fakePlayer) {
+        this.name = ServerUtils.getPlayerName(fakePlayer);
+        this.playerPos = ServerUtils.getFootPos(fakePlayer);
+        this.yaw = fakePlayer.getYRot();
+        this.pitch = fakePlayer.getXRot();
+        this.dimension = ServerUtils.getDimensionId(ServerUtils.getWorld(fakePlayer));
+        this.gameMode = fakePlayer.gameMode.getGameModeForPlayer();
+        this.flying = fakePlayer.getAbilities().flying;
+        this.sneaking = fakePlayer.isShiftKeyDown();
+        this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
+        this.autoAction = new FakePlayerActionSerializer(fakePlayer);
+        this.isChanged = true;
+    }
+
     // 修改注释
-    public void setComment(@Nullable String comment) {
-        this.comment = comment == null ? "" : comment;
+    public void setComment(String comment) {
+        this.comment = comment;
         this.isChanged = true;
     }
 
@@ -365,6 +361,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     public void addToGroup(String group) {
         this.groups.add(group);
+        if (this.serializationManager != null) {
+            this.serializationManager.addGroup(group, this);
+        }
         this.isChanged = true;
     }
 
@@ -375,6 +374,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     public boolean removeFromGroup(String group) {
         boolean remove = this.groups.remove(group);
+        if (this.serializationManager != null) {
+            this.serializationManager.removeGroup(group, this);
+        }
         this.isChanged = true;
         return remove;
     }
@@ -389,55 +391,57 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         return new TextBuilder(this.name).setHover(this.info()).build();
     }
 
-    public Supplier<Component> toTextSupplier() {
-        return this::toText;
-    }
-
-    private Component toText() {
-        String name = this.getName();
-        String logonCommand = CommandProvider.playerManagerSpawn(name);
-        String logoutCommand = CommandProvider.killFakePlayer(name);
-        Component login = new TextBuilder("[↑]")
-                .setCommand(logonCommand)
-                .setHover(LocalizationKeys.Button.LOGIN.translate())
-                .setColor(ChatFormatting.GREEN)
-                .build();
-        Component logout = new TextBuilder("[↓]")
-                .setCommand(logoutCommand)
-                .setHover(LocalizationKeys.Button.LOGOUT.translate())
-                .setColor(ChatFormatting.RED)
-                .build();
-        Component info = new TextBuilder("[?]")
-                .setHover(this.info())
-                .setColor(ChatFormatting.GRAY)
-                .build();
-        TextJoiner joiner = new TextJoiner();
-        joiner.append(login)
-                .space()
-                .append(logout)
-                .space()
-                .append(info)
-                .space()
-                .append(name);
-        if (this.hasComment()) {
-            TextBuilder builder = new TextBuilder("    // " + this.getComment());
-            builder.setGrayItalic();
-            joiner.append(builder.build());
-        }
-        return joiner.join();
+    /**
+     * {@code list}子命令中，每一行显示的内容
+     */
+    public Supplier<Component> eachSupplier() {
+        return () -> {
+            String name = this.getName();
+            String logonCommand = CommandProvider.playerManagerSpawn(name);
+            String logoutCommand = CommandProvider.killFakePlayer(name);
+            Component login = new TextBuilder("[↑]")
+                    .setCommand(logonCommand)
+                    .setHover(LocalizationKeys.Button.LOGIN.translate())
+                    .setColor(ChatFormatting.GREEN)
+                    .build();
+            Component logout = new TextBuilder("[↓]")
+                    .setCommand(logoutCommand)
+                    .setHover(LocalizationKeys.Button.LOGOUT.translate())
+                    .setColor(ChatFormatting.RED)
+                    .build();
+            Component info = new TextBuilder("[?]")
+                    .setHover(this.info())
+                    .setColor(ChatFormatting.GRAY)
+                    .build();
+            TextJoiner joiner = new TextJoiner();
+            joiner.append(login)
+                    .space()
+                    .append(logout)
+                    .space()
+                    .append(info)
+                    .space()
+                    .append(name);
+            if (!this.comment.isEmpty()) {
+                TextBuilder builder = new TextBuilder("    // " + this.getComment());
+                builder.setGrayItalic();
+                joiner.append(builder.build());
+            }
+            return joiner.join();
+        };
     }
 
     /**
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
+        PlayerSerializationManager playerSerializationManager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
         try {
-            List<FakePlayerSerializer> list = FetcherUtils.getFakePlayerSerializationManager(server).list();
+            List<FakePlayerSerializer> list = playerSerializationManager.list();
             int count = server.getPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    manager.addTask(new DelayedLoginTask(server, server.createCommandSourceStack(), serializer, 1) {
+                    taskManager.addTask(new DelayedLoginTask(server, server.createCommandSourceStack(), serializer, 1) {
                         @Override
                         public void tick() {
                             try {
@@ -450,6 +454,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                         }
                     });
                     count++;
+                    // TODO 可能不生效
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                     if (count >= server.getMaxPlayers() - 1) {
                         CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");
@@ -462,11 +467,6 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         }
     }
 
-    public boolean hasComment() {
-        return !this.comment.isEmpty();
-    }
-
-    @NotNull
     public String getComment() {
         return this.comment;
     }
@@ -475,8 +475,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         return this.isChanged;
     }
 
+    @Unmodifiable
     public Set<String> getGroups() {
-        return this.groups.isEmpty() ? Collections.singleton(null) : Collections.unmodifiableSet(this.groups);
+        return Collections.unmodifiableSet(this.groups);
     }
 
     public void addStartupFunction(FakePlayerStartupAction action, int delay) {
@@ -499,7 +500,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     @Override
-    public int compareTo(@NotNull FakePlayerSerializer o) {
+    public int compareTo(FakePlayerSerializer o) {
         return this.name.compareTo(o.name);
     }
 
