@@ -9,7 +9,6 @@ import carpet.patches.EntityPlayerMPFake;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.StringJoiner;
 import java.util.UUID;
@@ -103,34 +102,25 @@ public class CommandProvider {
         return "/%s safeafk set %s -1 true".formatted(commandName, playerName);
     }
 
-    public static String listGroupPlayer(String group, @Nullable String filter) {
+    public static String listGroupPlayer(String group) {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(PlayerManagerCommand.class));
         joiner.add("group list group");
         joiner.add(StringArgumentType.escapeIfRequired(group));
-        if (filter != null) {
-            joiner.add(StringArgumentType.escapeIfRequired(filter));
-        }
         return joiner.toString();
     }
 
-    public static String listUngroupedPlayer(@Nullable String filter) {
+    public static String listUngroupedPlayer() {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(PlayerManagerCommand.class));
         joiner.add("group list ungrouped");
-        if (filter != null) {
-            joiner.add(StringArgumentType.escapeIfRequired(filter));
-        }
         return joiner.toString();
     }
 
-    public static String listAllPlayer(@Nullable String filter) {
+    public static String listAllPlayer() {
         StringJoiner joiner = new StringJoiner(" ", "/", "");
         joiner.add(getCommandName(PlayerManagerCommand.class));
         joiner.add("group list all");
-        if (filter != null) {
-            joiner.add(StringArgumentType.escapeIfRequired(filter));
-        }
         return joiner.toString();
     }
 

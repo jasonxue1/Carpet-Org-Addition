@@ -89,6 +89,11 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     }
 
     @Override
+    public void onServerLoaded(MinecraftServer server) {
+        ServerComponentCoordinator.getCoordinator(server).onServerStarted();
+    }
+
+    @Override
     public void onServerLoadedWorlds(MinecraftServer server) {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);

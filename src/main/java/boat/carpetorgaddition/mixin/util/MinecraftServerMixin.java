@@ -15,12 +15,14 @@ import java.util.function.BooleanSupplier;
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin implements PeriodicTaskManagerInterface {
     @Unique
+    private final MinecraftServer self = (MinecraftServer) (Object) this;
+    @Unique
     private ServerComponentCoordinator manager;
 
     @Inject(method = "<init>", at = @At("RETURN"))
     private void init(CallbackInfo ci) {
         // 在构造方法执行完毕后创建，因为在这之前服务器可能没有完成初始化
-        this.manager = new ServerComponentCoordinator((MinecraftServer) (Object) this);
+        this.manager = new ServerComponentCoordinator(this.self);
     }
 
     @Inject(method = "tickServer", at = @At("HEAD"))

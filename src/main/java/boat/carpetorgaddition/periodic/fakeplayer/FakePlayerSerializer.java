@@ -37,7 +37,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -105,10 +104,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     private boolean isChanged = false;
     private final File file;
-    @Nullable
-    private final PlayerSerializationManager serializationManager;
+    private final List<Listener> listeners = new ArrayList<>();
 
-    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer, @Nullable PlayerSerializationManager manager) {
+    public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.name = ServerUtils.getPlayerName(fakePlayer);
         this.playerPos = ServerUtils.getFootPos(fakePlayer);
         this.yaw = fakePlayer.getYRot();
@@ -119,11 +117,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.sneaking = fakePlayer.isShiftKeyDown();
         this.interactiveAction = new EntityPlayerActionPackSerial(((ServerPlayerInterface) fakePlayer).getActionPack());
         this.autoAction = new FakePlayerActionSerializer(fakePlayer);
-        this.serializationManager = manager;
         this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.name, "json");
     }
 
-    public FakePlayerSerializer(File file, PlayerSerializationManager manager) throws IOException {
+    public FakePlayerSerializer(File file) throws IOException {
         JsonObject json = IOUtils.loadJson(file);
         int version = DataUpdater.getVersion(json);
         if (version < DataUpdater.VERSION) {
@@ -192,7 +189,6 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 this.startups.put(optional.get(), delay);
             }
         }
-        this.serializationManager = manager;
         this.file = file;
     }
 
@@ -361,9 +357,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     public void addToGroup(String group) {
         this.groups.add(group);
-        if (this.serializationManager != null) {
-            this.serializationManager.addGroup(group, this);
-        }
+        this.listeners.forEach(listener -> listener.onAddGroup(group));
         this.isChanged = true;
     }
 
@@ -374,9 +368,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      */
     public boolean removeFromGroup(String group) {
         boolean remove = this.groups.remove(group);
-        if (this.serializationManager != null) {
-            this.serializationManager.removeGroup(group, this);
-        }
+        this.listeners.forEach(listener -> listener.onRemoveGroup(group));
         this.isChanged = true;
         return remove;
     }
@@ -437,7 +429,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         PlayerSerializationManager playerSerializationManager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
         try {
-            List<FakePlayerSerializer> list = playerSerializationManager.list();
+            List<FakePlayerSerializer> list = playerSerializationManager.listAll();
             int count = server.getPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
@@ -489,6 +481,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.isChanged = true;
     }
 
+    public void addListener(Listener listener) {
+        this.listeners.add(listener);
+    }
+
     @Override
     public boolean equals(Object obj) {
         return this == obj || (this.getClass() == obj.getClass() && this.name.equals(((FakePlayerSerializer) obj).name));
@@ -501,10 +497,16 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     @Override
     public int compareTo(FakePlayerSerializer o) {
-        return this.name.compareTo(o.name);
+        return String.CASE_INSENSITIVE_ORDER.compare(this.name, o.name);
     }
 
     public boolean remove() {
         return this.file.delete();
+    }
+
+    public interface Listener {
+        void onAddGroup(String group);
+
+        void onRemoveGroup(String group);
     }
 }

@@ -44,7 +44,7 @@ public class ReLoginTask extends PlayerScheduleTask {
 
     public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, CommandSourceStack source) {
         super(source);
-        this.serializer = new FakePlayerSerializer(fakePlayer, null);
+        this.serializer = new FakePlayerSerializer(fakePlayer);
         this.interval = interval;
         this.remainingTick = this.interval;
         this.server = server;

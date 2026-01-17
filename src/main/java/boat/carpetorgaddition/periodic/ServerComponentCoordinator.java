@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
+import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
 import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.rule.RuleSelfManager;
@@ -13,8 +13,9 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTickRateManager;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class ServerComponentCoordinator {
     static {
         // 注册服务器保存事件
@@ -49,6 +50,10 @@ public class ServerComponentCoordinator {
         this.accessManager = new FabricPlayerAccessManager(server);
         this.ruleConfig = new RuleConfig(server);
         this.dialogProvider = new DialogProvider(server);
+    }
+
+    public void onServerStarted() {
+        this.playerSerializationManager.init();
     }
 
     public void tick() {
@@ -96,12 +101,11 @@ public class ServerComponentCoordinator {
         this.playerSerializationManager.onServerSave();
     }
 
-    @NotNull
+    @Deprecated
     public static ServerComponentCoordinator getCoordinator(CommandContext<CommandSourceStack> context) {
         return getCoordinator(context.getSource().getServer());
     }
 
-    @NotNull
     public static ServerComponentCoordinator getCoordinator(MinecraftServer server) {
         return ((PeriodicTaskManagerInterface) server).carpet_Org_Addition$getServerPeriodicTaskManager();
     }
