@@ -500,6 +500,20 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.listeners.add(listener);
     }
 
+    /**
+     * @return 是否可以通过{@code list}的过滤器
+     */
+    public boolean match(String filter) {
+        if (filter.isEmpty()) {
+            return true;
+        }
+        String lowerCase = filter.toLowerCase(Locale.ROOT);
+        if (this.name.toLowerCase(Locale.ROOT).contains(lowerCase)) {
+            return true;
+        }
+        return this.comment.toLowerCase(Locale.ROOT).contains(lowerCase);
+    }
+
     @Override
     public boolean equals(Object obj) {
         return this == obj || (this.getClass() == obj.getClass() && this.name.equals(((FakePlayerSerializer) obj).name));

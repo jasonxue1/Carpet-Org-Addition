@@ -175,7 +175,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(Commands.argument("autologin", BoolArgumentType.bool())
                                         .executes(context -> this.setAutoLogin(context, true)))))
                 .then(Commands.literal("list")
-                        .executes(this::list))
+                        .executes(this::list)
+                        .then(Commands.argument("filter", StringArgumentType.string())
+                                .executes(this::listWithFilter)))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("name", StringArgumentType.string())
                                 .suggests(playerSuggests())
@@ -648,6 +650,29 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context.getSource(), message);
             return list.size();
         }
+    }
+
+    private int listWithFilter(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        MinecraftServer server = context.getSource().getServer();
+        String filter = StringArgumentType.getString(context, "filter");
+        PlayerSerializationManager manager = getSerializationManager(server);
+        List<Supplier<Component>> list = manager.listAll().stream()
+                .filter(serializer -> serializer.match(filter))
+                .map(FakePlayerSerializer::line)
+                .toList();
+        LocalizationKey key = KEY.then("list");
+        if (list.isEmpty()) {
+            // 没有玩家被列出
+            MessageUtils.sendMessage(context, key.then("no_player").translate());
+            return 0;
+        }
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(server).getPageManager();
+        PagedCollection collection = pageManager.newPagedCollection(context.getSource());
+        collection.addContent(list);
+        MessageUtils.sendEmptyMessage(context);
+        MessageUtils.sendMessage(context, key.then("filter").translate(filter));
+        collection.print();
+        return list.size();
     }
 
     private void setStyle(TextBuilder builder, int size, String command) {

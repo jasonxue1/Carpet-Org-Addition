@@ -453,6 +453,7 @@
   "carpet-org-addition.command.playerManager.info.startup.kill": "退出游戏",
   "carpet-org-addition.command.playerManager.list.no_player": "没有玩家被列出",
   "carpet-org-addition.command.playerManager.list.expand": "点击组名称展开玩家列表：",
+  "carpet-org-addition.command.playerManager.list.filter": "所有匹配“%s”的玩家：",
   "carpet-org-addition.command.playerManager.group.add": "玩家%s已添加到组[%s]",
   "carpet-org-addition.command.playerManager.group.add.empty": "组名称不能为空",
   "carpet-org-addition.command.playerManager.group.add.fail": "无变化，该玩家本来就在这个组中",
