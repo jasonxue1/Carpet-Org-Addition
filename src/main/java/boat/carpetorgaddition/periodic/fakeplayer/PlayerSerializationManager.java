@@ -12,7 +12,7 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @NullMarked
 public class PlayerSerializationManager {
@@ -76,11 +76,12 @@ public class PlayerSerializationManager {
         return this.listGroup(null);
     }
 
+    @Unmodifiable
     public Map<String, List<FakePlayerSerializer>> listGrouped() {
         Map<String, List<FakePlayerSerializer>> map = new HashMap<>();
         for (Map.Entry<@Nullable String, Set<FakePlayerSerializer>> entry : this.groups.entrySet()) {
             String key = entry.getKey();
-            if (key == null) {
+            if (key == null || entry.getValue().isEmpty()) {
                 continue;
             }
             map.put(key, entry.getValue().stream().sorted(FakePlayerSerializer::compareTo).toList());
@@ -88,29 +89,15 @@ public class PlayerSerializationManager {
         return map;
     }
 
-    public Map<String, Set<FakePlayerSerializer>> listAllGroups() {
-        return this.groups;
-    }
-
-    /**
-     * @return 键表示玩家所在组的名称，值表示组内的所有玩家，键包含一个null值，表示未分组的玩家
-     */
-    public Map<@Nullable String, Set<FakePlayerSerializer>> listAllGroups(Predicate<FakePlayerSerializer> predicate) {
-        HashMap<@Nullable String, Set<FakePlayerSerializer>> map = new HashMap<>();
-        List<FakePlayerSerializer> list = this.serializers.stream().filter(predicate).toList();
-        for (FakePlayerSerializer serializer : list) {
-            Set<String> groups = serializer.getGroups();
-            if (groups.isEmpty()) {
-                Set<FakePlayerSerializer> set = map.computeIfAbsent(null, _ -> new TreeSet<>());
-                set.add(serializer);
-            } else {
-                for (String group : groups) {
-                    Set<FakePlayerSerializer> set = map.computeIfAbsent(group, _ -> new TreeSet<>());
-                    set.add(serializer);
-                }
-            }
-        }
-        return map;
+    public Map<@Nullable String, List<FakePlayerSerializer>> listAllGroups() {
+        return this.groups.entrySet().stream()
+                .filter(entry -> !entry.getValue().isEmpty())
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().stream()
+                                .sorted(FakePlayerSerializer::compareTo)
+                                .toList()
+                ));
     }
 
     public void add(FakePlayerSerializer serializer) {

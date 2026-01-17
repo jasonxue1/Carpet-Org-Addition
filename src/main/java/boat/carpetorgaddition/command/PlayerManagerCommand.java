@@ -16,7 +16,10 @@ import boat.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import boat.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import boat.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.IOUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
@@ -57,6 +60,7 @@ import net.minecraft.server.players.UserNameToIdResolver;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -245,7 +249,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
         PagedCollection collection = coordinator.getPageManager().newPagedCollection(context.getSource());
-        List<Supplier<Component>> messages = serializers.stream().map(FakePlayerSerializer::eachSupplier).toList();
+        List<Supplier<Component>> messages = serializers.stream().map(FakePlayerSerializer::line).toList();
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(context);
         MessageUtils.sendMessage(context, GROUP_LIST.translate(group));
@@ -263,7 +267,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             Component component = key.then("ungrouped").translate();
             throw CommandUtils.createException(GROUP.then("non_existent").translate(component));
         }
-        List<Supplier<Component>> messages = ungrouped.stream().map(FakePlayerSerializer::eachSupplier).toList();
+        List<Supplier<Component>> messages = ungrouped.stream().map(FakePlayerSerializer::line).toList();
         PagedCollection collection = coordinator.getPageManager().newPagedCollection(context.getSource());
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(context);
@@ -276,7 +280,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
         PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
-        List<Supplier<Component>> list = manager.listAll().stream().map(FakePlayerSerializer::eachSupplier).toList();
+        List<Supplier<Component>> list = manager.listAll().stream().map(FakePlayerSerializer::line).toList();
         PagedCollection collection = coordinator.getPageManager().newPagedCollection(context.getSource());
         collection.addContent(list);
         MessageUtils.sendEmptyMessage(context);
@@ -571,7 +575,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int list(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         MinecraftServer server = context.getSource().getServer();
         PlayerSerializationManager manager = getSerializationManager(server);
-        Map<String, Set<FakePlayerSerializer>> map = manager.listAllGroups();
+        Map<@Nullable String, List<FakePlayerSerializer>> map = manager.listAllGroups();
         LocalizationKey listKey = KEY.then("list");
         if (map.isEmpty()) {
             // 没有玩家被列出
@@ -580,13 +584,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         if (map.size() == 1) {
             // 只有一个组，直接展示玩家
-            Map.Entry<String, Set<FakePlayerSerializer>> entry = map.entrySet().iterator().next();
-            List<Supplier<Component>> list = entry.getValue()
-                    .stream()
-                    .sorted(Comparator.naturalOrder())
-                    .map(FakePlayerSerializer::eachSupplier)
-                    .toList();
-            PageManager pageManager = FetcherUtils.getPageManager(server);
+            Map.Entry<String, List<FakePlayerSerializer>> entry = map.entrySet().iterator().next();
+            List<Supplier<Component>> list = entry.getValue().stream().map(FakePlayerSerializer::line).toList();
+            PageManager pageManager = ServerComponentCoordinator.getCoordinator(server).getPageManager();
             PagedCollection collection = pageManager.newPagedCollection(context.getSource());
             collection.addContent(list);
             MessageUtils.sendEmptyMessage(context);
@@ -599,7 +599,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             LocalizationKey groupNameKey = GROUP.then("name");
             // 未分组，在倒数第二个展示
             TextBuilder ungrouped = null;
-            for (Map.Entry<String, Set<FakePlayerSerializer>> entry : map.entrySet()) {
+            for (Map.Entry<@Nullable String, List<FakePlayerSerializer>> entry : map.entrySet()) {
                 if (entry.getKey() == null) {
                     ungrouped = new TextBuilder(groupNameKey.then("ungrouped").translate());
                     setStyle(ungrouped, entry.getValue().size(), CommandProvider.listUngroupedPlayer());

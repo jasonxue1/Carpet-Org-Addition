@@ -386,7 +386,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * {@code list}子命令中，每一行显示的内容
      */
-    public Supplier<Component> eachSupplier() {
+    public Supplier<Component> line() {
         return () -> {
             String name = this.getName();
             String logonCommand = CommandProvider.playerManagerSpawn(name);
