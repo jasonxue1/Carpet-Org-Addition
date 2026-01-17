@@ -104,12 +104,12 @@ public class PlayerSerializationManager {
         this.serializers.add(serializer);
         serializer.addListener(new FakePlayerSerializer.Listener() {
             @Override
-            public void onAddGroup(String group) {
+            public void addGroupAfter(String group) {
                 addGroup(group, serializer);
             }
 
             @Override
-            public void onRemoveGroup(String group) {
+            public void removeGroupAfter(String group) {
                 removeGroup(group, serializer);
             }
         });
@@ -138,24 +138,22 @@ public class PlayerSerializationManager {
         return Optional.empty();
     }
 
-    public void addGroup(String group, FakePlayerSerializer serializer) {
+    private void addGroup(String group, FakePlayerSerializer serializer) {
         Set<FakePlayerSerializer> set = this.groups.computeIfAbsent(group, _ -> new TreeSet<>());
-        if (set.isEmpty()) {
-            Set<FakePlayerSerializer> ungrouped = this.groups.get(null);
-            if (ungrouped != null) {
-                ungrouped.remove(serializer);
-            }
+        Set<FakePlayerSerializer> ungrouped = this.groups.get(null);
+        if (ungrouped != null) {
+            ungrouped.remove(serializer);
         }
         set.add(serializer);
     }
 
-    public void removeGroup(String group, FakePlayerSerializer serializer) {
+    private void removeGroup(String group, FakePlayerSerializer serializer) {
         Set<FakePlayerSerializer> set = this.groups.get(group);
         if (set == null) {
             return;
         }
         set.remove(serializer);
-        if (set.isEmpty()) {
+        if (serializer.getGroups().isEmpty()) {
             Set<FakePlayerSerializer> ungrouped = this.groups.computeIfAbsent(null, _ -> new HashSet<>());
             ungrouped.add(serializer);
         }

@@ -292,9 +292,16 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int addToGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         String group = StringArgumentType.getString(context, "group");
+        LocalizationKey key = GROUP.then("add");
+        if (group.isEmpty()) {
+            throw CommandUtils.createException(key.then("empty").translate());
+        }
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
-        serializer.addToGroup(group);
-        MessageUtils.sendMessage(context, GROUP.then("add").translate(serializer.getDisplayName(), group));
+        if (serializer.addToGroup(group)) {
+            MessageUtils.sendMessage(context, key.translate(serializer.getDisplayName(), group));
+        } else {
+            throw CommandUtils.createException(key.then("fail").translate());
+        }
         return 1;
     }
 

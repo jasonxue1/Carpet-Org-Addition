@@ -355,10 +355,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     /**
      * 将玩家添加到组
      */
-    public void addToGroup(String group) {
-        this.groups.add(group);
-        this.listeners.forEach(listener -> listener.onAddGroup(group));
-        this.isChanged = true;
+    public boolean addToGroup(String group) {
+        if (this.groups.add(group)) {
+            this.listeners.forEach(listener -> listener.addGroupAfter(group));
+            this.isChanged = true;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -367,10 +370,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * @return 是否删除成功
      */
     public boolean removeFromGroup(String group) {
-        boolean remove = this.groups.remove(group);
-        this.listeners.forEach(listener -> listener.onRemoveGroup(group));
-        this.isChanged = true;
-        return remove;
+        if (this.groups.remove(group)) {
+            this.listeners.forEach(listener -> listener.removeGroupAfter(group));
+            this.isChanged = true;
+            return true;
+        }
+        return false;
     }
 
     // 获取玩家名
@@ -505,8 +510,8 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     public interface Listener {
-        void onAddGroup(String group);
+        void addGroupAfter(String group);
 
-        void onRemoveGroup(String group);
+        void removeGroupAfter(String group);
     }
 }
