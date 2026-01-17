@@ -68,6 +68,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -119,11 +120,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .executes(context -> savePlayerData(context, true)))))
                 .then(Commands.literal("spawn")
                         .then(Commands.argument("name", StringArgumentType.string())
-                                .suggests(defaultSuggests())
+                                .suggests(playerSuggests())
                                 .executes(this::spawnPlayer)))
                 .then(Commands.literal("modify")
                         .then(Commands.argument("name", StringArgumentType.string())
-                                .suggests(defaultSuggests())
+                                .suggests(playerSuggests())
                                 .then(Commands.literal("comment")
                                         .then(Commands.argument("comment", StringArgumentType.string())
                                                 .executes(this::setComment)))
@@ -138,20 +139,20 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                         // TODO 一次性召唤所有玩家，并在list添加一键召唤按钮
                         .then(Commands.literal("add")
                                 .then(Commands.argument("name", StringArgumentType.string())
-                                        .suggests(defaultSuggests())
+                                        .suggests(playerSuggests())
                                         .then(Commands.argument("group", StringArgumentType.string())
-                                                .suggests(groupSuggests())
+                                                .suggests(groupSuggests(true))
                                                 .executes(this::addToGroup))))
                         .then(Commands.literal("remove")
                                 .then(Commands.argument("name", StringArgumentType.string())
-                                        .suggests(defaultSuggests())
+                                        .suggests(playerSuggests())
                                         .then(Commands.argument("group", StringArgumentType.string())
-                                                .suggests(groupSuggests())
+                                                .suggests(groupSuggests(false))
                                                 .executes(this::removeFromGroup))))
                         .then(Commands.literal("list")
                                 .then(Commands.literal("group")
                                         .then(Commands.argument("group", StringArgumentType.string())
-                                                .suggests(groupSuggests())
+                                                .suggests(allGroupSuggests())
                                                 .executes(this::listGroup)))
                                 .then(Commands.literal("ungrouped")
                                         .executes(this::listUngrouped))
@@ -159,25 +160,25 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .executes(this::listAll)))
                         .then(Commands.literal("spawn")
                                 .then(Commands.argument("group", StringArgumentType.string())
-                                        .suggests(groupSuggests())
+                                        .suggests(allGroupSuggests())
                                         .executes(this::spawnGroupPlayer)))
                         .then(Commands.literal("kill")
                                 .then(Commands.argument("group", StringArgumentType.string())
-                                        .suggests(groupSuggests())
+                                        .suggests(allGroupSuggests())
                                         .executes(this::killGroupPlayer))))
                 .then(Commands.literal("reload")
                         .executes(this::reload))
                 .then(Commands.literal("autologin")
                         .requires(PermissionManager.register("playerManager.autologin", PermissionLevel.PASS))
                         .then(Commands.argument("name", StringArgumentType.string())
-                                .suggests(defaultSuggests())
+                                .suggests(playerSuggests())
                                 .then(Commands.argument("autologin", BoolArgumentType.bool())
                                         .executes(context -> this.setAutoLogin(context, true)))))
                 .then(Commands.literal("list")
                         .executes(this::list))
                 .then(Commands.literal("remove")
                         .then(Commands.argument("name", StringArgumentType.string())
-                                .suggests(defaultSuggests())
+                                .suggests(playerSuggests())
                                 .executes(this::remove)))
                 .then(Commands.literal("schedule")
                         .then(Commands.literal("relogin")
@@ -191,7 +192,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                 .executes(this::stopReLogin))))
                         .then(Commands.literal("login")
                                 .then(Commands.argument("name", StringArgumentType.string())
-                                        .suggests(defaultSuggests())
+                                        .suggests(playerSuggests())
                                         .then(loginNode)))
                         .then(Commands.literal("logout")
                                 .then(Commands.argument(CommandUtils.PLAYER, EntityArgument.player())
@@ -380,7 +381,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     // 自动补全玩家名
-    private SuggestionProvider<CommandSourceStack> defaultSuggests() {
+    private SuggestionProvider<CommandSourceStack> playerSuggests() {
         return (context, builder) -> {
             MinecraftServer server = context.getSource().getServer();
             ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
@@ -393,7 +394,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         };
     }
 
-    private SuggestionProvider<CommandSourceStack> groupSuggests() {
+    private SuggestionProvider<CommandSourceStack> allGroupSuggests() {
         return (context, builder) -> {
             MinecraftServer server = context.getSource().getServer();
             ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
@@ -403,6 +404,26 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .stream()
                     .map(StringArgumentType::escapeIfRequired);
             return SharedSuggestionProvider.suggest(stream, builder);
+        };
+    }
+
+    /**
+     * @param add 如果为{@code true}，表示当前正在输入{@code add}子命令，否则当前正在输入{@code remove}子命令
+     */
+    private SuggestionProvider<CommandSourceStack> groupSuggests(boolean add) {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+            PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
+            String name = StringArgumentType.getString(context, "name");
+            Stream<String> stream = manager.listGrouped().keySet().stream();
+            Optional<FakePlayerSerializer> optional = manager.get(name);
+            if (optional.isPresent()) {
+                // 输入... group add ...命令时，如果玩家本来就在某个组中，则命令建议中不显示该组，remove命令同理
+                Predicate<String> predicate = group -> optional.get().getGroups().contains(group);
+                stream = stream.filter(add ? predicate.negate() : predicate);
+            }
+            return SharedSuggestionProvider.suggest(stream.map(StringArgumentType::escapeIfRequired), builder);
         };
     }
 
@@ -780,7 +801,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             String name = StringArgumentType.getString(context, "name");
             int interval = IntegerArgumentType.getInteger(context, "interval");
             MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
             // 如果任务存在，修改任务，否则添加任务
             Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                     .filter(task -> Objects.equals(task.getPlayerName(), name))
@@ -952,7 +973,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int addDelayedLoginTask(CommandContext<CommandSourceStack> context, TimeUnit unit) throws CommandSyntaxException {
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
-        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         Optional<DelayedLoginTask> optional = taskManager.stream(DelayedLoginTask.class)
                 .filter(task -> Objects.equals(name, task.getPlayerName()))
