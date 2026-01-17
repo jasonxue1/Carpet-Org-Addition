@@ -439,6 +439,7 @@
   "carpet-org-addition.command.playerManager.info.flying": "是否飞行：%s",
   "carpet-org-addition.command.playerManager.info.sneaking": "是否潜行：%s",
   "carpet-org-addition.command.playerManager.info.autologin": "自动登录：%s",
+  "carpet-org-addition.command.playerManager.info.group": "组：%s",
   "carpet-org-addition.command.playerManager.info.comment": "注释：%s",
   "carpet-org-addition.command.playerManager.info.left_click": "左键：",
   "carpet-org-addition.command.playerManager.info.right_click": "右键：",

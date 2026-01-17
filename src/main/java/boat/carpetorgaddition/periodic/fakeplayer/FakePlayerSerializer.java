@@ -249,6 +249,16 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         joiner.newline(key.then("sneaking").translate(TextProvider.getBoolean(this.sneaking)));
         // 是否自动登录
         joiner.newline(key.then("autologin").translate(TextProvider.getBoolean(this.autologin)));
+        if (!this.getGroups().isEmpty()) {
+            String group = "group";
+            if (this.getGroups().size() == 1) {
+                joiner.newline(key.then(group).translate(this.getGroups().iterator().next()));
+            } else {
+                StringJoiner groups = new StringJoiner(", ", "[", "]");
+                this.getGroups().forEach(groups::add);
+                joiner.newline(key.then(group).translate(groups.toString()));
+            }
+        }
         if (this.interactiveAction.hasAction()) {
             joiner.newline(this.interactiveAction.getDisplayText(key));
         }
