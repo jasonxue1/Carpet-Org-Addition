@@ -14,6 +14,7 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
@@ -202,14 +203,21 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.isChanged = false;
     }
 
-    // 从json加载并生成假玩家
+    // 生成假玩家
     public void spawn(MinecraftServer server) throws CommandSyntaxException {
+        spawn(server, false);
+    }
+
+    /**
+     * @param silence 是否不显示登录消息
+     */
+    public void spawn(MinecraftServer server, boolean silence) throws CommandSyntaxException {
         if (ServerUtils.getPlayer(server, name).isPresent()) {
             throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
         }
         CommandSourceStack source = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        Consumer<EntityPlayerMPFake> consumer = fakePlayer -> {
+        Consumer<EntityPlayerMPFake> callback = fakePlayer -> {
             fakePlayer.setShiftKeyDown(this.sneaking);
             // 设置玩家动作
             this.interactiveAction.startAction(fakePlayer);
@@ -221,8 +229,17 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             }
         };
         // 生成假玩家
-        ResourceKey<Level> world = ServerUtils.getWorld(this.dimension);
-        ServerUtils.createFakePlayer(this.name, server, this.playerPos, this.yaw, this.pitch, world, this.gameMode, this.flying, consumer);
+        ResourceKey<Level> world = ServerUtils.getWorldKey(this.dimension);
+        FakePlayerSpawner.of(server, this.name)
+                .setPosition(this.playerPos)
+                .setYaw(this.yaw)
+                .setPitch(this.pitch)
+                .setWorld(world)
+                .setGameMode(gameMode)
+                .setFlying(this.flying)
+                .setCallback(callback)
+                .setSilence(silence)
+                .spawn();
     }
 
     // 显示文本信息

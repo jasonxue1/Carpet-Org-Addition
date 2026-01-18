@@ -2,9 +2,8 @@ package boat.carpetorgaddition.mixin.util.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.ThreadContextPropagator;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
@@ -34,16 +33,16 @@ import java.util.function.Consumer;
 public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> whenCompleteAsync(CompletableFuture<Optional<GameProfile>> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        Consumer<EntityPlayerMPFake> onFakePlayerSpawning = ServerUtils.FAKE_PLAYER_SPAWNING.get();
+        Consumer<EntityPlayerMPFake> onFakePlayerSpawning = FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.get();
         if (onFakePlayerSpawning == null) {
             return original.call(instance, action, executor);
         }
         BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> {
             try {
-                ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.set(onFakePlayerSpawning);
+                FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.set(onFakePlayerSpawning);
                 action.accept(value, throwable);
             } finally {
-                ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.remove();
+                FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.remove();
             }
         };
         return original.call(instance, biConsumer, executor);
@@ -53,15 +52,15 @@ public class EntityPlayerMPFakeMixin {
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         ThreadContextPropagator<Boolean> propagator = CarpetOrgAdditionSettings.hiddenLoginMessages;
         Boolean external = propagator.getExternal();
-        Boolean hiddenBatchSpawn = BatchSpawnFakePlayerTask.batchSpawnHiddenMessage.get();
+        Boolean hiddenBatchSpawn = FakePlayerSpawner.HIDDEN_MESSAGE.get();
         BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> {
             try {
-                BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(hiddenBatchSpawn);
+                FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.set(hiddenBatchSpawn);
                 propagator.setInternal(external);
                 action.accept(value, throwable);
             } finally {
                 propagator.setInternal(false);
-                BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.set(false);
+                FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.set(false);
             }
         };
         return original.call(instance, consumer, executor);
@@ -69,7 +68,7 @@ public class EntityPlayerMPFakeMixin {
 
     @Inject(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
     private static void spawn(CallbackInfo ci, @Local(name = "instance") EntityPlayerMPFake fakePlayer) {
-        Consumer<EntityPlayerMPFake> consumer = ServerUtils.INTERNAL_FAKE_PLAYER_SPAWNING.get();
+        Consumer<EntityPlayerMPFake> consumer = FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.get();
         if (consumer == null) {
             return;
         }

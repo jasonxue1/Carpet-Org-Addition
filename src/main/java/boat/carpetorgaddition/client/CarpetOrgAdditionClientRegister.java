@@ -53,7 +53,7 @@ public class CarpetOrgAdditionClientRegister {
                 (payload, _) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     Vec3 target = payload.target();
-                    ResourceKey<Level> registryKey = ServerUtils.getWorld(payload.worldId());
+                    ResourceKey<Level> registryKey = ServerUtils.getWorldKey(payload.worldId());
                     Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(registryKey, target));
                     waypoint.setTarget(registryKey, target);
                 }

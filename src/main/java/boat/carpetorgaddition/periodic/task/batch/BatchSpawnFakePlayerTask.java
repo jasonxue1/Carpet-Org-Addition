@@ -6,6 +6,7 @@ import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
@@ -21,8 +22,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BatchSpawnFakePlayerTask extends ServerTask {
-    public static final ThreadLocal<Boolean> batchSpawnHiddenMessage = ThreadLocal.withInitial(() -> false);
-    public static final ThreadLocal<Boolean> internalBatchSpawnHiddenMessage = ThreadLocal.withInitial(() -> false);
     /**
      * 所有要召唤的玩家
      */
@@ -118,7 +117,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         this.checkTimeout();
         try {
-            batchSpawnHiddenMessage.set(true);
+            FakePlayerSpawner.HIDDEN_MESSAGE.set(true);
             if (this.iterator == null) {
                 this.iterator = this.players.iterator();
             }
@@ -130,7 +129,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 ServerUtils.createFakePlayer(entry.name(), this.server, this.context);
             }
         } finally {
-            batchSpawnHiddenMessage.set(false);
+            FakePlayerSpawner.HIDDEN_MESSAGE.set(false);
         }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {

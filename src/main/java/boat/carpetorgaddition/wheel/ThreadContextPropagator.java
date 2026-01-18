@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel;
 
 import org.jetbrains.annotations.Nullable;
 
+@Deprecated
 public class ThreadContextPropagator<T> {
     private final ThreadLocal<T> external;
     private final ThreadLocal<T> internal;

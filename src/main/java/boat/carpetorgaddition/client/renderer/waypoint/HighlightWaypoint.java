@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
+// TODO 下个快照版本测试是否正常
 public class HighlightWaypoint extends Waypoint {
     public HighlightWaypoint(Level world, Vec3 vec3d, long duration, boolean persistent) {
         super(world, vec3d, Waypoint.HIGHLIGHT, duration, persistent);

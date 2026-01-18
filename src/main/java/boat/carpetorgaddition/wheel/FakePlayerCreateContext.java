@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
+@Deprecated(forRemoval = true)
 public record FakePlayerCreateContext(
         Vec3 pos,
         double yaw,

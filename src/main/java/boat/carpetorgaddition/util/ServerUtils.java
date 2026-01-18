@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.util;
 
 import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
@@ -35,14 +36,6 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 public class ServerUtils {
-    /**
-     * 当假玩家正在生成时，执行此函数
-     */
-    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
-    /**
-     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3, double, double, ResourceKey, GameType, boolean)}内部的lambda表达式执行时，调用次函数
-     */
-    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWNING = new ThreadLocal<>();
     /**
      * 当前{@code Minecraft}的NBT数据版本
      */
@@ -88,13 +81,14 @@ public class ServerUtils {
         return getPlayer(server, gameProfile.name());
     }
 
-    public static ResourceKey<Level> getWorld(String worldId) {
+    public static ResourceKey<Level> getWorldKey(String worldId) {
         return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
     }
 
     /**
      * 创建一个假玩家
      */
+    @Deprecated
     public static void createFakePlayer(String username, MinecraftServer server, FakePlayerCreateContext context) {
         createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
     }
@@ -104,12 +98,13 @@ public class ServerUtils {
      *
      * @param consumer 玩家生成时执行的函数
      */
+    @Deprecated
     public static void createFakePlayer(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimension, GameType gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
         try {
-            FAKE_PLAYER_SPAWNING.set(consumer);
+            FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.set(consumer);
             EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying);
         } finally {
-            FAKE_PLAYER_SPAWNING.remove();
+            FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.remove();
         }
     }
 

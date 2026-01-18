@@ -333,7 +333,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 如果玩家不存在则生成
         for (FakePlayerSerializer serializer : list) {
             if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
-                serializer.spawn(server);
+                serializer.spawn(server, true);
             }
         }
         return list.size();

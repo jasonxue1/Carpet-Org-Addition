@@ -2,8 +2,8 @@ package boat.carpetorgaddition.mixin.util;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import net.minecraft.network.Connection;
@@ -26,14 +26,14 @@ public class PlayerManagerMixin {
     // 隐藏玩家登录登出的消息
     @Inject(method = "broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V", at = @At("HEAD"), cancellable = true)
     private void broadcast(Component message, boolean overlay, CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.hiddenLoginMessages.getExternal() || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() || BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.get()) {
+        if (CarpetOrgAdditionSettings.hiddenLoginMessages.getExternal() || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() || FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.get()) {
             ci.cancel();
         }
     }
 
     @WrapWithCondition(method = "placeNewPlayer", at = @At(value = "INVOKE", remap = false, target = "Lorg/slf4j/Logger;info(Ljava/lang/String;[Ljava/lang/Object;)V"))
     private boolean hide(Logger instance, String s, Object[] objects) {
-        return !CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() && !BatchSpawnFakePlayerTask.internalBatchSpawnHiddenMessage.get();
+        return !CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal() && !FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.get();
     }
 
     /**
