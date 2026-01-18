@@ -31,19 +31,15 @@ import java.util.function.Consumer;
 public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> whenCompleteAsync(CompletableFuture<Optional<GameProfile>> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        Consumer<EntityPlayerMPFake> onFakePlayerSpawning = FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.get();
-        if (onFakePlayerSpawning == null) {
+        if (FakePlayerSpawner.CALLBACK.isBound()) {
+            Consumer<EntityPlayerMPFake> callback = FakePlayerSpawner.CALLBACK.get();
+            BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> ScopedValue
+                    .where(FakePlayerSpawner.CALLBACK, callback)
+                    .run(() -> action.accept(value, throwable));
+            return original.call(instance, biConsumer, executor);
+        } else {
             return original.call(instance, action, executor);
         }
-        BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> {
-            try {
-                FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.set(onFakePlayerSpawning);
-                action.accept(value, throwable);
-            } finally {
-                FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.remove();
-            }
-        };
-        return original.call(instance, biConsumer, executor);
     }
 
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
@@ -57,11 +53,9 @@ public class EntityPlayerMPFakeMixin {
 
     @Inject(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;getAbilities()Lnet/minecraft/world/entity/player/Abilities;"))
     private static void spawn(CallbackInfo ci, @Local(name = "instance") EntityPlayerMPFake fakePlayer) {
-        Consumer<EntityPlayerMPFake> consumer = FakePlayerSpawner.INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK.get();
-        if (consumer == null) {
-            return;
+        if (FakePlayerSpawner.CALLBACK.isBound()) {
+            FakePlayerSpawner.CALLBACK.get().accept(fakePlayer);
         }
-        consumer.accept(fakePlayer);
     }
 
     @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V"))

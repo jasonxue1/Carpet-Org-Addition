@@ -12,20 +12,18 @@ import java.util.function.Consumer;
 
 public class FakePlayerSpawner {
     /**
-     * 当假玩家正在生成时，执行此函数
+     * 假玩家在上线或下线时，是否隐藏上下线的消息
      */
-    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> FAKE_PLAYER_SPAWN_CALLBACK = new ThreadLocal<>();
-    /**
-     * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3, double, double, ResourceKey, GameType, boolean)}内部的lambda表达式执行时，调用此函数
-     */
-    public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK = new ThreadLocal<>();
     public static final ScopedValue<Boolean> HIDDEN_MESSAGE = ScopedValue.newInstance();
-    public static final ScopedValue<Consumer<EntityPlayerMPFake>> SCOPED_SPAWN_CALLBACK = ScopedValue.newInstance();
-    private final MinecraftServer server;
+    /**
+     * 假玩家生成后执行的回调函数
+     */
+    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
     /**
      * 玩家的名称
      */
     private final String name;
+    private final MinecraftServer server;
     /**
      * 假玩家生成的位置
      */
@@ -117,7 +115,7 @@ public class FakePlayerSpawner {
 
     public void spawn() {
         ScopedValue.where(HIDDEN_MESSAGE, this.silence)
-                .where(SCOPED_SPAWN_CALLBACK, this.callback)
+                .where(CALLBACK, this.callback)
                 .run(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
     }
 }

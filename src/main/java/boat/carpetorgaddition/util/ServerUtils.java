@@ -100,12 +100,9 @@ public class ServerUtils {
      */
     @Deprecated
     public static void createFakePlayer(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimension, GameType gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
-        try {
-            FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.set(consumer);
-            EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying);
-        } finally {
-            FakePlayerSpawner.FAKE_PLAYER_SPAWN_CALLBACK.remove();
-        }
+        ScopedValue
+                .where(FakePlayerSpawner.CALLBACK, consumer)
+                .run(() -> EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying));
     }
 
     /**
