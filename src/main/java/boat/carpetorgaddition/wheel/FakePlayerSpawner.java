@@ -19,11 +19,8 @@ public class FakePlayerSpawner {
      * {@link EntityPlayerMPFake#createFake(String, MinecraftServer, Vec3, double, double, ResourceKey, GameType, boolean)}内部的lambda表达式执行时，调用此函数
      */
     public static final ThreadLocal<Consumer<EntityPlayerMPFake>> INTERNAL_FAKE_PLAYER_SPAWN_CALLBACK = new ThreadLocal<>();
-    /**
-     * 是否隐藏登录的消息
-     */
-    public static final ThreadLocal<Boolean> HIDDEN_MESSAGE = ThreadLocal.withInitial(() -> false);
-    public static final ThreadLocal<Boolean> INTERNAL_HIDDEN_MESSAGE = ThreadLocal.withInitial(() -> false);
+    public static final ScopedValue<Boolean> HIDDEN_MESSAGE = ScopedValue.newInstance();
+    public static final ScopedValue<Consumer<EntityPlayerMPFake>> SCOPED_SPAWN_CALLBACK = ScopedValue.newInstance();
     private final MinecraftServer server;
     /**
      * 玩家的名称
@@ -119,24 +116,8 @@ public class FakePlayerSpawner {
     }
 
     public void spawn() {
-        if (this.silence) {
-            try {
-                HIDDEN_MESSAGE.set(true);
-                this.spawnWithCallback();
-            } finally {
-                HIDDEN_MESSAGE.set(false);
-            }
-        } else {
-            this.spawnWithCallback();
-        }
-    }
-
-    private void spawnWithCallback() {
-        try {
-            FAKE_PLAYER_SPAWN_CALLBACK.set(this.callback);
-            EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying);
-        } finally {
-            FAKE_PLAYER_SPAWN_CALLBACK.remove();
-        }
+        ScopedValue.where(HIDDEN_MESSAGE, this.silence)
+                .where(SCOPED_SPAWN_CALLBACK, this.callback)
+                .run(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
     }
 }

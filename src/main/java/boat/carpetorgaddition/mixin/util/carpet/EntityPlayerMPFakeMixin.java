@@ -1,10 +1,8 @@
 package boat.carpetorgaddition.mixin.util.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
-import boat.carpetorgaddition.wheel.ThreadContextPropagator;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
@@ -50,19 +48,10 @@ public class EntityPlayerMPFakeMixin {
 
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        ThreadContextPropagator<Boolean> propagator = CarpetOrgAdditionSettings.hiddenLoginMessages;
-        Boolean external = propagator.getExternal();
-        Boolean hiddenBatchSpawn = FakePlayerSpawner.HIDDEN_MESSAGE.get();
-        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> {
-            try {
-                FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.set(hiddenBatchSpawn);
-                propagator.setInternal(external);
-                action.accept(value, throwable);
-            } finally {
-                propagator.setInternal(false);
-                FakePlayerSpawner.INTERNAL_HIDDEN_MESSAGE.set(false);
-            }
-        };
+        boolean hiddenMessage = FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false);
+        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> ScopedValue
+                .where(FakePlayerSpawner.HIDDEN_MESSAGE, hiddenMessage)
+                .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
     }
 
@@ -77,12 +66,11 @@ public class EntityPlayerMPFakeMixin {
 
     @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;placeNewPlayer(Lnet/minecraft/network/Connection;Lnet/minecraft/server/level/ServerPlayer;Lnet/minecraft/server/network/CommonListenerCookie;)V"))
     private static void onPlayerConnect(PlayerList instance, Connection connection, ServerPlayer player, CommonListenerCookie clientData, Operation<Void> original) {
-        boolean internal = CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal();
         try {
             original.call(instance, connection, player, clientData);
         } catch (NullPointerException e) {
-            if (internal) {
-                // 玩家在服务器关闭后登录游戏可能导致服务器崩溃
+            if (FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
+                // 玩家在服务器关闭后登录游戏可能导致服务器崩溃（服务器关闭时，有玩家的周期性上下线未停止）
                 CarpetOrgAddition.LOGGER.warn("Fake player attempts to join game after server shutdown", e);
             } else {
                 throw e;

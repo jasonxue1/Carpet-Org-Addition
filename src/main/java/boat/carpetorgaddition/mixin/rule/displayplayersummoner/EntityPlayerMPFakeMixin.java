@@ -4,6 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -47,7 +48,7 @@ public class EntityPlayerMPFakeMixin {
     private static void broadcastSummoner(EntityPlayerMPFake fakePlayer) {
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             ServerPlayer player = CarpetOrgAdditionSettings.internalPlayerSummoner.get();
-            if (player == null || CarpetOrgAdditionSettings.hiddenLoginMessages.getInternal()) {
+            if (player == null || FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
                 return;
             }
             TextBuilder builder = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER.builder(player.getDisplayName());

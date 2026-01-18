@@ -5,7 +5,6 @@ import boat.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
 import boat.carpetorgaddition.rule.*;
 import boat.carpetorgaddition.rule.value.*;
-import boat.carpetorgaddition.wheel.ThreadContextPropagator;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
 import net.minecraft.server.level.ServerPlayer;
@@ -18,10 +17,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 public class CarpetOrgAdditionSettings {
-    /**
-     * 控制玩家登录登出的消息是否显示
-     */
-    public static final ThreadContextPropagator<Boolean> hiddenLoginMessages = new ThreadContextPropagator<>(false);
     /**
      * 潜影盒是否允许被堆叠，这还需要同时启用{@link CarpetOrgAdditionSettings#shulkerBoxStackable}
      */

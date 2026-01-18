@@ -11,6 +11,7 @@ import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
 import boat.carpetorgaddition.wheel.text.Translation;
@@ -53,13 +54,14 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayer player) {
-        if (CarpetOrgAddition.isDebugDevelopment()) {
+        if (CarpetOrgAddition.isDebugDevelopment() && !FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
             GameProfile gameProfile = player.getGameProfile();
             CarpetOrgAddition.LOGGER.info(new NameAndId(gameProfile).toString());
         }
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
+        // TODO 对假玩家隐藏
         ParcelManager parcelManager = ServerComponentCoordinator.getCoordinator(ServerUtils.getServer(player)).getParcelManager();
         parcelManager.promptToCollect(player);
         // 加载假玩家安全挂机

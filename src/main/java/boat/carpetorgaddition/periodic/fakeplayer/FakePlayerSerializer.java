@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.periodic.fakeplayer;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.dataupdate.json.player.FakePlayerSerializeDataUpdater;
@@ -9,7 +8,6 @@ import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import boat.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
-import boat.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MathUtils;
@@ -458,25 +456,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 假玩家自动登录
      */
     public static void autoLogin(MinecraftServer server) {
-        ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         PlayerSerializationManager playerSerializationManager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
         try {
             List<FakePlayerSerializer> list = playerSerializationManager.listAll();
             int count = server.getPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    taskManager.addTask(new DelayedLoginTask(server, server.createCommandSourceStack(), serializer, 1) {
-                        @Override
-                        public void tick() {
-                            try {
-                                // 隐藏登录游戏的消息：无法保证单人游戏中自己一定先比假玩家先加入游戏，也就无法保证登录消息一定显示
-                                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(true);
-                                super.tick();
-                            } finally {
-                                CarpetOrgAdditionSettings.hiddenLoginMessages.setExternal(false);
-                            }
-                        }
-                    });
+                    serializer.spawn(server, true);
                     count++;
                     // TODO 可能不生效
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额

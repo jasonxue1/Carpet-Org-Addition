@@ -116,8 +116,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             this.setupTime = this.getExecutionTime();
         }
         this.checkTimeout();
-        try {
-            FakePlayerSpawner.HIDDEN_MESSAGE.set(true);
+        ScopedValue.where(FakePlayerSpawner.HIDDEN_MESSAGE, true).run(() -> {
             if (this.iterator == null) {
                 this.iterator = this.players.iterator();
             }
@@ -128,9 +127,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 NameAndId entry = iterator.next();
                 ServerUtils.createFakePlayer(entry.name(), this.server, this.context);
             }
-        } finally {
-            FakePlayerSpawner.HIDDEN_MESSAGE.set(false);
-        }
+        });
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             Component summoner = KEY.then("summoner").translate(
