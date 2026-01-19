@@ -25,14 +25,14 @@ public class PlayerManagerMixin {
     // 隐藏玩家登录登出的消息
     @Inject(method = "broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V", at = @At("HEAD"), cancellable = true)
     private void broadcast(Component message, boolean overlay, CallbackInfo ci) {
-        if (FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
+        if (FakePlayerSpawner.SILENCE.orElse(false)) {
             ci.cancel();
         }
     }
 
     @WrapWithCondition(method = "placeNewPlayer", at = @At(value = "INVOKE", remap = false, target = "Lorg/slf4j/Logger;info(Ljava/lang/String;[Ljava/lang/Object;)V"))
     private boolean hide(Logger instance, String s, Object[] objects) {
-        return !FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false);
+        return !FakePlayerSpawner.SILENCE.orElse(false);
     }
 
     /**

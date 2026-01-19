@@ -16,10 +16,7 @@ import boat.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import boat.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
 import boat.carpetorgaddition.periodic.task.schedule.PlayerScheduleTask;
 import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.IOUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
@@ -56,7 +53,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
-import net.minecraft.server.players.UserNameToIdResolver;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -357,7 +353,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .map(Optional::get)
                 .filter(player -> player instanceof EntityPlayerMPFake)
                 .map(player -> (EntityPlayerMPFake) player).toList();
-        players.forEach(ReLoginTask::logoutPlayer);
+        players.forEach(PlayerUtils::silenceLogout);
         return players.size();
     }
 
@@ -890,7 +886,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         String completePrefix = getPrefix(prefix);
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
-        UserNameToIdResolver cache = server.services().nameToIdCache();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Vec3 vec3d = at ? Vec3Argument.getVec3(context, "at") : source.getPosition();
         Optional<ServerPlayer> optional = CommandUtils.getSourcePlayerNullable(source);
@@ -916,8 +911,9 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .setSilence(true)
                     .setCallback(callback);
         }
+        // TODO 适配名称前后缀
         List<String> list = IntStream.rangeClosed(start, end).mapToObj(i -> completePrefix + i).toList();
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, cache, function, list));
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, function, list));
         return end - start + 1;
     }
 

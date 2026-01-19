@@ -1,9 +1,11 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
+import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.Dialog;
@@ -66,5 +68,16 @@ public class PlayerUtils {
      */
     public static boolean verifyNameLength(String name) {
         return name.length() <= 16;
+    }
+
+    /**
+     * 在不显示退出消息的情况下退出
+     */
+    public static void silenceLogout(EntityPlayerMPFake fakePlayer) {
+        ScopedValue.where(FakePlayerSpawner.SILENCE, true).run(() -> logout(fakePlayer));
+    }
+
+    public static void logout(EntityPlayerMPFake fakePlayer) {
+        fakePlayer.kill(ServerUtils.getWorld(fakePlayer));
     }
 }

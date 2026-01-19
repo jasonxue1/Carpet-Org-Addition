@@ -54,7 +54,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     // 当玩家登录时
     @Override
     public void onPlayerLoggedIn(ServerPlayer player) {
-        if (CarpetOrgAddition.isDebugDevelopment() && !FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
+        if (CarpetOrgAddition.isDebugDevelopment() && !FakePlayerSpawner.SILENCE.orElse(false)) {
             GameProfile gameProfile = player.getGameProfile();
             CarpetOrgAddition.LOGGER.info(new NameAndId(gameProfile).toString());
         }

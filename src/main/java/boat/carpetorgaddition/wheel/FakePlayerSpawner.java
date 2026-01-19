@@ -14,7 +14,7 @@ public class FakePlayerSpawner {
     /**
      * 假玩家在上线或下线时，是否隐藏上下线的消息
      */
-    public static final ScopedValue<Boolean> HIDDEN_MESSAGE = ScopedValue.newInstance();
+    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
     /**
      * 假玩家生成后执行的回调函数
      */
@@ -114,7 +114,7 @@ public class FakePlayerSpawner {
     }
 
     public void spawn() {
-        ScopedValue.where(HIDDEN_MESSAGE, this.silence)
+        ScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
                 .run(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
     }

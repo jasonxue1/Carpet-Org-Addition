@@ -26,12 +26,8 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
      * 所有要召唤的玩家
      */
-    private final Set<NameAndId> players = ConcurrentHashMap.newKeySet();
+    private final Set<FakePlayerSpawner> spawners = ConcurrentHashMap.newKeySet();
     private final MinecraftServer server;
-    /**
-     * 玩家的创建上下文，用于确定玩家上线的位置，维度，朝向等
-     */
-    private final Function<String, FakePlayerSpawner> spawner;
     /**
      * 要召唤的玩家数量
      */
@@ -44,7 +40,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 是否正在预加载
      */
     private boolean isPreload = true;
-    private Iterator<NameAndId> iterator;
+    private Iterator<FakePlayerSpawner> iterator;
     /**
      * 是否召唤完成，用于确定任务是否结束
      */
@@ -59,22 +55,22 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     private long setupTime = -1L;
     public static final LocalizationKey KEY = PlayerManagerCommand.KEY.then("batch");
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, UserNameToIdResolver userCache, Function<String, FakePlayerSpawner> spawner, List<String> names) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, Function<String, FakePlayerSpawner> spawner, List<String> names) {
         super(source);
         this.server = server;
-        this.spawner = spawner;
+        UserNameToIdResolver cache = server.services().nameToIdCache();
         List<String> list = names.stream()
                 .filter(PlayerUtils::verifyNameLength)
                 .filter(name -> ServerUtils.getPlayer(server, name).isEmpty())
                 .toList();
         for (String name : list) {
             Thread.ofVirtual().start(() -> {
-                Optional<NameAndId> optional = userCache.get(name);
+                Optional<NameAndId> optional = cache.get(name);
                 NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(name), name));
                 if (optional.isEmpty()) {
-                    userCache.add(gameProfile);
+                    cache.add(gameProfile);
                 }
-                this.players.add(gameProfile);
+                this.spawners.add(spawner.apply(gameProfile.name()));
             });
         }
         this.count = list.size();
@@ -84,10 +80,11 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     @Override
     protected void tick() {
         if (this.count == 0) {
+            // TODO 如果没有玩家被召唤，发送命令反馈
             this.complete = true;
             return;
         }
-        int size = this.players.size();
+        int size = this.spawners.size();
         long time = ServerUtils.getWorld(this.source).getGameTime();
         if (this.isPreload) {
             // 任务开始前几个游戏刻不显示进度
@@ -110,14 +107,13 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         this.checkTimeout();
         if (this.iterator == null) {
-            this.iterator = this.players.iterator();
+            this.iterator = this.spawners.iterator();
         }
         while (this.iterator.hasNext()) {
             if (this.isTimeExpired()) {
                 return;
             }
-            NameAndId entry = iterator.next();
-            this.spawner.apply(entry.name()).spawn();
+            this.iterator.next().spawn();
         }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {

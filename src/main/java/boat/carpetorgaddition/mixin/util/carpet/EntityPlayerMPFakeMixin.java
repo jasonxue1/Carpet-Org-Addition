@@ -10,6 +10,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.network.Connection;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
@@ -44,9 +45,9 @@ public class EntityPlayerMPFakeMixin {
 
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        boolean hiddenMessage = FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false);
+        boolean hiddenMessage = FakePlayerSpawner.SILENCE.orElse(false);
         BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> ScopedValue
-                .where(FakePlayerSpawner.HIDDEN_MESSAGE, hiddenMessage)
+                .where(FakePlayerSpawner.SILENCE, hiddenMessage)
                 .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
     }
@@ -63,7 +64,7 @@ public class EntityPlayerMPFakeMixin {
         try {
             original.call(instance, connection, player, clientData);
         } catch (NullPointerException e) {
-            if (FakePlayerSpawner.HIDDEN_MESSAGE.orElse(false)) {
+            if (FakePlayerSpawner.SILENCE.orElse(false)) {
                 // 玩家在服务器关闭后登录游戏可能导致服务器崩溃（服务器关闭时，有玩家的周期性上下线未停止）
                 CarpetOrgAddition.LOGGER.warn("Fake player attempts to join game after server shutdown", e);
             } else {
@@ -84,6 +85,12 @@ public class EntityPlayerMPFakeMixin {
             }
         };
         return original.call(instance, consumer, executor);
+    }
+
+    @WrapOperation(method = "kill(Lnet/minecraft/network/chat/Component;)V", at = @At(value = "NEW", target = "(ILjava/lang/Runnable;)Lnet/minecraft/server/TickTask;"))
+    private TickTask kill(int tick, Runnable runnable, Operation<TickTask> original) {
+        boolean silence = FakePlayerSpawner.SILENCE.orElse(false);
+        return original.call(tick, (Runnable) () -> ScopedValue.where(FakePlayerSpawner.SILENCE, silence).run(runnable));
     }
 
     @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))

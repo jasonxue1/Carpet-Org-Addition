@@ -112,14 +112,14 @@ public class ReLoginTask extends PlayerScheduleTask {
         ComponentContents content = reason.getContents();
         if (content instanceof TranslatableContents text) {
             if (text.getKey().equals("multiplayer.disconnect.duplicate_login")) {
-                ScopedValue.where(FakePlayerSpawner.HIDDEN_MESSAGE, true)
+                ScopedValue.where(FakePlayerSpawner.SILENCE, true)
                         .run(() -> fakePlayer.connection.onDisconnect(new DisconnectionDetails(reason)));
                 return;
             }
         }
         MinecraftServer server = ServerUtils.getServer(fakePlayer);
         server.schedule(new TickTask(server.getTickCount(),
-                () -> ScopedValue.where(FakePlayerSpawner.HIDDEN_MESSAGE, true).run(() -> {
+                () -> ScopedValue.where(FakePlayerSpawner.SILENCE, true).run(() -> {
                     /*
                      * 如果不加这个判断并提前返回，可能导致玩家的骑乘实体消失，可能的原因如下：
                      * 1. 玩家在下线后会保存一次数据，其中包括了当前骑乘的实体，下一次上线时，游戏就会从NBT中读取并生成骑乘实体。
