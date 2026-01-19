@@ -45,7 +45,7 @@ public class FakePlayerSpawner {
      */
     private GameType gameMode;
     /**
-     * 是否正在鞘翅飞行
+     * 是否正在创造模式飞行
      */
     private boolean flying = false;
     /**

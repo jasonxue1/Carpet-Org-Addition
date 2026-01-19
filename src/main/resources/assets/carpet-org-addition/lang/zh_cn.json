@@ -497,7 +497,7 @@
   "carpet-org-addition.command.playerManager.batch.exceeds_limit": "预期召唤的玩家数为%s，但单次最大召唤数量为%s个",
   "carpet-org-addition.command.playerManager.batch.preload": "正在预加载玩家档案：%s/%s",
   "carpet-org-addition.command.playerManager.batch.preload.done": "预加载完成",
-  "carpet-org-addition.command.playerManager.batch.summoner": "%s召唤了%s-%s共%s名玩家",
+  "carpet-org-addition.command.playerManager.batch.summoner": "%s召唤了%s名玩家",
   "carpet-org-addition.command.spectator.teleport.fail": "你当前未处于%s",
   "carpet-org-addition.command.spectator.teleport.success": "已将%s传送至%s",
   "carpet-org-addition.command.navigate.start": "%s开始导航 -> %s",

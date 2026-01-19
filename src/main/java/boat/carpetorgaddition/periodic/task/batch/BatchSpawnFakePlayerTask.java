@@ -4,8 +4,8 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.util.ServerUtils;
-import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import net.minecraft.commands.CommandSourceStack;
@@ -13,13 +13,14 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.NameAndId;
-import net.minecraft.server.players.PlayerList;
 import net.minecraft.server.players.UserNameToIdResolver;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
@@ -28,15 +29,9 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     private final Set<NameAndId> players = ConcurrentHashMap.newKeySet();
     private final MinecraftServer server;
     /**
-     * 玩家名称的前缀
-     */
-    private final String prefix;
-    private final int start;
-    private final int end;
-    /**
      * 玩家的创建上下文，用于确定玩家上线的位置，维度，朝向等
      */
-    private final FakePlayerCreateContext context;
+    private final Function<String, FakePlayerSpawner> spawner;
     /**
      * 要召唤的玩家数量
      */
@@ -64,36 +59,34 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     private long setupTime = -1L;
     public static final LocalizationKey KEY = PlayerManagerCommand.KEY.then("batch");
 
-    public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, UserNameToIdResolver userCache, FakePlayerCreateContext context, String prefix, int start, int end) {
+    public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, UserNameToIdResolver userCache, Function<String, FakePlayerSpawner> spawner, List<String> names) {
         super(source);
         this.server = server;
-        this.prefix = prefix;
-        this.start = start;
-        this.end = end;
-        int count = end - start + 1;
-        this.context = context;
-        PlayerList playerManager = server.getPlayerList();
-        for (int i = start; i <= end; i++) {
-            String username = prefix + i;
-            if (playerManager.getPlayerByName(username) != null) {
-                count--;
-                continue;
-            }
+        this.spawner = spawner;
+        List<String> list = names.stream()
+                .filter(PlayerUtils::verifyNameLength)
+                .filter(name -> ServerUtils.getPlayer(server, name).isEmpty())
+                .toList();
+        for (String name : list) {
             Thread.ofVirtual().start(() -> {
-                Optional<NameAndId> optional = userCache.get(username);
-                NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(username), username));
+                Optional<NameAndId> optional = userCache.get(name);
+                NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(name), name));
                 if (optional.isEmpty()) {
                     userCache.add(gameProfile);
                 }
                 this.players.add(gameProfile);
             });
         }
-        this.count = count;
+        this.count = list.size();
         this.startTime = ServerUtils.getWorld(this.source).getGameTime();
     }
 
     @Override
     protected void tick() {
+        if (this.count == 0) {
+            this.complete = true;
+            return;
+        }
         int size = this.players.size();
         long time = ServerUtils.getWorld(this.source).getGameTime();
         if (this.isPreload) {
@@ -116,26 +109,19 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             this.setupTime = this.getExecutionTime();
         }
         this.checkTimeout();
-        ScopedValue.where(FakePlayerSpawner.HIDDEN_MESSAGE, true).run(() -> {
-            if (this.iterator == null) {
-                this.iterator = this.players.iterator();
+        if (this.iterator == null) {
+            this.iterator = this.players.iterator();
+        }
+        while (this.iterator.hasNext()) {
+            if (this.isTimeExpired()) {
+                return;
             }
-            while (this.iterator.hasNext()) {
-                if (this.isTimeExpired()) {
-                    return;
-                }
-                NameAndId entry = iterator.next();
-                ServerUtils.createFakePlayer(entry.name(), this.server, this.context);
-            }
-        });
+            NameAndId entry = iterator.next();
+            this.spawner.apply(entry.name()).spawn();
+        }
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
-            Component summoner = KEY.then("summoner").translate(
-                    this.source.getDisplayName(),
-                    this.prefix + this.start,
-                    this.prefix + this.end,
-                    this.count
-            );
+            Component summoner = KEY.then("summoner").translate(this.source.getDisplayName(), this.count);
             MessageUtils.broadcastMessage(this.server, summoner);
         }
         this.complete = true;

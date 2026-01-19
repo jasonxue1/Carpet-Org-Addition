@@ -396,7 +396,7 @@
   "carpet-org-addition.command.playerManager.batch.exceeds_limit": "Expected to summon %s players, but the maximum batch summon limit is %s",
   "carpet-org-addition.command.playerManager.batch.preload": "Preloading player profiles: %s/%s",
   "carpet-org-addition.command.playerManager.batch.preload.done": "Preloading completed",
-  "carpet-org-addition.command.playerManager.batch.summoner": "%1$s summoned %4$s players from %2$s to %3$s",
+  "carpet-org-addition.command.playerManager.batch.summoner": "%1$s summoned %2$s players",
   "carpet-org-addition.command.spectator.teleport.fail": "You are not %s",
   "carpet-org-addition.command.spectator.teleport.success": "%s is teleported to %s",
   "carpet-org-addition.command.navigate.start": "%s starts to neviagates -> %s",

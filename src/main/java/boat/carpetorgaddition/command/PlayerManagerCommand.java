@@ -20,7 +20,7 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IOUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.ServerUtils;
-import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
+import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
@@ -68,8 +68,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class PlayerManagerCommand extends AbstractServerCommand {
@@ -871,7 +873,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(source, fakePlayer, 30)), serverSource));
     }
 
-    private static int batchSpawn(CommandContext<CommandSourceStack> context, boolean at, Consumer<EntityPlayerMPFake> consumer) throws CommandSyntaxException {
+    private static int batchSpawn(CommandContext<CommandSourceStack> context, boolean at, Consumer<EntityPlayerMPFake> callback) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         // 交换最大最小值，玩家可能将end和start参数反向输入
@@ -885,38 +887,42 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         String prefix = StringArgumentType.getString(context, "prefix");
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
-        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        String completePrefix = getPrefix(prefix);
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         UserNameToIdResolver cache = server.services().nameToIdCache();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Vec3 vec3d = at ? Vec3Argument.getVec3(context, "at") : source.getPosition();
         Optional<ServerPlayer> optional = CommandUtils.getSourcePlayerNullable(source);
-        FakePlayerCreateContext fakePlayerCreateContext;
+        Function<String, FakePlayerSpawner> function;
         if (optional.isEmpty()) {
-            fakePlayerCreateContext = new FakePlayerCreateContext(
-                    vec3d,
-                    0,
-                    0,
-                    ServerUtils.getWorld(source).dimension(),
-                    GameType.SURVIVAL,
-                    false,
-                    consumer
-            );
+            function = name -> FakePlayerSpawner.of(server, name)
+                    .setPosition(vec3d)
+                    .setWorld(ServerUtils.getWorld(source))
+                    .setGameMode(GameType.SURVIVAL)
+                    .setFlying(false)
+                    .setSilence(true)
+                    .setCallback(callback);
+
         } else {
             ServerPlayer player = optional.get();
-            fakePlayerCreateContext = new FakePlayerCreateContext(
-                    vec3d,
-                    player.getYRot(),
-                    player.getXRot(),
-                    ServerUtils.getWorld(player).dimension(),
-                    player.gameMode.getGameModeForPlayer(),
-                    player.getAbilities().flying,
-                    consumer
-            );
+            function = name -> FakePlayerSpawner.of(server, name)
+                    .setPosition(vec3d)
+                    .setYaw(player.getYRot())
+                    .setPitch(player.getXRot())
+                    .setWorld(ServerUtils.getWorld(player))
+                    .setGameMode(player.gameMode())
+                    .setFlying(player.getAbilities().flying)
+                    .setSilence(true)
+                    .setCallback(callback);
         }
-        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, cache, fakePlayerCreateContext, prefix, start, end));
+        List<String> list = IntStream.rangeClosed(start, end).mapToObj(i -> completePrefix + i).toList();
+        taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, cache, function, list));
         return end - start + 1;
+    }
+
+    private static String getPrefix(String prefix) {
+        return prefix.endsWith("_") ? prefix : prefix + "_";
     }
 
     /**
@@ -929,7 +935,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         end = Math.max(start, end);
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
-        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        prefix = getPrefix(prefix);
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
@@ -947,7 +953,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         end = Math.max(start, end);
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
-        prefix = prefix.endsWith("_") ? prefix : prefix + "_";
+        prefix = getPrefix(prefix);
         MinecraftServer server = context.getSource().getServer();
         int count = 0;
         PlayerList playerManager = server.getPlayerList();

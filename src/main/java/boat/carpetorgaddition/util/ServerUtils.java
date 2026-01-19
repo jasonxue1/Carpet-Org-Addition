@@ -1,8 +1,5 @@
 package boat.carpetorgaddition.util;
 
-import boat.carpetorgaddition.wheel.FakePlayerCreateContext;
-import boat.carpetorgaddition.wheel.FakePlayerSpawner;
-import carpet.patches.EntityPlayerMPFake;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
@@ -23,7 +20,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
@@ -33,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public class ServerUtils {
     /**
@@ -83,26 +78,6 @@ public class ServerUtils {
 
     public static ResourceKey<Level> getWorldKey(String worldId) {
         return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
-    }
-
-    /**
-     * 创建一个假玩家
-     */
-    @Deprecated
-    public static void createFakePlayer(String username, MinecraftServer server, FakePlayerCreateContext context) {
-        createFakePlayer(username, server, context.pos(), context.yaw(), context.pitch(), context.dimension(), context.gamemode(), context.flying(), context.consumer());
-    }
-
-    /**
-     * 创建一个假玩家
-     *
-     * @param consumer 玩家生成时执行的函数
-     */
-    @Deprecated
-    public static void createFakePlayer(String username, MinecraftServer server, Vec3 pos, double yaw, double pitch, ResourceKey<Level> dimension, GameType gamemode, boolean flying, Consumer<EntityPlayerMPFake> consumer) {
-        ScopedValue
-                .where(FakePlayerSpawner.CALLBACK, consumer)
-                .run(() -> EntityPlayerMPFake.createFake(username, server, pos, yaw, pitch, dimension, gamemode, flying));
     }
 
     /**

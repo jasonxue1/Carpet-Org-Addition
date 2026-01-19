@@ -60,4 +60,11 @@ public class PlayerUtils {
     public static EntityPlayerActionPack getActionPack(ServerPlayer player) {
         return ((ServerPlayerInterface) player).getActionPack();
     }
+
+    /**
+     * 检查名称长度是否小于等于16
+     */
+    public static boolean verifyNameLength(String name) {
+        return name.length() <= 16;
+    }
 }
