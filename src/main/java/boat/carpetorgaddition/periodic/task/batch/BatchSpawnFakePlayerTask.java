@@ -49,10 +49,6 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 任务的开始时间
      */
     private final long startTime;
-    /**
-     * 玩家档案预加载使用的时间
-     */
-    private long setupTime = -1L;
     public static final LocalizationKey KEY = PlayerManagerCommand.KEY.then("batch");
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, Function<String, FakePlayerSpawner> spawner, List<String> names) {
@@ -101,9 +97,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 MessageUtils.sendMessageToHudIfPlayer(this.source, () -> key.then("done").translate());
             }
             this.isPreload = false;
-        }
-        if (this.setupTime == -1L) {
-            this.setupTime = this.getExecutionTime();
+            this.setStartTime();
         }
         this.checkTimeout();
         if (this.iterator == null) {
@@ -125,7 +119,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
 
     @Override
     protected long getMaxExecutionTime() {
-        return 5000L + this.setupTime;
+        return 5000L;
     }
 
     @Override

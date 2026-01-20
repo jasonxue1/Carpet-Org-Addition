@@ -950,7 +950,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .map(player -> (EntityPlayerMPFake) player)
                 .map(fakePlayer -> (Runnable) () -> PlayerUtils.silenceLogout(fakePlayer))
                 .toList();
-        taskManager.addTask(new IterativeTask(source, list, 30, 3000));
+        taskManager.addTask(new IterativeTask(source, list, 30, 5000));
         return list.size();
     }
 

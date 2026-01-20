@@ -25,6 +25,7 @@ public class ServerTaskManager {
      */
     public void addTask(ServerTask task) throws CommandSyntaxException {
         if (this.tasks.add(task)) {
+            task.setStartTime();
             task.onStarted();
             return;
         }

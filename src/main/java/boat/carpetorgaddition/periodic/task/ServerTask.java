@@ -10,15 +10,11 @@ import net.minecraft.server.ServerTickRateManager;
 
 public abstract class ServerTask {
     protected final CommandSourceStack source;
-    /**
-     * 之前每个游戏刻中任务持续时间的总和
-     */
-    private long executionTime;
     private long tickTaskStartTime = -1L;
     /**
      * 任务开始执行的时间
      */
-    private long startTime;
+    private long startTime = -1L;
     /**
      * 该任务是否应该被删除
      */
@@ -26,7 +22,6 @@ public abstract class ServerTask {
 
     public ServerTask(CommandSourceStack source) {
         this.source = source;
-        this.startTime = System.currentTimeMillis();
     }
 
     /**
@@ -52,7 +47,6 @@ public abstract class ServerTask {
             if (tickManager.runsNormally() || this.constantSpeed()) {
                 this.tickTaskStartTime = System.currentTimeMillis();
                 this.tick();
-                this.executionTime += getTickExecutionTime();
                 this.tickTaskStartTime = -1L;
                 return this.stopped();
             } else {
@@ -81,17 +75,12 @@ public abstract class ServerTask {
     }
 
     /**
-     * 获取当前任务已经执行的时间
+     * @return 任务开始执行到现在所经过的时间
      */
-    protected long getExecutionTime() {
-        if (this.tickTaskStartTime == -1L) {
-            return this.executionTime;
-        }
-        // TODO 更改时间计算方式
-        return this.executionTime + getTickExecutionTime();
-    }
-
     protected long getElapsedTime() {
+        if (this.startTime == -1L) {
+            return 0;
+        }
         return System.currentTimeMillis() - this.startTime;
     }
 
@@ -161,7 +150,7 @@ public abstract class ServerTask {
     /**
      * 设置任务开始时间
      */
-    public void setStartTime() {
+    public final void setStartTime() {
         this.startTime = System.currentTimeMillis();
     }
 
