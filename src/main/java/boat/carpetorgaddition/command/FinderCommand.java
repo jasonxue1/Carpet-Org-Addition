@@ -56,11 +56,11 @@ public class FinderCommand extends AbstractServerCommand {
     /**
      * 最大查找时间
      */
-    public static final long MAX_SEARCH_TIME = 5L * 1000L;
+    public static final long MAX_SEARCH_TIME = 20L * 1000L;
     /**
      * 最大查找半径
      */
-    public static final int MAX_HORIZONTAL_RANGE = 256;
+    public static final int MAX_HORIZONTAL_RANGE = 512;
     /**
      * 村民的游戏内名称
      */
@@ -128,7 +128,7 @@ public class FinderCommand extends AbstractServerCommand {
     }
 
     private SuggestionProvider<CommandSourceStack> suggestionDefaultDistance() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
+        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256", "512"}, builder);
     }
 
     /**
