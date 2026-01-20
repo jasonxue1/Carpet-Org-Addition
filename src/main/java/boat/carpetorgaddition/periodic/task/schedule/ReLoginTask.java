@@ -72,7 +72,7 @@ public class ReLoginTask extends PlayerScheduleTask {
                         this.stop();
                     }
                     // 让假玩家退出游戏
-                    logoutPlayer(fakePlayer);
+                    this.logoutPlayer(fakePlayer);
                 }
             } else {
                 this.remainingTick--;
@@ -97,7 +97,7 @@ public class ReLoginTask extends PlayerScheduleTask {
      * @see EntityPlayerMPFake#shakeOff()
      */
     @SuppressWarnings("JavadocReference")
-    public static void logoutPlayer(EntityPlayerMPFake fakePlayer) {
+    private void logoutPlayer(EntityPlayerMPFake fakePlayer) {
         Component reason = Messenger.s("Killed");
         // 停止骑行
         if (fakePlayer.getVehicle() instanceof Player) {

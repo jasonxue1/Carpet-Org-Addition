@@ -8,9 +8,9 @@ import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerStartupAction;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
+import boat.carpetorgaddition.periodic.task.DelayedTask;
+import boat.carpetorgaddition.periodic.task.IterativeTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
-import boat.carpetorgaddition.periodic.task.SilentLogoutTask;
-import boat.carpetorgaddition.periodic.task.batch.BatchKillFakePlayer;
 import boat.carpetorgaddition.periodic.task.batch.BatchSpawnFakePlayerTask;
 import boat.carpetorgaddition.periodic.task.schedule.DelayedLoginTask;
 import boat.carpetorgaddition.periodic.task.schedule.DelayedLogoutTask;
@@ -866,10 +866,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 异常由服务器命令源进行处理
         CommandSourceStack serverSource = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        return batchSpawn(context, at, fakePlayer -> CommandUtils.handlingException(() -> taskManager.addTask(new SilentLogoutTask(source, fakePlayer, 30)), serverSource));
+        return batchSpawn(context, at, fakePlayer -> {
+            DelayedTask task = new DelayedTask(source, 30, () -> PlayerUtils.silenceLogout(fakePlayer));
+            CommandUtils.handlingException(() -> taskManager.addTask(task), serverSource);
+        });
     }
 
-    private static int batchSpawn(CommandContext<CommandSourceStack> context, boolean at, Consumer<EntityPlayerMPFake> callback) throws CommandSyntaxException {
+    private int batchSpawn(CommandContext<CommandSourceStack> context, boolean at, Consumer<EntityPlayerMPFake> callback) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
         int end = IntegerArgumentType.getInteger(context, "end");
         // 交换最大最小值，玩家可能将end和start参数反向输入
@@ -881,9 +884,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 限制单次生成的最大玩家数量
             throw CommandUtils.createException(BATCH.then("exceeds_limit").translate(count, 256));
         }
-        String prefix = StringArgumentType.getString(context, "prefix");
-        // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
-        String completePrefix = getPrefix(prefix);
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
@@ -911,10 +911,18 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     .setSilence(true)
                     .setCallback(callback);
         }
-        // TODO 适配名称前后缀
-        List<String> list = IntStream.rangeClosed(start, end).mapToObj(i -> completePrefix + i).toList();
+        // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
+        String prefix = StringArgumentType.getString(context, "prefix");
+        List<String> list = batchPlayerList(prefix, start, end);
         taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, function, list));
-        return end - start + 1;
+        return list.size();
+    }
+
+    private List<String> batchPlayerList(String prefix, int start, int end) {
+        // TODO 适配名称前后缀
+        return IntStream.rangeClosed(start, end)
+                .mapToObj(i -> (prefix.endsWith("_") ? prefix : prefix + "_") + i)
+                .toList();
     }
 
     private static String getPrefix(String prefix) {
@@ -931,16 +939,23 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         end = Math.max(start, end);
         start = temp;
         String prefix = StringArgumentType.getString(context, "prefix");
-        prefix = getPrefix(prefix);
         CommandSourceStack source = context.getSource();
         MinecraftServer server = source.getServer();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        taskManager.addTask(new BatchKillFakePlayer(server, source, prefix, start, end));
-        return end - start + 1;
+        List<Runnable> list = this.batchPlayerList(prefix, start, end).stream()
+                .map(name -> ServerUtils.getPlayer(server, name))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(player -> player instanceof EntityPlayerMPFake)
+                .map(player -> (EntityPlayerMPFake) player)
+                .map(fakePlayer -> (Runnable) () -> PlayerUtils.silenceLogout(fakePlayer))
+                .toList();
+        taskManager.addTask(new IterativeTask(source, list, 30, 3000));
+        return list.size();
     }
 
     /**
-     * 批量生成玩家
+     * 批量控制玩家丢弃物品
      */
     private int batchDrop(CommandContext<CommandSourceStack> context) {
         int start = IntegerArgumentType.getInteger(context, "start");

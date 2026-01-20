@@ -16,12 +16,17 @@ public abstract class ServerTask {
     private long executionTime;
     private long tickTaskStartTime = -1L;
     /**
+     * 任务开始执行的时间
+     */
+    private long startTime;
+    /**
      * 该任务是否应该被删除
      */
     private boolean remove = false;
 
     public ServerTask(CommandSourceStack source) {
         this.source = source;
+        this.startTime = System.currentTimeMillis();
     }
 
     /**
@@ -69,7 +74,7 @@ public abstract class ServerTask {
         if (time == -1L) {
             return;
         }
-        if (this.getExecutionTime() > time) {
+        if (this.getElapsedTime() > time) {
             // 任务超时
             throw new TaskExecutionException(this::timeoutHandler);
         }
@@ -82,7 +87,12 @@ public abstract class ServerTask {
         if (this.tickTaskStartTime == -1L) {
             return this.executionTime;
         }
+        // TODO 更改时间计算方式
         return this.executionTime + getTickExecutionTime();
+    }
+
+    protected long getElapsedTime() {
+        return System.currentTimeMillis() - this.startTime;
     }
 
     /**
@@ -134,12 +144,6 @@ public abstract class ServerTask {
         MessageUtils.sendErrorMessage(this.source, LocalizationKeys.Operation.Timeout.TASK.translate());
     }
 
-    @Override
-    public abstract boolean equals(Object obj);
-
-    @Override
-    public abstract int hashCode();
-
     /**
      * @return 此任务是否不受/tick命令影响
      */
@@ -152,6 +156,13 @@ public abstract class ServerTask {
      */
     public void markRemove() {
         this.remove = true;
+    }
+
+    /**
+     * 设置任务开始时间
+     */
+    public void setStartTime() {
+        this.startTime = System.currentTimeMillis();
     }
 
     /**

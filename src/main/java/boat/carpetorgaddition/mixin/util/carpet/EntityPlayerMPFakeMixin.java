@@ -65,7 +65,7 @@ public class EntityPlayerMPFakeMixin {
             original.call(instance, connection, player, clientData);
         } catch (NullPointerException e) {
             if (FakePlayerSpawner.SILENCE.orElse(false)) {
-                // 玩家在服务器关闭后登录游戏可能导致服务器崩溃（服务器关闭时，有玩家的周期性上下线未停止）
+                // 玩家在服务器关闭后登录游戏可能导致服务器崩溃（一般发生在服务器关闭时，有玩家的周期性上下线未停止）
                 CarpetOrgAddition.LOGGER.warn("Fake player attempts to join game after server shutdown", e);
             } else {
                 throw e;
