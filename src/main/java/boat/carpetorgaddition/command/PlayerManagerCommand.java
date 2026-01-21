@@ -134,7 +134,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .then(Commands.argument("autologin", BoolArgumentType.bool())
                                                 .executes(context -> this.setAutoLogin(context, false))))))
                 .then(Commands.literal("group")
-                        // TODO 一次性召唤所有玩家，并在list添加一键召唤按钮
+                        // TODO 在list添加一键召唤按钮
                         .then(Commands.literal("add")
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(playerSuggests())

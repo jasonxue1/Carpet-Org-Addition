@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -113,7 +114,13 @@ public class FakePlayerSpawner {
         return this;
     }
 
+    /**
+     * 如果玩家不存在，则召唤玩家
+     */
     public void spawn() {
+        if (ServerUtils.getPlayer(server, this.name).isPresent()) {
+            return;
+        }
         ScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
                 .run(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
