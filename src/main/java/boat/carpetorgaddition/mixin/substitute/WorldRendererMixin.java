@@ -59,14 +59,9 @@ public class WorldRendererMixin {
     }
 
     @Inject(method = "renderLevel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/Options;getCloudsType()Lnet/minecraft/client/CloudStatus;"))
-    private void onAfterTranslucent(CallbackInfo ci, @Local FrameGraphBuilder frameGraphBuilder) {
+    private void onAfterTranslucent(CallbackInfo ci, @Local(name = "frame") FrameGraphBuilder frameGraphBuilder) {
         FramePass pass = frameGraphBuilder.addPass(CarpetOrgAddition.MOD_ID + ":afterTranslucent");
         this.targets.main = pass.readsAndWrites(this.targets.main);
         pass.executes(() -> WorldRenderEvents.AFTER_TRANSLUCENT.invoker().render(this.context));
-    }
-
-    @Inject(method = "lambda$addMainPass$0", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/feature/FeatureRenderDispatcher;renderAllFeatures()V"))
-    private void onDebug(CallbackInfo ci) {
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.invoker().render(this.context);
     }
 }
