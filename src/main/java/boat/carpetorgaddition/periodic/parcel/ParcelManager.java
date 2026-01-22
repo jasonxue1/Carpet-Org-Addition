@@ -10,6 +10,7 @@ import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
@@ -71,6 +72,9 @@ public class ParcelManager {
      * 提示玩家接收快递
      */
     public void promptToCollect(ServerPlayer player) {
+        if (player instanceof EntityPlayerMPFake) {
+            return;
+        }
         List<Parcel> list = this.parcels.stream()
                 .filter(parcel -> parcel.isRecipient(player))
                 .filter(parcel -> !parcel.isRecall())
