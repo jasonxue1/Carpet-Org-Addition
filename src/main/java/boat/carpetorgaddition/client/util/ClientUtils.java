@@ -1,9 +1,6 @@
 package boat.carpetorgaddition.client.util;
 
-import net.minecraft.client.Camera;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.MouseHandler;
-import net.minecraft.client.Options;
+import net.minecraft.client.*;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -108,6 +105,11 @@ public class ClientUtils {
         return getGameRenderer().getMainCamera();
     }
 
+    @Contract(pure = true)
+    public static DeltaTracker getTickCounter() {
+        return getClient().getDeltaTracker();
+    }
+
     /**
      * 获取当前打开的屏幕
      */
@@ -116,12 +118,12 @@ public class ClientUtils {
         return getClient().screen;
     }
 
-
     /**
      * 获取当前打开菜单
      */
+    @SuppressWarnings("unused")
     @NotNull
-    public static AbstractContainerMenu getContainerMenun() {
+    public static AbstractContainerMenu getContainerMenu() {
         return getPlayer().containerMenu;
     }
 

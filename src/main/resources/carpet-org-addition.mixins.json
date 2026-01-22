@@ -125,8 +125,7 @@
     "network.SlotMixin",
     "rule.client.carpet.SettingsManagerMixin",
     "rule.disableanvilexpensive.client.AnvilScreenMixin",
-    "rule.quickshulker.CreativeScreenHandlerMixin",
-    "substitute.WorldRendererMixin"
+    "rule.quickshulker.CreativeScreenHandlerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

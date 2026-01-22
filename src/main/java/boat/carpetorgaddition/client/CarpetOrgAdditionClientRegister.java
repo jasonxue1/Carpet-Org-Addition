@@ -3,7 +3,6 @@ package boat.carpetorgaddition.client;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.client.command.ClientCommandRegister;
 import boat.carpetorgaddition.client.logger.ClientLogger;
-import boat.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import boat.carpetorgaddition.client.renderer.waypoint.NavigatorWaypoint;
 import boat.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import boat.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
@@ -15,6 +14,7 @@ import boat.carpetorgaddition.wheel.screen.UnavailableSlotClientSide;
 import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.level.Level;
@@ -96,7 +96,7 @@ public class CarpetOrgAdditionClientRegister {
      */
     private static void registerRenderer() {
         // 注册路径点渲染器
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(context -> WaypointRenderer.getInstance().render(context));
+        LevelRenderEvents.AFTER_ENTITIES.register(context -> WaypointRenderer.getInstance().render(context));
     }
 
     /**

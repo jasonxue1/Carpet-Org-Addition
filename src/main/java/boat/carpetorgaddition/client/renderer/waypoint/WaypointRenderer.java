@@ -1,13 +1,13 @@
 package boat.carpetorgaddition.client.renderer.waypoint;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.client.renderer.substitute.WorldRenderContext;
-import boat.carpetorgaddition.client.renderer.substitute.WorldRenderEvents;
 import boat.carpetorgaddition.client.util.ClientMessageUtils;
 import boat.carpetorgaddition.client.util.ClientUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.blaze3d.vertex.PoseStack;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -29,7 +29,7 @@ public class WaypointRenderer {
         // 断开连接时清除路径点
         ClientPlayConnectionEvents.DISCONNECT.register((_, _) -> destroy());
         // 清除不再需要的渲染器
-        WorldRenderEvents.START.register(() -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
+        ClientTickEvents.START_CLIENT_TICK.register(_ -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
     }
 
     private WaypointRenderer() {
@@ -51,13 +51,13 @@ public class WaypointRenderer {
     /**
      * 绘制路径点
      */
-    public void render(WorldRenderContext context) {
-        PoseStack matrixStack = context.matrixStack();
+    public void render(LevelRenderContext context) {
+        PoseStack matrixStack = context.poseStack();
         for (Waypoint waypoint : waypoints.values()) {
             try {
                 // 绘制图标
-                MultiBufferSource consumers = context.consumers();
-                DeltaTracker tickCounter = context.tickCounter();
+                MultiBufferSource consumers = context.bufferSource();
+                DeltaTracker tickCounter = ClientUtils.getTickCounter();
                 waypoint.render(matrixStack, consumers, this.camera, tickCounter);
             } catch (RuntimeException e) {
                 // 发送错误消息，然后停止渲染
