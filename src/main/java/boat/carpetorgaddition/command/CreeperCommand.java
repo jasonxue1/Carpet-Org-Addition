@@ -14,6 +14,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 public class CreeperCommand extends AbstractServerCommand {
@@ -32,9 +33,10 @@ public class CreeperCommand extends AbstractServerCommand {
     // 创建苦力怕并爆炸
     private int creeperExplosion(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer targetPlayer = CommandUtils.getArgumentPlayer(context);
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
-        // 添加苦力怕爆炸任务
         CommandSourceStack source = context.getSource();
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
+        // 添加苦力怕爆炸任务
         manager.addTask(new CreeperExplosionTask(source, targetPlayer));
         ServerPlayer sourcePlayer = source.getPlayer();
         if (sourcePlayer != null) {

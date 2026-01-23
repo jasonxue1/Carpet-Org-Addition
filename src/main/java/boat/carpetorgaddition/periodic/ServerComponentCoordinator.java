@@ -8,9 +8,7 @@ import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.rule.RuleSelfManager;
 import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import boat.carpetorgaddition.wheel.page.PageManager;
-import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTickRateManager;
 import org.jspecify.annotations.NullMarked;
@@ -99,11 +97,6 @@ public class ServerComponentCoordinator {
     private void onServerSave() {
         this.ruleSelfManager.onServerSave();
         this.playerSerializationManager.onServerSave();
-    }
-
-    @Deprecated
-    public static ServerComponentCoordinator getCoordinator(CommandContext<CommandSourceStack> context) {
-        return getCoordinator(context.getSource().getServer());
     }
 
     public static ServerComponentCoordinator getCoordinator(MinecraftServer server) {

@@ -144,8 +144,10 @@ public class FinderCommand extends AbstractServerCommand {
         Level world = ServerUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, source);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -162,8 +164,10 @@ public class FinderCommand extends AbstractServerCommand {
         Level world = ServerUtils.getWorld(player);
         BlockEntityTraverser traverser = new BlockEntityTraverser(world, from, to);
         this.checkBoxSize(traverser);
-        ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, context.getSource());
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        ItemSearchTask task = new ItemSearchTask(world, predicate, traverser, source);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -173,8 +177,10 @@ public class FinderCommand extends AbstractServerCommand {
     private int searchItemFromOfflinePlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "itemStack");
-        ServerTask task = new OfflinePlayerSearchTask(context.getSource(), predicate, player);
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        ServerTask task = new OfflinePlayerSearchTask(source, predicate, player);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -190,8 +196,10 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourceBlockPos, range);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, context.getSource(), predicate);
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, source, predicate);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -209,8 +217,10 @@ public class FinderCommand extends AbstractServerCommand {
         BlockPosTraverser traverser = new BlockPosTraverser(from, to);
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofWorldEater();
-        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, context.getSource(), predicate);
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        BlockSearchTask task = new BlockSearchTask(world, sourceBlockPos, traverser, source, predicate);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -226,8 +236,10 @@ public class FinderCommand extends AbstractServerCommand {
         this.checkBoxSize(traverser);
         BlockStatePredicate predicate = BlockStatePredicate.ofPredicate(context, "blockState");
         // 添加查找任务
-        BlockSearchTask task = new BlockSearchTask(ServerUtils.getWorld(player), player.blockPosition(), traverser, context.getSource(), predicate);
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        CommandSourceStack source = context.getSource();
+        BlockSearchTask task = new BlockSearchTask(ServerUtils.getWorld(player), player.blockPosition(), traverser, source, predicate);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -245,9 +257,11 @@ public class FinderCommand extends AbstractServerCommand {
         // 查找范围
         BlockPosTraverser traverser = new BlockPosTraverser(world, sourcePos, range);
         this.checkBoxSize(traverser);
-        TradeItemSearchTask task = new TradeItemSearchTask(world, traverser, sourcePos, predicate, context.getSource());
+        CommandSourceStack source = context.getSource();
+        TradeItemSearchTask task = new TradeItemSearchTask(world, traverser, sourcePos, predicate, source);
         // 向任务管理器添加任务
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 
@@ -270,7 +284,7 @@ public class FinderCommand extends AbstractServerCommand {
         this.checkBoxSize(traverser);
         TradeEnchantedBookSearchTask task = new TradeEnchantedBookSearchTask(world, traverser, sourcePos, source, predicate);
         // 向任务管理器添加任务
-        ServerComponentCoordinator.getCoordinator(context).getServerTaskManager().addTask(task);
+        ServerComponentCoordinator.getCoordinator(server).getServerTaskManager().addTask(task);
         return 1;
     }
 

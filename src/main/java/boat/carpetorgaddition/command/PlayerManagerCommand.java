@@ -1000,7 +1000,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int stopReLogin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         // 获取目标假玩家名
         String name = StringArgumentType.getString(context, "name");
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+        MinecraftServer server = ServerUtils.getServer(context.getSource());
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Optional<ReLoginTask> optional = manager.stream(ReLoginTask.class)
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .findFirst();
@@ -1075,7 +1076,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 取消任务
     private int cancelScheduleTask(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+        MinecraftServer server = ServerUtils.getServer(context.getSource());
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         String name = StringArgumentType.getString(context, "name");
         // 获取符合条件的任务列表
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class)
@@ -1090,7 +1092,8 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 列出所有任务
     private int listScheduleTask(CommandContext<CommandSourceStack> context) {
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+        MinecraftServer server = ServerUtils.getServer(context.getSource());
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
             MessageUtils.sendMessage(context, SCHEDULE.then("list", "empty").translate());

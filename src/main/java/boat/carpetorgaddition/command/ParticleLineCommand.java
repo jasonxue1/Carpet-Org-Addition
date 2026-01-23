@@ -19,6 +19,7 @@ import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
@@ -62,7 +63,8 @@ public class ParticleLineCommand {
         if (distance == 0) {
             return 0;
         }
-        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(context).getServerTaskManager();
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         // 新建绘制粒子线任务
         manager.addTask(new DrawParticleLineTask(source, ServerUtils.getWorld(player), mainParticle, from, to));
         // 发送箭头
