@@ -67,7 +67,7 @@ public abstract class LivingEntityMixin {
     @Definition(id = "itemStack", local = @Local(type = ItemStack.class, ordinal = 0))
     @Expression("itemStack != null")
     @ModifyExpressionValue(method = "checkTotemDeathProtection", at = @At("MIXINEXTRAS:EXPRESSION"))
-    private boolean tryUseTotem(boolean original, @Local(ordinal = 0) LocalRef<ItemStack> stackRef, @Local LocalRef<DeathProtection> componentRef) {
+    private boolean tryUseTotem(boolean original, @Local(name = "protectionItem") LocalRef<ItemStack> stackRef, @Local(name = "protection") LocalRef<DeathProtection> componentRef) {
         if (original) {
             return true;
         }

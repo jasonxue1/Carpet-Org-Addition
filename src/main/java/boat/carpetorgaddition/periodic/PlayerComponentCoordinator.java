@@ -4,8 +4,9 @@ import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
 import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.level.ServerPlayer;
-import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class PlayerComponentCoordinator {
     private final ServerPlayer player;
     private final NavigatorManager navigatorManager;
@@ -38,12 +39,10 @@ public class PlayerComponentCoordinator {
         return this.withButtonPlayerInventory;
     }
 
-    @NotNull
     public static PlayerComponentCoordinator getCoordinator(ServerPlayer player) {
         return ((PeriodicTaskManagerInterface) player).carpet_Org_Addition$getPlayerPeriodicTaskManager();
     }
 
-    @NotNull
     public static FakePlayerComponentCoordinator getCoordinator(EntityPlayerMPFake fakePlayer) {
         return (FakePlayerComponentCoordinator) getCoordinator((ServerPlayer) fakePlayer);
     }

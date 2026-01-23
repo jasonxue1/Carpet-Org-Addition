@@ -464,7 +464,6 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 if (serializer.autologin) {
                     serializer.spawn(server, true);
                     count++;
-                    // TODO 可能不生效
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                     if (count >= server.getMaxPlayers() - 1) {
                         CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");

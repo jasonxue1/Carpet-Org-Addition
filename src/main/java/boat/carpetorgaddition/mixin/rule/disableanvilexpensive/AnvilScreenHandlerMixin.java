@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(AnvilMenu.class)
 public class AnvilScreenHandlerMixin {
     @WrapOperation(method = "createResult", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getCount()I", ordinal = 1))
-    private int markInvalid(ItemStack instance, Operation<Integer> original, @Local(ordinal = 0) LocalIntRef ref) {
+    private int markInvalid(ItemStack instance, Operation<Integer> original, @Local(name = "price") LocalIntRef ref) {
         int call = original.call(instance);
         int value = CarpetOrgAdditionSettings.setAnvilCostLimit.get();
         if (value == -1 || call <= 1) {

@@ -6,7 +6,9 @@ import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.server.ServerTickRateManager;
 import net.minecraft.server.level.ServerPlayer;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     private final FakePlayerActionManager fakePlayerActionManager;
     private final BlockExcavator blockExcavator;
@@ -30,10 +32,7 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     @Override
     public void copyFrom(ServerPlayer oldPlayer) {
         super.copyFrom(oldPlayer);
-        // TODO 可以为null吗？
-        if (this.fakePlayerActionManager != null) {
-            this.fakePlayerActionManager.setActionFromOldPlayer((EntityPlayerMPFake) oldPlayer);
-        }
+        this.fakePlayerActionManager.setActionFromOldPlayer((EntityPlayerMPFake) oldPlayer);
     }
 
     public FakePlayerActionManager getFakePlayerActionManager() {
