@@ -1,8 +1,12 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.CarpetOrgAdditionExtension;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
+import carpet.api.settings.CarpetRule;
+import carpet.api.settings.RuleHelper;
+import carpet.api.settings.SettingsManager;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
@@ -16,7 +20,9 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuConstructor;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.*;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 public class PlayerUtils {
     private PlayerUtils() {
@@ -72,6 +78,56 @@ public class PlayerUtils {
 
     public static boolean playerNameTooLong(String name) {
         return name.length() > 16;
+    }
+
+    /**
+     * @return 添加名称前缀
+     */
+    public static String appendNamePrefix(String name) {
+        List<String> list = new LinkedList<>();
+        list.add(name);
+        SettingsManager settingManager = CarpetOrgAdditionExtension.getSettingManager();
+        Stream.of("fakePlayerNamePrefix", "fakePlayerPrefixName")
+                .map(settingManager::getCarpetRule)
+                .filter(Objects::nonNull)
+                .filter(rule -> !RuleHelper.isInDefaultValue(rule))
+                .map(CarpetRule::value)
+                .filter(o -> o instanceof String)
+                .map(o -> (String) o)
+                .forEach(prefix -> {
+                    if (list.getFirst().toLowerCase(Locale.ROOT).startsWith(prefix.toLowerCase(Locale.ROOT))) {
+                        return;
+                    }
+                    list.addFirst(prefix);
+                });
+        StringBuilder builder = new StringBuilder();
+        list.forEach(builder::append);
+        return builder.toString();
+    }
+
+    /**
+     * @return 添加名称后缀
+     */
+    public static String appendNameSuffix(String name) {
+        List<String> list = new ArrayList<>();
+        list.add(name);
+        SettingsManager settingManager = CarpetOrgAdditionExtension.getSettingManager();
+        Stream.of("fakePlayerNameSuffix", "fakePlayerSuffixName")
+                .map(settingManager::getCarpetRule)
+                .filter(Objects::nonNull)
+                .filter(rule -> !RuleHelper.isInDefaultValue(rule))
+                .map(CarpetRule::value)
+                .filter(o -> o instanceof String)
+                .map(o -> (String) o)
+                .forEach(suffix -> {
+                    if (list.getLast().toLowerCase(Locale.ROOT).startsWith(suffix.toLowerCase(Locale.ROOT))) {
+                        return;
+                    }
+                    list.addLast(suffix);
+                });
+        StringBuilder builder = new StringBuilder();
+        list.forEach(builder::append);
+        return builder.toString();
     }
 
     /**

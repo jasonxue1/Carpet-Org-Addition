@@ -926,9 +926,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     private List<String> batchPlayerList(String prefix, int start, int end) {
-        // TODO 适配名称前后缀
         return IntStream.rangeClosed(start, end)
                 .mapToObj(i -> (prefix.endsWith("_") ? prefix : prefix + "_") + i)
+                .map(PlayerUtils::appendNamePrefix)
+                .map(PlayerUtils::appendNameSuffix)
                 .toList();
     }
 
