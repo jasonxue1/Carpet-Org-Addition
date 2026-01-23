@@ -2,6 +2,7 @@ package boat.carpetorgaddition.periodic.parcel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.MailCommand;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.WorldFormat;
@@ -89,7 +90,7 @@ public class ParcelManager {
                 return MailCommand.KEY.then("prompt_collect").translate(parcel.getCount(), parcel.getDisplayName(), clickRun);
             });
         }
-        PageManager pageManager = FetcherUtils.getPageManager(this.server);
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(this.server).getPageManager();
         CommandSourceStack source = player.createCommandSourceStack();
         PagedCollection collection = pageManager.newPagedCollection(source);
         collection.addContent(messages);

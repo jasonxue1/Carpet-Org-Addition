@@ -279,6 +279,10 @@ public class ServerUtils {
         return getWorld(entity).getServer();
     }
 
+    public static MinecraftServer getServer(CommandSourceStack source) {
+        return source.getServer();
+    }
+
     public static ServerLevel getWorld(ServerPlayer player) {
         return player.level();
     }

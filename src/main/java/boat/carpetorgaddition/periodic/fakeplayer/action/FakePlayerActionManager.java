@@ -3,7 +3,8 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.DebugTriggerException;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import carpet.patches.EntityPlayerMPFake;
@@ -54,7 +55,8 @@ public class FakePlayerActionManager {
 
     // 从另一个玩家浅拷贝此动作管理器
     public void setActionFromOldPlayer(EntityPlayerMPFake oldPlayer) {
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(oldPlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(oldPlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         this.setAction(actionManager.getAction());
         this.action.setFakePlayer(this.fakePlayer);
     }

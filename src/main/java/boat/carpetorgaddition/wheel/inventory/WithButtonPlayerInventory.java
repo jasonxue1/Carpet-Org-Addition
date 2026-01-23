@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.wheel.inventory;
 
 import boat.carpetorgaddition.mixin.accessor.carpet.EntityPlayerActionPackAccessor;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.IdentifierUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.screen.QuickShulkerScreenHandler;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -85,7 +85,7 @@ public class WithButtonPlayerInventory implements Container {
 
     public WithButtonPlayerInventory(ServerPlayer player) {
         this.player = player;
-        this.actionPack = FetcherUtils.getActionPack(this.player);
+        this.actionPack = PlayerUtils.getActionPack(this.player);
         ButtonInventory stopAll = new StopButtonInventory(_ -> {
             ItemStack itemStack = OFF_STACK.copy();
             Component first = LocalizationKeys.Button.Action.Stop.LEFT.builder()

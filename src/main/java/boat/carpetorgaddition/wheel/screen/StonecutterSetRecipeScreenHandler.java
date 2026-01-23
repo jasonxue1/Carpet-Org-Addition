@@ -1,8 +1,9 @@
 package boat.carpetorgaddition.wheel.screen;
 
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import boat.carpetorgaddition.periodic.fakeplayer.action.StonecuttingAction;
-import boat.carpetorgaddition.util.FetcherUtils;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -43,7 +44,8 @@ public class StonecutterSetRecipeScreenHandler extends StonecutterMenu implement
         // 获取按钮索引
         int button = this.getSelectedRecipeIndex();
         if (button != -1) {
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(this.fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(this.fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             // 设置玩家动作
             actionManager.setAction(new StonecuttingAction(this.fakePlayer, itemStack.getItem(), button));
         }

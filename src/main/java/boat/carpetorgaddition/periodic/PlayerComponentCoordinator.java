@@ -39,13 +39,13 @@ public class PlayerComponentCoordinator {
     }
 
     @NotNull
-    public static PlayerComponentCoordinator getManager(ServerPlayer player) {
+    public static PlayerComponentCoordinator getCoordinator(ServerPlayer player) {
         return ((PeriodicTaskManagerInterface) player).carpet_Org_Addition$getPlayerPeriodicTaskManager();
     }
 
     @NotNull
-    public static FakePlayerComponentCoordinator getManager(EntityPlayerMPFake fakePlayer) {
-        return (FakePlayerComponentCoordinator) getManager((ServerPlayer) fakePlayer);
+    public static FakePlayerComponentCoordinator getCoordinator(EntityPlayerMPFake fakePlayer) {
+        return (FakePlayerComponentCoordinator) getCoordinator((ServerPlayer) fakePlayer);
     }
 
     /**

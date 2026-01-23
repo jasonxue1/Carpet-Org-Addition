@@ -1,8 +1,12 @@
 package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.command.PlayerCommandExtension;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.IdentifierUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
@@ -29,7 +33,7 @@ public class CustomClickEvents {
         NbtReader reader = context.getReader();
         Identifier id = reader.getIdentifierOrThrow("id");
         MinecraftServer server = context.getServer();
-        DialogProvider provider = FetcherUtils.getDialogProvider(server);
+        DialogProvider provider = ServerComponentCoordinator.getCoordinator(server).getDialogProvider();
         Dialog dialog = provider.getDialog(id);
         PlayerUtils.openDialog(context.getPlayer(), dialog);
     });
@@ -70,7 +74,7 @@ public class CustomClickEvents {
         NbtReader reader = context.getReader();
         int id = reader.getIntOrThrow(CustomClickKeys.ID);
         int page = reader.getIntOrThrow(CustomClickKeys.PAGE_NUMBER);
-        PageManager manager = FetcherUtils.getPageManager(context.getServer());
+        PageManager manager = ServerComponentCoordinator.getCoordinator(context.getServer()).getPageManager();
         Optional<PagedCollection> optional = manager.get(id);
         if (optional.isPresent()) {
             PagedCollection collection = optional.get();

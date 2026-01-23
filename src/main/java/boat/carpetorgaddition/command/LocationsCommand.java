@@ -2,6 +2,7 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.Waypoint;
 import boat.carpetorgaddition.wheel.WorldFormat;
@@ -135,7 +136,7 @@ public class LocationsCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(context, key.translate());
             return 0;
         }
-        PageManager pageManager = FetcherUtils.getPageManager(server);
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(server).getPageManager();
         PagedCollection collection = pageManager.newPagedCollection(context.getSource());
         ArrayList<Supplier<Component>> messages = new ArrayList<>();
         int count = 0;

@@ -2,10 +2,11 @@ package boat.carpetorgaddition.periodic.task.search;
 
 import boat.carpetorgaddition.command.FinderCommand;
 import boat.carpetorgaddition.exception.TaskExecutionException;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -43,7 +44,7 @@ public abstract class AbstractTradeSearchTask extends ServerTask {
         this.blockPosTraverser = blockPosTraverser;
         this.sourcePos = sourcePos;
         this.findState = FindState.SEARCH;
-        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(ServerUtils.getServer(source)).getPageManager();
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 

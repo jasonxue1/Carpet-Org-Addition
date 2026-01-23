@@ -1,8 +1,10 @@
 package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.value.BlockDropsDirectlyEnterInventory;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.util.ServerUtils;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 
 public class CustomRuleControls {
@@ -16,7 +18,9 @@ public class CustomRuleControls {
                 case TRUE -> true;
                 case FALSE -> false;
                 case CUSTOM -> {
-                    RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
+                    MinecraftServer server = ServerUtils.getServer(player);
+                    ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+                    RuleSelfManager ruleSelfManager = coordinator.getRuleSelfManager();
                     yield ruleSelfManager.isEnabled(player, this);
                 }
             };
@@ -36,7 +40,8 @@ public class CustomRuleControls {
                 return 0;
             }
             if (CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.get()) {
-                RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
+                MinecraftServer server = ServerUtils.getServer(player);
+                RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
                 return ruleSelfManager.isEnabled(player, this) ? range : 0;
             } else {
                 return range;

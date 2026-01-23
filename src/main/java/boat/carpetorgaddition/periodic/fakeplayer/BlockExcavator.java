@@ -167,24 +167,24 @@ public class BlockExcavator {
     /**
      * @return 玩家是否可以破坏指定位置的方块
      */
-    public static boolean canBreak(EntityPlayerMPFake fakePlayer, BlockPos blockPos) {
-        Level world = ServerUtils.getWorld(fakePlayer);
+    public boolean canBreak(BlockPos blockPos) {
+        Level world = ServerUtils.getWorld(this.player);
         BlockState blockState = world.getBlockState(blockPos);
         Block block = blockState.getBlock();
         // 非管理员不能破坏管理员方块
-        if (block instanceof GameMasterBlock && !fakePlayer.canUseGameMasterBlocks()) {
+        if (block instanceof GameMasterBlock && !this.player.canUseGameMasterBlocks()) {
             return false;
         }
         // 是否限制了方块破坏
-        if (fakePlayer.blockActionRestricted(world, blockPos, fakePlayer.gameMode.getGameModeForPlayer())) {
+        if (this.player.blockActionRestricted(world, blockPos, this.player.gameMode.getGameModeForPlayer())) {
             return false;
         }
-        ItemStack mainHandItemStack = fakePlayer.getMainHandItem();
+        ItemStack mainHandItemStack = this.player.getMainHandItem();
         Item mainHandItem = mainHandItemStack.getItem();
         // 主手物品是否可以挖掘方块，当前位置是否超出了世界边界
-        if (mainHandItem.canDestroyBlock(mainHandItemStack, blockState, world, blockPos, fakePlayer) && world.mayInteract(fakePlayer, blockPos)) {
+        if (mainHandItem.canDestroyBlock(mainHandItemStack, blockState, world, blockPos, this.player) && world.mayInteract(this.player, blockPos)) {
             // 创造模式破坏方块
-            if (fakePlayer.isCreative() || blockState.isAir()) {
+            if (this.player.isCreative() || blockState.isAir()) {
                 return true;
             }
             // 非创造玩家无法破坏硬度为-1的方块

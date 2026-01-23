@@ -9,7 +9,6 @@ import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.GameProfileCache;
@@ -99,7 +98,7 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 玩家自动登录
         FakePlayerSerializer.autoLogin(server);
         PermissionManager.load(server);
-        FetcherUtils.getRuleSelfManager(server).load();
+        ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager().load();
     }
 
     @Override

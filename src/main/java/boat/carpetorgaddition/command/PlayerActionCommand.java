@@ -2,9 +2,14 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.*;
 import boat.carpetorgaddition.periodic.fakeplayer.action.bedrock.BedrockRegionType;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.PlayerUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -197,7 +202,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置停止
     private int setStop(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.stop();
         return 1;
     }
@@ -205,7 +211,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置物品分拣
     private int setCategorize(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取要分拣的物品对象
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         // 获取分拣物品要丢出的方向
@@ -219,7 +226,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置清空容器
     private int setEmptyTheContainer(CommandContext<CommandSourceStack> context, boolean allItem) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
         actionManager.setAction(new EmptyTheContainerAction(fakePlayer, predicate));
         return 1;
@@ -228,7 +236,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置填充容器
     private int setFillTheContainer(CommandContext<CommandSourceStack> context, boolean allItem, boolean dropOther, boolean moreContainer) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         ItemStackPredicate predicate = allItem ? ItemStackPredicate.WILDCARD : new ItemStackPredicate(context, "filter");
         actionManager.setAction(new FillTheContainerAction(fakePlayer, predicate, dropOther, moreContainer));
         return 1;
@@ -239,7 +248,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], false);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
@@ -249,7 +259,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[4], true);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.setAction(new InventoryCraftAction(fakePlayer, predicates));
         return 1;
     }
@@ -257,7 +268,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置物品栏合成
     private int setInventoryCraft(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         ItemStackPredicate[] items = new ItemStackPredicate[4];
         for (int i = 1; i <= 4; i++) {
             // 获取每一个合成材料
@@ -270,7 +282,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 九个物品合成
     private int setNineCraft(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         ItemStackPredicate predicate = new ItemStackPredicate(context, "item");
         ItemStackPredicate[] predicates = fillArray(predicate, new ItemStackPredicate[9], true);
         actionManager.setAction(new CraftingTableCraftAction(fakePlayer, predicates));
@@ -280,7 +293,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置工作台合成
     private int setCraftingTableCraft(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         ItemStackPredicate[] items = new ItemStackPredicate[9];
         for (int i = 1; i <= 9; i++) {
             items[i - 1] = new ItemStackPredicate(context, "item" + i);
@@ -292,7 +306,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置交易
     private int setTrade(CommandContext<CommandSourceStack> context, boolean voidTrade) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取按钮的索引，减去1
         int index = IntegerArgumentType.getInteger(context, "index") - 1;
         actionManager.setAction(new TradeAction(fakePlayer, index, voidTrade));
@@ -302,7 +317,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置重命名
     private int setRename(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取当前要操作的物品和要重命名的字符串
         Item item = ItemArgument.getItem(context, "item").getItem();
         String newName = StringArgumentType.getString(context, "name");
@@ -313,7 +329,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置使用切石机
     private int setStonecutting(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取要切割的物品和按钮的索引
         Item item = ItemArgument.getItem(context, "item").getItem();
         int buttonIndex = IntegerArgumentType.getInteger(context, "button") - 1;
@@ -338,7 +355,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 设置自动钓鱼
     private int setFishing(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.setAction(new FishingAction(fakePlayer));
         return 1;
     }
@@ -347,7 +365,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     private int setPlant(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setAction(new PlantAction(fakePlayer));
             return 1;
         }
@@ -371,7 +390,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
                     yield new BedrockAction(fakePlayer, center, radius, height, ai, timedMaterialRecycling);
                 }
             };
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setAction(action);
             Optional<ServerPlayer> optional = CommandUtils.getSourcePlayerNullable(context);
             if (optional.isPresent()) {
@@ -388,7 +408,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             BlockPos target = BlockPosArgument.getBlockPos(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setAction(new GotoAction(fakePlayer, target));
             return 1;
         }
@@ -400,7 +421,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
         if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
             Entity target = EntityArgument.getEntity(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setAction(new GotoAction(fakePlayer, target));
             return 1;
         }
@@ -428,7 +450,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     // 获取假玩家操作类型
     private int getAction(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         AbstractPlayerAction action = actionManager.getAction();
         if (action.equalFakePlayer(null)) {
             action.setFakePlayer(fakePlayer);
@@ -458,7 +481,8 @@ public class PlayerActionCommand extends AbstractServerCommand {
     private int raise(CommandContext<CommandSourceStack> context, @Nullable String message) throws CommandSyntaxException {
         if (CarpetOrgAddition.isDebugDevelopment()) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-            FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+            FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+            FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setDebugExceptionMessage(message == null ? "Manually triggered debug exception" : message);
             return 1;
         }

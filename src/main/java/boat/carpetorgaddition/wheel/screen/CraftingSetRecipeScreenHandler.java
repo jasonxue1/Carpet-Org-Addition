@@ -1,9 +1,10 @@
 package boat.carpetorgaddition.wheel.screen;
 
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.CraftingTableCraftAction;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionManager;
 import boat.carpetorgaddition.periodic.fakeplayer.action.InventoryCraftAction;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.world.entity.player.Inventory;
@@ -51,8 +52,9 @@ public class CraftingSetRecipeScreenHandler extends CraftingMenu implements Unav
         for (int i = 0; i < craftSlots.getContainerSize(); i++) {
             items[i] = craftSlots.getItem(i).getItem();
         }
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(this.fakePlayer);
         // 设置假玩家合成动作
-        setCraftAction(items, FetcherUtils.getFakePlayerActionManager(fakePlayer));
+        setCraftAction(items, coordinator.getFakePlayerActionManager());
         // 关闭GUI后，使用父类的方法让物品回到玩家背包
         super.removed(player);
     }

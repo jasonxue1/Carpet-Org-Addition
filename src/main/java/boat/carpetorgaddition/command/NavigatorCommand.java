@@ -91,7 +91,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         Entity entity = EntityArgument.getEntity(context, arguments);
         // 如果目标是玩家，广播消息
         TextBuilder builder = new TextBuilder(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
-        PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(entity, isContinue);
+        PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(entity, isContinue);
         if (shouldBeBroadcast(entity, player)) {
             // 设置为斜体淡灰色
             builder.setGrayItalic();
@@ -109,7 +109,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         String waypointArgument = StringArgumentType.getString(context, "waypoint");
         try {
             Waypoint waypoint = Waypoint.load(server, waypointArgument);
-            PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(waypoint);
+            PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(waypoint);
             MessageUtils.sendMessage(context, START_NAVIGATION.translate(player.getDisplayName(), "[" + waypointArgument + "]"));
         } catch (IOException | RuntimeException e) {
             throw CommandUtils.createException(LocationsCommand.KEY.then("list", "unable_to_parse").translate(waypointArgument));
@@ -128,7 +128,7 @@ public class NavigatorCommand extends AbstractServerCommand {
             if (entity == null) {
                 continue;
             }
-            PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(entity, false);
+            PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(entity, false);
             TextBuilder builder = new TextBuilder(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
             if (shouldBeBroadcast(entity, player)) {
                 // 将字体设置为灰色斜体
@@ -154,7 +154,7 @@ public class NavigatorCommand extends AbstractServerCommand {
     // 停止导航
     private int stopNavigate(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        PlayerComponentCoordinator.getManager(player).getNavigatorManager().clearNavigator();
+        PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().clearNavigator();
         MessageUtils.sendMessageToHud(player, HUD.then("stop").translate());
         return 1;
     }
@@ -165,7 +165,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         BlockPos blockPos = BlockPosArgument.getBlockPos(context, "blockPos");
         Level world = ServerUtils.getWorld(player);
         // 设置导航器，维度为玩家当前所在维度
-        PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(blockPos, world);
+        PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(blockPos, world);
         // 发送命令反馈
         Component pos = TextProvider.blockPos(blockPos, ServerUtils.getColor(world));
         Component name = player.getDisplayName();
@@ -181,7 +181,7 @@ public class NavigatorCommand extends AbstractServerCommand {
             LevelData.RespawnData respawnData = Objects.requireNonNull(player.getRespawnConfig()).respawnData();
             BlockPos respawnPos = respawnData.pos();
             ServerLevel world = ServerUtils.getServer(player).getLevel(respawnData.dimension());
-            PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
+            PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(respawnPos, world, spawnPoint);
         } catch (NullPointerException e) {
             throw CommandUtils.createException(KEY.then("unable_to_find").translate(player.getDisplayName(), spawnPoint));
         }
@@ -203,7 +203,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         Component name = self ? death : HUD.then("of").translate(target.getDisplayName(), death);
         // 获取死亡坐标和死亡维度
         GlobalPos globalPos = lastDeathPos.get();
-        PlayerComponentCoordinator.getManager(player).getNavigatorManager().setNavigator(globalPos.pos(),
+        PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(globalPos.pos(),
                 context.getSource().getServer().getLevel(globalPos.dimension()), name);
         TextBuilder builder = START_NAVIGATION.builder(player.getDisplayName(), name);
         if (self || player == target) {

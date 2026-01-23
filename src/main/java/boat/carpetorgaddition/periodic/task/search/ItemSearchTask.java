@@ -4,9 +4,9 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.FinderCommand;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.mixin.accessor.AbstractHorseEntityAccessor;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.ItemStackStatistics;
 import boat.carpetorgaddition.wheel.inventory.ImmutableInventory;
@@ -23,6 +23,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.Entity;
@@ -65,7 +66,8 @@ public class ItemSearchTask extends ServerTask {
         this.blockEntities = blockEntities;
         this.findState = FindState.BLOCK;
         this.predicate = predicate;
-        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        MinecraftServer server = source.getServer();
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(server).getPageManager();
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 

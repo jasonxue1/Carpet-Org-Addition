@@ -1,15 +1,16 @@
 package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
 import boat.carpetorgaddition.rule.RuleSelfManager;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.permission.CommandPermission;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -84,7 +85,7 @@ public class OrangeCommand extends AbstractServerCommand {
     private int openDialog(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         MinecraftServer server = context.getSource().getServer();
-        DialogProvider provider = FetcherUtils.getDialogProvider(server);
+        DialogProvider provider = ServerComponentCoordinator.getCoordinator(server).getDialogProvider();
         Dialog dialog = provider.getDialog(DialogProvider.START);
         PlayerUtils.openDialog(player, dialog);
         return 1;
@@ -131,7 +132,8 @@ public class OrangeCommand extends AbstractServerCommand {
     private int setRuleSelf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
+            MinecraftServer server = ServerUtils.getServer(player);
+            RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
             String ruleString = StringArgumentType.getString(context, "rule");
             Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
             if (optional.isEmpty()) {
@@ -162,7 +164,8 @@ public class OrangeCommand extends AbstractServerCommand {
     private int infoRuleSelf(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
-            RuleSelfManager ruleSelfManager = FetcherUtils.getRuleSelfManager(player);
+            MinecraftServer server = ServerUtils.getServer(player);
+            RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
             String ruleString = StringArgumentType.getString(context, "rule");
             Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
             if (optional.isEmpty()) {

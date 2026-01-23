@@ -28,7 +28,7 @@ public class WithButtonPlayerInventoryScreenHandler extends ChestMenu implements
     );
 
     public WithButtonPlayerInventoryScreenHandler(int containerId, ServerPlayer interviewee, ServerPlayer visitor) {
-        WithButtonPlayerInventory inventory = PlayerComponentCoordinator.getManager(interviewee).getWithButtonPlayerInventory();
+        WithButtonPlayerInventory inventory = PlayerComponentCoordinator.getCoordinator(interviewee).getWithButtonPlayerInventory();
         super(MenuType.GENERIC_9x6, containerId, visitor.getInventory(), inventory, 6);
         this.inventory = inventory;
     }

@@ -79,7 +79,7 @@ public class NavigatorManager {
     }
 
     public void setNavigatorFromOldPlayer(ServerPlayer oldPlayer) {
-        NavigatorManager manager = PlayerComponentCoordinator.getManager(oldPlayer).getNavigatorManager();
+        NavigatorManager manager = PlayerComponentCoordinator.getCoordinator(oldPlayer).getNavigatorManager();
         AbstractNavigator navigator = manager.getNavigator();
         this.navigator = navigator == null ? null : navigator.copy(this.player);
     }

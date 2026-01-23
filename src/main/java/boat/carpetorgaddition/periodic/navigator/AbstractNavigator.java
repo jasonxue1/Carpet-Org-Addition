@@ -29,7 +29,7 @@ public abstract class AbstractNavigator {
     public AbstractNavigator(ServerPlayer player) {
         this.player = player;
         this.server = ServerUtils.getServer(player);
-        this.manager = PlayerComponentCoordinator.getManager(this.player).getNavigatorManager();
+        this.manager = PlayerComponentCoordinator.getCoordinator(this.player).getNavigatorManager();
     }
 
     /**

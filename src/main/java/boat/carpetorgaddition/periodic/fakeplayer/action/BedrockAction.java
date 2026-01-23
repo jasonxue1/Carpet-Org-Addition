@@ -3,11 +3,15 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerActionCommand;
 import boat.carpetorgaddition.exception.InfiniteLoopException;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerPathfinder;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
 import boat.carpetorgaddition.periodic.fakeplayer.action.bedrock.*;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.EnchantmentUtils;
+import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.Counter;
 import boat.carpetorgaddition.wheel.inventory.ContainerComponentInventory;
 import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
@@ -59,6 +63,7 @@ public class BedrockAction extends AbstractPlayerAction {
     private final BlockPosTraverser traverser;
     private final BedrockRegionType regionType;
     private PlayerStorageInventory inventory;
+    private BlockExcavator excavator;
     @NotNull
     private FakePlayerPathfinder pathfinder = FakePlayerPathfinder.EMPTY;
     /**
@@ -416,7 +421,6 @@ public class BedrockAction extends AbstractPlayerAction {
         }
         BlockPos up = bedrockPos.above(1);
         BlockState blockState = world.getBlockState(up);
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         boolean isPiston = false;
         //noinspection StatementWithEmptyBody
         if (isReplaceableBlock(blockState)) {
@@ -426,7 +430,7 @@ public class BedrockAction extends AbstractPlayerAction {
             // 当方块已经是活塞了，不需要再次放置
             isPiston = true;
         } else if (canMine(blockState, world, up)) {
-            return tickBreakBlock(blockExcavator, up);
+            return tickBreakBlock(up);
         } else {
             return StepResult.COMPLETION;
         }
@@ -447,7 +451,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
             return StepResult.COMPLETION;
         } else if (canMine(blockState, world, up)) {
-            return tickBreakBlock(blockExcavator, up);
+            return tickBreakBlock(up);
         } else {
             return StepResult.COMPLETION;
         }
@@ -479,7 +483,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (isPiston || blockState.is(Blocks.PISTON_HEAD)) {
             return false;
         }
-        return blockState.getDestroySpeed(world, blockPos) != -1 && BlockExcavator.canBreak(this.getFakePlayer(), blockPos);
+        return blockState.getDestroySpeed(world, blockPos) != -1 && this.excavator.canBreak(blockPos);
     }
 
     /**
@@ -500,11 +504,10 @@ public class BedrockAction extends AbstractPlayerAction {
                 direction = value;
                 continue;
             }
-            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(fakePlayer);
             if (blockState.is(Blocks.LEVER)) {
                 // 拉杆没有附着在墙壁上，破坏拉杆
                 if (blockState.getValue(FaceAttachedHorizontalDirectionalBlock.FACE) != AttachFace.WALL) {
-                    return tickBreakBlock(blockExcavator, offset);
+                    return tickBreakBlock(offset);
                 }
                 if (bedrockPos.equals(offset.relative(blockState.getValue(LeverBlock.FACING), -1))) {
                     if (context.getLeverPos() == null) {
@@ -516,7 +519,7 @@ public class BedrockAction extends AbstractPlayerAction {
                         interactionLever(offset);
                     } else {
                         // 拉杆正确的附着在了基岩上，但是拉杆不止一个
-                        return tickBreakBlock(blockExcavator, offset);
+                        return tickBreakBlock(offset);
                     }
                 } else {
                     BlockPos supportBlockPos = offset.relative(blockState.getValue(LeverBlock.FACING), -1);
@@ -525,10 +528,10 @@ public class BedrockAction extends AbstractPlayerAction {
                         continue;
                     }
                     // 拉杆附着在了墙上，但不是当前要破坏的基岩方块
-                    return tickBreakBlock(blockExcavator, offset);
+                    return tickBreakBlock(offset);
                 }
             } else if (this.inSelectionArea(offset) && canMine(blockState, world, offset)) {
-                return tickBreakBlock(blockExcavator, offset);
+                return tickBreakBlock(offset);
             }
         }
         if (context.getLeverPos() != null) {
@@ -588,11 +591,10 @@ public class BedrockAction extends AbstractPlayerAction {
         Level world = ServerUtils.getWorld(this.getFakePlayer());
         BlockState blockState = world.getBlockState(up);
         if (blockState.is(Blocks.PISTON) && blockState.getValue(PistonBaseBlock.EXTENDED)) {
-            BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
             // 先切换工具，再计算剩余挖掘时间
             switchTool(blockState, world, up, this.getFakePlayer());
             // 计算剩余挖掘时间
-            int currentTime = blockExcavator.computingRemainingMiningTime(up);
+            int currentTime = this.excavator.computingRemainingMiningTime(up);
             if (currentTime == 1) {
                 // 方块将在本游戏刻挖掘完毕
                 BlockPos leverPos = context.getLeverPos();
@@ -606,7 +608,7 @@ public class BedrockAction extends AbstractPlayerAction {
                     closeTheSurroundingLevers(up);
                     context.setLeverPos(null);
                     // 继续挖掘，此时活塞应该会挖掘完毕
-                    breakBlock(blockExcavator, up, false);
+                    breakBlock(up, false);
                     // 放置一个朝下的活塞，这个活塞会破坏掉基岩
                     if (placePiston(bedrockPos, Direction.DOWN).consumesAction()) {
                         return StepResult.COMPLETION;
@@ -614,7 +616,7 @@ public class BedrockAction extends AbstractPlayerAction {
                 }
                 return StepResult.COMPLETION;
             }
-            breakBlock(blockExcavator, up, false);
+            breakBlock(up, false);
             return StepResult.TICK_COMPLETION;
         } else {
             return StepResult.FAIL;
@@ -673,7 +675,6 @@ public class BedrockAction extends AbstractPlayerAction {
      * 挖掘掉破完基岩后留下的活塞
      */
     private boolean cleanPiston(BlockPos blockPos) {
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
         BlockState blockState = ServerUtils.getWorld(this.getFakePlayer()).getBlockState(blockPos);
         if (blockState.isAir()) {
             return true;
@@ -683,14 +684,14 @@ public class BedrockAction extends AbstractPlayerAction {
             return false;
         }
         if (blockState.is(Blocks.PISTON)) {
-            return breakBlock(blockExcavator, blockPos, true);
+            return breakBlock(blockPos, true);
         }
         // 如果返回false，可能引发更多问题
         return true;
     }
 
-    private StepResult tickBreakBlock(BlockExcavator blockExcavator, BlockPos blockPos) {
-        EntityPlayerMPFake player = blockExcavator.getPlayer();
+    private StepResult tickBreakBlock(BlockPos blockPos) {
+        EntityPlayerMPFake player = this.excavator.getPlayer();
         Level world = ServerUtils.getWorld(player);
         if (FallingBlock.isFree(world.getBlockState(blockPos.above()))) {
             // 等待上方下落的方块实体落下
@@ -705,7 +706,7 @@ public class BedrockAction extends AbstractPlayerAction {
                 BlockPos up = blockPos.above(i);
                 if (world.getBlockState(up).getBlock() instanceof FallingBlock) {
                     if (canInteract(up)) {
-                        return breakBlock(blockExcavator, up, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
+                        return breakBlock(up, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
                     } else {
                         return StepResult.COMPLETION;
                     }
@@ -725,7 +726,7 @@ public class BedrockAction extends AbstractPlayerAction {
                     break;
                 }
             }
-            boolean broken = breakBlock(blockExcavator, blockPos, true);
+            boolean broken = breakBlock(blockPos, true);
             if (broken && hasTorch) {
                 this.inventory.replenishment(InteractionHand.OFF_HAND, itemStack -> itemStack.is(Items.TORCH));
                 placeBlock(blockPos);
@@ -734,7 +735,7 @@ public class BedrockAction extends AbstractPlayerAction {
                 return StepResult.TICK_COMPLETION;
             }
         }
-        return breakBlock(blockExcavator, blockPos, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
+        return breakBlock(blockPos, true) ? StepResult.COMPLETION : StepResult.TICK_COMPLETION;
     }
 
     /**
@@ -773,15 +774,15 @@ public class BedrockAction extends AbstractPlayerAction {
      * @param switchTool 是否需要切换工具
      * @return 是否破坏成功
      */
-    private boolean breakBlock(BlockExcavator blockExcavator, BlockPos blockPos, boolean switchTool) {
+    private boolean breakBlock(BlockPos blockPos, boolean switchTool) {
         this.hasAction = true;
-        EntityPlayerMPFake player = blockExcavator.getPlayer();
+        EntityPlayerMPFake player = this.excavator.getPlayer();
         Level world = ServerUtils.getWorld(player);
         BlockState blockState = world.getBlockState(blockPos);
         if (switchTool) {
             switchTool(blockState, world, blockPos, player);
         }
-        return blockExcavator.mining(blockPos, Direction.DOWN, false);
+        return this.excavator.mining(blockPos, Direction.DOWN, false);
     }
 
     private void switchTool(BlockState blockState, Level world, BlockPos blockPos, EntityPlayerMPFake player) {
@@ -1165,12 +1166,14 @@ public class BedrockAction extends AbstractPlayerAction {
     protected void onAssignPlayer() {
         this.pathfinder = FakePlayerPathfinder.of(this::getFakePlayer, this::getMovingTarget);
         this.inventory = new PlayerStorageInventory(this.getFakePlayer());
+        this.excavator = PlayerComponentCoordinator.getCoordinator(this.getFakePlayer()).getBlockExcavator();
     }
 
     @Override
     protected void onClearPlayer() {
         this.pathfinder = FakePlayerPathfinder.EMPTY;
         this.inventory = null;
+        this.excavator = null;
     }
 
     /**

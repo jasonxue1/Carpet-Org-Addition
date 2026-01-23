@@ -1,7 +1,8 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
@@ -95,11 +96,13 @@ public abstract class AbstractPlayerAction {
     }
 
     public void stop() {
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(this.fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(this.fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.setAction(new StopAction(this.fakePlayer));
     }
 
     @NotNull
+    @Contract(pure = true)
     protected EntityPlayerMPFake getFakePlayer() {
         return Objects.requireNonNull(this.fakePlayer);
     }

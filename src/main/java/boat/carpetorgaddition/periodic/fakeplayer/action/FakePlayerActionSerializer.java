@@ -1,7 +1,8 @@
 package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.util.FetcherUtils;
+import boat.carpetorgaddition.periodic.FakePlayerComponentCoordinator;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
@@ -16,7 +17,8 @@ public class FakePlayerActionSerializer {
     }
 
     public FakePlayerActionSerializer(EntityPlayerMPFake fakePlayer) {
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = FakePlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         this.action = actionManager.getAction();
     }
 
@@ -48,7 +50,8 @@ public class FakePlayerActionSerializer {
         } else if (!this.action.equalFakePlayer(fakePlayer)) {
             throw new IllegalArgumentException();
         }
-        FakePlayerActionManager actionManager = FetcherUtils.getFakePlayerActionManager(fakePlayer);
+        FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
+        FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         actionManager.setAction(this.action);
     }
 

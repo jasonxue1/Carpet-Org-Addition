@@ -154,7 +154,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             throw new IllegalStateException("Unable to read \"playerdata\" folder");
         }
         this.worldFormat = new WorldFormat(this.server, "backups", "playerdata");
-        PageManager manager = FetcherUtils.getPageManager(server);
+        PageManager manager = ServerComponentCoordinator.getCoordinator(this.server).getPageManager();
         this.pagedCollection = manager.newPagedCollection(this.source);
         this.accessManager = ServerComponentCoordinator.getCoordinator(server).getAccessManager();
     }

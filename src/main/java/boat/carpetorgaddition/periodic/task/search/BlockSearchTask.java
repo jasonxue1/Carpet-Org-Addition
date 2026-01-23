@@ -3,9 +3,9 @@ package boat.carpetorgaddition.periodic.task.search;
 import boat.carpetorgaddition.command.FinderCommand;
 import boat.carpetorgaddition.exception.ForceReturnException;
 import boat.carpetorgaddition.exception.TaskExecutionException;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.ProgressBar;
@@ -56,7 +56,7 @@ public class BlockSearchTask extends ServerTask {
         this.progressBar = new ProgressBar(this.traverser.size());
         this.predicate = predicate;
         this.findState = FindState.SEARCH;
-        PageManager pageManager = FetcherUtils.getPageManager(source.getServer());
+        PageManager pageManager = ServerComponentCoordinator.getCoordinator(source.getServer()).getPageManager();
         this.pagedCollection = pageManager.newPagedCollection(this.source);
     }
 

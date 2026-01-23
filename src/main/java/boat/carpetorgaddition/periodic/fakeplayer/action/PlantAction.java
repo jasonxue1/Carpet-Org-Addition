@@ -2,9 +2,9 @@ package boat.carpetorgaddition.periodic.fakeplayer.action;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.PlayerActionCommand;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.BlockExcavator;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerUtils;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -40,6 +40,7 @@ public class PlantAction extends AbstractPlayerAction {
      */
     private BlockPos cropPos;
     private PlayerStorageInventory inventory;
+    private BlockExcavator excavator;
     public static final LocalizationKey KEY = PlayerActionCommand.KEY.then("plant");
 
     public PlantAction(EntityPlayerMPFake fakePlayer) {
@@ -258,8 +259,7 @@ public class PlantAction extends AbstractPlayerAction {
      * @return 是否完成挖掘
      */
     private boolean breakBlock(BlockPos pos) {
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(getFakePlayer());
-        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN, !getFakePlayer().isCreative());
+        boolean breakBlock = this.excavator.mining(pos, Direction.DOWN, !getFakePlayer().isCreative());
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
@@ -272,8 +272,7 @@ public class PlantAction extends AbstractPlayerAction {
     private boolean useToolBreakBlock(BlockPos pos) {
         // 如果有工具，拿在主手，剑可以瞬间破坏竹子，它也是工具物品
         this.inventory.replenishment(itemStack -> itemStack.has(DataComponents.TOOL));
-        BlockExcavator blockExcavator = FetcherUtils.getBlockExcavator(this.getFakePlayer());
-        boolean breakBlock = blockExcavator.mining(pos, Direction.DOWN);
+        boolean breakBlock = this.excavator.mining(pos, Direction.DOWN);
         this.cropPos = breakBlock ? null : pos;
         return breakBlock;
     }
@@ -329,12 +328,15 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     protected void onAssignPlayer() {
-        this.inventory = new PlayerStorageInventory(this.getFakePlayer());
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        this.inventory = new PlayerStorageInventory(fakePlayer);
+        this.excavator = PlayerComponentCoordinator.getCoordinator(fakePlayer).getBlockExcavator();
     }
 
     @Override
     protected void onClearPlayer() {
         this.inventory = null;
+        this.excavator = null;
     }
 
     public enum FarmType {

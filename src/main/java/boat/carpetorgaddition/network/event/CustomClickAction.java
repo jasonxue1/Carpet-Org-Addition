@@ -1,8 +1,8 @@
 package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.dialog.DialogProvider;
-import boat.carpetorgaddition.util.FetcherUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
@@ -47,7 +47,7 @@ public class CustomClickAction {
             switch (context.getActionSource()) {
                 case CHAT -> MessageUtils.sendVanillaErrorMessage(context.getSource(), e);
                 case DIALOG -> {
-                    DialogProvider provider = FetcherUtils.getDialogProvider(context.getServer());
+                    DialogProvider provider = ServerComponentCoordinator.getCoordinator(context.getServer()).getDialogProvider();
                     Dialog dialog = provider.createErrorNoticeDialog(e);
                     PlayerUtils.openDialog(context.getPlayer(), dialog);
                 }
