@@ -78,13 +78,12 @@ public class NbtReader {
         return this.input.read(key, PlayerInventoryType.CODEC);
     }
 
-    public ActionSource getActionSource() {
-        return this.getActionSourceNullable().orElse(ActionSource.UNKNOWN);
+    public ActionSource getActionSource(String key) {
+        return this.getActionSourceNullable(key).orElse(ActionSource.UNKNOWN);
     }
 
-    // TODO 键改为参数传递
-    public Optional<ActionSource> getActionSourceNullable() {
-        return this.input.read("action_source", ActionSource.CODEC);
+    public Optional<ActionSource> getActionSourceNullable(String key) {
+        return this.input.read(key, ActionSource.CODEC);
     }
 
     public ItemStack getItemStack(String key) {

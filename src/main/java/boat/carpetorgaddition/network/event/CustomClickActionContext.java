@@ -36,7 +36,7 @@ public class CustomClickActionContext {
         if (reader == null) {
             this.actionSource = ActionSource.UNKNOWN;
         } else {
-            Optional<ActionSource> optional = reader.getActionSourceNullable();
+            Optional<ActionSource> optional = reader.getActionSourceNullable("action_source");
             if (optional.isEmpty()) {
                 ActionSource source = ACTION_SOURCE.get();
                 this.actionSource = source == null ? ActionSource.UNKNOWN : source;
