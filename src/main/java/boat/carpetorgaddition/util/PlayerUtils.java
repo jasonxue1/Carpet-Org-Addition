@@ -67,7 +67,11 @@ public class PlayerUtils {
      * 检查名称长度是否小于等于16
      */
     public static boolean verifyNameLength(String name) {
-        return name.length() <= 16;
+        return !playerNameTooLong(name);
+    }
+
+    public static boolean playerNameTooLong(String name) {
+        return name.length() > 16;
     }
 
     /**

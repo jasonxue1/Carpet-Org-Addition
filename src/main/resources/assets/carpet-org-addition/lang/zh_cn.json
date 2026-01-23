@@ -495,6 +495,8 @@
   "carpet-org-addition.command.playerManager.safeafk.trigger.info.amount": "伤害大小：%s",
   "carpet-org-addition.command.playerManager.safeafk.trigger.info.type": "伤害类型：%s",
   "carpet-org-addition.command.playerManager.batch.exceeds_limit": "预期召唤的玩家数为%s，但单次最大召唤数量为%s个",
+  "carpet-org-addition.command.playerManager.batch.name_too_long.all": "玩家名称过长，无法召唤",
+  "carpet-org-addition.command.playerManager.batch.name_too_long.partial": "部分玩家名称过长，将跳过",
   "carpet-org-addition.command.playerManager.batch.preload": "正在预加载玩家档案：%s/%s",
   "carpet-org-addition.command.playerManager.batch.preload.done": "预加载完成",
   "carpet-org-addition.command.playerManager.batch.summoner": "%s召唤了%s名玩家",

@@ -39,7 +39,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
      * 是否正在预加载
      */
-    private boolean isPreload = true;
+    private boolean preload = true;
     private Iterator<FakePlayerSpawner> iterator;
     /**
      * 是否召唤完成，用于确定任务是否结束
@@ -82,7 +82,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         }
         int size = this.spawners.size();
         long time = ServerUtils.getWorld(this.source).getGameTime();
-        if (this.isPreload) {
+        if (this.preload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
             LocalizationKey key = KEY.then("preload");
@@ -96,7 +96,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             if (progress) {
                 MessageUtils.sendMessageToHudIfPlayer(this.source, () -> key.then("done").translate());
             }
-            this.isPreload = false;
+            this.preload = false;
             this.setStartTime();
         }
         this.checkTimeout();

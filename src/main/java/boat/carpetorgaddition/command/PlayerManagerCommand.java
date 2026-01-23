@@ -914,6 +914,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 为假玩家名添加前缀，这不仅仅是为了让名称更统一，也是为了在一定程度上阻止玩家使用其他真玩家的名称召唤假玩家
         String prefix = StringArgumentType.getString(context, "prefix");
         List<String> list = batchPlayerList(prefix, start, end);
+        LocalizationKey key = BATCH.then("name_too_long");
+        if (PlayerUtils.playerNameTooLong(list.getFirst())) {
+            throw CommandUtils.createException(key.then("all").translate());
+        }
+        if (PlayerUtils.playerNameTooLong(list.getLast())) {
+            MessageUtils.sendMessage(source, key.then("partial").builder().setGrayItalic().build());
+        }
         taskManager.addTask(new BatchSpawnFakePlayerTask(server, source, function, list));
         return list.size();
     }
