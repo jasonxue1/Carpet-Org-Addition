@@ -8,6 +8,8 @@ import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
@@ -76,7 +78,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     @Override
     protected void tick() {
         if (this.count == 0) {
-            // TODO 如果没有玩家被召唤，发送命令反馈
+            MessageUtils.sendErrorMessage(this.source, KEY.then("not_summoned").translate());
             this.complete = true;
             return;
         }
@@ -109,9 +111,14 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             }
             this.iterator.next().spawn();
         }
+        Component message = KEY.then("joined").builder(this.count).setColor(ChatFormatting.YELLOW).build();
+        MessageUtils.broadcastMessage(this.server, message);
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
-            Component summoner = KEY.then("summoner").translate(this.source.getDisplayName(), this.count);
+            Component summoner = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER
+                    .builder(this.source.getDisplayName())
+                    .setGrayItalic()
+                    .build();
             MessageUtils.broadcastMessage(this.server, summoner);
         }
         this.complete = true;

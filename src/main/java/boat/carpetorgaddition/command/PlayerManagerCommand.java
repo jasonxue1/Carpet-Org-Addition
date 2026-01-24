@@ -927,7 +927,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     private List<String> batchPlayerList(String prefix, int start, int end) {
         return IntStream.rangeClosed(start, end)
-                .mapToObj(i -> (prefix.endsWith("_") ? prefix : prefix + "_") + i)
+                .mapToObj(i -> (getPrefix(prefix)) + i)
                 .map(PlayerUtils::appendNamePrefix)
                 .map(PlayerUtils::appendNameSuffix)
                 .toList();
@@ -938,7 +938,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     }
 
     /**
-     * 批量生成玩家
+     * 批量下线玩家
      */
     private int batchKill(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         int start = IntegerArgumentType.getInteger(context, "start");
@@ -958,7 +958,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .map(player -> (EntityPlayerMPFake) player)
                 .map(fakePlayer -> (Runnable) () -> PlayerUtils.silenceLogout(fakePlayer))
                 .toList();
+        if (list.isEmpty()) {
+            return 0;
+        }
         taskManager.addTask(new IterativeTask(source, list, 30, 5000));
+        Component component = BATCH.then("left").builder(list.size()).setColor(ChatFormatting.YELLOW).build();
+        MessageUtils.broadcastMessage(server, component);
         return list.size();
     }
 
