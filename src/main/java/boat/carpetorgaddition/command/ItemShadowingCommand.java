@@ -48,7 +48,7 @@ public class ItemShadowingCommand extends AbstractServerCommand {
         // 制作物品分身
         player.setItemInHand(main.isEmpty() ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND, itemStack);
         // 广播制作物品分身的消息
-        MessageUtils.broadcastMessage(
+        MessageUtils.sendMessage(
                 context.getSource().getServer(),
                 KEY.then("broadcast").translate(player.getDisplayName(), itemStack.getDisplayName())
         );

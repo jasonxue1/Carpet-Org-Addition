@@ -57,7 +57,7 @@ public class EntityPlayerMPFakeMixin {
             Component blockPos = TextProvider.simpleBlockPos(fakePlayer.blockPosition());
             Component pos = TextBuilder.combineAll(dimension, ": ", blockPos);
             builder.setHover(pos);
-            MessageUtils.broadcastMessage(ServerUtils.getServer(player), builder.build());
+            MessageUtils.sendMessage(ServerUtils.getServer(player), builder.build());
             CarpetOrgAddition.LOGGER.info("{} has summoned {} at {}", ServerUtils.getPlayerName(player), ServerUtils.getPlayerName(fakePlayer), pos.getString());
         }
     }

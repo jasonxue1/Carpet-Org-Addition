@@ -20,8 +20,8 @@ public class MessageUtils {
     private MessageUtils() {
     }
 
-    public static void broadcastMessage(MinecraftServer server, Component message) {
-        broadcastMessage(server.getPlayerList(), message);
+    public static void sendMessage(MinecraftServer server, Component message) {
+        sendMessage(server.getPlayerList(), message);
     }
 
     /**
@@ -30,19 +30,19 @@ public class MessageUtils {
      * @param playerManager 通过这个玩家管理器对象发送消息
      * @param message       要广播消息的内容
      */
-    public static void broadcastMessage(PlayerList playerManager, Component message) {
+    public static void sendMessage(PlayerList playerManager, Component message) {
         playerManager.broadcastSystemMessage(message, false);
     }
 
     /**
      * 广播一条错误消息
      */
-    public static void broadcastErrorMessage(MinecraftServer server, Component component, Throwable e) {
+    public static void sendErrorMessage(MinecraftServer server, Component component, Throwable e) {
         String error = CommandUtils.getExceptionString(e);
         TextBuilder builder = new TextBuilder(component);
         builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
-        broadcastMessage(server, builder.build());
+        sendMessage(server, builder.build());
     }
 
     /**

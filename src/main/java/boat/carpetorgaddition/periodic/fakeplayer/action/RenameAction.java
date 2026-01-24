@@ -47,7 +47,7 @@ public class RenameAction extends AbstractPlayerAction {
             if (fakePlayer.experienceLevel < 1 && !fakePlayer.isCreative()) {
                 if (this.canSendMessage) {
                     LocalizationKey key = KEY.then("wait");
-                    MessageUtils.broadcastMessage(this.getServer(), key.translate(fakePlayer.getDisplayName(), this.getDisplayName()));
+                    MessageUtils.sendMessage(this.getServer(), key.translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     this.canSendMessage = false;
                 }
                 return;

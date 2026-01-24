@@ -91,7 +91,7 @@ public class TradeAction extends AbstractPlayerAction {
             // 判断按钮索引是否越界
             if (merchantScreenHandler.getOffers().size() <= this.index) {
                 MinecraftServer server = ServerUtils.getServer(fakePlayer);
-                MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName()));
+                MessageUtils.sendMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName()));
                 this.stop();
                 return;
             }

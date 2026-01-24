@@ -120,7 +120,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     // 否则，认为前面的操作有误，停止合成，结束方法
                     this.stop();
                     MinecraftServer server = ServerUtils.getServer(fakePlayer);
-                    MessageUtils.broadcastMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
+                    MessageUtils.sendMessage(server, KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
             }

@@ -95,7 +95,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         if (shouldBeBroadcast(entity, player)) {
             // 设置为斜体淡灰色
             builder.setGrayItalic();
-            MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
+            MessageUtils.sendMessage(context.getSource().getServer(), builder.build());
         } else {
             MessageUtils.sendMessage(context.getSource(), builder.build());
         }
@@ -133,7 +133,7 @@ public class NavigatorCommand extends AbstractServerCommand {
             if (shouldBeBroadcast(entity, player)) {
                 // 将字体设置为灰色斜体
                 builder.setGrayItalic();
-                MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
+                MessageUtils.sendMessage(context.getSource().getServer(), builder.build());
             } else {
                 MessageUtils.sendMessage(context.getSource(), builder.build());
             }
@@ -210,7 +210,7 @@ public class NavigatorCommand extends AbstractServerCommand {
             MessageUtils.sendMessage(player, builder.build());
         } else {
             builder.setGrayItalic();
-            MessageUtils.broadcastMessage(context.getSource().getServer(), builder.build());
+            MessageUtils.sendMessage(context.getSource().getServer(), builder.build());
         }
         return 1;
     }

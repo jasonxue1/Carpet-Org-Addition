@@ -591,7 +591,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     // 广播阈值设置的消息
                     TextBuilder builder = new TextBuilder(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
                     builder.setGrayItalic();
-                    MessageUtils.broadcastMessage(ServerUtils.getServer(player), builder.build());
+                    MessageUtils.sendMessage(ServerUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
                     CarpetOrgAddition.LOGGER.error("Failed to set the AFK safety threshold for {}", ServerUtils.getPlayerName(player), e);
                 }
@@ -963,7 +963,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         taskManager.addTask(new IterativeTask(source, list, 30, 5000));
         Component component = BATCH.then("left").builder(list.size()).setColor(ChatFormatting.YELLOW).build();
-        MessageUtils.broadcastMessage(server, component);
+        MessageUtils.sendMessage(server, component);
         return list.size();
     }
 

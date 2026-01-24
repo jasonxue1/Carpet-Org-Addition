@@ -123,7 +123,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
                     // 如果输出槽没有物品，认为前面的合成操作有误，停止合成
                     this.stop();
                     LocalizationKey key = this.getLocalizationKey();
-                    MessageUtils.broadcastMessage(this.getServer(), key.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
+                    MessageUtils.sendMessage(this.getServer(), key.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
             } else {

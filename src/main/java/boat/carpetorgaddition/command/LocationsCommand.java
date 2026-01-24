@@ -305,7 +305,7 @@ public class LocationsCommand extends AbstractServerCommand {
                     TextProvider.blockPos(blockPos, null)
             );
         };
-        MessageUtils.broadcastMessage(context.getSource().getServer(), text);
+        MessageUtils.sendMessage(context.getSource().getServer(), text);
         return 1;
     }
 

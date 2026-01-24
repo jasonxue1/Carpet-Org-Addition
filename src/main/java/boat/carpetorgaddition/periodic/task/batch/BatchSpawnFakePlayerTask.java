@@ -112,14 +112,14 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             this.iterator.next().spawn();
         }
         Component message = KEY.then("joined").builder(this.count).setColor(ChatFormatting.YELLOW).build();
-        MessageUtils.broadcastMessage(this.server, message);
+        MessageUtils.sendMessage(this.server, message);
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             Component summoner = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER
                     .builder(this.source.getDisplayName())
                     .setGrayItalic()
                     .build();
-            MessageUtils.broadcastMessage(this.server, summoner);
+            MessageUtils.sendMessage(this.server, summoner);
         }
         this.complete = true;
     }

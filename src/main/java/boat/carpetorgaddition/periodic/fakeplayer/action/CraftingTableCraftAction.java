@@ -162,7 +162,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                 } else {
                     // 如果没有输出物品，说明之前的合成步骤有误，停止合成
                     this.stop();
-                    MessageUtils.broadcastMessage(this.getServer(), KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
+                    MessageUtils.sendMessage(this.getServer(), KEY.then("error").translate(fakePlayer.getDisplayName(), this.getDisplayName()));
                     return;
                 }
             } else {

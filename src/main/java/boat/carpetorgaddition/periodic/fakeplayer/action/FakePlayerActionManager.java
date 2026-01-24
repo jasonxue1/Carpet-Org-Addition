@@ -42,7 +42,7 @@ public class FakePlayerActionManager {
                     this.getAction().getClass().getSimpleName(),
                     e
             );
-            MessageUtils.broadcastErrorMessage(
+            MessageUtils.sendErrorMessage(
                     ServerUtils.getServer(this.fakePlayer),
                     PlayerActionCommand.KEY.then("error")
                             .translate(this.fakePlayer.getDisplayName(), this.getAction().getDisplayName()),
