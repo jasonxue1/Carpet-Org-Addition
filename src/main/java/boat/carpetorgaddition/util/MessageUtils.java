@@ -73,7 +73,7 @@ public class MessageUtils {
 
 
     private static void writeLog(String name, String message) {
-        CarpetOrgAddition.LOGGER.info("[{} <- {}] {}", name, CarpetOrgAddition.MOD_NAME, message);
+        CarpetOrgAddition.LOGGER.info("({}) [{}] {}", CarpetOrgAddition.COMPACT_MOD_NAME, name, message);
     }
 
     public static void sendErrorMessage(CommandSourceStack source, Component message) {

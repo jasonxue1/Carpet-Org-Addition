@@ -25,10 +25,6 @@ import java.util.StringJoiner;
 
 public class CarpetOrgAddition implements ModInitializer {
     /**
-     * 日志
-     */
-    public static final Logger LOGGER = LoggerFactory.getLogger("CarpetOrgAddition");
-    /**
      * 模组ID
      */
     public static final String MOD_ID = "carpet-org-addition";
@@ -41,13 +37,17 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final String MOD_NAME = METADATA.getName();
     /**
+     * 不带空格的模组名称
+     */
+    public static final String COMPACT_MOD_NAME = MOD_NAME.replace(" ", "");
+    /**
      * 模组当前的版本
      */
     public static final String VERSION = METADATA.getVersion().getFriendlyString();
     /**
      * 模组名称小写
      */
-    public static final String MOD_NAME_LOWER_CASE = MOD_NAME.replace(" ", "").toLowerCase(Locale.ROOT);
+    public static final String MOD_NAME_LOWER_CASE = COMPACT_MOD_NAME.toLowerCase(Locale.ROOT);
     /**
      * 模组的构建时间戳
      */
@@ -78,6 +78,10 @@ public class CarpetOrgAddition implements ModInitializer {
      * </p>
      */
     public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.getInstance().isEnableHiddenFunction();
+    /**
+     * 日志
+     */
+    public static final Logger LOGGER = LoggerFactory.getLogger(COMPACT_MOD_NAME);
 
     /**
      * 模组初始化
