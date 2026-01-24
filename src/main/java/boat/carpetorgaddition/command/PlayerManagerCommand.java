@@ -1041,14 +1041,14 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
             taskManager.addTask(new DelayedLoginTask(server, source, serializer, tick));
-            LocalizationKey key = server.getPlayerList().getPlayerByName(name) == null
-                    // <玩家>将于<时间>后上线
-                    ? SCHEDULE.then("login")
-                    // <玩家>将于<时间>后再次尝试上线
-                    // TODO 更改此条消息内容
-                    : SCHEDULE.then("login", "retry");
+            LocalizationKey key = SCHEDULE.then("login");
+            TextBuilder builder = key.builder(serializer.getDisplayName(), time);
+            if (ServerUtils.getPlayer(server, name).isPresent()) {
+                builder.setStrikethrough();
+                builder.setHover(key.then("online").translate());
+            }
             // 发送命令反馈
-            MessageUtils.sendMessage(context, key.translate(serializer.getDisplayName(), time));
+            MessageUtils.sendMessage(context, builder.build());
         } else {
             // 修改上线时间
             DelayedLoginTask task = optional.get();

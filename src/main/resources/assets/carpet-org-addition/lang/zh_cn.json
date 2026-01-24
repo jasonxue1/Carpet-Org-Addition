@@ -467,7 +467,7 @@
   "carpet-org-addition.command.playerManager.group.list.ungrouped": "未分组的玩家：",
   "carpet-org-addition.command.playerManager.group.list.all": "所有玩家：",
   "carpet-org-addition.command.playerManager.schedule.login": "%s将于%s后上线",
-  "carpet-org-addition.command.playerManager.schedule.login.retry": "%s将于%s后再次尝试上线",
+  "carpet-org-addition.command.playerManager.schedule.login.online": "无效，该玩家已在游戏中",
   "carpet-org-addition.command.playerManager.schedule.login.modify": "%s的上线时间修改为%s后",
   "carpet-org-addition.command.playerManager.schedule.login.cancel": "取消了%s于%s后上线的计划",
   "carpet-org-addition.command.playerManager.schedule.logout": "%s将于%s后下线",
