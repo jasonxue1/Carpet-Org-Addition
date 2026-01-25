@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;

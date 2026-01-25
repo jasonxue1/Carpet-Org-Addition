@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.network.event;
 
-import boat.carpetorgaddition.periodic.dialog.DialogUtils;
+import boat.carpetorgaddition.dialog.DialogUtils;
 
 public class CustomClickKeys {
     public static final String ID = DialogUtils.toValidDialogKey("id");

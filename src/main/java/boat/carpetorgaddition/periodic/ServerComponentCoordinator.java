@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.periodic;
 
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
+import boat.carpetorgaddition.dialog.DialogProvider;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;

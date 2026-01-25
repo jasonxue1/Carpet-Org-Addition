@@ -2,7 +2,7 @@ package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.command.PlayerCommandExtension;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
+import boat.carpetorgaddition.dialog.DialogProvider;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.util.MessageUtils;

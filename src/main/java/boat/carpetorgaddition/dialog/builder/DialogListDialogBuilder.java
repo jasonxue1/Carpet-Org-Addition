@@ -1,6 +1,6 @@
-package boat.carpetorgaddition.periodic.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
-import boat.carpetorgaddition.periodic.dialog.DialogUtils;
+import boat.carpetorgaddition.dialog.DialogUtils;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;

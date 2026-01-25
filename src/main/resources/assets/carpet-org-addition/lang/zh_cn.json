@@ -595,6 +595,7 @@
   "carpet-org-addition.dialog.title.query_player_name": "查询玩家名称",
   "carpet-org-addition.dialog.title.error": "错误",
   "carpet-org-addition.dialog.textbox.uuid": "UUID",
+  "carpet-org-addition.custom_click_action.expired": "收到了无效的custom_click_action数据包：\n服务器正在使用更低版本的Carpet Org Addition，请通知管理员升级版本",
   "carpet-org-addition.render.waypoint.error": "渲染路径点时遇到意外错误",
   "carpet-org-addition.keyboard.waypoint.clear": "清除高亮路径点"
 }

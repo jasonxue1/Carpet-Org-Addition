@@ -2,7 +2,7 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
+import boat.carpetorgaddition.dialog.DialogProvider;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
 import boat.carpetorgaddition.rule.RuleSelfManager;

@@ -1,6 +1,6 @@
-package boat.carpetorgaddition.periodic.dialog.builder;
+package boat.carpetorgaddition.dialog.builder;
 
-import boat.carpetorgaddition.periodic.dialog.DialogUtils;
+import boat.carpetorgaddition.dialog.DialogUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.dialog.Input;
 import net.minecraft.server.dialog.input.SingleOptionInput;

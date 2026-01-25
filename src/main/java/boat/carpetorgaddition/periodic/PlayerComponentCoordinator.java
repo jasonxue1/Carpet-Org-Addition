@@ -11,6 +11,10 @@ public class PlayerComponentCoordinator {
     private final ServerPlayer player;
     private final NavigatorManager navigatorManager;
     private final WithButtonPlayerInventory withButtonPlayerInventory;
+    /**
+     * 客户端和服务端的自定义单击事件数据版本不匹配，是否已发送通知
+     */
+    private boolean versionMismatchNotified = false;
 
     public PlayerComponentCoordinator(ServerPlayer player) {
         this.player = player;
@@ -18,10 +22,10 @@ public class PlayerComponentCoordinator {
         this.withButtonPlayerInventory = new WithButtonPlayerInventory(player);
     }
 
-    public static PlayerComponentCoordinator of(ServerPlayer serverPlayerEntity) {
-        return switch (serverPlayerEntity) {
+    public static PlayerComponentCoordinator of(ServerPlayer player) {
+        return switch (player) {
             case EntityPlayerMPFake fakePlayer -> new FakePlayerComponentCoordinator(fakePlayer);
-            case ServerPlayer player -> new PlayerComponentCoordinator(player);
+            case ServerPlayer _ -> new PlayerComponentCoordinator(player);
             case null -> throw new NullPointerException("player may not be null");
         };
     }
@@ -61,5 +65,13 @@ public class PlayerComponentCoordinator {
 
     protected ServerPlayer getPlayer() {
         return this.player;
+    }
+
+    public boolean isVersionMismatchNotified() {
+        return this.versionMismatchNotified;
+    }
+
+    public void markVersionMismatchNotified() {
+        this.versionMismatchNotified = true;
     }
 }

@@ -17,6 +17,7 @@ public class LocalizationKeys {
     private static final LocalizationKey DIALOG = LocalizationKey.of("dialog");
     private static final LocalizationKey RENDER = LocalizationKey.of("render");
     private static final LocalizationKey KEYBOARD = LocalizationKey.of("keyboard");
+    private static final LocalizationKey CUSTOM_CLICK_ACTION = LocalizationKey.of("custom_click_action");
 
     public static class Operation {
         public static final LocalizationKey NOT_FAKE_PLAYER = OPERATION.then("not_fake_player");
@@ -217,6 +218,10 @@ public class LocalizationKeys {
         public static class Textbox {
             public static final LocalizationKey UUID = TEXTBOX.then("uuid");
         }
+    }
+
+    public static class CustomClickAction {
+        public static final LocalizationKey EXPIRED = CUSTOM_CLICK_ACTION.then("expired");
     }
 
     public static class Render {

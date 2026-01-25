@@ -1,15 +1,20 @@
 package boat.carpetorgaddition.network.event;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.dialog.DialogProvider;
+import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.dialog.DialogProvider;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
 import boat.carpetorgaddition.wheel.nbt.NbtVersion;
+import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.dialog.Dialog;
+import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashMap;
@@ -35,7 +40,18 @@ public class CustomClickAction {
         try {
             NbtReader reader = context.getReader();
             if (reader.getVersion().compareTo(CURRENT_VERSION) > 0) {
-                // TODO 通知客户端版本不一致
+                ServerPlayer player = context.getPlayer();
+                if (context.getActionSource() == ActionSource.DIALOG) {
+                    // 关闭当前对话框（等待服务器响应屏幕）
+                    player.closeContainer();
+                }
+                PlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(player);
+                if (coordinator.isVersionMismatchNotified()) {
+                    return;
+                }
+                Component message = LocalizationKeys.CustomClickAction.EXPIRED.builder().setColor(ChatFormatting.RED).build();
+                MessageUtils.sendMessage(context.getPlayer(), message);
+                coordinator.markVersionMismatchNotified();
                 return;
             }
         } catch (NullPointerException e) {

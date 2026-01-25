@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.periodic.dialog;
+package boat.carpetorgaddition.dialog;
 
 import boat.carpetorgaddition.network.event.ActionSource;
 import boat.carpetorgaddition.network.event.CustomClickAction;
