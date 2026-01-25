@@ -74,12 +74,12 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         this.convert = item;
     }
 
-    public static ItemStackPredicate of(Collection<Item> collection) {
+    public static ItemStackPredicate of(Collection<Item> collection, String name) {
         LinkedHashSet<Item> set = new LinkedHashSet<>(collection);
         return switch (set.size()) {
             case 0 -> EMPTY;
             case 1 -> new ItemStackPredicate(set.getFirst());
-            default -> new MatchAnyItemPredicate(set);
+            default -> new AnyOfItemPredicate(set, name);
         };
     }
 
@@ -243,27 +243,24 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         return this.input;
     }
 
-    public static class MatchAnyItemPredicate extends ItemStackPredicate {
-        private final LinkedHashSet<Item> items;
+    public static class AnyOfItemPredicate extends ItemStackPredicate {
+        private final String name;
 
-        private MatchAnyItemPredicate(LinkedHashSet<Item> items) {
+        private AnyOfItemPredicate(LinkedHashSet<Item> items, String name) {
             super(items);
-            this.items = items;
+            this.name = name;
         }
 
         @Override
         public Component getDisplayName() throws IdentifierException {
-            if (this.getInput().length() > 30) {
-                String substring = this.getInput().substring(0, 30);
+            if (this.name.length() > 30) {
+                String substring = this.name.substring(0, 30);
                 Component ellipsis = TextBuilder.create("...");
                 Component result = TextBuilder.combineAll(substring, ellipsis);
-                StringJoiner joiner = new StringJoiner(",\n");
-                for (Item item : this.items) {
-                    joiner.add(IdentifierUtils.getIdAsString(item));
-                }
-                return new TextBuilder(result).setGrayItalic().setHover(joiner.toString()).build();
+                TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(name);
+                return builder.build();
             }
-            return super.getDisplayName();
+            return new TextBuilder(this.name).setColor(ChatFormatting.GRAY).build();
         }
     }
 }

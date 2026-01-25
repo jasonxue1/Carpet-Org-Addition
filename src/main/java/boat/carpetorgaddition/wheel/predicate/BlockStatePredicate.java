@@ -10,6 +10,7 @@ import com.mojang.brigadier.context.ParsedCommandNode;
 import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.tree.ArgumentCommandNode;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
@@ -101,12 +102,12 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
         this.block = null;
     }
 
-    public static BlockStatePredicate ofBlocks(Collection<Block> collection) {
+    public static BlockStatePredicate ofBlocks(Collection<Block> collection, String name) {
         LinkedHashSet<Block> blocks = new LinkedHashSet<>(collection);
         return switch (blocks.size()) {
             case 0 -> EMPTY;
             case 1 -> new BlockStatePredicate(blocks.getFirst());
-            default -> new MatchAnyBlockPredicate(blocks);
+            default -> new AnyOfBlockPredicate(blocks, name);
         };
     }
 
@@ -247,29 +248,22 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
         }
     }
 
-    public static class MatchAnyBlockPredicate extends BlockStatePredicate {
-        private final LinkedHashSet<Block> blocks;
+    public static class AnyOfBlockPredicate extends BlockStatePredicate {
+        private final String name;
 
-        private MatchAnyBlockPredicate(LinkedHashSet<Block> blocks) {
+        private AnyOfBlockPredicate(LinkedHashSet<Block> blocks, String name) {
             super(blocks);
-            this.blocks = blocks;
+            this.name = name;
         }
 
         @Override
         public Component getDisplayName() {
-            if (this.content.length() > 30) {
-                String display = this.content.substring(0, 30) + "...";
-                TextBuilder builder = new TextBuilder(display);
-                StringJoiner joiner = new StringJoiner(",\n");
-                for (Block block : this.blocks) {
-                    joiner.add(IdentifierUtils.getIdAsString(block));
-                }
-                return builder
-                        .setGrayItalic()
-                        .setHover(joiner.toString())
-                        .build();
+            if (this.name.length() > 30) {
+                String display = this.name.substring(0, 30) + "...";
+                TextBuilder builder = new TextBuilder(display).setGrayItalic().setHover(this.name);
+                return builder.build();
             }
-            return TextBuilder.create(this.content);
+            return new TextBuilder(this.name).setColor(ChatFormatting.GRAY).build();
         }
     }
 }

@@ -10,6 +10,7 @@ import boat.carpetorgaddition.network.codec.ObjectSearchTaskCodecs;
 import boat.carpetorgaddition.network.codec.ObjectSearchTaskCodecs.BlockSearchContext;
 import boat.carpetorgaddition.network.codec.ObjectSearchTaskCodecs.ItemSearchContext;
 import boat.carpetorgaddition.network.codec.ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext;
+import boat.carpetorgaddition.util.CommandUtils;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -51,23 +52,25 @@ public class ClientFinderCommand extends AbstractClientCommand {
     }
 
     private SuggestionProvider<FabricClientCommandSource> suggestionDefaultDistance() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256"}, builder);
+        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256", "512"}, builder);
     }
 
     private int searchItem(CommandContext<FabricClientCommandSource> context, int range) {
         List<Item> list = getItemList(context);
+        String name = CommandUtils.getArgumentLiteral(context, "item").orElseThrow();
         ItemSearchContext itemSearchContext = new ItemSearchContext(range, list);
         JsonObject json = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.encode(itemSearchContext);
-        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.ITEM, json);
+        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.ITEM, name, json);
         ClientPlayNetworking.send(packet);
         return list.size();
     }
 
     private int searchItem(CommandContext<FabricClientCommandSource> context) {
         List<Item> list = getItemList(context);
+        String name = CommandUtils.getArgumentLiteral(context, "item").orElseThrow();
         OfflinePlayerItemSearchContext searchContext = new OfflinePlayerItemSearchContext(list);
         JsonObject json = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH_CODEC.encode(searchContext);
-        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.OFFLINE_PLAYER_ITEM, json);
+        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.OFFLINE_PLAYER_ITEM, name, json);
         ClientPlayNetworking.send(packet);
         return list.size();
     }
@@ -77,9 +80,10 @@ public class ClientFinderCommand extends AbstractClientCommand {
                 .filter(t -> t instanceof Block)
                 .map(t -> (Block) t)
                 .toList();
+        String name = CommandUtils.getArgumentLiteral(context, "block").orElseThrow();
         BlockSearchContext searchContext = new BlockSearchContext(range, list);
         JsonObject json = ObjectSearchTaskCodecs.BLOCK_SEARCH_CODEC.encode(searchContext);
-        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.BLOCK, json);
+        ObjectSearchTaskC2SPacket packet = new ObjectSearchTaskC2SPacket(Type.BLOCK, name, json);
         ClientPlayNetworking.send(packet);
         return list.size();
     }

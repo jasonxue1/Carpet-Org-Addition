@@ -7,8 +7,11 @@ import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.CommandHelper;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.context.ParsedCommandNode;
+import com.mojang.brigadier.context.StringRange;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
+import com.mojang.brigadier.tree.ArgumentCommandNode;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -322,6 +325,16 @@ public class CommandUtils {
         String name = throwable.getClass().getSimpleName();
         String message = throwable.getMessage();
         return message == null ? name : name + ": " + message;
+    }
+
+    public static Optional<String> getArgumentLiteral(CommandContext<?> context, String name) {
+        for (ParsedCommandNode<?> parsedNode : context.getNodes()) {
+            if (parsedNode.getNode() instanceof ArgumentCommandNode<?, ?> argumentNode && Objects.equals(argumentNode.getName(), name)) {
+                StringRange range = parsedNode.getRange();
+                return Optional.of(context.getInput().substring(range.getStart(), range.getEnd()));
+            }
+        }
+        return Optional.empty();
     }
 
     @FunctionalInterface

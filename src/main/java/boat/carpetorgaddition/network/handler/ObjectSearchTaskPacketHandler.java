@@ -42,29 +42,28 @@ public class ObjectSearchTaskPacketHandler implements ServerPlayNetworking.PlayP
             CommandUtils.handlingException(e, source);
             return;
         }
-        // TODO 在网络包中添加谓词名称信息
         ServerTask serverTask = switch (packet.key()) {
             case ITEM -> {
                 ObjectSearchTaskCodecs.ItemSearchContext decode = ObjectSearchTaskCodecs.ITEM_SEARCH_CODEC.decode(packet.json());
-                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list(), packet.name());
                 BlockEntityTraverser traverser = new BlockEntityTraverser(world, blockPos, decode.range());
                 yield new ItemSearchTask(world, predicate, traverser, source);
             }
             case OFFLINE_PLAYER_ITEM -> {
                 ObjectSearchTaskCodecs.OfflinePlayerItemSearchContext decode = ObjectSearchTaskCodecs.OFFLINE_PLAYER_SEARCH_CODEC.decode(packet.json());
-                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list(), packet.name());
                 yield new OfflinePlayerSearchTask(source, predicate, player);
             }
             case BLOCK -> {
                 ObjectSearchTaskCodecs.BlockSearchContext decode = ObjectSearchTaskCodecs.BLOCK_SEARCH_CODEC.decode(packet.json());
                 BlockPosTraverser traverser = new BlockPosTraverser(world, blockPos, decode.range());
-                BlockStatePredicate predicate = BlockStatePredicate.ofBlocks(decode.list());
+                BlockStatePredicate predicate = BlockStatePredicate.ofBlocks(decode.list(), packet.name());
                 yield new BlockSearchTask(world, blockPos, traverser, source, predicate);
             }
             case TRADE_ITEM -> {
                 ObjectSearchTaskCodecs.TradeItemSearchContext decode = ObjectSearchTaskCodecs.TRADE_ITEM_SEARCH_CODEC.decode(packet.json());
                 BlockPosTraverser traverser = new BlockPosTraverser(world, blockPos, decode.range());
-                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list());
+                ItemStackPredicate predicate = ItemStackPredicate.of(decode.list(), packet.name());
                 yield new TradeItemSearchTask(world, traverser, blockPos, predicate, source);
             }
             default -> null;

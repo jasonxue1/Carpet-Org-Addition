@@ -8,7 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import org.jspecify.annotations.NonNull;
 
-public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, JsonObject json) implements CustomPacketPayload {
+public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, String name, JsonObject json) implements CustomPacketPayload {
     public static final int CURRENT_VERSION = 1;
     public static final CustomPacketPayload.Type<ObjectSearchTaskC2SPacket> ID = PacketUtils.createId("object_search_task");
     public static final StreamCodec<RegistryFriendlyByteBuf, ObjectSearchTaskC2SPacket> CODEC = new StreamCodec<>() {
@@ -18,6 +18,7 @@ public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, Json
             buf.writeInt(CURRENT_VERSION);
             // 搜索类型
             buf.writeUtf(value.key.toString());
+            buf.writeUtf(value.name);
             buf.writeUtf(IOUtils.jsonAsString(value.json));
         }
 
@@ -25,7 +26,7 @@ public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, Json
         public ObjectSearchTaskC2SPacket decode(RegistryFriendlyByteBuf buf) {
             int version = buf.readInt();
             if (version > CURRENT_VERSION) {
-                return new ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type.INVALID, null);
+                return new ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type.INVALID, "Invalid", null);
             }
             ObjectSearchTaskC2SPacket.Type type = switch (buf.readUtf()) {
                 case "item" -> ObjectSearchTaskC2SPacket.Type.ITEM;
@@ -35,9 +36,10 @@ public record ObjectSearchTaskC2SPacket(ObjectSearchTaskC2SPacket.Type key, Json
                 case "trade_enchanted_book" -> ObjectSearchTaskC2SPacket.Type.TRADE_ENCHANTED_BOOK;
                 default -> ObjectSearchTaskC2SPacket.Type.INVALID;
             };
+            String name = buf.readUtf();
             String jsonString = buf.readUtf();
             JsonObject json = IOUtils.stringAsJson(jsonString);
-            return new ObjectSearchTaskC2SPacket(type, json);
+            return new ObjectSearchTaskC2SPacket(type, name, json);
         }
     };
 
