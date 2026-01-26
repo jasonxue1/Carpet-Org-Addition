@@ -78,7 +78,7 @@ public class EntityNavigator extends AbstractNavigator {
 
     @Override
     protected WaypointUpdateS2CPacket createPacket() {
-        return new WaypointUpdateS2CPacket(ServerUtils.getEyePos(this.entity), ServerUtils.getWorld(this.entity));
+        return new WaypointUpdateS2CPacket(this.entity);
     }
 
     @Override

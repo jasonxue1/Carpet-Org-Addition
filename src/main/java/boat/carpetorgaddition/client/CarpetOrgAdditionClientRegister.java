@@ -8,7 +8,6 @@ import boat.carpetorgaddition.client.renderer.waypoint.Waypoint;
 import boat.carpetorgaddition.client.renderer.waypoint.WaypointRenderer;
 import boat.carpetorgaddition.debug.client.render.HudDebugRendererRegister;
 import boat.carpetorgaddition.network.s2c.*;
-import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.screen.BackgroundSpriteSyncSlot;
 import boat.carpetorgaddition.wheel.screen.UnavailableSlotClientSide;
 import boat.carpetorgaddition.wheel.screen.WithButtonScreenClientSide;
@@ -52,8 +51,8 @@ public class CarpetOrgAdditionClientRegister {
                 WaypointUpdateS2CPacket.ID,
                 (payload, _) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
-                    Vec3 target = payload.target();
-                    ResourceKey<Level> registryKey = ServerUtils.getWorldKey(payload.worldId());
+                    Vec3 target = payload.getTarget();
+                    ResourceKey<Level> registryKey = payload.getWorldKey();
                     Waypoint waypoint = instance.addOrUpdate(new NavigatorWaypoint(registryKey, target));
                     waypoint.setTarget(registryKey, target);
                 }

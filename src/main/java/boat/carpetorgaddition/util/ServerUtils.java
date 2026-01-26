@@ -76,8 +76,20 @@ public class ServerUtils {
         return getPlayer(server, gameProfile.name());
     }
 
+    public static ResourceKey<Level> getWorldKey(Identifier id) {
+        return ResourceKey.create(Registries.DIMENSION, id);
+    }
+
     public static ResourceKey<Level> getWorldKey(String worldId) {
-        return ResourceKey.create(Registries.DIMENSION, Identifier.parse(worldId));
+        return getWorldKey(Identifier.parse(worldId));
+    }
+
+    public static ResourceKey<Level> getWorldKey(Level world) {
+        return world.dimension();
+    }
+
+    public static Identifier getWorldId(Level world) {
+        return world.dimension().identifier();
     }
 
     /**
