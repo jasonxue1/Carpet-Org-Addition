@@ -78,6 +78,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     public static final LocalizationKey SAFE_AFK = KEY.then("safeafk");
     public static final LocalizationKey SCHEDULE = KEY.then("schedule");
     public static final LocalizationKey BATCH = KEY.then("batch");
+    private static final LocalizationKey SUMMON = KEY.then("summon");
 
     public PlayerManagerCommand(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext access) {
         super(dispatcher, access);
@@ -134,7 +135,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                         .then(Commands.argument("autologin", BoolArgumentType.bool())
                                                 .executes(context -> this.setAutoLogin(context, false))))))
                 .then(Commands.literal("group")
-                        // TODO 在list添加一键召唤按钮
                         .then(Commands.literal("add")
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(playerSuggests())
@@ -249,11 +249,21 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (serializers.isEmpty()) {
             throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
+        Component login = new TextBuilder("[↑]")
+                .setCommand(CommandProvider.playerManagerSpawnGroup(group))
+                .setHover(LocalizationKeys.Button.LOGIN.translate())
+                .setColor(ChatFormatting.GREEN)
+                .build();
+        Component logout = new TextBuilder("[↓]")
+                .setCommand(CommandProvider.playerManagerKillGroup(group))
+                .setHover(LocalizationKeys.Button.LOGOUT.translate())
+                .setColor(ChatFormatting.RED)
+                .build();
         PagedCollection collection = coordinator.getPageManager().newPagedCollection(context.getSource());
         List<Supplier<Component>> messages = serializers.stream().map(FakePlayerSerializer::line).toList();
         collection.addContent(messages);
         MessageUtils.sendEmptyMessage(context);
-        MessageUtils.sendMessage(context, GROUP_LIST.translate(group));
+        MessageUtils.sendMessage(context, GROUP_LIST.translate(group, login, logout));
         collection.print();
         return collection.length();
     }
@@ -328,12 +338,15 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (list.isEmpty()) {
             throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
+        int count = 0;
         // 如果玩家不存在则生成
         for (FakePlayerSerializer serializer : list) {
             if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
                 serializer.spawn(server, true);
+                count++;
             }
         }
+        sendPlayerJoinMessage(server, count);
         return list.size();
     }
 
@@ -354,6 +367,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .filter(player -> player instanceof EntityPlayerMPFake)
                 .map(player -> (EntityPlayerMPFake) player).toList();
         players.forEach(PlayerUtils::silenceLogout);
+        sendPlayerLeaveMessage(server, players.size());
         return players.size();
     }
 
@@ -962,9 +976,22 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         }
         taskManager.addTask(new IterativeTask(source, list, 30, 5000));
-        Component component = BATCH.then("left").builder(list.size()).setColor(ChatFormatting.YELLOW).build();
-        MessageUtils.sendMessage(server, component);
+        sendPlayerLeaveMessage(server, list.size());
         return list.size();
+    }
+
+    public static void sendPlayerJoinMessage(MinecraftServer server, int count) {
+        if (count > 0) {
+            Component message = SUMMON.then("joined").builder(count).setColor(ChatFormatting.YELLOW).build();
+            MessageUtils.sendMessage(server, message);
+        }
+    }
+
+    private static void sendPlayerLeaveMessage(MinecraftServer server, int count) {
+        if (count > 0) {
+            Component message = SUMMON.then("left").builder(count).setColor(ChatFormatting.YELLOW).build();
+            MessageUtils.sendMessage(server, message);
+        }
     }
 
     /**

@@ -73,6 +73,14 @@ public class CommandProvider {
         return "/%s spawn %s".formatted(getCommandName(PlayerManagerCommand.class), playerName);
     }
 
+    public static String playerManagerSpawnGroup(String group) {
+        return "/%s group spawn %s".formatted(getCommandName(PlayerManagerCommand.class), StringArgumentType.escapeIfRequired(group));
+    }
+
+    public static String playerManagerKillGroup(String group) {
+        return "/%s group kill %s".formatted(getCommandName(PlayerManagerCommand.class), StringArgumentType.escapeIfRequired(group));
+    }
+
     /**
      * 将一名玩家重新保存到玩家管理器
      */

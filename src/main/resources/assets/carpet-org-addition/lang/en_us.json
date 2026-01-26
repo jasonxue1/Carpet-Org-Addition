@@ -362,7 +362,7 @@
   "carpet-org-addition.command.playerManager.group.name.ungrouped": "[Ungrouped]",
   "carpet-org-addition.command.playerManager.group.name.all": "[All]",
   "carpet-org-addition.command.playerManager.group.non_existent": "No group named [%s] exists",
-  "carpet-org-addition.command.playerManager.group.list": "Players in group [%s]:",
+  "carpet-org-addition.command.playerManager.group.list": "Players in group [%s] (%s %s):",
   "carpet-org-addition.command.playerManager.group.list.ungrouped": "Ungrouped players:",
   "carpet-org-addition.command.playerManager.group.list.all": "All players:",
   "carpet-org-addition.command.playerManager.schedule.login": "%s will join in %s",

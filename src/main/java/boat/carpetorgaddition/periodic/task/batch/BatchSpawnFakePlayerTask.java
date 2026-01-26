@@ -9,7 +9,6 @@ import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.Component;
@@ -51,7 +50,6 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 任务的开始时间
      */
     private final long startTime;
-    public static final LocalizationKey KEY = PlayerManagerCommand.KEY.then("batch");
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, Function<String, FakePlayerSpawner> spawner, List<String> names) {
         super(source);
@@ -78,7 +76,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     @Override
     protected void tick() {
         if (this.count == 0) {
-            MessageUtils.sendErrorMessage(this.source, KEY.then("not_summoned").translate());
+            MessageUtils.sendErrorMessage(this.source, PlayerManagerCommand.BATCH.then("not_summoned").translate());
             this.complete = true;
             return;
         }
@@ -87,7 +85,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
         if (this.preload) {
             // 任务开始前几个游戏刻不显示进度
             boolean progress = time - this.startTime > 10;
-            LocalizationKey key = KEY.then("preload");
+            LocalizationKey key = PlayerManagerCommand.BATCH.then("preload");
             if (size < this.count) {
                 if (progress && (this.prevCount != size || time % 40 == 0)) {
                     this.prevCount = size;
@@ -111,8 +109,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
             }
             this.iterator.next().spawn();
         }
-        Component message = KEY.then("joined").builder(this.count).setColor(ChatFormatting.YELLOW).build();
-        MessageUtils.sendMessage(this.server, message);
+        PlayerManagerCommand.sendPlayerJoinMessage(this.server, this.count);
         // 显示玩家召唤者
         if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
             Component summoner = LocalizationKeys.Rule.Message.DISPLAY_PLAYER_SUMMONER

@@ -27,7 +27,6 @@ public enum ActionSource {
      */
     UNKNOWN;
 
-    // TODO 测试告示牌
     public static final Codec<ActionSource> CODEC = Codec.STRING
             .comapFlatMap(ActionSource::parse, ActionSource::toString)
             .stable();
