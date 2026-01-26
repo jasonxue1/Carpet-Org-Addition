@@ -50,6 +50,10 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
      * 任务的开始时间
      */
     private final long startTime;
+    /**
+     * 是否正在预加载玩家档案，用于抑制{@code Couldn't find profile with name: {}}警告
+     */
+    public static final ScopedValue<Boolean> REQUEST = ScopedValue.newInstance();
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, Function<String, FakePlayerSpawner> spawner, List<String> names) {
         super(source);
@@ -61,7 +65,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 .toList();
         for (String name : list) {
             Thread.ofVirtual().start(() -> {
-                Optional<NameAndId> optional = cache.get(name);
+                Optional<NameAndId> optional = ScopedValue.where(REQUEST, true).call(() -> cache.get(name));
                 NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(name), name));
                 if (optional.isEmpty()) {
                     cache.add(gameProfile);

@@ -185,6 +185,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 强制开启潜影盒
      */
+    // TODO 规则值改为枚举以支持其他容器 FALSE SHULKER_BOX ANY
     public static final Supplier<Boolean> openShulkerBoxForcibly = register(
             RuleFactory.create(Boolean.class, "openShulkerBoxForcibly", false)
                     .addCategories(RuleCategory.SURVIVAL)
