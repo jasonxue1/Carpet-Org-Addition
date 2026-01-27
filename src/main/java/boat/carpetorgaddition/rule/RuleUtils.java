@@ -45,6 +45,10 @@ public class RuleUtils {
     public static final int MIN_CRAFT_COUNT = 1;
     public static final Supplier<Boolean> hopperCountersUnlimitedSpeed = getCarpetRule("hopperCountersUnlimitedSpeed");
     public static final Supplier<Boolean> hopperNoItemCost = getCarpetRule("hopperNoItemCost");
+    /**
+     * 是否正在打开箱子
+     */
+    public static final ScopedValue<Boolean> OPENING_THE_CHEST = ScopedValue.newInstance();
 
     /**
      * 潜影盒是否可以触发更新抑制器

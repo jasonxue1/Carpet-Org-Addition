@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.mixin.rule;
+package boat.carpetorgaddition.mixin.rule.forceopencontainer;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import net.minecraft.core.BlockPos;
@@ -17,7 +17,7 @@ public class ShulkerBoxBlockMixin {
     // 强制开启潜影盒
     @Inject(method = "canOpen", at = @At(value = "HEAD"), cancellable = true)
     private static void canOpen(BlockState state, Level world, BlockPos pos, ShulkerBoxBlockEntity entity, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.openShulkerBoxForcibly.get()) {
+        if (CarpetOrgAdditionSettings.forceOpenContainer.get().canOpenShulkerBox()) {
             cir.setReturnValue(true);
         }
     }

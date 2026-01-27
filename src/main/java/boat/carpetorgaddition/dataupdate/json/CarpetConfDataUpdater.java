@@ -147,8 +147,24 @@ public class CarpetConfDataUpdater implements DataUpdater {
                 }
             }
             newJson.add(RuleConfig.RULES, newRules);
-            return newJson;
+            return this.update(newJson, 2);
+        } else if (version == 2) {
+            JsonObject newJson = new JsonObject();
+            newJson.addProperty(DataUpdater.DATA_VERSION, 2);
+            JsonObject newRules = new JsonObject();
+            for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue().getAsString();
+                if ("openShulkerBoxForcibly".equals(key)) {
+                    newRules.addProperty("forceOpenContainer", Boolean.parseBoolean(value) ? "shulker_box" : "false");
+                } else {
+                    newRules.addProperty(key, value);
+                }
+            }
+            newJson.add(RuleConfig.RULES, newRules);
+            return this.update(newJson, 3);
+        } else {
+            return json;
         }
-        return json;
     }
 }
