@@ -320,7 +320,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
         FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取当前要操作的物品和要重命名的字符串
-        Item item = ItemArgument.getItem(context, "item").getItem();
+        Item item = ItemArgument.getItem(context, "item").item().value();
         String newName = StringArgumentType.getString(context, "name");
         actionManager.setAction(new RenameAction(fakePlayer, item, newName));
         return 1;
@@ -332,7 +332,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
         FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
         // 获取要切割的物品和按钮的索引
-        Item item = ItemArgument.getItem(context, "item").getItem();
+        Item item = ItemArgument.getItem(context, "item").item().value();
         int buttonIndex = IntegerArgumentType.getInteger(context, "button") - 1;
         actionManager.setAction(new StonecuttingAction(fakePlayer, item, buttonIndex));
         return 1;
