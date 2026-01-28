@@ -5,6 +5,7 @@ import boat.carpetorgaddition.exception.FileOperationException;
 import com.google.gson.*;
 import net.fabricmc.loader.api.FabricLoader;
 import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -77,6 +78,7 @@ public class IOUtils {
     /**
      * 将一个json对象保存到文件
      */
+    @NullMarked
     public static void write(File file, JsonObject json) throws IOException {
         String jsonString = GSON.toJson(json, JsonObject.class);
         write(file, jsonString);
@@ -85,10 +87,12 @@ public class IOUtils {
     /**
      * 将一段字符串文本保存到文件
      */
+    @NullMarked
     public static void write(File file, String content) throws IOException {
         write(file, content, StandardCharsets.UTF_8);
     }
 
+    @NullMarked
     public static void write(File file, String content, Charset charset) throws IOException {
         File parent = file.getParentFile();
         if (parent == null) {
@@ -336,6 +340,30 @@ public class IOUtils {
     }
 
     /**
+     * 重命名文件
+     */
+    public static File renameFile(File file, String name) {
+        Path source = file.toPath();
+        Path target = new File(file.getParent(), name).toPath();
+        try {
+            return Files.move(source, target).toFile();
+        } catch (IOException e) {
+            throw new FileOperationException("Unable to rename file %s".formatted(file.toString()), e);
+        }
+    }
+
+    /**
+     * 如果文件存在，则删除文件
+     */
+    public static void removeFileIfExists(File file) {
+        try {
+            Files.deleteIfExists(file.toPath());
+        } catch (IOException e) {
+            throw new FileOperationException("Unable to delete file %s".formatted(file.toString()), e);
+        }
+    }
+
+    /**
      * 删除一个文件
      */
     @Deprecated(forRemoval = true)
@@ -344,17 +372,6 @@ public class IOUtils {
             return;
         }
         throw new FileOperationException("Unable to delete file %s".formatted(file.toString()));
-    }
-
-    /**
-     * 重命名文件
-     */
-    @Deprecated(forRemoval = true)
-    public static void renameFile(File file, String name) {
-        if (file.renameTo(new File(file.getParent(), name))) {
-            return;
-        }
-        throw new FileOperationException("Unable to rename file %s".formatted(file.toString()));
     }
 
     /**

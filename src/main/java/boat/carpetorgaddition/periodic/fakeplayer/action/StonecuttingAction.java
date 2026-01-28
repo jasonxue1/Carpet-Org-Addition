@@ -28,6 +28,7 @@ import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class StonecuttingAction extends AbstractPlayerAction {
@@ -237,5 +238,19 @@ public class StonecuttingAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.STONECUTTING;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        StonecuttingAction that = (StonecuttingAction) o;
+        return button == that.button && Objects.equals(item, that.item);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(item, button);
     }
 }

@@ -1,14 +1,17 @@
 package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.WithButtonPlayerInventory;
 import carpet.patches.EntityPlayerMPFake;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public class PlayerComponentCoordinator {
     private final ServerPlayer player;
+    protected final MinecraftServer server;
     private final NavigatorManager navigatorManager;
     private final WithButtonPlayerInventory withButtonPlayerInventory;
     /**
@@ -18,6 +21,7 @@ public class PlayerComponentCoordinator {
 
     public PlayerComponentCoordinator(ServerPlayer player) {
         this.player = player;
+        this.server = ServerUtils.getServer(player);
         this.navigatorManager = new NavigatorManager(player);
         this.withButtonPlayerInventory = new WithButtonPlayerInventory(player);
     }

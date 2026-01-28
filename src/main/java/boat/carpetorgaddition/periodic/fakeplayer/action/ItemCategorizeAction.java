@@ -18,6 +18,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ItemCategorizeAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -162,5 +163,19 @@ public class ItemCategorizeAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.CATEGORIZE;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ItemCategorizeAction that = (ItemCategorizeAction) o;
+        return Objects.equals(predicate, that.predicate) && Objects.equals(thisVec, that.thisVec) && Objects.equals(otherVec, that.otherVec);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(predicate, thisVec, otherVec);
     }
 }

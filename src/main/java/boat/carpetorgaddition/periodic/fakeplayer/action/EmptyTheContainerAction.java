@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class EmptyTheContainerAction extends AbstractPlayerAction {
     public static final String ITEM = "item";
@@ -75,5 +76,19 @@ public class EmptyTheContainerAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.EMPTY_THE_CONTAINER;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        EmptyTheContainerAction that = (EmptyTheContainerAction) o;
+        return Objects.equals(predicate, that.predicate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(predicate);
     }
 }

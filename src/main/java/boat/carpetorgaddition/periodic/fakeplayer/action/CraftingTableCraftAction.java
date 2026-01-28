@@ -26,9 +26,7 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class CraftingTableCraftAction extends AbstractPlayerAction {
     /**
@@ -270,7 +268,6 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
         return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
     }
 
-
     @Override
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
@@ -293,5 +290,19 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.CRAFTING_TABLE_CRAFT;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CraftingTableCraftAction that = (CraftingTableCraftAction) o;
+        return Objects.deepEquals(predicates, that.predicates);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(predicates);
     }
 }

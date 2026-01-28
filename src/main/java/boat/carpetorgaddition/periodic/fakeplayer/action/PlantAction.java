@@ -339,6 +339,19 @@ public class PlantAction extends AbstractPlayerAction {
         this.excavator = null;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        return this.getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;
+    }
+
     public enum FarmType {
         /**
          * 种植普通农作物，小麦、土豆、胡萝卜，甜菜，以及火把花，瓶子草

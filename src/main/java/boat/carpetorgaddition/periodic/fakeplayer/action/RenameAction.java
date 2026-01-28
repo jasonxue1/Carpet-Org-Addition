@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class RenameAction extends AbstractPlayerAction {
     /**
@@ -157,5 +158,19 @@ public class RenameAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.RENAME;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RenameAction that = (RenameAction) o;
+        return canSendMessage == that.canSendMessage && Objects.equals(item, that.item) && Objects.equals(newName, that.newName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(item, newName, canSendMessage);
     }
 }

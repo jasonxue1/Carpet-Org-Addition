@@ -36,6 +36,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,6 +103,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * 当前对象是否已经修改，即是否需要重新保存
      */
     private boolean isChanged = false;
+    @Nullable
     private final File file;
     private final List<Listener> listeners = new ArrayList<>();
 
@@ -121,6 +123,11 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public FakePlayerSerializer(File file) throws IOException {
         JsonObject json = IOUtils.loadJson(file);
+        String name = IOUtils.getFileNameWithoutExtension(file);
+        this(json, name, file);
+    }
+
+    public FakePlayerSerializer(JsonObject json, String name, @Nullable File file) {
         int version = DataUpdater.getVersion(json);
         if (version < DataUpdater.VERSION) {
             FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
@@ -128,7 +135,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             json = dataUpdater.update(json, version);
         }
         // 玩家名
-        this.name = IOUtils.getFileNameWithoutExtension(file);
+        this.name = name;
         // 玩家位置
         JsonObject pos = json.get("pos").getAsJsonObject();
         this.playerPos = new Vec3(pos.get("x").getAsDouble(), pos.get("y").getAsDouble(), pos.get("z").getAsDouble());
@@ -192,6 +199,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     public void save() {
+        if (this.file == null) {
+            throw new IllegalStateException();
+        }
         try {
             IOUtils.write(this.file, this.toJson());
         } catch (IOException e) {
@@ -328,7 +338,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         // 注释
         json.addProperty("annotation", this.getComment());
         // 添加左键右键动作
-        json.add("hand_action", interactiveAction.toJson());
+        json.add("hand_action", this.interactiveAction.toJson());
         // 添加玩家动作
         json.add(PlayerSerializationManager.SCRIPT_ACTION, this.autoAction.toJson());
         // 添加玩家组
@@ -517,13 +527,30 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        return this == obj || (this.getClass() == obj.getClass() && this.name.equals(((FakePlayerSerializer) obj).name));
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FakePlayerSerializer that = (FakePlayerSerializer) o;
+        return Float.compare(yaw, that.yaw) == 0
+               && Float.compare(pitch, that.pitch) == 0
+               && flying == that.flying
+               && sneaking == that.sneaking
+               && autologin == that.autologin
+               && Objects.equals(name, that.name)
+               && Objects.equals(comment, that.comment)
+               && Objects.equals(playerPos, that.playerPos)
+               && Objects.equals(dimension, that.dimension)
+               && gameMode == that.gameMode
+               && Objects.equals(interactiveAction, that.interactiveAction)
+               && Objects.equals(autoAction, that.autoAction)
+               && Objects.equals(groups, that.groups)
+               && Objects.equals(startups, that.startups);
     }
 
     @Override
     public int hashCode() {
-        return this.name.hashCode();
+        return Objects.hash(name, comment, playerPos, yaw, pitch, dimension, gameMode, flying, sneaking, autologin, interactiveAction, autoAction, groups, startups);
     }
 
     @Override
@@ -532,6 +559,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     }
 
     public boolean remove() {
+        if (this.file == null) {
+            return true;
+        }
         return this.file.delete();
     }
 

@@ -60,15 +60,28 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         // 假玩家生成时不保留上一次的击退，着火时间，摔落高度
         clearKnockback(player);
         // 提示玩家接收快递
-        ParcelManager parcelManager = ServerComponentCoordinator.getCoordinator(ServerUtils.getServer(player)).getParcelManager();
+        MinecraftServer server = ServerUtils.getServer(player);
+        ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+        ParcelManager parcelManager = coordinator.getParcelManager();
         parcelManager.promptToCollect(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
-        MinecraftServer server = ServerUtils.getServer(player);
         GameType gameMode = server.getForcedGameType();
         if (gameMode != null) {
             SpectatorCommand instance = CommandRegister.getCommandInstance(SpectatorCommand.class);
             instance.loadPlayerPos(server, player);
+        }
+        if (player instanceof EntityPlayerMPFake fakePlayer) {
+            coordinator.getSavedFakePlayer().put(fakePlayer);
+        }
+    }
+
+    @Override
+    public void onPlayerLoggedOut(ServerPlayer player) {
+        MinecraftServer server = ServerUtils.getServer(player);
+        ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+        if (player instanceof EntityPlayerMPFake fakePlayer) {
+            coordinator.getSavedFakePlayer().remove(fakePlayer);
         }
     }
 

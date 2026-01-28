@@ -6,6 +6,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
+import java.util.Objects;
+
 public abstract class WorldTraverser<T> implements Iterable<T> {
     protected final int minX;
     protected final int minY;
@@ -120,5 +122,24 @@ public abstract class WorldTraverser<T> implements Iterable<T> {
      */
     public BlockPos getMinBlockPos() {
         return this.from;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        WorldTraverser<?> that = (WorldTraverser<?>) o;
+        return minX == that.minX
+               && minY == that.minY
+               && minZ == that.minZ
+               && maxX == that.maxX
+               && maxY == that.maxY
+               && maxZ == that.maxZ;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(minX, minY, minZ, maxX, maxY, maxZ);
     }
 }

@@ -138,6 +138,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .then(Commands.argument("message", StringArgumentType.string())
                                         .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))
                         .then(Commands.literal("closeScreen")
+                                // TODO 不再只允许在开发环境下生效
                                 .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
                                 .executes(this::closeScreen))));
     }

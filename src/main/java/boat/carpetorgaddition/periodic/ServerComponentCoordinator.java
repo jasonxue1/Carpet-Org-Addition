@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.periodic;
 
 import boat.carpetorgaddition.dialog.DialogProvider;
+import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerResidents;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
@@ -38,6 +39,8 @@ public class ServerComponentCoordinator {
     private final FabricPlayerAccessManager accessManager;
     private final RuleConfig ruleConfig;
     private final DialogProvider dialogProvider;
+    private final FakePlayerResidents fakePlayerResidents;
+    public static final ScopedValue<MinecraftServer> SERVER_INSTANCE = ScopedValue.newInstance();
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.server = server;
@@ -48,6 +51,7 @@ public class ServerComponentCoordinator {
         this.accessManager = new FabricPlayerAccessManager(server);
         this.ruleConfig = new RuleConfig(server);
         this.dialogProvider = new DialogProvider(server);
+        this.fakePlayerResidents = new FakePlayerResidents(server);
     }
 
     public void onServerStarted() {
@@ -94,9 +98,14 @@ public class ServerComponentCoordinator {
         return this.dialogProvider;
     }
 
+    public FakePlayerResidents getSavedFakePlayer() {
+        return this.fakePlayerResidents;
+    }
+
     private void onServerSave() {
         this.ruleSelfManager.onServerSave();
         this.playerSerializationManager.onServerSave();
+        this.fakePlayerResidents.onServerSave();
     }
 
     public static ServerComponentCoordinator getCoordinator(MinecraftServer server) {

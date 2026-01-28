@@ -1176,6 +1176,20 @@ public class BedrockAction extends AbstractPlayerAction {
         this.excavator = null;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BedrockAction that = (BedrockAction) o;
+        return Objects.equals(traverser, that.traverser) && ai == that.ai;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ai, traverser);
+    }
+
     /**
      * 获取移动目标
      */

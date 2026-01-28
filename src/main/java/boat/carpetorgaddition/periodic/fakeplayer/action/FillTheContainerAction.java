@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 public class FillTheContainerAction extends AbstractPlayerAction {
@@ -122,5 +123,19 @@ public class FillTheContainerAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.FILL_THE_CONTAINER;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FillTheContainerAction that = (FillTheContainerAction) o;
+        return dropOther == that.dropOther && moreContainer == that.moreContainer && Objects.equals(predicate, that.predicate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(predicate, dropOther, moreContainer);
     }
 }

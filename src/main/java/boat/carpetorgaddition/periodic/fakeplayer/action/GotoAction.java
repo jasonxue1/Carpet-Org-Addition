@@ -102,6 +102,19 @@ public class GotoAction extends AbstractPlayerAction {
         this.pathfinder.onStop();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        return this.getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;
+    }
+
     public enum TargetType {
         BLOCK("block"),
         ENTITY("entity");

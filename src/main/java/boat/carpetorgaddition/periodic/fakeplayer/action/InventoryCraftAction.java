@@ -18,7 +18,9 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class InventoryCraftAction extends AbstractPlayerAction {
     /**
@@ -216,5 +218,19 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     @Override
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.INVENTORY_CRAFT;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        InventoryCraftAction that = (InventoryCraftAction) o;
+        return Objects.deepEquals(predicates, that.predicates);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(predicates);
     }
 }

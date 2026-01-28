@@ -337,8 +337,21 @@ public class CommandUtils {
         return Optional.empty();
     }
 
+    public static <T> T call(ThrowingIOSupplier<T> supplier) throws CommandSyntaxException {
+        try {
+            return supplier.get();
+        } catch (IOException e) {
+            throw createIOErrorException(e);
+        }
+    }
+
     @FunctionalInterface
     public interface ThrowingRunnable {
         void run() throws CommandSyntaxException;
+    }
+
+    @FunctionalInterface
+    public interface ThrowingIOSupplier<T> {
+        T get() throws IOException;
     }
 }

@@ -33,6 +33,8 @@ public class FakePlayerComponentCoordinator extends PlayerComponentCoordinator {
     public void copyFrom(ServerPlayer oldPlayer) {
         super.copyFrom(oldPlayer);
         this.fakePlayerActionManager.setActionFromOldPlayer((EntityPlayerMPFake) oldPlayer);
+        EntityPlayerMPFake player = this.getPlayer();
+        ServerComponentCoordinator.getCoordinator(this.server).getSavedFakePlayer().put(player);
     }
 
     public FakePlayerActionManager getFakePlayerActionManager() {

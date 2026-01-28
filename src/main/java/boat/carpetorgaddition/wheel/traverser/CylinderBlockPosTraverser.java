@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
+import java.util.Objects;
 
 public class CylinderBlockPosTraverser extends BlockPosTraverser {
     private final BlockPos center;
@@ -78,6 +79,20 @@ public class CylinderBlockPosTraverser extends BlockPosTraverser {
 
     public int getHeight() {
         return this.height();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        CylinderBlockPosTraverser blockPos = (CylinderBlockPosTraverser) o;
+        return radius == blockPos.radius && Objects.equals(center, blockPos.center);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(center, radius);
     }
 
     @Override

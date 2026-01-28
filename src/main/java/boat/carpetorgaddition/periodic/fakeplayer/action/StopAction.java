@@ -48,4 +48,17 @@ public final class StopAction extends AbstractPlayerAction {
     public ActionSerializeType getActionSerializeType() {
         return ActionSerializeType.STOP;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        return this.getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;
+    }
 }

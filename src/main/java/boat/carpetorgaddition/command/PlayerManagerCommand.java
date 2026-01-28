@@ -4,10 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.exception.CommandExecuteIOException;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
-import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
-import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerStartupAction;
-import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
+import boat.carpetorgaddition.periodic.fakeplayer.*;
 import boat.carpetorgaddition.periodic.task.DelayedTask;
 import boat.carpetorgaddition.periodic.task.IterativeTask;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
@@ -236,7 +233,103 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                 .then(Commands.literal("trial")
                                                         .executes(context -> batchTrial(context, false))
                                                         .then(Commands.argument("at", Vec3Argument.vec3())
-                                                                .executes(context -> batchTrial(context, true)))))))));
+                                                                .executes(context -> batchTrial(context, true))))))))
+                // TODO 更新日志
+                .then(Commands.literal("respawn")
+                        .executes(context -> respawnResident(context, null))
+                        .then(Commands.argument("time", StringArgumentType.string())
+                                .suggests(respawnPlayerSuggests())
+                                .executes(context -> respawnResident(context, StringArgumentType.getString(context, "time"))))));
+    }
+
+    // cancel子命令自动补全
+    @NotNull
+    private SuggestionProvider<CommandSourceStack> cancelSuggests() {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
+            Stream<String> stream = manager.stream(PlayerScheduleTask.class).map(PlayerScheduleTask::getPlayerName);
+            return SharedSuggestionProvider.suggest(stream, builder);
+        };
+    }
+
+    // 自动补全玩家名
+    private SuggestionProvider<CommandSourceStack> playerSuggests() {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+            Stream<String> stream = coordinator.getPlayerSerializationManager()
+                    .listAll()
+                    .stream()
+                    .map(FakePlayerSerializer::getName)
+                    .map(StringArgumentType::escapeIfRequired);
+            return SharedSuggestionProvider.suggest(stream, builder);
+        };
+    }
+
+    private SuggestionProvider<CommandSourceStack> allGroupSuggests() {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+            PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
+            Stream<String> stream = manager.listGrouped()
+                    .keySet()
+                    .stream()
+                    .map(StringArgumentType::escapeIfRequired);
+            return SharedSuggestionProvider.suggest(stream, builder);
+        };
+    }
+
+    /**
+     * @param add 如果为{@code true}，表示当前正在输入{@code add}子命令，否则当前正在输入{@code remove}子命令
+     */
+    private SuggestionProvider<CommandSourceStack> groupSuggests(boolean add) {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+            PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
+            String name = StringArgumentType.getString(context, "name");
+            Stream<String> stream = manager.listGrouped().keySet().stream();
+            Optional<FakePlayerSerializer> optional = manager.get(name);
+            if (optional.isPresent()) {
+                // 输入... group add ...命令时，如果玩家本来就在某个组中，则命令建议中不显示该组，remove命令同理
+                Predicate<String> predicate = group -> optional.get().getGroups().contains(group);
+                stream = stream.filter(add ? predicate.negate() : predicate);
+            }
+            return SharedSuggestionProvider.suggest(stream.map(StringArgumentType::escapeIfRequired), builder);
+        };
+    }
+
+    // relogin子命令自动补全
+    @NotNull
+    private SuggestionProvider<CommandSourceStack> reLoginTaskSuggests() {
+        return (context, builder) -> {
+            MinecraftServer server = context.getSource().getServer();
+            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
+            // 所有正在周期性上下线的玩家
+            List<String> taskList = manager.stream(ReLoginTask.class).map(ReLoginTask::getPlayerName).toList();
+            // 所有在线玩家
+            List<String> onlineList = server.getPlayerList()
+                    .getPlayers()
+                    .stream()
+                    .map(ServerUtils::getPlayerName)
+                    .toList();
+            HashSet<String> players = new HashSet<>();
+            players.addAll(taskList);
+            players.addAll(onlineList);
+            return SharedSuggestionProvider.suggest(players.stream(), builder);
+        };
+    }
+
+    private SuggestionProvider<CommandSourceStack> respawnPlayerSuggests() {
+        return (context, builder) -> {
+            CommandSourceStack source = context.getSource();
+            MinecraftServer server = ServerUtils.getServer(source);
+            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+            FakePlayerResidents players = coordinator.getSavedFakePlayer();
+            Stream<String> stream = players.listFileTime().stream().map(StringArgumentType::escapeIfRequired);
+            return SharedSuggestionProvider.suggest(stream, builder);
+        };
     }
 
     private int listGroup(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -381,85 +474,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         manager.init();
         MessageUtils.sendMessage(context, KEY.then("reload").translate());
         return 1;
-    }
-
-    // cancel子命令自动补全
-    @NotNull
-    private SuggestionProvider<CommandSourceStack> cancelSuggests() {
-        return (context, builder) -> {
-            MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-            Stream<String> stream = manager.stream(PlayerScheduleTask.class).map(PlayerScheduleTask::getPlayerName);
-            return SharedSuggestionProvider.suggest(stream, builder);
-        };
-    }
-
-    // 自动补全玩家名
-    private SuggestionProvider<CommandSourceStack> playerSuggests() {
-        return (context, builder) -> {
-            MinecraftServer server = context.getSource().getServer();
-            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
-            Stream<String> stream = coordinator.getPlayerSerializationManager()
-                    .listAll()
-                    .stream()
-                    .map(FakePlayerSerializer::getName)
-                    .map(StringArgumentType::escapeIfRequired);
-            return SharedSuggestionProvider.suggest(stream, builder);
-        };
-    }
-
-    private SuggestionProvider<CommandSourceStack> allGroupSuggests() {
-        return (context, builder) -> {
-            MinecraftServer server = context.getSource().getServer();
-            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
-            PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
-            Stream<String> stream = manager.listGrouped()
-                    .keySet()
-                    .stream()
-                    .map(StringArgumentType::escapeIfRequired);
-            return SharedSuggestionProvider.suggest(stream, builder);
-        };
-    }
-
-    /**
-     * @param add 如果为{@code true}，表示当前正在输入{@code add}子命令，否则当前正在输入{@code remove}子命令
-     */
-    private SuggestionProvider<CommandSourceStack> groupSuggests(boolean add) {
-        return (context, builder) -> {
-            MinecraftServer server = context.getSource().getServer();
-            ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
-            PlayerSerializationManager manager = coordinator.getPlayerSerializationManager();
-            String name = StringArgumentType.getString(context, "name");
-            Stream<String> stream = manager.listGrouped().keySet().stream();
-            Optional<FakePlayerSerializer> optional = manager.get(name);
-            if (optional.isPresent()) {
-                // 输入... group add ...命令时，如果玩家本来就在某个组中，则命令建议中不显示该组，remove命令同理
-                Predicate<String> predicate = group -> optional.get().getGroups().contains(group);
-                stream = stream.filter(add ? predicate.negate() : predicate);
-            }
-            return SharedSuggestionProvider.suggest(stream.map(StringArgumentType::escapeIfRequired), builder);
-        };
-    }
-
-    // relogin子命令自动补全
-    @NotNull
-    private SuggestionProvider<CommandSourceStack> reLoginTaskSuggests() {
-        return (context, builder) -> {
-            MinecraftServer server = context.getSource().getServer();
-            ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-            // 所有正在周期性上下线的玩家
-            List<String> taskList = manager.stream(ReLoginTask.class).map(ReLoginTask::getPlayerName).toList();
-            // 所有在线玩家
-            List<String> onlineList = server.getPlayerList()
-                    .getPlayers()
-                    .stream()
-                    .map(ServerUtils::getPlayerName)
-                    .toList();
-            HashSet<String> players = new HashSet<>();
-            players.addAll(taskList);
-            players.addAll(onlineList);
-            return SharedSuggestionProvider.suggest(players.stream(), builder);
-        };
     }
 
     // 安全挂机
@@ -823,6 +837,23 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         throw CommandUtils.createException(key.then("fail").translate());
     }
 
+    private int respawnResident(CommandContext<CommandSourceStack> context, @Nullable String time) throws CommandSyntaxException {
+        CommandSourceStack source = context.getSource();
+        MinecraftServer server = ServerUtils.getServer(source);
+        ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+        FakePlayerResidents players = coordinator.getSavedFakePlayer();
+        Set<FakePlayerSerializer> set = players.get(time);
+        if (set.isEmpty()) {
+            return 0;
+        }
+        for (FakePlayerSerializer serializer : set) {
+            if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
+                serializer.spawn(server);
+            }
+        }
+        return set.size();
+    }
+
     private int addStartupFunction(CommandContext<CommandSourceStack> context, FakePlayerStartupAction action, int delay) throws CommandSyntaxException {
         String name = StringArgumentType.getString(context, "name");
         FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -1142,6 +1173,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         }
         return list.size();
     }
+
 
     private PlayerSerializationManager getSerializationManager(MinecraftServer server) {
         ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);

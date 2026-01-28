@@ -5,7 +5,6 @@ import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.CommandRegistryAccessor;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
-import carpet.CarpetServer;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.context.ParsedCommandNode;
@@ -21,6 +20,7 @@ import net.minecraft.commands.arguments.item.ItemPredicateArgument.Result;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -131,7 +131,11 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      * @throws NullPointerException 如果在游戏外加载物品谓词则抛出
      */
     public static ItemStackPredicate parse(String input) {
-        CommandRegistryAccessor accessor = (CommandRegistryAccessor) CarpetServer.minecraft_server.getCommands();
+        Optional<MinecraftServer> optional = ServerUtils.getCurrentServer();
+        if (optional.isEmpty()) {
+            throw new IllegalStateException("Server not initialized");
+        }
+        CommandRegistryAccessor accessor = (CommandRegistryAccessor) optional.get().getCommands();
         CommandBuildContext access = accessor.carpet_Org_Addition$getAccess();
         try {
             StringReader reader = new StringReader(input);
@@ -241,6 +245,23 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
     @Override
     public String toString() {
         return this.input;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ItemStackPredicate that = (ItemStackPredicate) o;
+        if (this.isEmpty() && that.isEmpty()) {
+            return true;
+        }
+        return Objects.equals(input, that.input);
+    }
+
+    @Override
+    public int hashCode() {
+        return this.isEmpty() ? 0 : Objects.hashCode(input);
     }
 
     public static class AnyOfItemPredicate extends ItemStackPredicate {

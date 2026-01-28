@@ -1,5 +1,7 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
+import carpet.CarpetServer;
 import com.mojang.authlib.GameProfile;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
@@ -22,10 +24,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.FileNameDateFormatter;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -295,6 +299,13 @@ public class ServerUtils {
         return source.getServer();
     }
 
+    public static Optional<MinecraftServer> getCurrentServer() {
+        if (ServerComponentCoordinator.SERVER_INSTANCE.isBound()) {
+            return Optional.of(ServerComponentCoordinator.SERVER_INSTANCE.get());
+        }
+        return Optional.ofNullable(CarpetServer.minecraft_server);
+    }
+
     public static ServerLevel getWorld(ServerPlayer player) {
         return player.level();
     }
@@ -325,5 +336,9 @@ public class ServerUtils {
 
     public static Component getDefaultName(ItemStack itemStack) {
         return getName(itemStack.getItem());
+    }
+
+    public static String currentTimeFormat() {
+        return LocalDateTime.now().format(FileNameDateFormatter.FORMATTER);
     }
 }

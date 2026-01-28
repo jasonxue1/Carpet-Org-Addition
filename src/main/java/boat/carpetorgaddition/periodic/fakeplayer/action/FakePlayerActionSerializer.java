@@ -8,6 +8,8 @@ import com.google.gson.JsonObject;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class FakePlayerActionSerializer {
     private final AbstractPlayerAction action;
     public static final FakePlayerActionSerializer NO_ACTION = new FakePlayerActionSerializer();
@@ -76,5 +78,19 @@ public class FakePlayerActionSerializer {
             json.add(this.action.getActionSerializeType().getSerializedName(), this.action.toJson());
         }
         return json;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FakePlayerActionSerializer that = (FakePlayerActionSerializer) o;
+        return Objects.equals(this.action, that.action);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(this.action);
     }
 }

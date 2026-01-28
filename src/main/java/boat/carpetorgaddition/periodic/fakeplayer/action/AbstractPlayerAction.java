@@ -143,4 +143,10 @@ public abstract class AbstractPlayerAction {
      */
     protected void onClearPlayer() {
     }
+
+    @Override
+    public abstract boolean equals(Object obj);
+
+    @Override
+    public abstract int hashCode();
 }
