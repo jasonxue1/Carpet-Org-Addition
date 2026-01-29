@@ -45,6 +45,7 @@ public class PlayerSerializationManager {
             for (File file : list) {
                 try {
                     FakePlayerSerializer serializer = new FakePlayerSerializer(file);
+                    // TODO 初始化时，不应该重新保存文件
                     this.add(serializer);
                 } catch (IOException | JsonParseException | NullPointerException e) {
                     // 译：未能成功加载玩家数据

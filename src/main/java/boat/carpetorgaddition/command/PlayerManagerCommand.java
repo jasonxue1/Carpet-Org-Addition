@@ -846,11 +846,13 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (set.isEmpty()) {
             return 0;
         }
-        for (FakePlayerSerializer serializer : set) {
+        ServerTaskManager taskManager = coordinator.getServerTaskManager();
+        List<Runnable> list = set.stream().map((Function<FakePlayerSerializer, Runnable>) serializer -> () -> {
             if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
-                serializer.spawn(server);
+                CommandUtils.handlingException(() -> serializer.spawn(server), source);
             }
-        }
+        }).toList();
+        taskManager.addTask(new IterativeTask(source, list, 30, 10000));
         return set.size();
     }
 

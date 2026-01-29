@@ -220,6 +220,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * @param silence 是否不显示登录消息
      */
     public void spawn(MinecraftServer server, boolean silence) throws CommandSyntaxException {
+        // TODO 移动到外部
         if (ServerUtils.getPlayer(server, name).isPresent()) {
             throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
         }
