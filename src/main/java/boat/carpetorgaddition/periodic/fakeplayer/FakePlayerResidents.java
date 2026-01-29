@@ -8,18 +8,19 @@ import boat.carpetorgaddition.wheel.WorldFormat;
 import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonObject;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.players.PlayerList;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-// TODO 自动清理多余文件
-// TODO 检查 每个动作 玩家组 启动时动作 是否可以正确比较
 public class FakePlayerResidents {
     private final WorldFormat worldFormat;
     /**
      * 所有在线的假玩家
+     * <p>
+     * 服务器关闭时，{@link PlayerList}会在保存玩家数据之前清空，因此使用自定义的集合存储玩家
      */
     private final Map<UUID, EntityPlayerMPFake> players = new HashMap<>();
     @Nullable
@@ -29,6 +30,10 @@ public class FakePlayerResidents {
      */
     @Nullable
     private final HashSet<FakePlayerSerializer> previous;
+    /**
+     * 最多保留的历史版本文件数量
+     */
+    private static final int MAX_FILE_HISTORY_COUNT = 100;
     private static final String GRAVEYARD = "graveyard";
     private static final String RESIDENT = "resident";
 
@@ -98,10 +103,8 @@ public class FakePlayerResidents {
     }
 
     public List<String> listFileTime() {
-        return this.worldFormat.toFileList().stream()
-                .filter(WorldFormat.JSON_EXTENSIONS)
+        return this.listFiles().stream()
                 .map(File::getName)
-                .filter(name -> name.startsWith(RESIDENT + "_"))
                 .map(name -> name.substring((RESIDENT + "_").length()))
                 .map(IOUtils::removeExtension)
                 .toList();
@@ -126,7 +129,9 @@ public class FakePlayerResidents {
         JsonObject json = new JsonObject();
         json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
         JsonObject players = new JsonObject();
-        HashSet<FakePlayerSerializer> serializers = new HashSet<>(this.players.values().stream().map(FakePlayerSerializer::new).toList());
+        HashSet<FakePlayerSerializer> serializers = new HashSet<>(this.players.values().stream()
+                .map(FakePlayerSerializer::new)
+                .toList());
         if (serializers.equals(this.previous)) {
             // 文件曾经保存过，发生了状态回退
             if (this.file != null) {
@@ -149,6 +154,27 @@ public class FakePlayerResidents {
         } catch (IOException e) {
             CarpetOrgAddition.LOGGER.error("Unexpected error encountered while saving player data: ", e);
         }
+    }
+
+    /**
+     * 删除超出限制的文件
+     */
+    public void cleanupFiles() {
+        List<File> list = this.listFiles().stream()
+                // 文件名即为创建日期，直接按照文件名排序
+                .sorted((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
+                .toList();
+        int removeFileCount = list.size() - MAX_FILE_HISTORY_COUNT;
+        if (removeFileCount > 0) {
+            list.subList(0, removeFileCount).forEach(IOUtils::removeFileIfExists);
+        }
+    }
+
+    private List<File> listFiles() {
+        return this.worldFormat.toFileList().stream()
+                .filter(WorldFormat.JSON_EXTENSIONS)
+                .filter(file -> file.getName().startsWith(RESIDENT + "_"))
+                .toList();
     }
 
     private String getFileName(String time) {

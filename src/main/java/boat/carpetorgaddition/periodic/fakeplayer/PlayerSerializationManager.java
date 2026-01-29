@@ -44,7 +44,7 @@ public class PlayerSerializationManager {
             List<File> list = this.worldFormat.toFileList(WorldFormat.JSON_EXTENSIONS);
             for (File file : list) {
                 try {
-                    FakePlayerSerializer serializer = new FakePlayerSerializer(file);
+                    FakePlayerSerializer serializer = FakePlayerSerializer.loadFromFile(file);
                     // TODO 初始化时，不应该重新保存文件
                     this.add(serializer);
                 } catch (IOException | JsonParseException | NullPointerException e) {

@@ -56,6 +56,7 @@ public class ServerComponentCoordinator {
 
     public void onServerStarted() {
         this.playerSerializationManager.init();
+        this.fakePlayerResidents.cleanupFiles();
     }
 
     public void tick() {

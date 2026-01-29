@@ -107,6 +107,9 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     private final File file;
     private final List<Listener> listeners = new ArrayList<>();
 
+    /**
+     * @apiNote 使用此构造方法会丢失玩家所在组，启动时动作等信息
+     */
     public FakePlayerSerializer(EntityPlayerMPFake fakePlayer) {
         this.name = ServerUtils.getPlayerName(fakePlayer);
         this.playerPos = ServerUtils.getFootPos(fakePlayer);
@@ -121,7 +124,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.file = new WorldFormat(ServerUtils.getServer(fakePlayer), PlayerSerializationManager.PLAYER_DATA).file(this.name, "json");
     }
 
-    public FakePlayerSerializer(File file) throws IOException {
+    private FakePlayerSerializer(File file) throws IOException {
         JsonObject json = IOUtils.loadJson(file);
         String name = IOUtils.getFileNameWithoutExtension(file);
         this(json, name, file);
@@ -196,6 +199,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             }
         }
         this.file = file;
+    }
+
+    public static FakePlayerSerializer loadFromFile(File file) throws IOException {
+        return new FakePlayerSerializer(file);
     }
 
     public void save() {
@@ -544,14 +551,12 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                && Objects.equals(dimension, that.dimension)
                && gameMode == that.gameMode
                && Objects.equals(interactiveAction, that.interactiveAction)
-               && Objects.equals(autoAction, that.autoAction)
-               && Objects.equals(groups, that.groups)
-               && Objects.equals(startups, that.startups);
+               && Objects.equals(autoAction, that.autoAction);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, comment, playerPos, yaw, pitch, dimension, gameMode, flying, sneaking, autologin, interactiveAction, autoAction, groups, startups);
+        return Objects.hash(name, comment, playerPos, yaw, pitch, dimension, gameMode, flying, sneaking, autologin, interactiveAction, autoAction);
     }
 
     @Override
