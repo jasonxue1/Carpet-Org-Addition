@@ -234,7 +234,6 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                                         .executes(context -> batchTrial(context, false))
                                                         .then(Commands.argument("at", Vec3Argument.vec3())
                                                                 .executes(context -> batchTrial(context, true))))))))
-                // TODO 更新日志
                 .then(Commands.literal("respawn")
                         .executes(context -> respawnResident(context, null))
                         .then(Commands.argument("time", StringArgumentType.string())

@@ -45,8 +45,7 @@ public class PlayerSerializationManager {
             for (File file : list) {
                 try {
                     FakePlayerSerializer serializer = FakePlayerSerializer.loadFromFile(file);
-                    // TODO 初始化时，不应该重新保存文件
-                    this.add(serializer);
+                    this.add(serializer, false);
                 } catch (IOException | JsonParseException | NullPointerException e) {
                     // 译：未能成功加载玩家数据
                     CarpetOrgAddition.LOGGER.warn("Failed to load player data successfully", e);
@@ -102,6 +101,10 @@ public class PlayerSerializationManager {
     }
 
     public void add(FakePlayerSerializer serializer) {
+        add(serializer, true);
+    }
+
+    private void add(FakePlayerSerializer serializer, boolean save) {
         this.serializers.add(serializer);
         serializer.addListener(new FakePlayerSerializer.Listener() {
             @Override
@@ -123,7 +126,9 @@ public class PlayerSerializationManager {
                 this.addGroup(group, serializer);
             }
         }
-        serializer.save();
+        if (save) {
+            serializer.save();
+        }
     }
 
     public Optional<FakePlayerSerializer> get(String name) {
