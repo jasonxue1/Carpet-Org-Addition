@@ -43,7 +43,7 @@ public class PlayerSerializationManager {
 
     private void load() {
         try {
-            List<File> list = this.worldFormat.toFileList(WorldFormat.JSON_EXTENSIONS);
+            List<File> list = this.worldFormat.listFiles(WorldFormat.JSON_EXTENSIONS);
             for (File file : list) {
                 try {
                     FakePlayerSerializer serializer = FakePlayerSerializer.loadFromFile(file);

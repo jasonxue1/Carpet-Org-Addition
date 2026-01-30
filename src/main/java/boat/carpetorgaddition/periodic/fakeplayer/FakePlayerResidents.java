@@ -39,7 +39,7 @@ public class FakePlayerResidents {
 
     public FakePlayerResidents(MinecraftServer server) {
         this.worldFormat = new WorldFormat(server, PlayerSerializationManager.PLAYER_DATA, GRAVEYARD);
-        List<FakePlayerSerializer> list = this.worldFormat.toFileList().stream()
+        List<FakePlayerSerializer> list = this.worldFormat.listFiles().stream()
                 .filter(WorldFormat.JSON_EXTENSIONS)
                 .filter(file -> file.getName().startsWith(RESIDENT + "_"))
                 .max((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()))
@@ -171,7 +171,7 @@ public class FakePlayerResidents {
     }
 
     private List<File> listFiles() {
-        return this.worldFormat.toFileList().stream()
+        return this.worldFormat.listFiles().stream()
                 .filter(WorldFormat.JSON_EXTENSIONS)
                 .filter(file -> file.getName().startsWith(RESIDENT + "_"))
                 .toList();

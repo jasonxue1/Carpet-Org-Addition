@@ -107,7 +107,7 @@ public class WorldFormat {
      * @apiNote Java貌似没有对中文的拼音排序做很好的支持，因此，中文的排序依然是无序的
      */
     @Unmodifiable
-    public List<File> toFileList() {
+    public List<File> listFiles() {
         File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();
@@ -117,7 +117,7 @@ public class WorldFormat {
     }
 
     @Unmodifiable
-    public List<File> toFileList(Predicate<File> filter) {
+    public List<File> listFiles(Predicate<File> filter) {
         File[] files = this.directory.listFiles();
         if (files == null) {
             return List.of();
