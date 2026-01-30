@@ -163,7 +163,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         if (json.has("hand_action")) {
             this.interactiveAction = new EntityPlayerActionPackSerial(json.get("hand_action").getAsJsonObject());
         } else {
-            this.interactiveAction = EntityPlayerActionPackSerial.NO_ACTION;
+            this.interactiveAction = EntityPlayerActionPackSerial.EMPTY;
         }
         // 假玩家动作，自动合成自动交易等
         if (json.has(PlayerSerializationManager.SCRIPT_ACTION)) {

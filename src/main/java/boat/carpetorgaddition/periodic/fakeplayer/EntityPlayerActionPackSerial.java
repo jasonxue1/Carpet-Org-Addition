@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class EntityPlayerActionPackSerial {
     @Unmodifiable
     private final Map<ActionType, EntityPlayerActionPack.@NonNull Action> actionMap;
-    public static final EntityPlayerActionPackSerial NO_ACTION = new EntityPlayerActionPackSerial();
+    public static final EntityPlayerActionPackSerial EMPTY = new EntityPlayerActionPackSerial();
 
     private EntityPlayerActionPackSerial() {
         this.actionMap = Map.of();
@@ -71,21 +71,18 @@ public class EntityPlayerActionPackSerial {
      * 设置假玩家动作
      */
     public void startAction(EntityPlayerMPFake fakePlayer) {
-        if (this == NO_ACTION) {
+        if (this.actionMap.isEmpty()) {
             return;
         }
         EntityPlayerActionPack action = ((ServerPlayerInterface) fakePlayer).getActionPack();
-        for (Map.Entry<ActionType, EntityPlayerActionPack.Action> entry : this.actionMap.entrySet()) {
-            action.start(entry.getKey(), entry.getValue());
-        }
+        this.actionMap.forEach(action::start);
     }
 
     /**
      * （玩家）是否有动作
      */
     public boolean hasAction() {
-        // TODO 逻辑错误
-        return this == NO_ACTION || !this.actionMap.isEmpty();
+        return !this.actionMap.isEmpty();
     }
 
     /**

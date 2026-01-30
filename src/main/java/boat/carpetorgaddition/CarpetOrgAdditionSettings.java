@@ -139,6 +139,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 强化引雷
      */
+    // TODO 添加忽略维度选项
     public static final Supplier<Boolean> channelingIgnoreWeather = register(
             RuleFactory.create(Boolean.class, "channelingIgnoreWeather", false)
                     .addCategories(RuleCategory.FEATURE)
