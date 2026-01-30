@@ -228,8 +228,8 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                 .setWorld(ServerUtils.getWorldKey(this.dimension))
                 .setGameMode(gameMode)
                 .setFlying(this.flying)
+                .setSneaking(this.sneaking)
                 .setCallback(fakePlayer -> {
-                    fakePlayer.setShiftKeyDown(this.sneaking);
                     // 设置玩家动作
                     this.interactiveAction.startAction(fakePlayer);
                     this.autoAction.clearPlayer();

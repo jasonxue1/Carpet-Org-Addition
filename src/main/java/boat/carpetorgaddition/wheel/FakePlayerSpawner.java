@@ -8,18 +8,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Consumer;
 
+@NullMarked
 public class FakePlayerSpawner {
-    /**
-     * 假玩家在上线或下线时，是否隐藏上下线的消息
-     */
-    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
-    /**
-     * 假玩家生成后执行的回调函数
-     */
-    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
     /**
      * 玩家的名称
      */
@@ -46,9 +41,13 @@ public class FakePlayerSpawner {
      */
     private GameType gameMode;
     /**
-     * 是否正在创造模式飞行
+     * 是否创造模式飞行
      */
     private boolean flying = false;
+    /**
+     * 是否潜行
+     */
+    private boolean sneaking = false;
     /**
      * 在假玩家生成后执行
      */
@@ -57,6 +56,14 @@ public class FakePlayerSpawner {
      * 是否隐藏登录消息
      */
     private boolean silence;
+    /**
+     * 假玩家在上线或下线时，是否隐藏上下线的消息
+     */
+    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
+    /**
+     * 假玩家生成后执行的回调函数
+     */
+    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
 
     private FakePlayerSpawner(MinecraftServer server, String name) {
         this.server = server;
@@ -104,8 +111,13 @@ public class FakePlayerSpawner {
         return this;
     }
 
-    public FakePlayerSpawner setCallback(Consumer<EntityPlayerMPFake> callback) {
-        this.callback = callback;
+    public FakePlayerSpawner setSneaking(boolean sneaking) {
+        this.sneaking = sneaking;
+        return this;
+    }
+
+    public FakePlayerSpawner setCallback(@Nullable Consumer<EntityPlayerMPFake> callback) {
+        this.callback = callback == null ? CarpetOrgAddition::pass : callback;
         return this;
     }
 
@@ -122,6 +134,9 @@ public class FakePlayerSpawner {
     public boolean spawn() {
         if (ServerUtils.getPlayer(server, this.name).isPresent()) {
             return false;
+        }
+        if (this.sneaking) {
+            this.callback = this.callback.andThen(fakePlayer -> fakePlayer.setShiftKeyDown(true));
         }
         return ScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
