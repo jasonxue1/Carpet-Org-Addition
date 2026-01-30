@@ -54,9 +54,14 @@ public class ServerComponentCoordinator {
         this.fakePlayerResidents = new FakePlayerResidents(server);
     }
 
+    /**
+     * 在服务器启动时调用
+     */
     public void onServerStarted() {
         this.playerSerializationManager.init();
         this.fakePlayerResidents.cleanupFiles();
+        this.ruleSelfManager.load();
+        this.playerSerializationManager.autoLogin();
     }
 
     public void tick() {

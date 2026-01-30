@@ -455,32 +455,15 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         };
     }
 
-    /**
-     * 假玩家自动登录
-     */
-    public static void autoLogin(MinecraftServer server) {
-        PlayerSerializationManager playerSerializationManager = ServerComponentCoordinator.getCoordinator(server).getPlayerSerializationManager();
-        try {
-            List<FakePlayerSerializer> list = playerSerializationManager.listAll();
-            int count = server.getPlayerCount();
-            for (FakePlayerSerializer serializer : list) {
-                if (serializer.autologin) {
-                    serializer.spawn(server, false);
-                    count++;
-                    // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
-                    if (count >= server.getMaxPlayers() - 1) {
-                        CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");
-                        break;
-                    }
-                }
-            }
-        } catch (RuntimeException e) {
-            CarpetOrgAddition.LOGGER.error("Unexpected error occurred during player automatic login: ", e);
-        }
-    }
-
     public String getComment() {
         return this.comment;
+    }
+
+    /**
+     * @return 是否自动登录
+     */
+    public boolean isAutologin() {
+        return this.autologin;
     }
 
     public boolean isChanged() {

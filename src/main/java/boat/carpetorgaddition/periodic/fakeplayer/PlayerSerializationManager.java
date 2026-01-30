@@ -19,6 +19,7 @@ public class PlayerSerializationManager {
     public static final String PLAYER_DATA = "player_data";
     public static final String SCRIPT_ACTION = "script_action";
     private final WorldFormat worldFormat;
+    private final MinecraftServer server;
     private final HashSet<FakePlayerSerializer> serializers = new HashSet<>();
     /**
      * 所有组和组内的玩家<br>
@@ -28,6 +29,7 @@ public class PlayerSerializationManager {
 
     public PlayerSerializationManager(MinecraftServer server) {
         this.worldFormat = new WorldFormat(server, PLAYER_DATA);
+        this.server = server;
     }
 
     /**
@@ -181,5 +183,26 @@ public class PlayerSerializationManager {
     public boolean remove(FakePlayerSerializer serializer) {
         boolean remove = this.serializers.remove(serializer);
         return remove && serializer.remove();
+    }
+
+    /**
+     * 假玩家自动登录
+     */
+    public void autoLogin() {
+        try {
+            int count = this.server.getPlayerCount();
+            List<FakePlayerSerializer> list = this.serializers.stream().filter(FakePlayerSerializer::isAutologin).toList();
+            for (FakePlayerSerializer serializer : list) {
+                serializer.spawn(this.server, false);
+                count++;
+                // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
+                if (count >= this.server.getMaxPlayers() - 1) {
+                    CarpetOrgAddition.LOGGER.warn("The number of server players is about to reach its limit");
+                    break;
+                }
+            }
+        } catch (RuntimeException e) {
+            CarpetOrgAddition.LOGGER.error("Unexpected error occurred during player automatic login: ", e);
+        }
     }
 }

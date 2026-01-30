@@ -6,7 +6,6 @@ import boat.carpetorgaddition.command.SpectatorCommand;
 import boat.carpetorgaddition.config.GlobalConfigs;
 import boat.carpetorgaddition.logger.LoggerRegister;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
-import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.search.OfflinePlayerSearchTask;
 import boat.carpetorgaddition.util.ServerUtils;
@@ -105,16 +104,9 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
     }
 
     @Override
-    public void onServerLoaded(MinecraftServer server) {
-        ServerComponentCoordinator.getCoordinator(server).onServerStarted();
-    }
-
-    @Override
     public void onServerLoadedWorlds(MinecraftServer server) {
-        // 玩家自动登录
-        FakePlayerSerializer.autoLogin(server);
+        ServerComponentCoordinator.getCoordinator(server).onServerStarted();
         PermissionManager.load(server);
-        ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager().load();
     }
 
     @Override
