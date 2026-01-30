@@ -137,9 +137,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                 .executes(context -> this.raise(context, null))
                                 .then(Commands.argument("message", StringArgumentType.string())
                                         .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))
-                        .then(Commands.literal("closeScreen")
-                                // TODO 不再只允许在开发环境下生效
-                                .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                        .then(Commands.literal("esc")
                                 .executes(this::closeScreen))));
     }
 
@@ -477,6 +475,13 @@ public class PlayerActionCommand extends AbstractServerCommand {
         return 1;
     }
 
+    // 关闭当前屏幕
+    private int closeScreen(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
+        fakePlayer.closeContainer();
+        return 1;
+    }
+
     // 调试：设置动作抛出异常
     private int raise(CommandContext<CommandSourceStack> context, @Nullable String message) throws CommandSyntaxException {
         if (CarpetOrgAddition.isDebugDevelopment()) {
@@ -484,16 +489,6 @@ public class PlayerActionCommand extends AbstractServerCommand {
             FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
             FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
             actionManager.setDebugExceptionMessage(message == null ? "Manually triggered debug exception" : message);
-            return 1;
-        }
-        return 0;
-    }
-
-    // 调试：关闭当前屏幕
-    private int closeScreen(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        if (CarpetOrgAddition.isDebugDevelopment()) {
-            EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-            fakePlayer.closeContainer();
             return 1;
         }
         return 0;
