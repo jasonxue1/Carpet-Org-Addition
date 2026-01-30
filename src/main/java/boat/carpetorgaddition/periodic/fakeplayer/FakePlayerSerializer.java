@@ -25,14 +25,11 @@ import carpet.patches.EntityPlayerMPFake;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Unmodifiable;
 import org.jspecify.annotations.NullMarked;
@@ -41,7 +38,6 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @NullMarked
@@ -218,43 +214,32 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this.isChanged = false;
     }
 
-    // 生成假玩家
-    public void spawn(MinecraftServer server) throws CommandSyntaxException {
-        spawn(server, false);
-    }
-
     /**
-     * @param silence 是否不显示登录消息
+     * @param message 是否显示登录消息
      */
-    public void spawn(MinecraftServer server, boolean silence) throws CommandSyntaxException {
-        // TODO 移动到外部
-        if (ServerUtils.getPlayer(server, name).isPresent()) {
-            throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
-        }
+    public boolean spawn(MinecraftServer server, boolean message) {
         CommandSourceStack source = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        Consumer<EntityPlayerMPFake> callback = fakePlayer -> {
-            fakePlayer.setShiftKeyDown(this.sneaking);
-            // 设置玩家动作
-            this.interactiveAction.startAction(fakePlayer);
-            this.autoAction.clearPlayer();
-            this.autoAction.startAction(fakePlayer);
-            for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
-                FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(source, fakePlayer, entry.getKey(), entry.getValue());
-                CommandUtils.handlingException(() -> taskManager.addTask(task), source);
-            }
-        };
         // 生成假玩家
-        ResourceKey<Level> world = ServerUtils.getWorldKey(this.dimension);
-        FakePlayerSpawner.of(server, this.name)
+        return FakePlayerSpawner.of(server, this.name)
                 .setPosition(this.playerPos)
                 .setYaw(this.yaw)
                 .setPitch(this.pitch)
-                .setWorld(world)
+                .setWorld(ServerUtils.getWorldKey(this.dimension))
                 .setGameMode(gameMode)
                 .setFlying(this.flying)
-                .setCallback(callback)
-                .setSilence(silence)
+                .setCallback(fakePlayer -> {
+                    fakePlayer.setShiftKeyDown(this.sneaking);
+                    // 设置玩家动作
+                    this.interactiveAction.startAction(fakePlayer);
+                    this.autoAction.clearPlayer();
+                    this.autoAction.startAction(fakePlayer);
+                    for (Map.Entry<FakePlayerStartupAction, Integer> entry : this.startups.entrySet()) {
+                        FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(source, fakePlayer, entry.getKey(), entry.getValue());
+                        CommandUtils.handlingException(() -> taskManager.addTask(task), source);
+                    }
+                })
+                .setSilence(!message)
                 .spawn();
     }
 
@@ -480,7 +465,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             int count = server.getPlayerCount();
             for (FakePlayerSerializer serializer : list) {
                 if (serializer.autologin) {
-                    serializer.spawn(server, true);
+                    serializer.spawn(server, false);
                     count++;
                     // 阻止假玩家把玩家上线占满，至少为一名真玩家保留一个名额
                     if (count >= server.getMaxPlayers() - 1) {
@@ -489,7 +474,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                     }
                 }
             }
-        } catch (RuntimeException | CommandSyntaxException e) {
+        } catch (RuntimeException e) {
             CarpetOrgAddition.LOGGER.error("Unexpected error occurred during player automatic login: ", e);
         }
     }

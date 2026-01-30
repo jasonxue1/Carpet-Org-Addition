@@ -34,6 +34,9 @@ import java.util.Map;
 public class CarpetOrgAdditionExtension implements CarpetExtension {
     private static boolean settingsLoaded = false;
 
+    public CarpetOrgAdditionExtension() {
+    }
+
     // 在游戏开始时
     @Override
     public void onGameStarted() {

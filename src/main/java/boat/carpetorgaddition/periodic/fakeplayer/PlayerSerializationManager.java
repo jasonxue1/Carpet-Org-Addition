@@ -101,7 +101,7 @@ public class PlayerSerializationManager {
     }
 
     public void add(FakePlayerSerializer serializer) {
-        add(serializer, true);
+        this.add(serializer, true);
     }
 
     private void add(FakePlayerSerializer serializer, boolean save) {

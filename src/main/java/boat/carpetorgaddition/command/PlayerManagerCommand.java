@@ -430,16 +430,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (list.isEmpty()) {
             throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
-        int count = 0;
-        // 如果玩家不存在则生成
-        for (FakePlayerSerializer serializer : list) {
-            if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
-                serializer.spawn(server, true);
-                count++;
-            }
-        }
+        int count = (int) list.stream()
+                // 如果玩家不存在则生成
+                .filter(serializer -> serializer.spawn(server, false))
+                .count();
         sendPlayerJoinMessage(server, count);
-        return list.size();
+        return count;
     }
 
     private int killGroupPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
@@ -800,7 +796,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 生成假玩家
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
             CarpetOrgAdditionSettings.playerSummoner.set(context.getSource().getPlayer());
-            serializer.spawn(context.getSource().getServer());
+            MinecraftServer server = context.getSource().getServer();
+            if (ServerUtils.getPlayer(server, name).isPresent()) {
+                throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
+            }
+            serializer.spawn(server, true);
         } catch (RuntimeException e) {
             // 尝试生成假玩家时出现意外问题
             throw CommandUtils.createException(KEY.then("spawn", "fail").translate(), e);
@@ -846,11 +846,10 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         }
         ServerTaskManager taskManager = coordinator.getServerTaskManager();
-        List<Runnable> list = set.stream().map((Function<FakePlayerSerializer, Runnable>) serializer -> () -> {
-            if (ServerUtils.getPlayer(server, serializer.getName()).isEmpty()) {
-                CommandUtils.handlingException(() -> serializer.spawn(server), source);
-            }
-        }).toList();
+        List<Runnable> list = set.stream()
+                .filter(serializer -> ServerUtils.getPlayer(server, serializer.getName()).isEmpty())
+                .map(serializer -> (Runnable) () -> serializer.spawn(server, true))
+                .toList();
         taskManager.addTask(new IterativeTask(source, list, 30, 10000));
         return set.size();
     }

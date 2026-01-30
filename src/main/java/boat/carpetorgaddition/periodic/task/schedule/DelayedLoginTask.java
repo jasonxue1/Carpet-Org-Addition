@@ -1,6 +1,5 @@
 package boat.carpetorgaddition.periodic.task.schedule;
 
-import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
 import boat.carpetorgaddition.util.MessageUtils;
@@ -8,7 +7,6 @@ import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -30,22 +28,9 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     @Override
     public void tick() {
         if (this.delayed == 0L) {
-            try {
-                // 生成假玩家
-                try {
-                    serial.spawn(server);
-                } catch (CommandSyntaxException e) {
-                    CarpetOrgAddition.LOGGER.error("Player {} already exists", this.serial.getName(), e);
-                } catch (RuntimeException e) {
-                    CarpetOrgAddition.LOGGER.error("Player {} failed to log in within the specified time", this.serial.getName(), e);
-                }
-            } finally {
-                // 将此任务设为已执行结束
-                this.delayed = -1L;
-            }
-        } else {
-            this.delayed--;
+            this.serial.spawn(this.server, true);
         }
+        this.delayed--;
     }
 
     @Override
@@ -85,5 +70,4 @@ public class DelayedLoginTask extends PlayerScheduleTask {
     public boolean stopped() {
         return this.delayed < 0L;
     }
-
 }

@@ -5,7 +5,6 @@ import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.exception.TaskExecutionException;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSerializer;
-import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
@@ -13,7 +12,6 @@ import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import carpet.patches.EntityPlayerMPFake;
 import carpet.utils.Messenger;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.DisconnectionDetails;
 import net.minecraft.network.chat.Component;
@@ -177,14 +175,12 @@ public class ReLoginTask extends PlayerScheduleTask {
     private void loginPlayer() {
         try {
             try {
+                // TODO 不再需要
                 HOME_POSITION.set(true);
-                this.serializer.spawn(this.server, true);
+                this.serializer.spawn(this.server, false);
             } finally {
                 HOME_POSITION.set(false);
             }
-        } catch (CommandSyntaxException e) {
-            CommandUtils.handlingException(e, this.source);
-            this.stop();
         } catch (RuntimeException e) {
             CarpetOrgAddition.LOGGER.warn("Fake player encounter unexpected errors while logging in", e);
             this.stop();

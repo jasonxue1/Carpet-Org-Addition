@@ -116,13 +116,15 @@ public class FakePlayerSpawner {
 
     /**
      * 如果玩家不存在，则召唤玩家
+     *
+     * @return 是否召唤成功
      */
-    public void spawn() {
+    public boolean spawn() {
         if (ServerUtils.getPlayer(server, this.name).isPresent()) {
-            return;
+            return false;
         }
-        ScopedValue.where(SILENCE, this.silence)
+        return ScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
-                .run(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
+                .call(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
     }
 }
