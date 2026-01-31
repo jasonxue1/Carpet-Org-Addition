@@ -7,8 +7,6 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import carpet.patches.EntityPlayerMPFake;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.PermissionSet;
@@ -16,8 +14,6 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodData;
 import net.minecraft.world.item.ItemStack;
@@ -138,26 +134,6 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     private void getEntityInteractionRange(CallbackInfoReturnable<Double> cir) {
         if (CarpetOrgAdditionSettings.maxBlockPlaceDistanceReferToEntity.get()) {
             cir.setReturnValue(RuleUtils.getPlayerMaxInteractionDistance());
-        }
-    }
-
-    // 玩家死亡产生的掉落物不会自然消失
-    @WrapOperation(method = "dropEquipment", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;dropAll()V"))
-    private void drop(Inventory inventory, Operation<Void> original) {
-        if (CarpetOrgAdditionSettings.playerDropsNotDespawning.get()) {
-            for (ItemStack itemStack : inventory) {
-                if (!itemStack.isEmpty()) {
-                    ItemEntity itemEntity = inventory.player.drop(itemStack, true, false);
-                    if (itemEntity == null) {
-                        continue;
-                    }
-                    // 设置掉落物不消失
-                    itemEntity.setUnlimitedLifetime();
-                }
-            }
-        } else {
-            // 掉落物正常消失
-            original.call(inventory);
         }
     }
 

@@ -55,6 +55,7 @@
     "rule.FireworkRocketItemMixin",
     "rule.FishingMixin",
     "rule.GameRuleCommandMixin",
+    "rule.InventoryMixin",
     "rule.ItemMixin",
     "rule.ItemScattererMixin",
     "rule.KillCommandMixin",
