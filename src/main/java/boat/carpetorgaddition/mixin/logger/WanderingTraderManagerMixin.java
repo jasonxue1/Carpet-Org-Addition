@@ -6,7 +6,9 @@ import boat.carpetorgaddition.logger.Loggers;
 import boat.carpetorgaddition.logger.WanderingTraderSpawnLogger;
 import boat.carpetorgaddition.logger.WanderingTraderSpawnLogger.SpawnCountdown;
 import boat.carpetorgaddition.mixin.accessor.carpet.LoggerAccessor;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import boat.carpetorgaddition.wheel.provider.TextProvider;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
@@ -24,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTrader;
 import net.minecraft.world.entity.npc.wanderingtrader.WanderingTraderSpawner;
 import net.minecraft.world.level.gamerules.GameRules;
+import net.minecraft.world.level.saveddata.WanderingTraderData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -34,22 +37,20 @@ import java.util.Map;
 import java.util.Set;
 
 @Mixin(WanderingTraderSpawner.class)
-public class WanderingTraderManagerMixin {
+public abstract class WanderingTraderManagerMixin {
     @Shadow
-    private int spawnDelay;
+    protected abstract WanderingTraderData getTraderData();
 
     @Shadow
     private int tickDelay;
 
-    @Shadow
-    private int spawnChance;
-
     @Inject(method = "tick", at = @At("HEAD"))
     private void updataLogger(ServerLevel world, boolean spawnMonsters, CallbackInfo ci) {
         if (world.getGameRules().get(GameRules.SPAWN_WANDERING_TRADERS)) {
+            WanderingTraderData data = this.getTraderData();
             // 获取流浪商人生成的倒计时，并换算成秒
-            int countdown = ((this.spawnDelay == 0 ? 1200 : this.spawnDelay) - (1200 - this.tickDelay)) / 20;
-            WanderingTraderSpawnLogger.setSpawnCountdown(new SpawnCountdown(countdown, this.spawnChance));
+            int countdown = ((data.spawnDelay() == 0 ? 1200 : data.spawnDelay()) - (1200 - this.tickDelay)) / 20;
+            WanderingTraderSpawnLogger.setSpawnCountdown(new SpawnCountdown(countdown, data.spawnChance()));
             return;
         }
         WanderingTraderSpawnLogger.setSpawnCountdown(null);
