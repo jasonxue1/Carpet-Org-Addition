@@ -145,7 +145,7 @@
   "carpet.rule.beaconRangeExpand.desc": "将信标范围向四周扩展指定格数",
   "carpet.rule.beaconRangeExpand.extra.0": "值可以为负数，表示向内收缩指定格数",
   "carpet.rule.beaconWorldHeight.name": "信标世界高度",
-  "carpet.rule.beaconWorldHeight.desc": "将信标竖直方向的范围调整为整个世界高度",
+  "carpet.rule.beaconWorldHeight.desc": "将信标竖直方向的范围调整为整个世界高度再向上下方向各扩展64格",
   "carpet.rule.canHighlightBlockPos.name": "可高亮方块坐标",
   "carpet.rule.canHighlightBlockPos.desc": "在方块坐标文本右侧添加一个按钮用来单击高亮方块坐标",
   "carpet.rule.canHighlightBlockPos.extra.0": "false：禁用本条规则",

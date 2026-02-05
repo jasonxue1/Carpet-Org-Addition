@@ -83,7 +83,7 @@
   "carpet.rule.playerDropHead.desc": "Player drops head when killed by a charged creeper",
   "carpet.rule.beaconRangeExpand.desc": "Extend range of beacon to specified distance",
   "carpet.rule.beaconRangeExpand.extra.0": "The value could be negative to shrink the range",
-  "carpet.rule.beaconWorldHeight.desc": "Set the vertical range of beacon to the entire world height",
+  "carpet.rule.beaconWorldHeight.desc": "Adjust the beacon's vertical range to span the entire world height and extend it by an additional 64 blocks above and below",
   "carpet.rule.canHighlightBlockPos.desc": "Add a button for highlight path point on the right of block position text",
   "carpet.rule.canHighlightBlockPos.extra.0": "false: Disable this rule",
   "carpet.rule.canHighlightBlockPos.extra.1": "ommc: Highlight waypoint using OMMC",

@@ -630,7 +630,6 @@ public class CarpetOrgAdditionSettings {
     /**
      * 信标世界高度
      */
-    // TODO 向上下扩展64格
     public static final Supplier<Boolean> beaconWorldHeight = register(
             RuleFactory.create(Boolean.class, "beaconWorldHeight", false)
                     .addCategories(RuleCategory.SURVIVAL)

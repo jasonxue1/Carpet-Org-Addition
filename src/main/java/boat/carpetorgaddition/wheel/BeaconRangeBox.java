@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.provider.CommandProvider;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -81,7 +82,8 @@ public class BeaconRangeBox extends AABB {
 
     // 将信标范围调整为整个世界高度
     public BeaconRangeBox worldHeight(Level world) {
-        int topY = world.getMinY() + world.getHeight();
-        return new BeaconRangeBox(minX, world.getMinY(), minZ, maxX, topY, maxZ);
+        int bottom = ServerUtils.getMinArchitectureAltitude(world) - 64;
+        int top = ServerUtils.getMaxArchitectureAltitude(world) + 64;
+        return new BeaconRangeBox(minX, bottom, minZ, maxX, top, maxZ);
     }
 }
