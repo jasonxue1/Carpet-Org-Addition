@@ -14,7 +14,7 @@
 
 ## 版本支持
 
-<p>主版本：1.21</p>
+<p>主版本：26.1</p>
 <table>
   <tr>
     <th>游戏版本</th>
@@ -25,7 +25,7 @@
   <tbody align="center"> 
     <tr>
       <td>1.19.4</td>
-      <td rowspan="7">停止支持</td>
+      <td rowspan="8">停止支持</td>
       <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.26.2">v1.26.2</a></td>
     </tr>
     <tr>
@@ -53,9 +53,13 @@
       <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.30.0">v1.30.0</a></td>
     </tr>
     <tr>
-      <td>1.21-最新正式版</td>
+      <td>1.21 - 1.21.11</td>
+      <td><a href="https://github.com/fcsailboat/Carpet-Org-Addition/releases/tag/v1.41.3">v1.41.3</a></td>
+    </tr>
+    <tr>
+      <td>26.1</td>
       <td>维护中</td>
-      <td><p>-</p></td>
+      <td>-</td>
     </tr>
   </tbody>
 </table>
