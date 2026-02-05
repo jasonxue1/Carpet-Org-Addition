@@ -132,6 +132,7 @@
   "carpet.rule.itemPickupRangeExpand.desc": "Extend range of item pickup by specified distance",
   "carpet.rule.itemPickupRangeExpandPlayerControl.desc": "Allow players to decide for themselves whether to enable \"itemPickupRangeExpand\"",
   "carpet.rule.playerCommandOpenPlayerInventoryGcaStyle.desc": "Replace the player inventory opened via the /player command with the GCA style",
+  "carpet.rule.softNetherite.desc": "After the update is applied, the hardness of Ancient Debris and Netherite Blocks will be adjusted to 1/18 of their original values",
   "carpet-org-addition.rule.message.disableRespawnBlocksExplode": "Respawn blocks explosion is disabled",
   "carpet-org-addition.rule.message.CCEUpdateSuppression": "You cannot open the shulkerbox for update surpression",
   "carpet-org-addition.rule.message.displayPlayerSummoner": "↑ Summoned by %s",
