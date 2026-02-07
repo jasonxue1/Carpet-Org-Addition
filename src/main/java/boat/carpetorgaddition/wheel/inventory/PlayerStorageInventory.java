@@ -175,7 +175,7 @@ public class PlayerStorageInventory implements PlayerDecomposedContainer, Sortab
      */
     @CheckReturnValue
     private ItemStack insertToShulkerBox(ItemStack itemStack) {
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value()) {
             itemStack = itemStack.copyAndClear();
             // 所有潜影盒所在的索引
             ArrayList<Integer> shulkers = new ArrayList<>();
@@ -259,7 +259,7 @@ public class PlayerStorageInventory implements PlayerDecomposedContainer, Sortab
         if (predicate.test(stackInHand)) {
             return true;
         }
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value();
         ArrayList<Integer> shulkers = new ArrayList<>();
         // 当前手槽位
         int headSlot = this.getHandSlotIndex(hand);
@@ -307,7 +307,7 @@ public class PlayerStorageInventory implements PlayerDecomposedContainer, Sortab
      * @return 物品栏中是否包含指定物品
      */
     public boolean contains(Predicate<ItemStack> predicate) {
-        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get();
+        boolean pickItemFromShulker = CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value();
         for (int i = 0; i < this.getContainerSize(); i++) {
             ItemStack itemStack = this.getItem(i);
             if (itemStack.isEmpty()) {

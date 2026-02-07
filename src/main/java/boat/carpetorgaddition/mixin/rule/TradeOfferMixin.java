@@ -13,7 +13,7 @@ public class TradeOfferMixin {
     //村民无限交易
     @Inject(method = "increaseUses", at = @At("HEAD"), cancellable = true)
     private void use(CallbackInfo ci) {
-        if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()) {
+        if (CarpetOrgAdditionSettings.villagerInfiniteTrade.value()) {
             ci.cancel();
         }
     }

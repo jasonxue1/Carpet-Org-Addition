@@ -108,7 +108,7 @@ public class FakePlayerUtils {
         ItemStack itemStack = screenHandler.getSlot(fromIndex).getItem();
         // 如果假玩家合成保留物品启用，并且该物品的数量为1，并且该物品的最大堆叠数大于1
         // 认为这个物品需要保留，不移动物品
-        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && itemStack.getCount() == 1 && itemStack.getMaxStackSize() > 1) {
+        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.value() && itemStack.getCount() == 1 && itemStack.getMaxStackSize() > 1) {
             return false;
         }
         // 如果鼠标光标上有物品，先把光标上的物品丢弃
@@ -117,7 +117,7 @@ public class FakePlayerUtils {
         }
         screenHandler.clicked(fromIndex, PICKUP_LEFT_CLICK, ContainerInput.PICKUP, player);
         // 如果规则假玩家合成保留物品启用，并且该物品的最大堆叠数大于1，就在该槽位上再放回一个物品
-        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.get() && screenHandler.getCarried().getMaxStackSize() > 1) {
+        if (CarpetOrgAdditionSettings.fakePlayerActionKeepItem.value() && screenHandler.getCarried().getMaxStackSize() > 1) {
             screenHandler.clicked(fromIndex, PICKUP_RIGHT_CLICK, ContainerInput.PICKUP, player);
         }
         screenHandler.clicked(toIndex, PICKUP_LEFT_CLICK, ContainerInput.PICKUP, player);

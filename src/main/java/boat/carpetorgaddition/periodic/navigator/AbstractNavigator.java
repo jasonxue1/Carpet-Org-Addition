@@ -134,7 +134,7 @@ public abstract class AbstractNavigator {
         if (force || this.updateRequired()) {
             // 要求玩家有执行/navigate命令的权限
             boolean hasPermission = CommandUtils.canUseCommand(this.player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate);
-            if (CarpetOrgAdditionSettings.syncNavigateWaypoint.get() && hasPermission) {
+            if (CarpetOrgAdditionSettings.syncNavigateWaypoint.value() && hasPermission) {
                 WaypointUpdateS2CPacket packet = this.createPacket();
                 ServerPlayNetworking.send(this.player, packet);
             }

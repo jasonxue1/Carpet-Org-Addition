@@ -61,7 +61,7 @@ public abstract class TridentEntityMixin extends AbstractArrow {
         }
         // TODO 引雷忽略了维度和露天，这是一开始就设计成这样的吗？
         boolean hasChanneling = EnchantmentUtils.hasEnchantment(world, Enchantments.CHANNELING, this.getWeaponItem());
-        if (CarpetOrgAdditionSettings.channelingIgnoreWeather.get() && Level.isInSpawnableBounds(blockPos) && hasChanneling) {
+        if (CarpetOrgAdditionSettings.channelingIgnoreWeather.value() && Level.isInSpawnableBounds(blockPos) && hasChanneling) {
             LightningBolt lightning = EntityType.LIGHTNING_BOLT.spawn(world, blockPos, EntitySpawnReason.TRIGGERED);
             if (lightning == null) {
                 return;

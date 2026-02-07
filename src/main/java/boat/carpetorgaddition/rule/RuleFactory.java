@@ -2,7 +2,7 @@ package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.rule.validator.Validator;
+import boat.carpetorgaddition.rule.validator.ValueValidator;
 import carpet.api.settings.CarpetRule;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
@@ -23,8 +23,9 @@ public class RuleFactory {
         private final Collection<String> suggestions;
         @NotNull
         private final T value;
-        private final List<Validator<T>> validators = new ArrayList<>();
-        private final List<RuleObserver<T>> observers = new ArrayList<>();
+        private final List<ValueValidator<T>> validators = new ArrayList<>();
+        private final List<SilenceValueValidator<T>> silenceValidators = new ArrayList<>();
+        private final List<RuleListener<T>> listeners = new ArrayList<>();
         private final List<Supplier<Boolean>> conditions = new ArrayList<>();
         private boolean canBeToggledClientSide = false;
         private boolean strict = true;
@@ -130,18 +131,21 @@ public class RuleFactory {
         }
 
         public Builder<T> addValidator(Predicate<T> predicate, Supplier<Component> supplier) {
-            return this.addValidators(Validator.of(predicate, supplier));
+            return this.addValidator(ValueValidator.of(predicate, supplier));
         }
 
-        @SafeVarargs
-        public final Builder<T> addValidators(Validator<T>... validators) {
-            this.validators.addAll(List.of(validators));
+        public final Builder<T> addValidator(ValueValidator<T> valueValidators) {
+            this.validators.add(valueValidators);
             return this;
         }
 
-        @SafeVarargs
-        public final Builder<T> addObservers(RuleObserver<T>... observers) {
-            this.observers.addAll(List.of(observers));
+        public final Builder<T> addSilenceValidator(SilenceValueValidator<T> observers) {
+            this.silenceValidators.add(observers);
+            return this;
+        }
+
+        public final Builder<T> addListener(RuleListener<T> listener) {
+            this.listeners.add(listener);
             return this;
         }
 
@@ -154,7 +158,8 @@ public class RuleFactory {
                     this.value,
                     this.canBeToggledClientSide,
                     this.validators,
-                    this.observers,
+                    this.silenceValidators,
+                    this.listeners,
                     this.strict,
                     this.displayName,
                     this.displayDesc

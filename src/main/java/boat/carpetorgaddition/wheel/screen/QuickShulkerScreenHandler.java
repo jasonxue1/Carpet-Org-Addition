@@ -78,7 +78,7 @@ public class QuickShulkerScreenHandler extends ShulkerBoxMenu implements Unavail
     }
 
     private boolean canUseQuickShulker() {
-        return CarpetOrgAdditionSettings.quickShulker.get() || this.player instanceof EntityPlayerMPFake;
+        return CarpetOrgAdditionSettings.quickShulker.value() || this.player instanceof EntityPlayerMPFake;
     }
 
     @Override

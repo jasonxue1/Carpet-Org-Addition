@@ -763,7 +763,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             return 0;
         } else {
             String comment = hasComment ? StringArgumentType.getString(context, "comment") : "";
-            if (CarpetOrgAdditionSettings.playerManagerForceComment.get() && comment.isBlank()) {
+            if (CarpetOrgAdditionSettings.playerManagerForceComment.value() && comment.isBlank()) {
                 throw CommandUtils.createException(LocalizationKeys.Rule.Message.PLAYER_MANAGER_FORCE_COMMENT.translate());
             }
             FakePlayerSerializer serializer = new FakePlayerSerializer(fakePlayer);
@@ -1052,7 +1052,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
 
     // 启用内存泄漏修复
     private boolean fixMemoryLeak(CommandContext<CommandSourceStack> context) {
-        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerSpawnMemoryLeakFix.value()) {
             return true;
         }
         // 单击后输入的命令

@@ -69,7 +69,7 @@ public class PlayerCommandExtension {
 
     @NullMarked
     public static int openInventory(ServerPlayer player, PlayerInventoryType type, PlayerInventroyAccessor accessor) throws CommandSyntaxException {
-        CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get().checkPermission(player, accessor.getGameProfile());
+        CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.value().checkPermission(player, accessor.getGameProfile());
         PlayerUtils.openScreenHandler(
                 player,
                 (containerId, inventory, serverPlayer) -> accessor.createMenu(containerId, inventory, serverPlayer, type),
@@ -135,7 +135,7 @@ public class PlayerCommandExtension {
                     .join();
             this.gameProfile = interviewee.getGameProfile();
             this.inventory = (containerId, inventory, _) -> {
-                if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
+                if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.value()) {
                     return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
                 } else {
                     return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
@@ -166,7 +166,7 @@ public class PlayerCommandExtension {
                         .append(interviewee.getDisplayName())
                         .join();
                 this.inventory = (containerId, inventory, _) -> {
-                    if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.get()) {
+                    if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.value()) {
                         return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
                     } else {
                         return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
@@ -214,7 +214,7 @@ public class PlayerCommandExtension {
         }
 
         private static void checkCanBeOpened(@Nullable ServerPlayer player) throws CommandSyntaxException {
-            OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.get();
+            OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.value();
             switch (player) {
                 case EntityPlayerMPFake _ -> {
                     if (option.canOpenFakePlayer()) {

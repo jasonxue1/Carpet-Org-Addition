@@ -26,7 +26,7 @@ public class EntityPlayerMPFakeMixin extends ServerPlayer {
     @Inject(method = "tick", at = @At("HEAD"))
     private void fakePlayerTick(CallbackInfo ci) {
         // 假玩家回血
-        if (CarpetOrgAdditionSettings.fakePlayerHeal.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerHeal.value()) {
             long time = ServerUtils.getWorld(thisPlayer).getGameTime();
             if (time % 40 == 0) {
                 // 回复血量

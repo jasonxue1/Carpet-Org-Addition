@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.util;
 
+import boat.carpetorgaddition.rule.RuleAccessor;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import boat.carpetorgaddition.wheel.text.TextJoiner;
@@ -27,7 +28,6 @@ import net.minecraft.world.entity.player.Player;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class CommandUtils {
     public static final String PLAYER = "player";
@@ -305,12 +305,12 @@ public class CommandUtils {
      * @return 玩家是否有执行某一命令的权限
      * @see CommandHelper#canUseCommand(CommandSourceStack, Object)
      */
-    public static Predicate<CommandSourceStack> canUseCommand(Supplier<String> supplier) {
-        return source -> canUseCommand(source, supplier.get());
+    public static Predicate<CommandSourceStack> canUseCommand(RuleAccessor<String> supplier) {
+        return source -> canUseCommand(source, supplier.value());
     }
 
-    public static boolean canUseCommand(CommandSourceStack source, Supplier<String> supplier) {
-        return canUseCommand(source, supplier.get());
+    public static boolean canUseCommand(CommandSourceStack source, RuleAccessor<String> supplier) {
+        return canUseCommand(source, supplier.value());
     }
 
     public static boolean canUseCommand(CommandSourceStack source, String rule) {

@@ -385,7 +385,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (hasMaterial(list, pistonCount, levelCount)) {
             return true;
         }
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value()) {
             return list.stream()
                     .filter(InventoryUtils::isOperableSulkerBox)
                     .map(ContainerComponentInventory::new)
@@ -1005,7 +1005,7 @@ public class BedrockAction extends AbstractPlayerAction {
         if (dropped) {
             return;
         }
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value()) {
             this.collectMaterialToShulkerBox();
             this.collectToolToShulkerBox();
         }

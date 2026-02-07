@@ -131,7 +131,7 @@ public class PagedCollection implements Iterable<Page> {
     }
 
     public static int maximumNumberOfRow() {
-        return Math.max(CarpetOrgAdditionSettings.maxLinesPerPage.get(), 1);
+        return Math.max(CarpetOrgAdditionSettings.maxLinesPerPage.value(), 1);
     }
 
     @Override

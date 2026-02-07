@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.At;
 public class EnderChestBlockMixin {
     @WrapOperation(method = "useWithoutItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/state/BlockState;isRedstoneConductor(Lnet/minecraft/world/level/BlockGetter;Lnet/minecraft/core/BlockPos;)Z"))
     private boolean forceOpenEnderChest(BlockState instance, BlockGetter blockGetter, BlockPos blockPos, Operation<Boolean> original) {
-        if (CarpetOrgAdditionSettings.forceOpenContainer.get().canOpenChest()) {
+        if (CarpetOrgAdditionSettings.forceOpenContainer.value().canOpenChest()) {
             return false;
         }
         return original.call(instance, blockGetter, blockPos);

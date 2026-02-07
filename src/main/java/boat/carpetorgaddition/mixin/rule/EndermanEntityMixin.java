@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class EndermanEntityMixin {
     @Inject(method = "isBeingStaredBy", at = @At("HEAD"), cancellable = true)
     private void isPlayerStaring(Player player, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.staringEndermanNotAngry.get()) {
+        if (CarpetOrgAdditionSettings.staringEndermanNotAngry.value()) {
             cir.setReturnValue(false);
         }
     }

@@ -21,7 +21,7 @@ public class ServerPlayerInteractionManagerMixin {
         if (stack.isEmpty()) {
             return;
         }
-        if (CarpetOrgAdditionSettings.quickShulker.get() && InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1) {
+        if (CarpetOrgAdditionSettings.quickShulker.value() && InventoryUtils.isShulkerBoxItem(stack) && stack.getCount() == 1) {
             PlayerUtils.openShulkerScreenHandler(player, stack);
             cir.setReturnValue(InteractionResult.SUCCESS);
         }

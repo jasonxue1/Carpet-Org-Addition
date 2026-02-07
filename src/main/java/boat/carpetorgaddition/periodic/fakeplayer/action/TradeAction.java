@@ -129,9 +129,9 @@ public class TradeAction extends AbstractPlayerAction {
                 // 假玩家可能交易出其他交易选项的物品，请参阅：https://bugs.mojang.com/browse/MC-215441
                 if (outputSlot.hasItem()) {
                     this.compareAndThrow(screenHandler, 2, tradeOffer.getResult(), fakePlayer);
-                    if (CarpetOrgAdditionSettings.villagerInfiniteTrade.get()
-                        && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() > 0
-                        && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
+                    if (CarpetOrgAdditionSettings.villagerInfiniteTrade.value()
+                        && CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value() > 0
+                        && loopCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value()) {
                         return;
                     }
                 } else {
@@ -142,7 +142,7 @@ public class TradeAction extends AbstractPlayerAction {
                 return;
             }
             // 如果启用了村民无限交易或当前为虚空交易，则尽可能完成所有交易
-        } while (this.voidTrade || CarpetOrgAdditionSettings.villagerInfiniteTrade.get());
+        } while (this.voidTrade || CarpetOrgAdditionSettings.villagerInfiniteTrade.value());
     }
 
     // 选择物品
@@ -195,7 +195,7 @@ public class TradeAction extends AbstractPlayerAction {
             }
         }
         // 从潜影盒寻找物品
-        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get()) {
+        if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value()) {
             return this.pickFromShulkerBox(merchantScreenHandler, buyItem, slotIndex, tradeSlot);
         }
         return false;

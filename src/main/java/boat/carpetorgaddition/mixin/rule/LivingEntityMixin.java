@@ -49,7 +49,7 @@ public abstract class LivingEntityMixin {
     // 禁用伤害免疫
     @WrapOperation(method = "hurtServer", at = @At(value = "FIELD", target = "Lnet/minecraft/world/entity/LivingEntity;invulnerableTime:I", opcode = Opcodes.GETFIELD))
     private int setTimeUntilRegen(LivingEntity instance, Operation<Integer> original) {
-        if (CarpetOrgAdditionSettings.disableDamageImmunity.get()) {
+        if (CarpetOrgAdditionSettings.disableDamageImmunity.value()) {
             return 0;
         }
         return original.call(instance);
@@ -58,7 +58,7 @@ public abstract class LivingEntityMixin {
     // 不死图腾无敌时间
     @Inject(method = "checkTotemDeathProtection", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;broadcastEntityEvent(Lnet/minecraft/world/entity/Entity;B)V"))
     private void setInvincibleTime(DamageSource source, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.get()) {
+        if (CarpetOrgAdditionSettings.totemOfUndyingInvincibleTime.value()) {
             this.self.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 40, 4));
         }
     }
@@ -71,7 +71,7 @@ public abstract class LivingEntityMixin {
         if (original) {
             return true;
         }
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.VANILLA) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.value() == BetterTotemOfUndying.VANILLA) {
             return false;
         }
         if (this.self instanceof Player player) {
@@ -101,7 +101,7 @@ public abstract class LivingEntityMixin {
             }
         }
         // 如果这里规则值为true，或者说规则值不是shulker_box，那就没有必要继续向下执行
-        if (CarpetOrgAdditionSettings.betterTotemOfUndying.get() == BetterTotemOfUndying.INVENTORY) {
+        if (CarpetOrgAdditionSettings.betterTotemOfUndying.value() == BetterTotemOfUndying.INVENTORY) {
             return ItemStack.EMPTY;
         }
         for (ItemStack shulkerBox : mainInventory) {

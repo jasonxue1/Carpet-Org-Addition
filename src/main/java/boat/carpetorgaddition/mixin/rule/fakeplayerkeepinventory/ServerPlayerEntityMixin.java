@@ -29,7 +29,7 @@ public class ServerPlayerEntityMixin {
 
     @Unique
     private boolean shouldKeepInventory() {
-        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory.get() && thisPlayer instanceof EntityPlayerMPFake fakePlayer) {
+        if (CarpetOrgAdditionSettings.fakePlayerKeepInventory.value() && thisPlayer instanceof EntityPlayerMPFake fakePlayer) {
             return RuleUtils.shouldKeepInventory(fakePlayer);
         }
         return false;

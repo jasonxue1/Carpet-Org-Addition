@@ -20,12 +20,12 @@ public abstract class BeaconBlockEntityMixin {
     private static List<Player> box(Level world, Class<Player> aClass, AABB box, Operation<List<Player>> original) {
         BeaconRangeBox beaconRangeBox = new BeaconRangeBox(box);
         // 调整信标范围
-        int range = CarpetOrgAdditionSettings.beaconRangeExpand.get();
+        int range = CarpetOrgAdditionSettings.beaconRangeExpand.value();
         if (range != 0 && range <= 1024) {
             beaconRangeBox = beaconRangeBox.modify(range);
         }
         // 调整信标高度
-        if (CarpetOrgAdditionSettings.beaconWorldHeight.get()) {
+        if (CarpetOrgAdditionSettings.beaconWorldHeight.value()) {
             beaconRangeBox = beaconRangeBox.worldHeight(world);
         }
         return original.call(world, aClass, beaconRangeBox);

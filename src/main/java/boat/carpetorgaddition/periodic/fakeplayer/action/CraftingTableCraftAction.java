@@ -125,7 +125,7 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
                                 successCount++;
                                 break;
                             }
-                        } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get() && InventoryUtils.isOperableSulkerBox(itemStack)) {
+                        } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value() && InventoryUtils.isOperableSulkerBox(itemStack)) {
                             ItemStack contentItemStack = InventoryUtils.pickItemFromShulkerBox(itemStack, predicate);
                             if (!contentItemStack.isEmpty()) {
                                 // 丢弃光标上的物品（如果有）
@@ -262,10 +262,10 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
      * @return 是否应该停止
      */
     public static boolean shouldStop(int craftCount) {
-        if (CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get() < 0) {
+        if (CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value() < 0) {
             return false;
         }
-        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
+        return craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value();
     }
 
     @Override

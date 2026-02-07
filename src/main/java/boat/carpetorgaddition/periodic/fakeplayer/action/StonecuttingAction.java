@@ -113,8 +113,8 @@ public class StonecuttingAction extends AbstractPlayerAction {
                     FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, fakePlayer);
                     craftCount++;
                     // 限制每个游戏刻合成次数
-                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get();
-                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.get()) {
+                    int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value();
+                    if (ruleValue > 0 && craftCount >= CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value()) {
                         return;
                     }
                 } else {
@@ -141,7 +141,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 if (FakePlayerUtils.withKeepPickupAndMoveItemStack(screenHandler, index, 0, this.getFakePlayer())) {
                     return false;
                 }
-            } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.get() && InventoryUtils.isOperableSulkerBox(itemStack)) {
+            } else if (CarpetOrgAdditionSettings.fakePlayerPickItemFromShulkerBox.value() && InventoryUtils.isOperableSulkerBox(itemStack)) {
                 // 从潜影盒中查找指定物品
                 ItemStack stack = InventoryUtils.pickItemFromShulkerBox(itemStack, content -> content.is(this.item));
                 // 未找到指定物品

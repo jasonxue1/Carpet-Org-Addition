@@ -62,7 +62,7 @@
     "rule.LivingEntityMixin",
     "rule.MerchantEntityMixin",
     "rule.ObserverBlockMixin",
-    "rule.PacketApplyBatcherMixin",
+    "rule.cceupdatesuppression.PacketApplyBatcherMixin",
     "rule.PhantomSpawnerMixin",
     "rule.PiglinBrainMixin",
     "rule.PistonBlockMixin",

@@ -1,5 +1,6 @@
 package boat.carpetorgaddition.rule.helper;
 
+import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.dialog.builder.ActionButtonBuilder;
 import boat.carpetorgaddition.dialog.builder.ConfirmationDialogBuilder;
 import boat.carpetorgaddition.network.event.CustomClickEvents;
@@ -21,8 +22,7 @@ public class CompatibilityDialogProvider {
         ChatFormatting color = ChatFormatting.GRAY;
         Component tis = key.then("tis").translate();
         return ConfirmationDialogBuilder.of(component)
-                // TODO 调整规则名称获取方式
-                .addDialogBody(key.then("line").then("0").translate(LocalizationKey.literal("carpet.rule.shulkerBoxStackable.name").translate()), width)
+                .addDialogBody(key.then("line").then("0").translate(CarpetOrgAdditionSettings.shulkerBoxStackable.getDisplayName()), width)
                 .addDialogBody(key.then("line").then("1").builder().setColor(color).build(), width)
                 .addDialogBody(key.then("line").then("2").builder().setHover(tis).setColor(color).setStrikethrough().build(), width)
                 .addDialogBody(key.then("line").then("3").builder().setHover(tis).setColor(color).setStrikethrough().build(), width)

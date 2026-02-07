@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public interface Validator<T> {
+public interface ValueValidator<T> {
     /**
      * 规则的新值是否有效
      *
@@ -35,8 +35,8 @@ public interface Validator<T> {
         MessageUtils.sendErrorMessage(source, errorMessage());
     }
 
-    static <T> Validator<T> of(Predicate<T> predicate, Supplier<Component> supplier) {
-        return new Validator<>() {
+    static <T> ValueValidator<T> of(Predicate<T> predicate, Supplier<Component> supplier) {
+        return new ValueValidator<>() {
             @Override
             public boolean validate(T newValue) {
                 return predicate.test(newValue);

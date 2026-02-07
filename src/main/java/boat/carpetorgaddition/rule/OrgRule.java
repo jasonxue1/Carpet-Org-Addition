@@ -2,8 +2,8 @@ package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionExtension;
 import boat.carpetorgaddition.exception.TranslatableInvalidRuleValueException;
-import boat.carpetorgaddition.rule.validator.StrictValidator;
-import boat.carpetorgaddition.rule.validator.Validator;
+import boat.carpetorgaddition.rule.validator.StrictValueValidator;
+import boat.carpetorgaddition.rule.validator.ValueValidator;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys.Data.Type;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
@@ -32,8 +32,18 @@ public class OrgRule<T> implements CarpetRule<T> {
     private final boolean canBeToggledClientSide;
     private final Class<T> type;
     private final RuleValueParser<T> parser;
-    private final List<Validator<T>> validators = new ArrayList<>();
-    private final List<RuleObserver<T>> observers = new ArrayList<>();
+    /**
+     * 规则更改验证器
+     */
+    private final List<ValueValidator<T>> valueValidators = new ArrayList<>();
+    /**
+     * 规则更改静默验证器
+     */
+    private final List<SilenceValueValidator<T>> silenceValidators = new ArrayList<>();
+    /**
+     * 规则更改监听器
+     */
+    private final List<RuleListener<T>> listeners = new ArrayList<>();
     private final boolean strict;
     /**
      * 规则值是否改变了，用于隐藏规则更改后的命令反馈
@@ -47,8 +57,9 @@ public class OrgRule<T> implements CarpetRule<T> {
             Collection<String> suggestions,
             @NotNull T value,
             boolean canBeToggledClientSide,
-            List<Validator<T>> validators,
-            List<RuleObserver<T>> observers,
+            List<ValueValidator<T>> valueValidators,
+            List<SilenceValueValidator<T>> silenceValidators,
+            List<RuleListener<T>> listeners,
             boolean strict,
             String displayName,
             String displayDesc
@@ -60,8 +71,9 @@ public class OrgRule<T> implements CarpetRule<T> {
         this.defaultValue = value;
         this.canBeToggledClientSide = canBeToggledClientSide;
         this.type = type;
-        this.validators.addAll(validators);
-        this.observers.addAll(observers);
+        this.valueValidators.addAll(valueValidators);
+        this.silenceValidators.addAll(silenceValidators);
+        this.listeners.addAll(listeners);
         this.strict = strict;
         this.parser = createParser();
         this.displayName = displayName;
@@ -71,15 +83,14 @@ public class OrgRule<T> implements CarpetRule<T> {
 
     private void init() {
         if (this.strict()) {
-            this.validators.addFirst(new StrictValidator<>(this));
+            this.valueValidators.addFirst(new StrictValueValidator<>(this));
         }
         // 更改规则时将命令同步到客户端
         if (this.categories.contains(RuleCategory.COMMAND)) {
-            this.observers.add((source, _) -> {
+            this.listeners.add((source, _) -> {
                 if (source != null) {
                     CommandHelper.notifyPlayersCommandsChanged(source.getServer());
                 }
-                return true;
             });
         }
     }
@@ -189,24 +200,25 @@ public class OrgRule<T> implements CarpetRule<T> {
     }
 
     private void set(@Nullable CommandSourceStack source, T value, String userInput) throws TranslatableInvalidRuleValueException {
-        for (Validator<T> validator : this.validators) {
-            if (validator.validate(value)) {
+        for (ValueValidator<T> valueValidator : this.valueValidators) {
+            if (valueValidator.validate(value)) {
                 continue;
             }
             if (source != null) {
-                validator.notifyFailure(source, this, userInput);
+                valueValidator.notifyFailure(source, this, userInput);
             }
             throw new TranslatableInvalidRuleValueException();
         }
         if (value.equals(this.value()) && source != null) {
             return;
         }
-        boolean canChanged = this.observers.stream().allMatch(observer -> observer.onChanged(source, value));
+        boolean canChanged = this.silenceValidators.stream().allMatch(observer -> observer.validate(source, value));
         if (canChanged) {
             this.value = value;
             if (source != null) {
                 this.settingsManager().notifyRuleChanged(source, this, userInput);
             }
+            this.listeners.forEach(listener -> listener.onChanged(source, value));
         } else {
             RULE_UNCHANGED.set(true);
         }

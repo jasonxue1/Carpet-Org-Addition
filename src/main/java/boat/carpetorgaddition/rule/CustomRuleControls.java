@@ -14,7 +14,7 @@ public class CustomRuleControls {
             if (player == null) {
                 return false;
             }
-            return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get()) {
+            return switch (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value()) {
                 case TRUE -> true;
                 case FALSE -> false;
                 case CUSTOM -> {
@@ -28,18 +28,18 @@ public class CustomRuleControls {
 
         @Override
         public boolean isServerDecision() {
-            return CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.get() != BlockDropsDirectlyEnterInventory.CUSTOM;
+            return CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value() != BlockDropsDirectlyEnterInventory.CUSTOM;
         }
     };
 
     public static final CustomRuleControl<Integer> ITEM_PICKUP_RANGE_EXPAND = new CustomRuleControl<>() {
         @Override
         public Integer getRuleValue(ServerPlayer player) {
-            int range = CarpetOrgAdditionSettings.itemPickupRangeExpand.get();
+            int range = CarpetOrgAdditionSettings.itemPickupRangeExpand.value();
             if (range == 0) {
                 return 0;
             }
-            if (CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.get()) {
+            if (CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.value()) {
                 MinecraftServer server = ServerUtils.getServer(player);
                 RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
                 return ruleSelfManager.isEnabled(player, this) ? range : 0;
@@ -50,7 +50,7 @@ public class CustomRuleControls {
 
         @Override
         public boolean isServerDecision() {
-            return !CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.get();
+            return !CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.value();
         }
     };
 }

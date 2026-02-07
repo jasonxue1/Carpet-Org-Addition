@@ -46,7 +46,7 @@ public class EntityPlayerMPFakeMixin {
 
     @Unique
     private static void broadcastSummoner(EntityPlayerMPFake fakePlayer) {
-        if (CarpetOrgAdditionSettings.displayPlayerSummoner.get()) {
+        if (CarpetOrgAdditionSettings.displayPlayerSummoner.value()) {
             ServerPlayer player = CarpetOrgAdditionSettings.internalPlayerSummoner.get();
             if (player == null || FakePlayerSpawner.SILENCE.orElse(false)) {
                 return;

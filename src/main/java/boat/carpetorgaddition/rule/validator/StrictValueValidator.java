@@ -6,10 +6,10 @@ import carpet.api.settings.RuleHelper;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.NotNull;
 
-public class StrictValidator<T> implements Validator<T> {
+public class StrictValueValidator<T> implements ValueValidator<T> {
     private final CarpetRule<T> rule;
 
-    public StrictValidator(CarpetRule<T> rule) {
+    public StrictValueValidator(CarpetRule<T> rule) {
         this.rule = rule;
     }
 

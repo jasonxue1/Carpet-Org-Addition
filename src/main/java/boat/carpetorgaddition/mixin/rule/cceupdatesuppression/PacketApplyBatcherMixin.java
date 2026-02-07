@@ -1,4 +1,4 @@
-package boat.carpetorgaddition.mixin.rule;
+package boat.carpetorgaddition.mixin.rule.cceupdatesuppression;
 
 import boat.carpetorgaddition.exception.CCEUpdateSuppressException;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;

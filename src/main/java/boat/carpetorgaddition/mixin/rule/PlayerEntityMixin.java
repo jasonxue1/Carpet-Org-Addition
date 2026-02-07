@@ -50,7 +50,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 血量不满时也可以进食
     @Inject(method = "canEat", at = @At("HEAD"), cancellable = true)
     private void canEat(boolean ignoreHunger, CallbackInfoReturnable<Boolean> cir) {
-        if (CarpetOrgAdditionSettings.healthNotFullCanEat.get() && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
+        if (CarpetOrgAdditionSettings.healthNotFullCanEat.value() && thisPlayer.getHealth() < thisPlayer.getMaxHealth() - 0.3 // -0.3：可能生命值不满但是显示的心满了
             && this.getFoodData().getSaturationLevel() <= 5) {
             cir.setReturnValue(true);
         }
@@ -62,7 +62,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
         if (this.isSpectator()) {
             return;
         }
-        switch (CarpetOrgAdditionSettings.quickSettingFakePlayerCraft.get()) {
+        switch (CarpetOrgAdditionSettings.quickSettingFakePlayerCraft.value()) {
             case FALSE:
                 break;
             case SNEAKING:
@@ -100,7 +100,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Unique
     private Optional<Function<EntityPlayerMPFake, String>> getOpenQuickCraftGuiCommand(ItemStack itemStack) {
         PermissionSet predicate = thisPlayer.permissions();
-        boolean canUseCommand = CommandUtils.canUseCommand(predicate, CarpetOrgAdditionSettings.commandPlayerAction.get());
+        boolean canUseCommand = CommandUtils.canUseCommand(predicate, CarpetOrgAdditionSettings.commandPlayerAction.value());
         if (canUseCommand) {
             if (itemStack.isEmpty()) {
                 return Optional.empty();
@@ -120,7 +120,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 最大方块交互距离
     @Inject(method = "blockInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getBlockInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (ServerUtils.getWorld(thisPlayer).isClientSide() && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.get()) {
+        if (ServerUtils.getWorld(thisPlayer).isClientSide() && !CarpetOrgAdditionSettings.maxBlockPlaceDistanceSyncClient.value()) {
             return;
         }
         if (RuleUtils.isDefaultDistance()) {
@@ -132,14 +132,14 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     // 实体交互距离
     @Inject(method = "entityInteractionRange", at = @At("HEAD"), cancellable = true)
     private void getEntityInteractionRange(CallbackInfoReturnable<Double> cir) {
-        if (CarpetOrgAdditionSettings.maxBlockPlaceDistanceReferToEntity.get()) {
+        if (CarpetOrgAdditionSettings.maxBlockPlaceDistanceReferToEntity.value()) {
             cir.setReturnValue(RuleUtils.getPlayerMaxInteractionDistance());
         }
     }
 
     @Inject(method = "getDestroySpeed", at = @At(value = "HEAD"))
     private void getBlockBreakingSpeed(BlockState block, CallbackInfoReturnable<Float> cir) {
-        if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.get()) {
+        if (CarpetOrgAdditionSettings.applyToolEffectsImmediately.value()) {
             this.collectEquipmentChanges();
         }
     }
