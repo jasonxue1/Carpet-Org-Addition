@@ -1050,6 +1050,15 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * 禁用风弹效果
+     */
+    public static final RuleAccessor<Boolean> disableWindChargeEffect = register(
+            RuleFactory.create(Boolean.class, "disableWindChargeEffect", false)
+                    .addCategories(RuleCategory.SURVIVAL)
+                    .build()
+    );
+
     private static <T> RuleAccessor<T> register(RuleContext<T> context) {
         RULES.add(context);
         return new RuleAccessor<>(context);

@@ -232,6 +232,8 @@
   "carpet.rule.playerCommandOpenPlayerInventoryGcaStyle.desc": "将/player命令打开的玩家物品栏替换为GCA样式",
   "carpet.rule.softNetherite.name": "易碎下界合金",
   "carpet.rule.softNetherite.desc": "启用后远古残骸和下界合金块的硬度将被调整为原值的1/18",
+  "carpet.rule.disableWindChargeEffect.name": "禁用风弹效果",
+  "carpet.rule.disableWindChargeEffect.desc": "阻止玩家发射的风弹改变方块状态",
   "carpet-org-addition.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet-org-addition.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet-org-addition.rule.message.displayPlayerSummoner": "↑由%s召唤",
