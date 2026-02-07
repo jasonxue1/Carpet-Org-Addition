@@ -7,6 +7,9 @@ import net.minecraft.server.dialog.CommonDialogData;
 import net.minecraft.server.dialog.NoticeDialog;
 
 public final class NoticeDialogBuilder extends DialogBuilder<NoticeDialogBuilder, NoticeDialog> {
+    /**
+     * 确认对话框的按钮
+     */
     private ActionButton action = ActionButtonBuilder.of(LocalizationKeys.Button.CONFIRM.translate()).build();
 
     private NoticeDialogBuilder(Component title) {

@@ -15,9 +15,23 @@ public class SingleOptionInputBuilder {
      * 从Nbt复合标签中读取数据时的键
      */
     private final String key;
+    /**
+     * 按钮的宽度
+     */
     private int width = 200;
-    private final List<SingleOptionInput.Entry> entries = new ArrayList<>();
+    /**
+     * 选项列表
+     */
+    private final List<SingleOptionInput.Entry> options = new ArrayList<>();
+    /**
+     * 按钮的标签文本
+     */
     private Component label = DialogUtils.UNDEFINED;
+    /**
+     * 是否渲染标签文本<br>
+     * 当标签文本为{@code 玩家}，选项文本为{@code Steve}时<br>
+     * 如果为{@code true}，则按钮文本将被渲染为{@code 玩家：Steve}，否则按钮文本将被渲染为{@code Steve}
+     */
     private boolean labelVisible = true;
 
     private SingleOptionInputBuilder(String key) {
@@ -51,15 +65,15 @@ public class SingleOptionInputBuilder {
     }
 
     public SingleOptionInputBuilder addEntry(String id, @Nullable Component display) {
-        return this.addEntry(id, display, this.entries.isEmpty());
+        return this.addEntry(id, display, this.options.isEmpty());
     }
 
     public SingleOptionInputBuilder addEntry(String id, @Nullable Component display, boolean initial) {
-        this.entries.add(new SingleOptionInput.Entry(id, Optional.ofNullable(display), initial));
+        this.options.add(new SingleOptionInput.Entry(id, Optional.ofNullable(display), initial));
         return this;
     }
 
     public Input build() {
-        return new Input(this.key, new SingleOptionInput(this.width, this.entries, this.label, this.labelVisible));
+        return new Input(this.key, new SingleOptionInput(this.width, this.options, this.label, this.labelVisible));
     }
 }

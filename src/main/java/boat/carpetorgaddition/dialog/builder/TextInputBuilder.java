@@ -9,12 +9,33 @@ import java.util.Optional;
 
 public class TextInputBuilder {
     private final String key;
+    /**
+     * 文本框的宽度
+     */
     private int width = 200;
+    /**
+     * 文本框的高度
+     */
     private int height = -1;
+    /**
+     * 文本框的标签文本
+     */
     private Component label = DialogUtils.UNDEFINED;
+    /**
+     * 是否渲染标签文本
+     */
     private boolean labelVisible = true;
+    /**
+     * 文本输入框的初始字符串
+     */
     private String initial = "";
+    /**
+     * 输入字符串的最大长度
+     */
     private int maxLength = 32;
+    /**
+     * 输入字符串的最大行数
+     */
     private int maxLines = -1;
 
     private TextInputBuilder(String key) {

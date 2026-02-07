@@ -44,7 +44,7 @@ public class RuleContext<T> {
     }
 
     public CarpetRule<T> rule() {
-        // 初始化可能在客户端和服务端同时进行
+        // 在单人游戏中，初始化可能在客户端和服务端同时进行
         if (this.rule == null) {
             synchronized (this) {
                 if (this.rule == null) {

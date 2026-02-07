@@ -24,6 +24,7 @@ public class LocalizationKey {
         return new LocalizationKey(key);
     }
 
+    @Deprecated
     public LocalizationKey then(String key, String... keys) {
         StringJoiner joiner = new StringJoiner(".");
         joiner.add(this.key);
@@ -32,6 +33,10 @@ public class LocalizationKey {
             joiner.add(str);
         }
         return new LocalizationKey(joiner.toString());
+    }
+
+    public LocalizationKey then(String key) {
+        return new LocalizationKey(this.key + "." + key);
     }
 
     public Component translate(Object... args) {

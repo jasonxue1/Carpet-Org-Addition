@@ -170,4 +170,16 @@ public abstract class SettingsManagerMixin {
         }
         return CarpetConfDataUpdater.OLD_VERSION_RULES.contains(split[0]);
     }
+
+    @Inject(method = "setRule", at = @At("HEAD"))
+    private void setRule(CommandSourceStack source, CarpetRule<?> rule, String newValue, CallbackInfoReturnable<Integer> cir) {
+        OrgRule.RULE_UNCHANGED.set(false);
+    }
+
+    @Inject(method = "setRule", at = @At(value = "INVOKE", target = "Lcarpet/api/settings/CarpetRule;set(Lnet/minecraft/commands/CommandSourceStack;Ljava/lang/String;)V", shift = At.Shift.AFTER), cancellable = true)
+    private void hideCommandFeedback(CommandSourceStack source, CarpetRule<?> rule, String newValue, CallbackInfoReturnable<Integer> cir) {
+        if (OrgRule.RULE_UNCHANGED.get()) {
+            cir.setReturnValue(0);
+        }
+    }
 }

@@ -35,6 +35,10 @@ public class OrgRule<T> implements CarpetRule<T> {
     private final List<Validator<T>> validators = new ArrayList<>();
     private final List<RuleObserver<T>> observers = new ArrayList<>();
     private final boolean strict;
+    /**
+     * 规则值是否改变了，用于隐藏规则更改后的命令反馈
+     */
+    public static final ThreadLocal<Boolean> RULE_UNCHANGED = ThreadLocal.withInitial(() -> false);
 
     public OrgRule(
             Class<T> type,
@@ -75,6 +79,7 @@ public class OrgRule<T> implements CarpetRule<T> {
                 if (source != null) {
                     CommandHelper.notifyPlayersCommandsChanged(source.getServer());
                 }
+                return true;
             });
         }
     }
@@ -196,10 +201,14 @@ public class OrgRule<T> implements CarpetRule<T> {
         if (value.equals(this.value()) && source != null) {
             return;
         }
-        this.observers.forEach(observer -> observer.onChanged(source, value));
-        this.value = value;
-        if (source != null) {
-            this.settingsManager().notifyRuleChanged(source, this, userInput);
+        boolean canChanged = this.observers.stream().allMatch(observer -> observer.onChanged(source, value));
+        if (canChanged) {
+            this.value = value;
+            if (source != null) {
+                this.settingsManager().notifyRuleChanged(source, this, userInput);
+            }
+        } else {
+            RULE_UNCHANGED.set(true);
         }
     }
 

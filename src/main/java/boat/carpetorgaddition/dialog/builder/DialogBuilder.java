@@ -87,6 +87,11 @@ public abstract class DialogBuilder<C extends DialogBuilder<C, D>, D extends Dia
         return this.addDialogBody(message);
     }
 
+    public C addDialogBody(Component component, int width) {
+        PlainMessage message = new PlainMessage(component, width);
+        return this.addDialogBody(message);
+    }
+
     public C addDialogBody(CommandSyntaxException exception) {
         return this.addDialogBody(
                 new TextBuilder(exception.getRawMessage())

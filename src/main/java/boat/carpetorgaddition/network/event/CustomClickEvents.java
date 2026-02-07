@@ -1,8 +1,11 @@
 package boat.carpetorgaddition.network.event;
 
+import boat.carpetorgaddition.CarpetOrgAdditionExtension;
+import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.PlayerCommandExtension;
-import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.dialog.DialogProvider;
+import boat.carpetorgaddition.mixin.accessor.carpet.SettingsManagerAccessor;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.util.MessageUtils;
@@ -14,6 +17,7 @@ import boat.carpetorgaddition.wheel.page.PageManager;
 import boat.carpetorgaddition.wheel.page.PagedCollection;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import carpet.api.settings.CarpetRule;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -82,6 +86,13 @@ public class CustomClickEvents {
         } else {
             throw CommandUtils.createException(LocalizationKeys.Operation.Page.NON_EXISTENT.translate());
         }
+    });
+    public static final Identifier ENABLE_SHULKER_BOX_STACKABLE = register("enable_shulker_box_stackable", context -> {
+        // TODO 更改规则对象获取方式
+        CarpetRule<?> rule = CarpetOrgAdditionExtension.getSettingManager().getCarpetRule("shulkerBoxStackable");
+        SettingsManagerAccessor accessor = (SettingsManagerAccessor) CarpetOrgAdditionExtension.getSettingManager();
+        ScopedValue.where(CarpetOrgAdditionSettings.CONFIRM_ENABLE, true)
+                .run(() -> accessor.changeRuleValue(context.getSource(), rule, "true"));
     });
 
     /**

@@ -4,9 +4,13 @@ import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
 import boat.carpetorgaddition.rule.*;
+import boat.carpetorgaddition.rule.helper.CompatibilityDialogProvider;
 import boat.carpetorgaddition.rule.value.*;
+import boat.carpetorgaddition.util.PlayerUtils;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.dialog.Dialog;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 
@@ -35,6 +39,10 @@ public class CarpetOrgAdditionSettings {
      * 当前正在使用铁砧附魔的玩家
      */
     public static final ThreadLocal<Player> enchanter = new ThreadLocal<>();
+    /**
+     * 是否确认启用规则
+     */
+    public static final ScopedValue<Boolean> CONFIRM_ENABLE = ScopedValue.newInstance();
     private static final Set<RuleContext<?>> RULES = new LinkedHashSet<>();
     public static final String OPS = "ops";
     public static final String TRUE = "true";
@@ -749,7 +757,7 @@ public class CarpetOrgAdditionSettings {
                     .addCategories(RuleCategory.CLIENT)
                     .addObservers((source, value) -> {
                         if (source == null) {
-                            return;
+                            return true;
                         }
                         List<AbstractNavigator> list = source.getServer().getPlayerList().getPlayers()
                                 .stream()
@@ -764,6 +772,7 @@ public class CarpetOrgAdditionSettings {
                         } else {
                             list.forEach(AbstractNavigator::clear);
                         }
+                        return true;
                     })
                     .setClient()
                     .setRemoved()
@@ -776,6 +785,22 @@ public class CarpetOrgAdditionSettings {
     public static final Supplier<Boolean> shulkerBoxStackable = register(
             RuleFactory.create(Boolean.class, "shulkerBoxStackable", false)
                     .addCategories(RuleCategory.EXPERIMENTAL)
+                    .addObservers((source, value) -> {
+                        if (CONFIRM_ENABLE.orElse(false)) {
+                            return true;
+                        }
+                        if (!CarpetOrgAddition.LITHIUM || !value || source == null) {
+                            return true;
+                        }
+                        ServerPlayer player = source.getPlayer();
+                        if (player == null) {
+                            return true;
+                        }
+                        MinecraftServer server = source.getServer();
+                        Dialog dialog = CompatibilityDialogProvider.getShulkerBoxStackableDialog(server);
+                        PlayerUtils.openDialog(player, dialog);
+                        return false;
+                    })
                     .build()
     );
 

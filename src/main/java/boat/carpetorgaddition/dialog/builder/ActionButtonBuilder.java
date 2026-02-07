@@ -15,10 +15,22 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 
 public class ActionButtonBuilder {
+    /**
+     * 按钮的渲染文本
+     */
     private final Component label;
+    /**
+     * 按钮的工具提示
+     */
     @Nullable
     private Component tooltip = null;
+    /**
+     * 按钮的宽度
+     */
     private int width = CommonButtonData.DEFAULT_WIDTH;
+    /**
+     * 单击按钮后执行的操作
+     */
     @Nullable
     private Action action = null;
 

@@ -15,9 +15,18 @@ import java.util.Optional;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public final class MultiActionDialogBuilder extends DialogBuilder<MultiActionDialogBuilder, MultiActionDialog> {
+    /**
+     * 按钮列表
+     */
     private final List<ActionButton> actions = new ArrayList<>();
+    /**
+     * 对话框的返回按钮
+     */
     @Nullable
     private ActionButton exitAction = null;
+    /**
+     * 每一行显示的按钮数量
+     */
     private int columns = 1;
 
     private MultiActionDialogBuilder(Component title) {

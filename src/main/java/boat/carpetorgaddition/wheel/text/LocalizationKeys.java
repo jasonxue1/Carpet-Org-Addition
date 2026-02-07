@@ -66,6 +66,7 @@ public class LocalizationKeys {
     public static class Rule {
         private static final LocalizationKey MESSAGE = RULE.then("message");
         private static final LocalizationKey VALIDATE = RULE.then("validate");
+        public static final LocalizationKey COMPATIBILITY = RULE.then("compatibility");
 
         public static class Message {
             public static final LocalizationKey DISABLE_RESPAWN_BLOCKS_EXPLODE = MESSAGE.then("disableRespawnBlocksExplode");
@@ -83,6 +84,12 @@ public class LocalizationKeys {
             public static final LocalizationKey GREATER_THAN_OR_EQUAL_OR_NUMBER = VALIDATE.then("greater_than_or_equal_or_number");
             public static final LocalizationKey BETWEEN_TWO_NUMBER_OR_NUMBER = VALIDATE.then("between_two_number_or_number");
             public static final LocalizationKey VALID_OPTIONS = VALIDATE.then("valid_options");
+        }
+
+        public static class Compatibility {
+            public static final LocalizationKey WARNING = COMPATIBILITY.then("warning");
+            public static final LocalizationKey STILL_OPEN = COMPATIBILITY.then("still_open");
+            public static final LocalizationKey KEEP_CLOSED = COMPATIBILITY.then("keep_closed");
         }
     }
 
