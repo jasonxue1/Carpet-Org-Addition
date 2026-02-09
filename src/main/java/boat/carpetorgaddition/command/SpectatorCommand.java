@@ -156,6 +156,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     // 将玩家位置保存到文件
     private void savePlayerPos(MinecraftServer server, ServerPlayer player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
+        // TODO 不使用字符串存储小数，小数按照原值保存，不格式化
         JsonObject json = new JsonObject();
         json.addProperty("x", MathUtils.numberToTwoDecimalString(player.getX()));
         json.addProperty("y", MathUtils.numberToTwoDecimalString(player.getY()));

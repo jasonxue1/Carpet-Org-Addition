@@ -246,16 +246,19 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     // 显示文本信息
     public Component info() {
         TextJoiner joiner = new TextJoiner();
-        // 玩家位置
-        String pos = MathUtils.numberToTwoDecimalString(this.playerPos.x()) + " "
-                     + MathUtils.numberToTwoDecimalString(this.playerPos.y()) + " "
-                     + MathUtils.numberToTwoDecimalString(this.playerPos.z());
         LocalizationKey key = PlayerManagerCommand.KEY.then("info");
-        joiner.newline(key.then("pos").translate(pos));
-        // 获取朝向
+        // 玩家名称
+        joiner.newline(key.then("name").translate(this.name));
+        // 玩家位置
+        joiner.newline(key.then("pos").translate(
+                MathUtils.formatToMaxTwoDecimals(this.playerPos.x()),
+                MathUtils.formatToMaxTwoDecimals(this.playerPos.y()),
+                MathUtils.formatToMaxTwoDecimals(this.playerPos.z())
+        ));
+        // 玩家朝向
         joiner.newline(key.then("direction").translate(
-                MathUtils.numberToTwoDecimalString(this.yaw),
-                MathUtils.numberToTwoDecimalString(this.pitch))
+                MathUtils.formatToMaxTwoDecimals(this.yaw),
+                MathUtils.formatToMaxTwoDecimals(this.pitch))
         );
         // 维度
         joiner.newline(key.then("dimension").translate(TextProvider.dimension(this.dimension)));

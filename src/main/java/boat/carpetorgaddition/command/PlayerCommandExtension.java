@@ -44,6 +44,7 @@ public class PlayerCommandExtension {
     public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("player");
     public static final LocalizationKey INVENTORY = KEY.then("inventory");
 
+    // TODO 添加召唤玩家模型子命令
     public static RequiredArgumentBuilder<CommandSourceStack, ?> register(RequiredArgumentBuilder<CommandSourceStack, ?> builder) {
         return builder
                 .then(Commands.literal("inventory")
