@@ -8,13 +8,13 @@ import net.minecraft.util.Tuple;
 import java.util.HashSet;
 import java.util.Map;
 
-public class FakePlayerActionDataUpdater implements DataUpdater {
+public final class FakePlayerActionDataUpdater implements DataUpdater {
     @Override
-    public JsonObject update(JsonObject json, int version) {
+    public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
             HashSet<Map.Entry<String, JsonObject>> entries = new HashSet<>();
             // 通常只会循环一次
-            for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : oldJson.entrySet()) {
                 Tuple<String, DataUpdater> pair = getDataUpdater(entry.getKey(), version);
                 String key = pair.getA();
                 DataUpdater dataUpdater = pair.getB();
@@ -28,7 +28,7 @@ public class FakePlayerActionDataUpdater implements DataUpdater {
             }
             return newJson;
         }
-        return json;
+        return oldJson;
     }
 
     /**

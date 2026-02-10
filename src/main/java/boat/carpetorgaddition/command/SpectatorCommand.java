@@ -2,11 +2,15 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.dataupdate.json.DataUpdater;
+import boat.carpetorgaddition.dataupdate.json.SpectatorDataUpdater;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.IOUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
@@ -26,7 +30,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
@@ -70,7 +73,7 @@ public class SpectatorCommand extends AbstractServerCommand {
             gameMode = GameType.SURVIVAL;
             if (!isFakePlayer) {
                 // 假玩家切换游戏模式不需要回到原位置
-                loadPlayerPos(ServerUtils.getServer(player), player);
+                this.loadAndTeleportPlayer(ServerUtils.getServer(player), player);
             }
         } else {
             gameMode = GameType.SPECTATOR;
@@ -156,13 +159,17 @@ public class SpectatorCommand extends AbstractServerCommand {
     // 将玩家位置保存到文件
     private void savePlayerPos(MinecraftServer server, ServerPlayer player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
-        // TODO 不使用字符串存储小数，小数按照原值保存，不格式化
         JsonObject json = new JsonObject();
-        json.addProperty("x", MathUtils.numberToTwoDecimalString(player.getX()));
-        json.addProperty("y", MathUtils.numberToTwoDecimalString(player.getY()));
-        json.addProperty("z", MathUtils.numberToTwoDecimalString(player.getZ()));
-        json.addProperty("yaw", MathUtils.numberToTwoDecimalString(player.getYRot()));
-        json.addProperty("pitch", MathUtils.numberToTwoDecimalString(player.getXRot()));
+        json.addProperty(DataUpdater.DATA_VERSION, SpectatorDataUpdater.CURRENT_VERSION);
+        JsonObject pos = new JsonObject();
+        pos.addProperty("x", player.getX());
+        pos.addProperty("y", player.getY());
+        pos.addProperty("z", player.getZ());
+        json.add("pos", pos);
+        JsonObject direction = new JsonObject();
+        direction.addProperty("yaw", player.getYRot());
+        direction.addProperty("pitch", player.getXRot());
+        json.add("direction", direction);
         json.addProperty("dimension", ServerUtils.getDimensionId(ServerUtils.getWorld(player)));
         File file = worldFormat.file(player.getStringUUID() + IOUtils.JSON_EXTENSION);
         try {
@@ -173,23 +180,24 @@ public class SpectatorCommand extends AbstractServerCommand {
     }
 
     // 从文件加载位置并传送玩家
-    public void loadPlayerPos(MinecraftServer server, ServerPlayer player) {
+    public void loadAndTeleportPlayer(MinecraftServer server, ServerPlayer player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
         File file = worldFormat.file(player.getStringUUID() + IOUtils.JSON_EXTENSION);
         try {
-            BufferedReader reader = IOUtils.toReader(file);
-            try (reader) {
-                Gson gson = new Gson();
-                JsonObject json = gson.fromJson(reader, JsonObject.class);
-                double x = json.get("x").getAsDouble();
-                double y = json.get("y").getAsDouble();
-                double z = json.get("z").getAsDouble();
-                float yaw = json.get("yaw").getAsFloat();
-                float pitch = json.get("pitch").getAsFloat();
-                String dimension = json.get("dimension").getAsString();
-                ServerLevel world = ServerUtils.getWorld(server, dimension);
-                ServerUtils.teleport(player, world, x, y, z, yaw, pitch);
-            }
+            JsonObject oldJson = IOUtils.loadJson(file);
+            int version = DataUpdater.getVersion(oldJson);
+            SpectatorDataUpdater dataUpdater = SpectatorDataUpdater.getInstance();
+            JsonObject json = dataUpdater.update(oldJson, version);
+            JsonObject pos = json.getAsJsonObject("pos");
+            double x = pos.get("x").getAsDouble();
+            double y = pos.get("y").getAsDouble();
+            double z = pos.get("z").getAsDouble();
+            JsonObject direction = json.getAsJsonObject("direction");
+            float yaw = direction.get("yaw").getAsFloat();
+            float pitch = direction.get("pitch").getAsFloat();
+            String dimension = json.get("dimension").getAsString();
+            ServerLevel world = ServerUtils.getWorld(server, dimension);
+            ServerUtils.teleport(player, world, x, y, z, yaw, pitch);
         } catch (IOException | NullPointerException e) {
             CarpetOrgAddition.LOGGER.warn("Unable to read the location information of {} normally", ServerUtils.getPlayerName(player));
         }

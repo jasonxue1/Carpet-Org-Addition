@@ -126,7 +126,7 @@ public class CustomClickEvents {
         return CommandUtils.createException(component);
     }
 
-    public static Identifier register(String id, CustomClickAction.CustomClickActionProcessor processor) {
+    private static Identifier register(String id, CustomClickAction.CustomClickActionProcessor processor) {
         Identifier identifier = IdentifierUtils.ofIdentifier(id);
         CustomClickAction.register(identifier, processor);
         return identifier;

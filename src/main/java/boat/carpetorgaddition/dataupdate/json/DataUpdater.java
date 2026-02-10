@@ -5,11 +5,12 @@ import com.google.gson.JsonObject;
 @FunctionalInterface
 public interface DataUpdater {
     String DATA_VERSION = "data_version";
+    @Deprecated(forRemoval = true)
     int VERSION = 3;
     int ZERO = 0;
     DataUpdater UNCHANGED = (json, _) -> json;
 
-    JsonObject update(JsonObject json, int version);
+    JsonObject update(JsonObject oldJson, int version);
 
     static int getVersion(JsonObject json) {
         if (json.has(DATA_VERSION)) {

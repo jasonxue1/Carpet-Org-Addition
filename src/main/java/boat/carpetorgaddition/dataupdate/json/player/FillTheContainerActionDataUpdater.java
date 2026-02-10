@@ -6,22 +6,22 @@ import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import com.google.gson.JsonObject;
 
-public class FillTheContainerActionDataUpdater implements DataUpdater {
+public final class FillTheContainerActionDataUpdater implements DataUpdater {
     private static final String ALL_ITEM = "allItem";
 
     @Override
-    public JsonObject update(JsonObject json, int version) {
+    public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
             String key = FillTheContainerAction.DROP_OTHER;
             // dropOther默认为true
-            boolean dropOther = !json.has(key) || json.get(key).getAsBoolean();
+            boolean dropOther = !oldJson.has(key) || oldJson.get(key).getAsBoolean();
             ItemStackPredicate predicate;
-            if (json.has(ALL_ITEM) && json.get(ALL_ITEM).getAsBoolean()) {
+            if (oldJson.has(ALL_ITEM) && oldJson.get(ALL_ITEM).getAsBoolean()) {
                 // 匹配任意物品
                 predicate = ItemStackPredicate.WILDCARD;
-            } else if (json.has(FillTheContainerAction.ITEM)) {
+            } else if (oldJson.has(FillTheContainerAction.ITEM)) {
                 // 匹配指定物品
-                String itemId = json.get(FillTheContainerAction.ITEM).getAsString();
+                String itemId = oldJson.get(FillTheContainerAction.ITEM).getAsString();
                 predicate = new ItemStackPredicate(IdentifierUtils.getItem(itemId));
             } else {
                 predicate = ItemStackPredicate.WILDCARD;
@@ -31,6 +31,6 @@ public class FillTheContainerActionDataUpdater implements DataUpdater {
             newJson.addProperty(FillTheContainerAction.DROP_OTHER, dropOther);
             return newJson;
         }
-        return json;
+        return oldJson;
     }
 }

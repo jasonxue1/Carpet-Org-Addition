@@ -35,6 +35,7 @@ public class RuleAccessor<T> {
         return this.key;
     }
 
+    // TODO 不必要的rule参数
     public void setRuleValue(CommandSourceStack source, CarpetRule<?> rule, String newValue) {
         SettingsManagerAccessor accessor = (SettingsManagerAccessor) CarpetOrgAdditionExtension.getSettingManager();
         accessor.changeRuleValue(source, rule, newValue);

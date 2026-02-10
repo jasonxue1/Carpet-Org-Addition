@@ -68,13 +68,25 @@ public class CarpetOrgAdditionExtension implements CarpetExtension {
         parcelManager.promptToCollect(player);
         // 加载假玩家安全挂机
         PlayerManagerCommand.loadSafeAfk(player);
-        GameType gameMode = server.getForcedGameType();
-        if (gameMode != null) {
-            SpectatorCommand instance = CommandRegister.getCommandInstance(SpectatorCommand.class);
-            instance.loadPlayerPos(server, player);
-        }
+        this.teleportSpectatorPlayer(player, server);
         if (player instanceof EntityPlayerMPFake fakePlayer) {
             coordinator.getSavedFakePlayer().put(fakePlayer);
+        }
+    }
+
+    /**
+     * 如果{@code server.properties}中，{@code force-gamemode}为{@code true}，则将被{@code /spectator}命令设置为旁观模式的玩家传送回原位置
+     */
+    private void teleportSpectatorPlayer(ServerPlayer player, MinecraftServer server) {
+        GameType gameMode = server.getForcedGameType();
+        if (gameMode == null) {
+            return;
+        }
+        SpectatorCommand instance = CommandRegister.getCommandInstance(SpectatorCommand.class);
+        try {
+            instance.loadAndTeleportPlayer(server, player);
+        } catch (RuntimeException e) {
+            CarpetOrgAddition.LOGGER.error("Unexpected error while attempting to teleport player back to original location", e);
         }
     }
 

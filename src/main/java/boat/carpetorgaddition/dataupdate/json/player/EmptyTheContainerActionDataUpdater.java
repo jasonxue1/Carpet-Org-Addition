@@ -9,13 +9,13 @@ import com.google.gson.JsonObject;
 /**
  * 清空容器动作数据更新器
  */
-public class EmptyTheContainerActionDataUpdater implements DataUpdater {
+public final class EmptyTheContainerActionDataUpdater implements DataUpdater {
     public static final String ALL_ITEM = "allItem";
 
     @Override
-    public JsonObject update(JsonObject json, int version) {
+    public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
-            if (json.has(ALL_ITEM) && json.get(ALL_ITEM).getAsBoolean()) {
+            if (oldJson.has(ALL_ITEM) && oldJson.get(ALL_ITEM).getAsBoolean()) {
                 // 匹配任意物品
                 ItemStackPredicate predicate = ItemStackPredicate.WILDCARD;
                 JsonObject newJson = new JsonObject();
@@ -24,8 +24,8 @@ public class EmptyTheContainerActionDataUpdater implements DataUpdater {
             } else {
                 // 匹配指定物品
                 ItemStackPredicate predicate;
-                if (json.has(EmptyTheContainerAction.ITEM)) {
-                    String item = json.get(EmptyTheContainerAction.ITEM).getAsString();
+                if (oldJson.has(EmptyTheContainerAction.ITEM)) {
+                    String item = oldJson.get(EmptyTheContainerAction.ITEM).getAsString();
                     predicate = new ItemStackPredicate(IdentifierUtils.getItem(item));
                 } else {
                     predicate = ItemStackPredicate.WILDCARD;
@@ -35,6 +35,6 @@ public class EmptyTheContainerActionDataUpdater implements DataUpdater {
                 return newJson;
             }
         }
-        return json;
+        return oldJson;
     }
 }

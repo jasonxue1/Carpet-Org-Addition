@@ -3,14 +3,16 @@ package boat.carpetorgaddition.dataupdate.json;
 import boat.carpetorgaddition.rule.RuleConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
 
-public class CarpetConfDataUpdater implements DataUpdater {
+public final class CarpetConfDataUpdater implements DataUpdater {
     /**
      * 所有规则，截至{@code 2025年6月19日}
      */
+    @Unmodifiable
     public static final List<String> OLD_VERSION_RULES = List.of(
             "commandItemShadowing",
             "setBedrockHardness",
@@ -104,12 +106,12 @@ public class CarpetConfDataUpdater implements DataUpdater {
     );
 
     @Override
-    public JsonObject update(JsonObject json, int version) {
+    public JsonObject update(JsonObject oldJson, int version) {
         if (version <= 1) {
             JsonObject newJson = new JsonObject();
             newJson.addProperty(DataUpdater.DATA_VERSION, 2);
             JsonObject newRules = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue().getAsString();
                 switch (key) {
@@ -152,7 +154,7 @@ public class CarpetConfDataUpdater implements DataUpdater {
             JsonObject newJson = new JsonObject();
             newJson.addProperty(DataUpdater.DATA_VERSION, 2);
             JsonObject newRules = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : json.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+            for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue().getAsString();
                 if ("openShulkerBoxForcibly".equals(key)) {
@@ -164,7 +166,7 @@ public class CarpetConfDataUpdater implements DataUpdater {
             newJson.add(RuleConfig.RULES, newRules);
             return this.update(newJson, 3);
         } else {
-            return json;
+            return oldJson;
         }
     }
 }
