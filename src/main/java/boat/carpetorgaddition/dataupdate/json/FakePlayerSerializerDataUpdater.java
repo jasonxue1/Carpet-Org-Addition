@@ -1,6 +1,5 @@
-package boat.carpetorgaddition.dataupdate.json.player;
+package boat.carpetorgaddition.dataupdate.json;
 
-import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import com.google.gson.JsonObject;
 

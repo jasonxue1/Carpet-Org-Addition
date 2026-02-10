@@ -3,7 +3,7 @@ package boat.carpetorgaddition.periodic.fakeplayer;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
-import boat.carpetorgaddition.dataupdate.json.player.FakePlayerSerializerDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.FakePlayerSerializerDataUpdater;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import boat.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
