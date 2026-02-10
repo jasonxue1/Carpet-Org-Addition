@@ -116,66 +116,68 @@ public final class CarpetConfDataUpdater implements DataUpdater {
 
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
-        if (version <= 1) {
-            JsonObject newJson = new JsonObject();
-            newJson.addProperty(DataUpdater.DATA_VERSION, 2);
-            JsonObject newRules = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue().getAsString();
-                switch (key) {
-                    case "playerCommandOpenPlayerInventory" -> {
-                        if (!"false".equals(value)) {
-                            newRules.addProperty("playerCommandOpenPlayerInventoryOption", value);
-                            newRules.addProperty("playerCommandOpenPlayerInventory", "true");
+        return switch (version) {
+            case 0, 1 -> {
+                JsonObject newJson = new JsonObject();
+                newJson.addProperty(DataUpdater.DATA_VERSION, 2);
+                JsonObject newRules = new JsonObject();
+                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue().getAsString();
+                    switch (key) {
+                        case "playerCommandOpenPlayerInventory" -> {
+                            if (!"false".equals(value)) {
+                                newRules.addProperty("playerCommandOpenPlayerInventoryOption", value);
+                                newRules.addProperty("playerCommandOpenPlayerInventory", "true");
+                            }
+                        }
+                        case "betterTotemOfUndying" -> {
+                            String newValue = switch (value) {
+                                case "true" -> "inventory";
+                                case "false" -> "vanilla";
+                                case "shulker_box" -> "inventory_with_shulker_box";
+                                default -> null;
+                            };
+                            if (newValue != null) {
+                                newRules.addProperty(key, newValue);
+                            }
+                        }
+                        default -> {
+                            String newKey = switch (key) {
+                                case "openSeedPermissions" -> "openSeedPermission";
+                                case "openCarpetPermissions" -> "openCarpetPermission";
+                                case "openGameRulePermissions" -> "openGameRulePermission";
+                                case "openTpPermissions" -> "openTpPermission";
+                                case "fakePlayerCraftKeepItem" -> "fakePlayerActionKeepItem";
+                                case "fakePlayerCraftPickItemFromShulkerBox" -> "fakePlayerShulkerBoxItemHandling";
+                                case "fakePlayerMaxCraftCount" -> "fakePlayerMaxItemOperationCount";
+                                case "finderCommandMaxFeedbackCount" -> "maxLinesPerPage";
+                                default -> key;
+                            };
+                            newRules.addProperty(newKey, value);
                         }
                     }
-                    case "betterTotemOfUndying" -> {
-                        String newValue = switch (value) {
-                            case "true" -> "inventory";
-                            case "false" -> "vanilla";
-                            case "shulker_box" -> "inventory_with_shulker_box";
-                            default -> null;
-                        };
-                        if (newValue != null) {
-                            newRules.addProperty(key, newValue);
-                        }
-                    }
-                    default -> {
-                        String newKey = switch (key) {
-                            case "openSeedPermissions" -> "openSeedPermission";
-                            case "openCarpetPermissions" -> "openCarpetPermission";
-                            case "openGameRulePermissions" -> "openGameRulePermission";
-                            case "openTpPermissions" -> "openTpPermission";
-                            case "fakePlayerCraftKeepItem" -> "fakePlayerActionKeepItem";
-                            case "fakePlayerCraftPickItemFromShulkerBox" -> "fakePlayerShulkerBoxItemHandling";
-                            case "fakePlayerMaxCraftCount" -> "fakePlayerMaxItemOperationCount";
-                            case "finderCommandMaxFeedbackCount" -> "maxLinesPerPage";
-                            default -> key;
-                        };
-                        newRules.addProperty(newKey, value);
+                }
+                newJson.add(RuleConfig.RULES, newRules);
+                yield this.update(newJson, 2);
+            }
+            case 2 -> {
+                JsonObject newJson = new JsonObject();
+                newJson.addProperty(DataUpdater.DATA_VERSION, 2);
+                JsonObject newRules = new JsonObject();
+                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue().getAsString();
+                    if ("openShulkerBoxForcibly".equals(key)) {
+                        newRules.addProperty("forceOpenContainer", Boolean.parseBoolean(value) ? "shulker_box" : "false");
+                    } else {
+                        newRules.addProperty(key, value);
                     }
                 }
+                newJson.add(RuleConfig.RULES, newRules);
+                yield this.update(newJson, 3);
             }
-            newJson.add(RuleConfig.RULES, newRules);
-            return this.update(newJson, 2);
-        } else if (version == 2) {
-            JsonObject newJson = new JsonObject();
-            newJson.addProperty(DataUpdater.DATA_VERSION, 2);
-            JsonObject newRules = new JsonObject();
-            for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue().getAsString();
-                if ("openShulkerBoxForcibly".equals(key)) {
-                    newRules.addProperty("forceOpenContainer", Boolean.parseBoolean(value) ? "shulker_box" : "false");
-                } else {
-                    newRules.addProperty(key, value);
-                }
-            }
-            newJson.add(RuleConfig.RULES, newRules);
-            return this.update(newJson, 3);
-        } else {
-            return oldJson;
-        }
+            default -> oldJson;
+        };
     }
 }
