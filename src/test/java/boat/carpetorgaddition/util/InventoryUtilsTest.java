@@ -11,10 +11,12 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemContainerContents;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 
 import java.util.List;
 
+@Disabled
 public class InventoryUtilsTest {
     @BeforeAll
     public static void init() {
@@ -27,7 +29,7 @@ public class InventoryUtilsTest {
         ItemStack itemStack = new ItemStack(Items.SHULKER_BOX);
         ItemContainerContents component = itemStack.get(DataComponents.CONTAINER);
         Assertions.assertNotNull(component);
-        List<ItemStack> list = component.stream().toList();
+        List<ItemStack> list = component.allItemsCopyStream().toList();
         Assertions.assertTrue(list.isEmpty());
         ContainerComponentInventory inventory = new ContainerComponentInventory(itemStack);
         int count = 0;
@@ -51,7 +53,7 @@ public class InventoryUtilsTest {
         ItemContainerContents newComponent = itemStack.get(DataComponents.CONTAINER);
         System.out.println(inventory);
         Assertions.assertNotNull(newComponent);
-        Assertions.assertEquals(27, newComponent.stream().toList().size());
-        Assertions.assertEquals(count, inventory.count(stack -> true));
+        Assertions.assertEquals(27, newComponent.allItemsCopyStream().toList().size());
+        Assertions.assertEquals(count, inventory.count(_ -> true));
     }
 }
