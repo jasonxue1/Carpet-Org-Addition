@@ -105,6 +105,15 @@ public final class CarpetConfDataUpdater implements DataUpdater {
             "disableCreativeContainerDrops"
     );
 
+    private static final CarpetConfDataUpdater INSTANCE = new CarpetConfDataUpdater();
+
+    private CarpetConfDataUpdater() {
+    }
+
+    public static CarpetConfDataUpdater getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
         if (version <= 1) {

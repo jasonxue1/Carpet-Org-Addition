@@ -4,6 +4,15 @@ import boat.carpetorgaddition.util.IOUtils;
 import com.google.gson.JsonObject;
 
 public final class WaypointDataUpdater implements DataUpdater {
+    private static final WaypointDataUpdater INSTANCE = new WaypointDataUpdater();
+
+    private WaypointDataUpdater() {
+    }
+
+    public static WaypointDataUpdater getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
@@ -22,19 +31,20 @@ public final class WaypointDataUpdater implements DataUpdater {
                 anotherPos.addProperty("y", anotherY);
                 anotherPos.addProperty("z", anotherZ);
             }
-            JsonObject update = new JsonObject();
+            JsonObject newJson = new JsonObject();
             JsonObject pos = new JsonObject();
             pos.addProperty("x", x);
             pos.addProperty("y", y);
             pos.addProperty("z", z);
-            update.add("pos", pos);
-            update.addProperty("dimension", dimension);
-            update.addProperty("creator", creator);
-            update.addProperty("comment", illustrate);
-            update.add("another_pos", anotherPos);
-            update.addProperty(DATA_VERSION, VERSION);
-            return update;
+            newJson.addProperty(DATA_VERSION, 3);
+            newJson.add("pos", pos);
+            newJson.addProperty("dimension", dimension);
+            newJson.addProperty("creator", creator);
+            newJson.addProperty("comment", illustrate);
+            newJson.add("another_pos", anotherPos);
+            return this.update(oldJson, 3);
+        } else {
+            return oldJson;
         }
-        return oldJson;
     }
 }

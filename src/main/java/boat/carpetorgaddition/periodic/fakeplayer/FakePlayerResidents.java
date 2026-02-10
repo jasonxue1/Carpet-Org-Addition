@@ -36,6 +36,7 @@ public class FakePlayerResidents {
     private static final int MAX_FILE_HISTORY_COUNT = 100;
     private static final String GRAVEYARD = "graveyard";
     private static final String RESIDENT = "resident";
+    private static final int CURRENT_VERSION = 3;
 
     public FakePlayerResidents(MinecraftServer server) {
         this.worldFormat = new WorldFormat(server, PlayerSerializationManager.PLAYER_DATA, GRAVEYARD);
@@ -127,7 +128,7 @@ public class FakePlayerResidents {
             return;
         }
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         JsonObject players = new JsonObject();
         HashSet<FakePlayerSerializer> serializers = new HashSet<>(this.players.values().stream()
                 .map(FakePlayerSerializer::new)

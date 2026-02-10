@@ -26,6 +26,7 @@ import java.util.Map;
 
 public class Waypoint {
     public static final String WAYPOINT = "waypoint";
+    private static final int CURRENT_VERSION = 3;
     private BlockPos blockPos;
     @Nullable
     private BlockPos anotherBlockPos;
@@ -52,7 +53,7 @@ public class Waypoint {
     public void save() throws IOException {
         JsonObject json = new JsonObject();
         // 数据版本
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         // 路径点的坐标
         JsonObject pos = new JsonObject();
         pos.addProperty("x", this.blockPos.getX());
@@ -83,7 +84,7 @@ public class Waypoint {
         WorldFormat worldFormat = new WorldFormat(server, WAYPOINT);
         File file = worldFormat.file(name, IOUtils.JSON_EXTENSION);
         JsonObject json = IOUtils.loadJson(file);
-        WaypointDataUpdater dataUpdater = new WaypointDataUpdater();
+        WaypointDataUpdater dataUpdater = WaypointDataUpdater.getInstance();
         json = dataUpdater.update(json, DataUpdater.getVersion(json));
         // 路径点的位置
         JsonObject pos = json.get("pos").getAsJsonObject();

@@ -3,7 +3,7 @@ package boat.carpetorgaddition.periodic.fakeplayer;
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.command.PlayerManagerCommand;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
-import boat.carpetorgaddition.dataupdate.json.player.FakePlayerSerializeDataUpdater;
+import boat.carpetorgaddition.dataupdate.json.player.FakePlayerSerializerDataUpdater;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.periodic.fakeplayer.action.FakePlayerActionSerializer;
 import boat.carpetorgaddition.periodic.task.FakePlayerStartupActionTask;
@@ -102,6 +102,10 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
     @Nullable
     private final File file;
     private final List<Listener> listeners = new ArrayList<>();
+    /**
+     * 当前数据文件的版本
+     */
+    private static final int CURRENT_VERSION = 3;
 
     /**
      * @apiNote 使用此构造方法会丢失玩家所在组，启动时动作等信息
@@ -126,13 +130,11 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
         this(json, name, file);
     }
 
-    public FakePlayerSerializer(JsonObject json, String name, @Nullable File file) {
-        int version = DataUpdater.getVersion(json);
-        if (version < DataUpdater.VERSION) {
-            FakePlayerSerializeDataUpdater dataUpdater = new FakePlayerSerializeDataUpdater();
-            // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
-            json = dataUpdater.update(json, version);
-        }
+    public FakePlayerSerializer(JsonObject oldJson, String name, @Nullable File file) {
+        int version = DataUpdater.getVersion(oldJson);
+        FakePlayerSerializerDataUpdater dataUpdater = FakePlayerSerializerDataUpdater.getInstance();
+        // 需要重新保存吗？这可能会提高下一次读取文件的效率，但是会导致配置文件与低版本不兼容
+        JsonObject json = dataUpdater.update(oldJson, version);
         // 玩家名
         this.name = name;
         // 玩家位置
@@ -309,7 +311,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         // 玩家位置
         JsonObject pos = new JsonObject();
         pos.addProperty("x", this.playerPos.x);

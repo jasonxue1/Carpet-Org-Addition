@@ -20,6 +20,7 @@ import java.util.Set;
 public class PermissionManager {
     private static final HashMap<String, CommandPermission> PERMISSIONS = new HashMap<>();
     private static final String PERMISSION_JSON = "permission.json";
+    private static final int CURRENT_VERSION = 3;
 
     public static CommandPermission register(String node, PermissionLevel level) {
         CommandPermission permission = new CommandPermission(level);
@@ -58,7 +59,7 @@ public class PermissionManager {
      */
     public static void save(MinecraftServer server) throws IOException {
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         JsonObject permission = new JsonObject();
         PERMISSIONS.forEach((node, perm) -> permission.addProperty(node, perm.getLevel().asString()));
         json.add("permission", permission);

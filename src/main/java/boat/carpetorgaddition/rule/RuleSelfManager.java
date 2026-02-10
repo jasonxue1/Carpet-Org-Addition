@@ -21,6 +21,7 @@ import java.util.*;
 public class RuleSelfManager {
     public static final HashMap<String, CarpetRule<?>> NAME_TO_RULES = new HashMap<>();
     private static final BiMap<CarpetRule<?>, CustomRuleControl<?>> RULE_TO_CONTROL = HashBiMap.create();
+    private static final int CURRENT_VERSION = 3;
     private final HashMap<String, HashSet<String>> rules = new HashMap<>();
     /**
      * 数据保存的位置
@@ -118,7 +119,7 @@ public class RuleSelfManager {
             try {
                 JsonObject json = new JsonObject();
                 // 添加数据版本属性
-                json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+                json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
                 JsonObject ruleSelfJson = this.createRuleSelfJson();
                 json.add("ruleself", ruleSelfJson);
                 IOUtils.write(this.file, json);

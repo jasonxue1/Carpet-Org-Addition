@@ -3,23 +3,31 @@ package boat.carpetorgaddition.dataupdate.json.player;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.minecraft.util.Tuple;
 
 import java.util.HashSet;
 import java.util.Map;
 
 public final class FakePlayerActionDataUpdater implements DataUpdater {
+    private static final FakePlayerActionDataUpdater INSTANCE = new FakePlayerActionDataUpdater();
+
+    private FakePlayerActionDataUpdater() {
+    }
+
+    public static FakePlayerActionDataUpdater getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
             HashSet<Map.Entry<String, JsonObject>> entries = new HashSet<>();
-            // 通常只会循环一次
-            for (Map.Entry<String, JsonElement> entry : oldJson.entrySet()) {
-                Tuple<String, DataUpdater> pair = getDataUpdater(entry.getKey(), version);
-                String key = pair.getA();
-                DataUpdater dataUpdater = pair.getB();
+            // 通常只会循环一次，因为一名玩家只能同时有一个动作
+            for (Map.Entry<String, JsonElement> oldActionEntry : oldJson.entrySet()) {
+                Map.Entry<String, DataUpdater> actionUpdaterEntry = getDataUpdater(oldActionEntry.getKey(), version);
+                String key = actionUpdaterEntry.getKey();
+                DataUpdater dataUpdater = actionUpdaterEntry.getValue();
                 // 更新数据
-                JsonObject newJson = dataUpdater.update(entry.getValue().getAsJsonObject(), version);
+                JsonObject newJson = dataUpdater.update(oldActionEntry.getValue().getAsJsonObject(), version);
                 entries.add(Map.entry(key, newJson));
             }
             JsonObject newJson = new JsonObject();
@@ -34,17 +42,17 @@ public final class FakePlayerActionDataUpdater implements DataUpdater {
     /**
      * @return 左值：键的新名称，右值：数据更新器
      */
-    private Tuple<String, DataUpdater> getDataUpdater(String key, int version) {
+    private Map.Entry<String, DataUpdater> getDataUpdater(String key, int version) {
         if (version == 0) {
             return switch (key) {
-                case "clean" -> new Tuple<>("empty_the_container", new EmptyTheContainerActionDataUpdater());
-                case "fill" -> new Tuple<>("fill_the_container", new FillTheContainerActionDataUpdater());
-                case "inventory_crafting" -> new Tuple<>("inventory_craft", DataUpdater.UNCHANGED);
-                case "sorting" -> new Tuple<>("categorize", DataUpdater.UNCHANGED);
-                case "planting" -> new Tuple<>("plant", DataUpdater.UNCHANGED);
-                default -> new Tuple<>(key, DataUpdater.UNCHANGED);
+                case "clean" -> Map.entry("empty_the_container", EmptyTheContainerActionDataUpdater.getInstance());
+                case "fill" -> Map.entry("fill_the_container", FillTheContainerActionDataUpdater.getInstance());
+                case "inventory_crafting" -> Map.entry("inventory_craft", DataUpdater.UNCHANGED);
+                case "sorting" -> Map.entry("categorize", DataUpdater.UNCHANGED);
+                case "planting" -> Map.entry("plant", DataUpdater.UNCHANGED);
+                default -> Map.entry(key, DataUpdater.UNCHANGED);
             };
         }
-        return new Tuple<>(key, DataUpdater.UNCHANGED);
+        return Map.entry(key, DataUpdater.UNCHANGED);
     }
 }

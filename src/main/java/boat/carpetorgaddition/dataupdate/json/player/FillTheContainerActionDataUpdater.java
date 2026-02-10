@@ -7,7 +7,14 @@ import boat.carpetorgaddition.wheel.predicate.ItemStackPredicate;
 import com.google.gson.JsonObject;
 
 public final class FillTheContainerActionDataUpdater implements DataUpdater {
-    private static final String ALL_ITEM = "allItem";
+    private static final FillTheContainerActionDataUpdater INSTANCE = new FillTheContainerActionDataUpdater();
+
+    private FillTheContainerActionDataUpdater() {
+    }
+
+    public static FillTheContainerActionDataUpdater getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
@@ -16,7 +23,7 @@ public final class FillTheContainerActionDataUpdater implements DataUpdater {
             // dropOther默认为true
             boolean dropOther = !oldJson.has(key) || oldJson.get(key).getAsBoolean();
             ItemStackPredicate predicate;
-            if (oldJson.has(ALL_ITEM) && oldJson.get(ALL_ITEM).getAsBoolean()) {
+            if (oldJson.has("allItem") && oldJson.get("allItem").getAsBoolean()) {
                 // 匹配任意物品
                 predicate = ItemStackPredicate.WILDCARD;
             } else if (oldJson.has(FillTheContainerAction.ITEM)) {

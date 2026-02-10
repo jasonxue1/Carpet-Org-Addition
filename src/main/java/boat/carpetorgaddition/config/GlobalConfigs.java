@@ -19,6 +19,7 @@ public class GlobalConfigs {
     private final HashMap<Class<?>, AbstractConfig<?>> configurations = new HashMap<>();
     private final JsonObject json;
     private static volatile GlobalConfigs INSTANCE;
+    private static final int CURRENT_VERSION = 3;
 
     /**
      * @apiNote 如果使用饿汉式单例，则可能因为类加载顺序问题抛出空指针异常
@@ -53,7 +54,7 @@ public class GlobalConfigs {
     private JsonObject initJsonObject() {
         CarpetOrgAddition.LOGGER.info("Initializing configuration file");
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         return json;
     }
 

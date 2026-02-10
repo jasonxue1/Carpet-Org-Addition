@@ -23,6 +23,7 @@ public class RuleConfig {
     public static final String RULES = "rules";
     private final MinecraftServer server;
     private final File file;
+    private static final int CURRENT_VERSION = 3;
 
     public RuleConfig(MinecraftServer server) {
         this.server = server;
@@ -67,7 +68,7 @@ public class RuleConfig {
         if (this.file.isFile()) {
             try {
                 JsonObject json = IOUtils.loadJson(this.file);
-                CarpetConfDataUpdater updater = new CarpetConfDataUpdater();
+                CarpetConfDataUpdater updater = CarpetConfDataUpdater.getInstance();
                 json = updater.update(json, DataUpdater.getVersion(json));
                 for (Map.Entry<String, JsonElement> entry : json.get(RULES).getAsJsonObject().entrySet()) {
                     map.put(entry.getKey(), entry.getValue().getAsString());
@@ -81,7 +82,7 @@ public class RuleConfig {
 
     private void save(Map<String, String> map) {
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         JsonObject rules = new JsonObject();
         map.forEach(rules::addProperty);
         json.add(RULES, rules);
@@ -100,7 +101,7 @@ public class RuleConfig {
         JsonObject json = new JsonObject();
         json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.ZERO);
         json.add(RULES, rules);
-        CarpetConfDataUpdater dataUpdater = new CarpetConfDataUpdater();
+        CarpetConfDataUpdater dataUpdater = CarpetConfDataUpdater.getInstance();
         JsonObject update = dataUpdater.update(json, DataUpdater.getVersion(json));
         this.save(update);
         CarpetOrgAddition.LOGGER.info("The Carpet Org Addition rules have been migrated from carpet.conf to carpetorgaddition/config.json");

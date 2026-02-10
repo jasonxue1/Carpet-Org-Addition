@@ -10,12 +10,19 @@ import com.google.gson.JsonObject;
  * 清空容器动作数据更新器
  */
 public final class EmptyTheContainerActionDataUpdater implements DataUpdater {
-    public static final String ALL_ITEM = "allItem";
+    private static final EmptyTheContainerActionDataUpdater INSTANCE = new EmptyTheContainerActionDataUpdater();
+
+    private EmptyTheContainerActionDataUpdater() {
+    }
+
+    public static EmptyTheContainerActionDataUpdater getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public JsonObject update(JsonObject oldJson, int version) {
         if (version == 0) {
-            if (oldJson.has(ALL_ITEM) && oldJson.get(ALL_ITEM).getAsBoolean()) {
+            if (oldJson.has("allItem") && oldJson.get("allItem").getAsBoolean()) {
                 // 匹配任意物品
                 ItemStackPredicate predicate = ItemStackPredicate.WILDCARD;
                 JsonObject newJson = new JsonObject();

@@ -1,9 +1,9 @@
 package boat.carpetorgaddition.dataupdate.waypoint;
 
-import com.google.gson.JsonObject;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.dataupdate.json.WaypointDataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
+import com.google.gson.JsonObject;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -27,7 +27,7 @@ public class WaypointDataUpdaterTest {
                 }
                 """;
         JsonObject json = IOUtils.GSON.fromJson(oldWaypoint, JsonObject.class);
-        WaypointDataUpdater dataUpdater = new WaypointDataUpdater();
+        WaypointDataUpdater dataUpdater = WaypointDataUpdater.getInstance();
         JsonObject update = dataUpdater.update(json, DataUpdater.getVersion(json));
         // 路径点坐标已被合并
         Assertions.assertNull(update.get("x"));

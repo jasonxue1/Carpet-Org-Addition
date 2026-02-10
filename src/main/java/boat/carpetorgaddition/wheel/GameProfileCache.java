@@ -67,6 +67,7 @@ public class GameProfileCache {
             new ThreadPoolExecutor.AbortPolicy()
     );
     private static final String CONFIG_NAME_NAME = "profile";
+    private static final int CURRENT_VERSION = 3;
     private final File config = IOUtils.configFile(CONFIG_NAME_NAME + ".json");
     private final Table table = new Table();
     /**
@@ -312,7 +313,7 @@ public class GameProfileCache {
     public void save() {
         if (this.changed) {
             JsonObject json = new JsonObject();
-            json.addProperty(DataUpdater.DATA_VERSION, DataUpdater.VERSION);
+            json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
             JsonArray array = new JsonArray();
             try {
                 this.lock.readLock().lock();

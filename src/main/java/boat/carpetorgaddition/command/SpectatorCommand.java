@@ -36,6 +36,7 @@ import java.util.Locale;
 
 // 在生存模式和旁观模式间切换
 public class SpectatorCommand extends AbstractServerCommand {
+    private static final int CURRENT_VERSION = 1;
     private static final String SPECTATOR = "spectator";
     public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("spectator");
     public static final LocalizationKey TELEPORT = KEY.then("teleport");
@@ -160,7 +161,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     private void savePlayerPos(MinecraftServer server, ServerPlayer player) {
         WorldFormat worldFormat = new WorldFormat(server, SPECTATOR);
         JsonObject json = new JsonObject();
-        json.addProperty(DataUpdater.DATA_VERSION, SpectatorDataUpdater.CURRENT_VERSION);
+        json.addProperty(DataUpdater.DATA_VERSION, CURRENT_VERSION);
         JsonObject pos = new JsonObject();
         pos.addProperty("x", player.getX());
         pos.addProperty("y", player.getY());

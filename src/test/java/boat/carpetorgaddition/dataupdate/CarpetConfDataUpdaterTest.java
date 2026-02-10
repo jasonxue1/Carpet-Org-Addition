@@ -1,9 +1,9 @@
 package boat.carpetorgaddition.dataupdate;
 
 import boat.carpetorgaddition.dataupdate.json.CarpetConfDataUpdater;
-import com.google.gson.JsonObject;
 import boat.carpetorgaddition.rule.RuleConfig;
 import boat.carpetorgaddition.util.IOUtils;
+import com.google.gson.JsonObject;
 import org.intellij.lang.annotations.Language;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -25,7 +25,7 @@ public class CarpetConfDataUpdaterTest {
                 """;
         List<String> list = List.of("fake_player", "online_player", "all_player", "non_whitelist");
         for (String element : list) {
-            CarpetConfDataUpdater dataUpdater = new CarpetConfDataUpdater();
+            CarpetConfDataUpdater dataUpdater = CarpetConfDataUpdater.getInstance();
             JsonObject newJson = dataUpdater.update(IOUtils.GSON.fromJson(oldJson.formatted(element), JsonObject.class), 1);
             System.out.println(IOUtils.GSON.toJson(newJson));
             Map<String, String> map = newJson.getAsJsonObject(RuleConfig.RULES)
@@ -48,7 +48,7 @@ public class CarpetConfDataUpdaterTest {
                   }
                 }
                 """;
-        CarpetConfDataUpdater dataUpdater = new CarpetConfDataUpdater();
+        CarpetConfDataUpdater dataUpdater = CarpetConfDataUpdater.getInstance();
         JsonObject newJson = dataUpdater.update(IOUtils.GSON.fromJson(oldJson, JsonObject.class), 1);
         System.out.println(IOUtils.GSON.toJson(newJson));
         Map<String, String> map = newJson.getAsJsonObject(RuleConfig.RULES)
@@ -116,7 +116,7 @@ public class CarpetConfDataUpdaterTest {
                   }
                 }
                 """;
-        CarpetConfDataUpdater dataUpdater = new CarpetConfDataUpdater();
+        CarpetConfDataUpdater dataUpdater = CarpetConfDataUpdater.getInstance();
         JsonObject newJson = dataUpdater.update(IOUtils.GSON.fromJson(oldJson, JsonObject.class), 1);
         System.out.println(IOUtils.GSON.toJson(newJson));
         Map<String, String> rules = newJson.getAsJsonObject(RuleConfig.RULES)

@@ -3,7 +3,6 @@ package boat.carpetorgaddition.dataupdate.json;
 import com.google.gson.JsonObject;
 
 public final class SpectatorDataUpdater implements DataUpdater {
-    public static final int CURRENT_VERSION = 1;
     private static final SpectatorDataUpdater INSTANCE = new SpectatorDataUpdater();
 
     private SpectatorDataUpdater() {
