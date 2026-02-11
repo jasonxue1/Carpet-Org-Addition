@@ -6,6 +6,7 @@ import carpet.api.settings.CarpetRule;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 
+import java.util.Locale;
 import java.util.function.Supplier;
 
 public class RuleAccessor<T> {
@@ -23,6 +24,7 @@ public class RuleAccessor<T> {
         return this.value.get();
     }
 
+    @SuppressWarnings("unused")
     public CarpetRule<T> getCarpetRule() {
         return this.rule;
     }
@@ -35,9 +37,15 @@ public class RuleAccessor<T> {
         return this.key;
     }
 
-    // TODO 不必要的rule参数
-    public void setRuleValue(CommandSourceStack source, CarpetRule<?> rule, String newValue) {
-        SettingsManagerAccessor accessor = (SettingsManagerAccessor) CarpetOrgAdditionExtension.getSettingManager();
-        accessor.changeRuleValue(source, rule, newValue);
+    public void setRuleValue(CommandSourceStack source, T value) {
+        SettingsManagerAccessor accessor = (SettingsManagerAccessor) this.rule.settingsManager();
+        accessor.changeRuleValue(source, this.rule, this.valueAsString(value));
+    }
+
+    private String valueAsString(T value) {
+        if (value.getClass().isEnum()) {
+            return ((Enum<?>) value).name().toLowerCase(Locale.ROOT);
+        }
+        return value.toString();
     }
 }

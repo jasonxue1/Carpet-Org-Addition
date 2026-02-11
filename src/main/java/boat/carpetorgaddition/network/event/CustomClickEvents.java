@@ -31,6 +31,9 @@ import java.util.UUID;
 import java.util.concurrent.RejectedExecutionException;
 
 public class CustomClickEvents {
+    /**
+     * 打开对话框
+     */
     public static final Identifier OPEN_DIALOG = register("open_dialog", context -> {
         NbtReader reader = context.getReader();
         Identifier id = reader.getIdentifierOrThrow("id");
@@ -39,12 +42,18 @@ public class CustomClickEvents {
         Dialog dialog = provider.getDialog(id);
         PlayerUtils.openDialog(context.getPlayer(), dialog);
     });
+    /**
+     * 打开玩家物品栏
+     */
     public static final Identifier OPEN_INVENTORY = register("open_inventory", context -> {
         NbtReader reader = context.getReader();
         UUID uuid = reader.getUuidNullable(CustomClickKeys.UUID).orElseThrow(() -> unableToResolveUuid(reader));
         PlayerInventoryType type = reader.getPlayerInventoryTypeOrThrow(CustomClickKeys.INVENTORY_TYPE);
         PlayerCommandExtension.openInventory(context.getPlayer(), type, new PlayerCommandExtension.PlayerInventroyAccessor(context.getServer(), uuid, context.getPlayer()));
     });
+    /**
+     * 查询玩家名称
+     */
     public static final Identifier QUERY_PLAYER_NAME = register("query_player_name", context -> {
         try {
             NbtReader reader = context.getReader();
@@ -72,6 +81,9 @@ public class CustomClickEvents {
             throw CommandUtils.createException(LocalizationKeys.Operation.WAIT_LAST.translate());
         }
     });
+    /**
+     * 翻页
+     */
     public static final Identifier TURN_THE_PAGE = register("turn_the_page", context -> {
         NbtReader reader = context.getReader();
         int id = reader.getIntOrThrow(CustomClickKeys.ID);
@@ -85,10 +97,13 @@ public class CustomClickEvents {
             throw CommandUtils.createException(LocalizationKeys.Operation.Page.NON_EXISTENT.translate());
         }
     });
+    /**
+     * 启用潜影盒堆叠
+     */
     public static final Identifier ENABLE_SHULKER_BOX_STACKABLE = register("enable_shulker_box_stackable", context -> {
         RuleAccessor<Boolean> accessor = CarpetOrgAdditionSettings.shulkerBoxStackable;
-        ScopedValue.where(CarpetOrgAdditionSettings.CONFIRM_ENABLE, true)
-                .run(() -> accessor.setRuleValue(context.getSource(), accessor.getCarpetRule(), "true"));
+        CommandSourceStack source = context.getSource();
+        ScopedValue.where(CarpetOrgAdditionSettings.CONFIRM_ENABLE, true).run(() -> accessor.setRuleValue(source, true));
     });
 
     /**
