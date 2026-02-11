@@ -95,7 +95,7 @@ public class CarpetOrgAdditionClientRegister {
      */
     private static void registerRenderer() {
         // 注册路径点渲染器
-        LevelRenderEvents.AFTER_ENTITIES.register(context -> WaypointRenderer.getInstance().render(context));
+        LevelRenderEvents.BEFORE_GIZMOS.register(context -> WaypointRenderer.getInstance().render(context));
     }
 
     /**
