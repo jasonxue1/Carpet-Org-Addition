@@ -1,11 +1,11 @@
 package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.dialog.DialogProvider;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.CustomRuleControl;
 import boat.carpetorgaddition.rule.CustomRuleEntry;
-import boat.carpetorgaddition.rule.RuleSelfManager;
+import boat.carpetorgaddition.rule.CustomRuleValueManager;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.MessageUtils;
@@ -72,7 +72,7 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private @NotNull SuggestionProvider<CommandSourceStack> suggestRule() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(RuleSelfManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
+        return (_, builder) -> SharedSuggestionProvider.suggest(CustomRuleValueManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
     }
 
     private SuggestionProvider<CommandSourceStack> suggestsNode() {
@@ -133,16 +133,16 @@ public class OrangeCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             MinecraftServer server = ServerUtils.getServer(player);
-            RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
+            CustomRuleValueManager customRuleValueManager = ServerComponentCoordinator.getCoordinator(server).getCustomRuleValueManager();
             String ruleString = StringArgumentType.getString(context, "rule");
-            Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
+            Optional<CustomRuleEntry> optional = CustomRuleValueManager.get(ruleString);
             if (optional.isEmpty()) {
                 throw CommandUtils.createException(RULESELF.then("failed").translate());
             }
             CustomRuleEntry entry = optional.get();
             CustomRuleControl<?> control = entry.getControl();
             boolean value = BoolArgumentType.getBool(context, "value");
-            ruleSelfManager.setEnabled(player, ruleString, value);
+            customRuleValueManager.setEnabled(player, ruleString, value);
             Component ruleName = RuleUtils.simpleTranslationName(entry.getRule());
             Component playerName = (player == CommandUtils.getSourcePlayer(context) ? LocalizationKeys.Misc.SELF.translate() : player.getDisplayName());
             TextBuilder builder;
@@ -151,7 +151,7 @@ public class OrangeCommand extends AbstractServerCommand {
             } else {
                 builder = new TextBuilder(RULESELF.then("disable").translate(ruleName, playerName));
             }
-            if (control.isServerDecision()) {
+            if (!control.allowCustomSwitch()) {
                 builder.setHover(RULESELF.then("invalid").translate());
                 builder.setStrikethrough();
             }
@@ -165,9 +165,9 @@ public class OrangeCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getArgumentPlayer(context);
         if (CommandUtils.isSelfOrFakePlayer(player, context)) {
             MinecraftServer server = ServerUtils.getServer(player);
-            RuleSelfManager ruleSelfManager = ServerComponentCoordinator.getCoordinator(server).getRuleSelfManager();
+            CustomRuleValueManager valueManager = ServerComponentCoordinator.getCoordinator(server).getCustomRuleValueManager();
             String ruleString = StringArgumentType.getString(context, "rule");
-            Optional<CustomRuleEntry> optional = RuleSelfManager.get(ruleString);
+            Optional<CustomRuleEntry> optional = CustomRuleValueManager.get(ruleString);
             if (optional.isEmpty()) {
                 throw CommandUtils.createException(RULESELF.then("failed").translate());
             }
@@ -176,11 +176,11 @@ public class OrangeCommand extends AbstractServerCommand {
             MessageUtils.sendEmptyMessage(context);
             LocalizationKey key = RULESELF.then("info");
             MessageUtils.sendMessage(context, key.then("player").translate(player.getDisplayName()));
-            boolean enabled = ruleSelfManager.isEnabled(player, ruleString);
+            boolean enabled = valueManager.isEnabled(player, ruleString);
             Component displayName = RuleUtils.simpleTranslationName(entry.getRule());
             MessageUtils.sendMessage(context, key.then("rule").translate(displayName));
             TextBuilder builder = new TextBuilder(key.then("enable").translate(TextProvider.getBoolean(enabled)));
-            if (control.isServerDecision()) {
+            if (!control.allowCustomSwitch()) {
                 builder.setHover(RULESELF.then("invalid").translate());
                 builder.setStrikethrough();
             }

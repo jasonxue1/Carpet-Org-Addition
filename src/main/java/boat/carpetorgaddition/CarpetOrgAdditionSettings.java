@@ -673,7 +673,15 @@ public class CarpetOrgAdditionSettings {
                             BlockDropsDirectlyEnterInventory.FALSE
                     )
                     .addCategories(RuleCategory.SURVIVAL)
-                    .setPlayerCustom(CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY)
+                    .setCustomRuleSwitch(enabled -> {
+                                BlockDropsDirectlyEnterInventory value = CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value();
+                                return switch (value) {
+                                    case TRUE, FALSE -> value;
+                                    case CUSTOM -> BlockDropsDirectlyEnterInventory.active(enabled);
+                                };
+                            },
+                            () -> CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value().isCustom()
+                    )
                     .build()
     );
 
@@ -1011,6 +1019,7 @@ public class CarpetOrgAdditionSettings {
     /**
      * 物品拾取范围扩展
      */
+    @SuppressWarnings("Convert2MethodRef")
     public static final RuleAccessor<Integer> itemPickupRangeExpand = register(
             RuleFactory.create(Integer.class, "itemPickupRangeExpand", 0)
                     .addCategories(RuleCategory.FEATURE)
@@ -1018,7 +1027,12 @@ public class CarpetOrgAdditionSettings {
                     .setHidden()
                     .addOptions(0, 3, 5)
                     .setLenient()
-                    .setPlayerCustom(CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND)
+                    .setCustomRuleSwitch(
+                            enabled -> enabled ? CarpetOrgAdditionSettings.itemPickupRangeExpand.value() : 0,
+                            // 此处不能使用方法引用，因为方法引用会在创建时立即求值，但此时值还未初始化，执行到这里时会抛出空指针异常
+                            // 直接交换成员顺序也能解决问题，但未来格式化或重构代码时可能无意间将成员顺序改回来
+                            () -> CarpetOrgAdditionSettings.itemPickupRangeExpandPlayerControl.value()
+                    )
                     .build()
     );
 
@@ -1072,7 +1086,7 @@ public class CarpetOrgAdditionSettings {
                     CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
                     CustomRuleControl<?> control = context.getCustomRuleControl();
                     if (control != null) {
-                        RuleSelfManager.put(control, rule);
+                        CustomRuleValueManager.put(control, rule);
                     }
                 } catch (UnsupportedOperationException e) {
                     CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name());

@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.mixin.rule.canminespawner;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.rule.CustomRuleControls;
 import boat.carpetorgaddition.util.EnchantmentUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
@@ -75,7 +74,7 @@ public abstract class SpawnerBlockMixin extends BaseEntityBlock {
     @Unique
     private boolean tryCollect(ItemStack itemStack) {
         ServerPlayer player = CarpetOrgAdditionSettings.blockBreaking.get();
-        if (CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY.getRuleValue(player)) {
+        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value(player).isEnabled()) {
             player.getInventory().add(itemStack);
             return !itemStack.isEmpty();
         }

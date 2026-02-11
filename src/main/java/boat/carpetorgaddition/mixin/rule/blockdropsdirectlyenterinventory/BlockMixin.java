@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.mixin.rule.blockdropsdirectlyenterinventory;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.rule.CustomRuleControls;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.BlockPos;
@@ -43,7 +42,7 @@ public abstract class BlockMixin {
     @Unique
     private static List<ItemStack> collect(List<ItemStack> list) {
         ServerPlayer player = CarpetOrgAdditionSettings.blockBreaking.get();
-        if (CustomRuleControls.BLOCK_DROPS_DIRECTLY_ENTER_INVENTORY.getRuleValue(player)) {
+        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value(player).isEnabled()) {
             // 将物品直接插入玩家物品栏
             for (ItemStack itemStack : list) {
                 player.getInventory().add(itemStack);

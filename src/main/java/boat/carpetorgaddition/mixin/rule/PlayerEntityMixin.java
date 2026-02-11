@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.mixin.rule;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
-import boat.carpetorgaddition.rule.CustomRuleControls;
 import boat.carpetorgaddition.rule.RuleUtils;
 import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.ServerUtils;
@@ -147,7 +146,7 @@ public abstract class PlayerEntityMixin extends LivingEntityMixin {
     @Inject(method = "aiStep", at = @At(value = "INVOKE", target = "Ljava/util/List;isEmpty()Z"))
     private void pickupItem(CallbackInfo ci, @Local(name = "pickupArea") AABB box) {
         if (this.thisPlayer instanceof ServerPlayer player) {
-            int range = CustomRuleControls.ITEM_PICKUP_RANGE_EXPAND.getRuleValue(player);
+            int range = CarpetOrgAdditionSettings.itemPickupRangeExpand.value(player);
             if (range == 0) {
                 return;
             }

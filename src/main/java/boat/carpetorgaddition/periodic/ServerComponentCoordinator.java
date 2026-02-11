@@ -5,8 +5,8 @@ import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerResidents;
 import boat.carpetorgaddition.periodic.fakeplayer.PlayerSerializationManager;
 import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
+import boat.carpetorgaddition.rule.CustomRuleValueManager;
 import boat.carpetorgaddition.rule.RuleConfig;
-import boat.carpetorgaddition.rule.RuleSelfManager;
 import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -34,7 +34,7 @@ public class ServerComponentCoordinator {
      * 翻页管理器
      */
     private final PageManager pageManager;
-    private final RuleSelfManager ruleSelfManager;
+    private final CustomRuleValueManager customRuleValueManager;
     private final PlayerSerializationManager playerSerializationManager;
     private final FabricPlayerAccessManager accessManager;
     private final RuleConfig ruleConfig;
@@ -46,7 +46,7 @@ public class ServerComponentCoordinator {
         this.server = server;
         this.parcelManager = new ParcelManager(server);
         this.pageManager = new PageManager(server);
-        this.ruleSelfManager = new RuleSelfManager(server);
+        this.customRuleValueManager = new CustomRuleValueManager(server);
         this.playerSerializationManager = new PlayerSerializationManager(server);
         this.accessManager = new FabricPlayerAccessManager(server);
         this.ruleConfig = new RuleConfig(server);
@@ -60,7 +60,7 @@ public class ServerComponentCoordinator {
     public void onServerStarted() {
         this.playerSerializationManager.init();
         this.fakePlayerResidents.cleanupFiles();
-        this.ruleSelfManager.load();
+        this.customRuleValueManager.load();
         this.playerSerializationManager.autoLogin();
     }
 
@@ -80,8 +80,8 @@ public class ServerComponentCoordinator {
         return this.serverTaskManager;
     }
 
-    public RuleSelfManager getRuleSelfManager() {
-        return this.ruleSelfManager;
+    public CustomRuleValueManager getCustomRuleValueManager() {
+        return this.customRuleValueManager;
     }
 
     public PageManager getPageManager() {
@@ -109,7 +109,7 @@ public class ServerComponentCoordinator {
     }
 
     private void onServerSave() {
-        this.ruleSelfManager.onServerSave();
+        this.customRuleValueManager.onServerSave();
         this.playerSerializationManager.onServerSave();
         this.fakePlayerResidents.onServerSave();
     }

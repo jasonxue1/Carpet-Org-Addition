@@ -12,7 +12,7 @@ public class RuleContext<T> {
     private final Collection<String> suggestions;
     private final boolean isRemove;
     private final boolean isHidden;
-    private final CustomRuleControl<?> control;
+    private final CustomRuleControl<T> control;
     private final T value;
     private final String name;
     private final Supplier<CarpetRule<T>> ruleSupplier;
@@ -29,7 +29,7 @@ public class RuleContext<T> {
             Collection<String> suggestions,
             boolean isRemove,
             boolean isHidden,
-            CustomRuleControl<?> control
+            CustomRuleControl<T> control
     ) {
         this.name = name;
         this.ruleSupplier = ruleSupplier;
@@ -69,7 +69,7 @@ public class RuleContext<T> {
         return this.isRemove;
     }
 
-    public CustomRuleControl<?> getCustomRuleControl() {
+    public CustomRuleControl<T> getCustomRuleControl() {
         return this.control;
     }
 

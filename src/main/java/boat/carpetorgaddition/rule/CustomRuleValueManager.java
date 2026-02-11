@@ -18,7 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class RuleSelfManager {
+public class CustomRuleValueManager {
     public static final HashMap<String, CarpetRule<?>> NAME_TO_RULES = new HashMap<>();
     private static final BiMap<CarpetRule<?>, CustomRuleControl<?>> RULE_TO_CONTROL = HashBiMap.create();
     private static final int CURRENT_VERSION = 3;
@@ -32,7 +32,7 @@ public class RuleSelfManager {
      */
     private boolean changed = false;
 
-    public RuleSelfManager(MinecraftServer server) {
+    public CustomRuleValueManager(MinecraftServer server) {
         WorldFormat worldFormat = new WorldFormat(server, null);
         this.file = worldFormat.file("ruleself", "json");
     }

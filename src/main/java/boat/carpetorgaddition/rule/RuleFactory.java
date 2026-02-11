@@ -2,12 +2,18 @@ package boat.carpetorgaddition.rule;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
 import boat.carpetorgaddition.rule.validator.ValueValidator;
+import boat.carpetorgaddition.util.ServerUtils;
 import carpet.api.settings.CarpetRule;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -31,7 +37,7 @@ public class RuleFactory {
         private boolean strict = true;
         private boolean isHidden;
         private boolean isRemove;
-        private CustomRuleControl<?> control;
+        private CustomRuleControl<T> control;
         private String displayName = "";
         private String displayDesc = "";
 
@@ -101,8 +107,22 @@ public class RuleFactory {
             return this;
         }
 
-        public Builder<T> setPlayerCustom(CustomRuleControl<?> control) {
-            this.control = control;
+        public Builder<T> setCustomRuleSwitch(Function<Boolean, T> customRuleValue, BooleanSupplier allowCustomSwitch) {
+            this.control = new CustomRuleControl<>() {
+                @Override
+                public T getCustomRuleValue(ServerPlayer player) {
+                    MinecraftServer server = ServerUtils.getServer(player);
+                    ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);
+                    CustomRuleValueManager ruleValueManager = coordinator.getCustomRuleValueManager();
+                    boolean enabled = ruleValueManager.isEnabled(player, this);
+                    return customRuleValue.apply(enabled);
+                }
+
+                @Override
+                public boolean allowCustomSwitch() {
+                    return allowCustomSwitch.getAsBoolean();
+                }
+            };
             return this;
         }
 
