@@ -15,7 +15,7 @@ public class ClientMessageUtils {
      */
     public static void sendMessage(Component message) {
         LocalPlayer player = ClientUtils.getPlayer();
-        player.displayClientMessage(message, false);
+        player.sendSystemMessage(message);
     }
 
     /**

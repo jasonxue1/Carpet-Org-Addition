@@ -101,7 +101,7 @@ public class MessageUtils {
      * @param message 发送文本消息的内容
      */
     public static void sendMessageToHud(Player player, Component message) {
-        player.displayClientMessage(message, true);
+        player.sendOverlayMessage(message);
     }
 
     /**
