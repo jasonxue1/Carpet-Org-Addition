@@ -9,6 +9,7 @@ import boat.carpetorgaddition.rule.value.*;
 import boat.carpetorgaddition.util.PlayerUtils;
 import carpet.api.settings.CarpetRule;
 import carpet.api.settings.RuleCategory;
+import carpet.api.settings.SettingsManager;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.dialog.Dialog;
 import net.minecraft.server.level.ServerPlayer;
@@ -1079,17 +1080,18 @@ public class CarpetOrgAdditionSettings {
     }
 
     public static void register() {
+        SettingsManager settingManager = CarpetOrgAdditionExtension.getSettingManager();
         for (RuleContext<?> context : RULES) {
             if (context.shouldRegister()) {
                 CarpetRule<?> rule = context.rule();
                 try {
-                    CarpetOrgAdditionExtension.getSettingManager().addCarpetRule(rule);
-                    CustomRuleControl<?> control = context.getCustomRuleControl();
-                    if (control != null) {
-                        CustomRuleValueManager.put(control, rule);
-                    }
+                    settingManager.addCarpetRule(rule);
                 } catch (UnsupportedOperationException e) {
                     CarpetOrgAddition.LOGGER.error("{}: {} conflicts with another Carpet extension, disabling rule", CarpetOrgAddition.MOD_NAME, rule.name());
+                }
+                CustomRuleControl<?> control = context.getCustomRuleControl();
+                if (control != null) {
+                    CustomRuleValueManager.put(control, rule);
                 }
             }
         }
