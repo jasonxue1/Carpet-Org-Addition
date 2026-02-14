@@ -29,7 +29,7 @@ public class LoggerRegister {
             if (annotation == null) {
                 continue;
             }
-            if (!CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION && field.isAnnotationPresent(Hidden.class)) {
+            if (!CarpetOrgAddition.isEnableHiddenFunction() && field.isAnnotationPresent(Hidden.class)) {
                 continue;
             }
             // 记录器名称

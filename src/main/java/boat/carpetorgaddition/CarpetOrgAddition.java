@@ -53,9 +53,13 @@ public class CarpetOrgAddition implements ModInitializer {
      */
     public static final String BUILD_TIMESTAMP = METADATA.getCustomValue("buildTimestamp").getAsString();
     /**
+     * 日志
+     */
+    public static final Logger LOGGER = LoggerFactory.getLogger(COMPACT_MOD_NAME);
+    /**
      * 当前jvm是否为调试模式
      */
-    public static final boolean IS_DEBUG = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.contains("jdwp"));
+    private static final boolean IS_DEBUG = ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.contains("jdwp"));
     /**
      * 当前游戏环境是否为开发环境
      */
@@ -68,17 +72,31 @@ public class CarpetOrgAddition implements ModInitializer {
      * 是否同时加载了{@code Carpet TIS Addition}模组
      */
     public static final boolean CARPET_TIS_ADDITION = FabricLoader.getInstance().isModLoaded("carpet-tis-addition");
-    /**
-     * 日志
-     */
-    public static final Logger LOGGER = LoggerFactory.getLogger(COMPACT_MOD_NAME);
+
     /**
      * 是否启用隐藏功能<br>
      * <p>
      * <b>请勿</b>传播解锁这些功能的方式。
      * </p>
      */
-    public static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.getInstance().isEnableHiddenFunction();
+    public static boolean isEnableHiddenFunction() {
+        return HiddenFunctionHolder.ENABLE_HIDDEN_FUNCTION;
+    }
+
+    /**
+     * @return 当前环境是否为调试模式的开发环境
+     */
+    public static boolean isDebugDevelopment() {
+        return IS_DEBUG && IS_DEVELOPMENT;
+    }
+
+    /**
+     * 空方法
+     *
+     * @apiNote 用于在方法引用中使用
+     */
+    public static void pass(Object... ignored) {
+    }
 
     /**
      * 模组初始化
@@ -88,7 +106,7 @@ public class CarpetOrgAddition implements ModInitializer {
         CarpetServer.manageExtension(new CarpetOrgAdditionExtension());
         // 注册网络数据包
         NetworkS2CPacketRegister.register();
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             CarpetOrgAddition.LOGGER.info("Hidden feature enabled");
         }
         if (IS_DEVELOPMENT) {
@@ -148,18 +166,7 @@ public class CarpetOrgAddition implements ModInitializer {
         }
     }
 
-    /**
-     * 空方法
-     *
-     * @apiNote 用于在方法引用中使用
-     */
-    public static void pass(Object... ignored) {
-    }
-
-    /**
-     * @return 当前环境是否为调试模式的开发环境
-     */
-    public static boolean isDebugDevelopment() {
-        return IS_DEBUG && IS_DEVELOPMENT;
+    private static class HiddenFunctionHolder {
+        private static final boolean ENABLE_HIDDEN_FUNCTION = GlobalConfigs.getInstance().isEnableHiddenFunction();
     }
 }

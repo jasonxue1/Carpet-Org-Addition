@@ -49,7 +49,7 @@ public class PlantAction extends AbstractPlayerAction {
 
     @Override
     protected void tick() {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             // 继续挖掘之前未挖掘完成的方块
             if (this.cropPos != null && !breakBlock(this.cropPos)) {
                 return;

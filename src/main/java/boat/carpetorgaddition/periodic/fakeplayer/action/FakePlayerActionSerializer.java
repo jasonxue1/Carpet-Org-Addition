@@ -71,7 +71,7 @@ public class FakePlayerActionSerializer {
 
     public JsonObject toJson() {
         JsonObject json = new JsonObject();
-        if (this.action.isHidden() && !CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (this.action.isHidden() && !CarpetOrgAddition.isEnableHiddenFunction()) {
             StopAction stopAction = new StopAction(null);
             json.add(stopAction.getActionSerializeType().getSerializedName(), stopAction.toJson());
         } else {

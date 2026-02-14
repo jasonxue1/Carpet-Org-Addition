@@ -29,7 +29,7 @@ public class PermissionManager {
     }
 
     public static CommandPermission registerHiddenCommand(String node, PermissionLevel level) {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             return register(node, level);
         }
         return new CommandPermission(level);

@@ -120,7 +120,7 @@ public class FinderCommand extends AbstractServerCommand {
                                                 .suggests(suggestionDefaultDistance())
                                                 .executes(context -> searchEnchantedBookTrade(context, IntegerArgumentType.getInteger(context, "range")))))))
                 .then(Commands.literal("worldEater")
-                        .requires(((Predicate<CommandSourceStack>) _ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                        .requires(((Predicate<CommandSourceStack>) _ -> CarpetOrgAddition.isEnableHiddenFunction())
                                 .and(PermissionManager.registerHiddenCommand("finder.worldEater", PermissionLevel.PASS)))
                         .then(Commands.argument("from", BlockPosArgument.blockPos())
                                 .then(Commands.argument("to", BlockPosArgument.blockPos())

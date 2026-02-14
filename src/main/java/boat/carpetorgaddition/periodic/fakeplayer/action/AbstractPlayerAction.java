@@ -79,7 +79,7 @@ public abstract class AbstractPlayerAction {
     }
 
     public boolean isValid() {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             return true;
         }
         return !this.isHidden();

@@ -138,7 +138,7 @@ public class RuleFactory {
         }
 
         public Builder<T> setHidden() {
-            this.conditions.add(() -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION);
+            this.conditions.add(CarpetOrgAddition::isEnableHiddenFunction);
             this.addCategories(CarpetOrgAdditionSettings.HIDDEN);
             this.isHidden = true;
             return this;

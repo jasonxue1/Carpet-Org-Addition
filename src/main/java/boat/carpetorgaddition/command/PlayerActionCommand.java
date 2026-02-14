@@ -120,12 +120,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
                         .then(Commands.literal("fishing")
                                 .executes(this::setFishing))
                         .then(Commands.literal("plant")
-                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())
                                 .executes(this::setPlant))
                         .then(register(Commands.literal("bedrock")
-                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)))
+                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())))
                         .then(Commands.literal("goto")
-                                .requires(_ -> CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION)
+                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())
                                 .then(Commands.literal("block")
                                         .then(Commands.argument("target", BlockPosArgument.blockPos())
                                                 .executes(this::setGotoBlockPos)))
@@ -361,7 +361,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
 
     // 设置自动种植
     private int setPlant(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
             FakePlayerActionManager actionManager = coordinator.getFakePlayerActionManager();
@@ -373,7 +373,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
 
     // 设置破基岩
     private int setBreakBedrock(CommandContext<CommandSourceStack> context, BedrockRegionType regionType, boolean ai, boolean timedMaterialRecycling) throws CommandSyntaxException {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             BedrockAction action = switch (regionType) {
                 case CUBOID -> {
@@ -403,7 +403,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
 
     // 设置寻路到方块
     private int setGotoBlockPos(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             BlockPos target = BlockPosArgument.getBlockPos(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);
@@ -416,7 +416,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
 
     // 设置寻路到实体
     private int setGotoEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             Entity target = EntityArgument.getEntity(context, "target");
             EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
             FakePlayerComponentCoordinator coordinator = PlayerComponentCoordinator.getCoordinator(fakePlayer);

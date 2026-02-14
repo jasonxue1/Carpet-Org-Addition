@@ -5,7 +5,6 @@ import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.util.IOUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,21 +17,10 @@ public class GlobalConfigs {
     private final File configFile = IOUtils.CONFIGURE_DIRECTORY.resolve(CarpetOrgAddition.MOD_ID + ".json").toFile();
     private final HashMap<Class<?>, AbstractConfig<?>> configurations = new HashMap<>();
     private final JsonObject json;
-    private static volatile GlobalConfigs INSTANCE;
+    private static final GlobalConfigs INSTANCE = new GlobalConfigs();
     private static final int CURRENT_VERSION = 3;
 
-    /**
-     * @apiNote 如果使用饿汉式单例，则可能因为类加载顺序问题抛出空指针异常
-     */
-    @NotNull
     public static GlobalConfigs getInstance() {
-        if (INSTANCE == null) {
-            synchronized (GlobalConfigs.class) {
-                if (INSTANCE == null) {
-                    INSTANCE = new GlobalConfigs();
-                }
-            }
-        }
         return INSTANCE;
     }
 

@@ -336,7 +336,7 @@ public class GameProfileCache {
                 CarpetOrgAddition.LOGGER.error("Unable to write the mapping table between player UUID and name to the file", e);
             }
         }
-        if (CarpetOrgAddition.ENABLE_HIDDEN_FUNCTION) {
+        if (CarpetOrgAddition.isEnableHiddenFunction()) {
             this.saveToCsv();
         }
     }
