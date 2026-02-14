@@ -4,10 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.dataupdate.json.DataUpdater;
 import boat.carpetorgaddition.dataupdate.json.SpectatorDataUpdater;
-import boat.carpetorgaddition.util.CommandUtils;
-import boat.carpetorgaddition.util.IOUtils;
-import boat.carpetorgaddition.util.MessageUtils;
-import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.util.*;
 import boat.carpetorgaddition.wheel.WorldFormat;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -32,7 +29,6 @@ import net.minecraft.world.phys.Vec3;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Locale;
 
 // 在生存模式和旁观模式间切换
 public class SpectatorCommand extends AbstractServerCommand {
@@ -158,7 +154,7 @@ public class SpectatorCommand extends AbstractServerCommand {
         // 检查玩家是不是旁观模式
         requireSpectator(player);
         Vec3 location = Vec3Argument.getVec3(context, "location");
-        ServerUtils.teleport(player, player.level(), location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
+        ServerUtils.teleport(player, ServerUtils.getWorld(player), location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
         // 发送命令反馈
         MessageUtils.sendMessage(
                 context,
@@ -228,8 +224,8 @@ public class SpectatorCommand extends AbstractServerCommand {
     }
 
     // 格式化坐标文本
-    private String formatFloat(double d) {
-        return String.format(Locale.ROOT, "%f", d);
+    private String formatFloat(double value) {
+        return MathUtils.formatToMaxTwoDecimals(value);
     }
 
     @Override
