@@ -29,16 +29,16 @@ public class CarpetOrgAdditionSettings {
      * 玩家是否正在执行{@code /killMe}命令
      */
     public static final ThreadLocal<Boolean> committingSuicide = ThreadLocal.withInitial(() -> false);
-    /**
-     * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
-     */
-    public static final ThreadLocal<ServerPlayer> blockBreaking = new ThreadLocal<>();
     public static final ThreadLocal<ServerPlayer> playerSummoner = new ThreadLocal<>();
     public static final ThreadLocal<ServerPlayer> internalPlayerSummoner = new ThreadLocal<>();
     /**
      * 当前正在使用铁砧附魔的玩家
      */
     public static final ThreadLocal<Player> enchanter = new ThreadLocal<>();
+    /**
+     * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
+     */
+    public static final ScopedValue<ServerPlayer> BLOCK_BREAKER = ScopedValue.newInstance();
     /**
      * 是否确认启用规则
      */

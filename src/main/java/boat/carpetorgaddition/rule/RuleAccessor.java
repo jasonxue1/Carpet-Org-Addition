@@ -6,6 +6,7 @@ import carpet.api.settings.CarpetRule;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
@@ -29,8 +30,8 @@ public class RuleAccessor<T> {
         return this.value.get();
     }
 
-    public T value(@Nullable ServerPlayer player) {
-        if (player != null && this.control != null && this.control.allowCustomSwitch()) {
+    public T value(@NonNull ServerPlayer player) {
+        if (this.control != null && this.control.allowCustomSwitch()) {
             return this.control.getCustomRuleValue(player);
         }
         return this.value();

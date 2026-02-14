@@ -18,11 +18,6 @@ public class ServerPlayerInteractionManagerMixin {
 
     @WrapMethod(method = "destroyBlock")
     private boolean tryBreakBlock(BlockPos pos, Operation<Boolean> original) {
-        try {
-            CarpetOrgAdditionSettings.blockBreaking.set(this.player);
-            return original.call(pos);
-        } finally {
-            CarpetOrgAdditionSettings.blockBreaking.remove();
-        }
+        return ScopedValue.where(CarpetOrgAdditionSettings.BLOCK_BREAKER, this.player).call(() -> original.call(pos));
     }
 }

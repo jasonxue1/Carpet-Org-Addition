@@ -6,7 +6,6 @@ import boat.carpetorgaddition.util.ServerUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -24,12 +23,11 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import org.jspecify.annotations.NonNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-//可采集刷怪笼
+// 可采集刷怪笼
 @Mixin(SpawnerBlock.class)
 public abstract class SpawnerBlockMixin extends BaseEntityBlock {
     protected SpawnerBlockMixin(Properties settings) {
@@ -60,24 +58,11 @@ public abstract class SpawnerBlockMixin extends BaseEntityBlock {
                     logic.save(view);
                     BlockItem.setBlockEntityData(itemStack, blockEntity.getType(), view);
                 }
-                if (tryCollect(itemStack)) {
-                    ItemEntity itemEntity = new ItemEntity(world, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, itemStack);
-                    itemEntity.setDefaultPickUpDelay();
-                    world.addFreshEntity(itemEntity);
-                }
+                ItemEntity itemEntity = new ItemEntity(world, (double) pos.getX() + 0.5, (double) pos.getY() + 0.5, (double) pos.getZ() + 0.5, itemStack);
+                itemEntity.setDefaultPickUpDelay();
+                world.addFreshEntity(itemEntity);
             }
         }
         return super.playerWillDestroy(world, pos, state, player);
-    }
-
-    // 方块掉落物直接进入物品栏
-    @Unique
-    private boolean tryCollect(ItemStack itemStack) {
-        ServerPlayer player = CarpetOrgAdditionSettings.blockBreaking.get();
-        if (CarpetOrgAdditionSettings.blockDropsDirectlyEnterInventory.value(player).isEnabled()) {
-            player.getInventory().add(itemStack);
-            return !itemStack.isEmpty();
-        }
-        return true;
     }
 }
