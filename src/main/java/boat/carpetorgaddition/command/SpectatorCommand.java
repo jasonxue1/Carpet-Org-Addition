@@ -60,7 +60,10 @@ public class SpectatorCommand extends AbstractServerCommand {
                                                 .executes(this::tpToDimensionLocation))))
                         .then(Commands.literal("entity")
                                 .then(Commands.argument("entity", EntityArgument.entity())
-                                        .executes(this::tpToEntity)))));
+                                        .executes(this::tpToEntity)))
+                        .then(Commands.literal("location")
+                                .then(Commands.argument("location", Vec3Argument.vec3())
+                                        .executes(this::tpToLocation)))));
     }
 
     // 更改游戏模式
@@ -144,6 +147,26 @@ public class SpectatorCommand extends AbstractServerCommand {
                 LocalizationKey.literal("commands.teleport.success.entity.single").translate(
                         player.getDisplayName(),
                         entity.getDisplayName()
+                )
+        );
+        return 1;
+    }
+
+    // 传送到指定坐标
+    private int tpToLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        // 检查玩家是不是旁观模式
+        requireSpectator(player);
+        Vec3 location = Vec3Argument.getVec3(context, "location");
+        ServerUtils.teleport(player, player.level(), location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
+        // 发送命令反馈
+        MessageUtils.sendMessage(
+                context,
+                LocalizationKey.literal("commands.teleport.success.location.single").translate(
+                        player.getDisplayName(),
+                        formatFloat(location.x()),
+                        formatFloat(location.y()),
+                        formatFloat(location.z())
                 )
         );
         return 1;
