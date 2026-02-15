@@ -95,7 +95,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     // 传送到维度
     private int tpToDimension(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
-        this.requireSpectator(player);
+        this.requireSpectatorOrCreative(player);
         ServerLevel dimension = DimensionArgument.getDimension(context, "dimension");
         if (player.level().dimension() == Level.OVERWORLD && dimension.dimension() == Level.NETHER) {
             ServerUtils.teleport(player, dimension, player.getX() / 8, player.getY(), player.getZ() / 8, player.getYRot(), player.getXRot());
@@ -113,7 +113,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     private int tpToDimensionLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 检查玩家是不是旁观模式
-        requireSpectator(player);
+        requireSpectatorOrCreative(player);
         ServerLevel dimension = DimensionArgument.getDimension(context, "dimension");
         Vec3 location = Vec3Argument.getVec3(context, "location");
         ServerUtils.teleport(player, dimension, location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
@@ -134,7 +134,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     private int tpToEntity(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 检查玩家是不是旁观模式
-        requireSpectator(player);
+        requireSpectatorOrCreative(player);
         Entity entity = EntityArgument.getEntity(context, "entity");
         ServerUtils.teleport(player, (ServerLevel) ServerUtils.getWorld(entity), entity.getX(), entity.getY(), entity.getZ(), entity.getYRot(), entity.getXRot());
         // 发送命令反馈
@@ -152,7 +152,7 @@ public class SpectatorCommand extends AbstractServerCommand {
     private int tpToLocation(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         // 检查玩家是不是旁观模式
-        requireSpectator(player);
+        requireSpectatorOrCreative(player);
         Vec3 location = Vec3Argument.getVec3(context, "location");
         ServerUtils.teleport(player, ServerUtils.getWorld(player), location.x(), location.y(), location.z(), player.getYRot(), player.getXRot());
         // 发送命令反馈
@@ -169,11 +169,12 @@ public class SpectatorCommand extends AbstractServerCommand {
     }
 
     // 检查玩家当前是不是旁观模式
-    private void requireSpectator(ServerPlayer player) throws CommandSyntaxException {
-        if (player.isSpectator()) {
+    private void requireSpectatorOrCreative(ServerPlayer player) throws CommandSyntaxException {
+        if (player.isSpectator() || player.isCreative()) {
             return;
         }
-        throw CommandUtils.createException(TELEPORT.then("fail").translate(GameType.SPECTATOR.getLongDisplayName()));
+        throw CommandUtils.createException(TELEPORT.then("fail")
+                .translate(GameType.SPECTATOR.getShortDisplayName(), GameType.CREATIVE.getShortDisplayName()));
     }
 
     // 将玩家位置保存到文件

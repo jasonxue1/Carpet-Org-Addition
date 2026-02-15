@@ -403,7 +403,7 @@
   "carpet-org-addition.command.playerManager.batch.preload": "Preloading player profiles: %s/%s",
   "carpet-org-addition.command.playerManager.batch.preload.done": "Preloading completed",
   "carpet-org-addition.command.playerManager.batch.summoner": "%1$s summoned %2$s players",
-  "carpet-org-addition.command.spectator.teleport.fail": "You are not %s",
+  "carpet-org-addition.command.spectator.teleport.fail": "You are not %s or %s Mode",
   "carpet-org-addition.command.spectator.teleport.success": "%s is teleported to %s",
   "carpet-org-addition.command.navigate.start": "%s starts to neviagates -> %s",
   "carpet-org-addition.command.navigate.unable_to_find": "Failed to find %2$s of %1$s",
