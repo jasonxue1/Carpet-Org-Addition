@@ -61,7 +61,7 @@ public interface SortableContainer extends Container {
         sort(list.subList(start + 1, list.size()));
     }
 
-    private void merge(int index, ItemStack itemStack) {
+    default void merge(int index, ItemStack itemStack) {
         for (int i = index + 1; i < this.getContainerSize(); i++) {
             if (this.isValidSlot(i)) {
                 ItemStack slotStack = this.getItem(i);

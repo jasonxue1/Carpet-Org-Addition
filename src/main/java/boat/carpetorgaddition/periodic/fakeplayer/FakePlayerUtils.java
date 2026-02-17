@@ -5,6 +5,7 @@ import boat.carpetorgaddition.util.InventoryUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.inventory.AutoGrowInventory;
+import boat.carpetorgaddition.wheel.inventory.PlayerStorageInventory;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.helpers.EntityPlayerActionPack;
 import carpet.patches.EntityPlayerMPFake;
@@ -238,5 +239,13 @@ public class FakePlayerUtils {
         String capitalizeFirstLetter = "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
         Component hover = TextBuilder.combineAll(ServerUtils.getDefaultName(itemStack), "*" + itemStack.getCount());
         return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
+    }
+
+    /**
+     * 合并玩家物品栏中的空潜影盒（如果可堆叠）
+     */
+    public static void mergeEmptyShulkerBox(ServerPlayer player) {
+        PlayerStorageInventory inventory = new PlayerStorageInventory(player);
+        inventory.merge(InventoryUtils::isEmptyShulkerBox);
     }
 }

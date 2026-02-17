@@ -98,6 +98,7 @@ public class TradeAction extends AbstractPlayerAction {
             }
             // 尝试交易物品
             tryTrade(merchantScreenHandler);
+            FakePlayerUtils.mergeEmptyShulkerBox(fakePlayer);
             if (this.voidTrade) {
                 // 如果是虚空交易，交易完毕后关闭交易GUI
                 fakePlayer.closeContainer();

@@ -40,6 +40,7 @@ public class InventoryCraftAction extends AbstractPlayerAction {
     protected void tick() {
         AutoGrowInventory inventory = new AutoGrowInventory();
         this.inventoryCraft(inventory);
+        FakePlayerUtils.mergeEmptyShulkerBox(this.getFakePlayer());
         // 丢弃合成输出
         for (ItemStack itemStack : inventory) {
             this.getFakePlayer().drop(itemStack, false, true);

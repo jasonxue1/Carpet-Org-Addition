@@ -71,7 +71,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
 
     private void stonecutting(AutoGrowInventory inventory) {
         EntityPlayerMPFake fakePlayer = this.getFakePlayer();
-        if (fakePlayer.containerMenu instanceof StonecutterMenu stonecutterScreenHandler) {
+        if (fakePlayer.containerMenu instanceof StonecutterMenu stonecutterMenu) {
             // 定义变量记录成功完成合成的次数
             int craftCount = 0;
             // 用于循环次数过多时抛出异常结束循环
@@ -84,7 +84,7 @@ public class StonecuttingAction extends AbstractPlayerAction {
                 // 定义变量记录是否需要遍历物品栏
                 boolean needToTraverseInventory = true;
                 // 获取切石机输入槽对象
-                Slot inputSlot = stonecutterScreenHandler.getSlot(0);
+                Slot inputSlot = stonecutterMenu.getSlot(0);
                 // 判断切石机输入槽是否有物品
                 if (inputSlot.hasItem()) {
                     // 如果有物品，并且是指定物品，设置不需要遍历物品栏
@@ -93,24 +93,24 @@ public class StonecuttingAction extends AbstractPlayerAction {
                         needToTraverseInventory = false;
                     } else {
                         // 如果不是指定物品，丢出该物品
-                        FakePlayerUtils.throwItem(stonecutterScreenHandler, 0, fakePlayer);
+                        FakePlayerUtils.throwItem(stonecutterMenu, 0, fakePlayer);
                     }
                 }
                 // 如果需要遍历物品栏
                 if (needToTraverseInventory) {
                     // 尝试从物品栏中找到需要的物品
-                    if (this.tryMoveItem(stonecutterScreenHandler, this.item)) {
+                    if (this.tryMoveItem(stonecutterMenu, this.item)) {
                         return;
                     }
                 }
                 // 模拟单击切石机按钮
-                stonecutterScreenHandler.clickMenuButton(fakePlayer, this.button);
+                stonecutterMenu.clickMenuButton(fakePlayer, this.button);
                 // 获取切石机输出槽对象
-                Slot outputSlot = stonecutterScreenHandler.getSlot(1);
+                Slot outputSlot = stonecutterMenu.getSlot(1);
                 // 如果输出槽有物品
                 if (outputSlot.hasItem()) {
                     // 收集产物
-                    FakePlayerUtils.collectItem(stonecutterScreenHandler, 1, inventory, fakePlayer);
+                    FakePlayerUtils.collectItem(stonecutterMenu, 1, inventory, fakePlayer);
                     craftCount++;
                     // 限制每个游戏刻合成次数
                     int ruleValue = CarpetOrgAdditionSettings.fakePlayerMaxItemOperationCount.value();

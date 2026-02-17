@@ -26,6 +26,13 @@ public interface PlayerDecomposedContainer extends Container {
     }
 
     /**
+     * 获取玩家物品栏存储和快捷栏部分
+     */
+    default Container getMain() {
+        return new SubInventory(this.getPlayerInventory(), 0, 36);
+    }
+
+    /**
      * 获取玩家物品栏盔甲部分
      */
     default Container getArmor() {

@@ -69,12 +69,14 @@ public class CraftingTableCraftAction extends AbstractPlayerAction {
 
     @Override
     protected void tick() {
-        if (this.getFakePlayer().containerMenu instanceof CraftingMenu craftingScreenHandler) {
+        EntityPlayerMPFake fakePlayer = this.getFakePlayer();
+        if (fakePlayer.containerMenu instanceof CraftingMenu craftingScreenHandler) {
             AutoGrowInventory inventory = new AutoGrowInventory();
             this.craftingTableCraft(inventory, craftingScreenHandler);
+            FakePlayerUtils.mergeEmptyShulkerBox(fakePlayer);
             // 丢弃合成输出
             for (ItemStack itemStack : inventory) {
-                this.getFakePlayer().drop(itemStack, false, true);
+                fakePlayer.drop(itemStack, false, true);
             }
         }
     }

@@ -44,7 +44,7 @@ public class CarpetOrgAdditionSettings {
      */
     public static final ScopedValue<Boolean> USE_CHANNELING_TRIDENT = ScopedValue.newInstance();
     /**
-     * 是否确认启用规则
+     * 是否确认启用规则，用于潜影盒可堆叠的兼容性警告对话框
      */
     public static final ScopedValue<Boolean> CONFIRM_ENABLE = ScopedValue.newInstance();
     private static final Set<RuleContext<?>> RULES = new LinkedHashSet<>();

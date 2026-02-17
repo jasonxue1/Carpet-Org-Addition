@@ -9,6 +9,7 @@ import it.unimi.dsi.fastutil.ints.IntImmutableList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.NonNullList;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -294,6 +295,21 @@ public class PlayerStorageInventory implements PlayerDecomposedContainer, Sortab
             }
         }
         return false;
+    }
+
+    public void merge(Predicate<ItemStack> predicate) {
+        Container container = this.getMain();
+        for (int i = 0; i < container.getContainerSize(); i++) {
+            if (this.isValidSlot(i)) {
+                ItemStack itemStack = container.getItem(i);
+                if (itemStack.isEmpty()) {
+                    continue;
+                }
+                if (predicate.test(itemStack)) {
+                    this.merge(i, itemStack);
+                }
+            }
+        }
     }
 
     private int getHandSlotIndex(InteractionHand hand) {
