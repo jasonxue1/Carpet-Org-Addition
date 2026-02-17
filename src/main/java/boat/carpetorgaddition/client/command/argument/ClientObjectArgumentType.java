@@ -30,6 +30,7 @@ import net.minecraft.world.level.gamerules.GameRule;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T>> {
@@ -82,15 +83,13 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
     private MatchPattern readParameters(StringReader reader) throws CommandSyntaxException {
         int cursor = reader.getCursor();
         reader.skipWhitespace();
-        String mode = reader.readUnquotedString().toLowerCase(Locale.ROOT);
-        if (mode.startsWith("-")) {
-            return switch (mode) {
-                case "-equal" -> MatchPattern.EQUAL;
-                case "-contain" -> MatchPattern.CONTAIN;
-                case "-regex" -> MatchPattern.REGEX;
-                default ->
-                        throw CommandUtils.createException(LocalizationKeys.Argument.Object.INVALID_PATTERN.translate());
-            };
+        String argument = reader.readUnquotedString().toLowerCase(Locale.ROOT);
+        if (argument.startsWith("-")) {
+            MatchPattern pattern = MatchPattern.MATCH_PATTERNS.get(argument);
+            if (pattern == null) {
+                throw CommandUtils.createException(LocalizationKeys.Argument.Object.INVALID_PATTERN.translate());
+            }
+            return pattern;
         } else {
             reader.setCursor(cursor);
             return MatchPattern.EQUAL;
@@ -315,15 +314,29 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
          */
         CONTAIN,
         /**
+         * 匹配开头
+         */
+        START,
+        /**
+         * 匹配结尾
+         */
+        END,
+        /**
          * 正则表达式
          */
         REGEX;
 
-        private boolean match(String arguments, String str) {
+        private static final Map<String, MatchPattern> MATCH_PATTERNS = Arrays.stream(MatchPattern.values())
+                .map(pattern -> Map.entry(pattern.toString(), pattern))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        private boolean match(String argument, String name) {
             return switch (this) {
-                case EQUAL -> Objects.equals(str, arguments);
-                case CONTAIN -> str.contains(arguments);
-                case REGEX -> str.matches(arguments);
+                case EQUAL -> Objects.equals(name, argument);
+                case CONTAIN -> name.contains(argument);
+                case START -> name.startsWith(argument);
+                case END -> name.endsWith(argument);
+                case REGEX -> name.matches(argument);
             };
         }
 
@@ -332,6 +345,8 @@ public abstract class ClientObjectArgumentType<T> implements ArgumentType<List<T
             return switch (this) {
                 case EQUAL -> "-equal";
                 case CONTAIN -> "-contain";
+                case START -> "-start";
+                case END -> "-end";
                 case REGEX -> "-regex";
             };
         }
