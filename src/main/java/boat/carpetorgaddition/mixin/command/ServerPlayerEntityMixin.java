@@ -3,7 +3,10 @@ package boat.carpetorgaddition.mixin.command;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.command.KillMeCommand;
 import boat.carpetorgaddition.periodic.fakeplayer.FakePlayerSafeAfkInterface;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.MathUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.patches.EntityPlayerMPFake;
@@ -73,7 +76,7 @@ public abstract class ServerPlayerEntityMixin implements FakePlayerSafeAfkInterf
         // 玩家安全挂机触发成功
         if (thisPlayer.getHealth() <= this.safeAfkThreshold) {
             // 假玩家剩余血量
-            String health = MathUtils.numberToTwoDecimalString(thisPlayer.getHealth());
+            String health = MathUtils.formatToMaxTwoDecimals(thisPlayer.getHealth());
             TextBuilder builder = TextBuilder.of(KEY.then("success").translate(thisPlayer.getDisplayName(), health));
             // 添加悬停提示
             builder.setHover(report(source, amount));

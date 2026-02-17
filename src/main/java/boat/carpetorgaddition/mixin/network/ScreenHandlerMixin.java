@@ -30,7 +30,7 @@ public class ScreenHandlerMixin implements UnavailableSlotClientSide, WithButton
 
     @Inject(method = "clicked", at = @At("HEAD"), cancellable = true)
     private void onSlotClick(int slotIndex, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci) {
-        if (MathUtils.isInRange(this.from, this.to, slotIndex) || (this.withButtonMenu && WithButtonPlayerInventory.BUTTON_INDEXS.contains(slotIndex))) {
+        if (MathUtils.isInRange(this.from, this.to, slotIndex) || (this.withButtonMenu && WithButtonPlayerInventory.BUTTON_INDEX_LIST.contains(slotIndex))) {
             ci.cancel();
         }
     }

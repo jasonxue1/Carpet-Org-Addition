@@ -57,7 +57,7 @@ public class WithButtonPlayerInventory implements Container {
      */
     private static final int ATTACK_INTERVAL = 12;
     /**
-     * 没有任何作用，仅为与{@code Gugle Carpet Addition}和一些物品整理兼容
+     * 没有任何作用，仅为与{@code Gugle Carpet Addition}和一些物品整理模组兼容
      */
     private static final String GCA_CLEAR = "GcaClear";
     /**
@@ -67,7 +67,7 @@ public class WithButtonPlayerInventory implements Container {
     /**
      * 所有按钮的索引
      */
-    public static final IntList BUTTON_INDEXS = IntList.of(0, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
+    public static final IntList BUTTON_INDEX_LIST = IntList.of(0, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18);
 
     static {
         CompoundTag tag = new CompoundTag();
