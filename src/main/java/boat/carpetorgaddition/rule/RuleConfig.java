@@ -23,7 +23,7 @@ public class RuleConfig {
     public static final String RULES = "rules";
     private final MinecraftServer server;
     private final File file;
-    private static final int CURRENT_VERSION = 3;
+    private static final int CURRENT_VERSION = 4;
 
     public RuleConfig(MinecraftServer server) {
         this.server = server;

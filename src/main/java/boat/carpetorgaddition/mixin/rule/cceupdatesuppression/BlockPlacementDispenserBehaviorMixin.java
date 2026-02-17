@@ -16,6 +16,7 @@ public class BlockPlacementDispenserBehaviorMixin {
     // 更新抑制潜影盒在被发射器放置时移除自定义名称
     @Inject(method = "execute", at = @At("HEAD"))
     private void dispenseSilently(BlockSource pointer, ItemStack stack, CallbackInfoReturnable<ItemStack> cir) {
+        // 发射器放置潜影盒时会直接清除整组物品的名称，而不是只清除放置的那个，需要修复吗？
         if (InventoryUtils.isShulkerBoxItem(stack) && RuleUtils.canUpdateSuppression(stack.getHoverName().getString())) {
             stack.remove(DataComponents.CUSTOM_NAME);
         }

@@ -1,6 +1,5 @@
 package boat.carpetorgaddition.dataupdate.json;
 
-import boat.carpetorgaddition.rule.RuleConfig;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Unmodifiable;
@@ -121,7 +120,7 @@ public final class CarpetConfDataUpdater implements DataUpdater {
                 JsonObject newJson = new JsonObject();
                 newJson.addProperty(DataUpdater.DATA_VERSION, 2);
                 JsonObject newRules = new JsonObject();
-                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject("rules").entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue().getAsString();
                     switch (key) {
@@ -158,14 +157,14 @@ public final class CarpetConfDataUpdater implements DataUpdater {
                         }
                     }
                 }
-                newJson.add(RuleConfig.RULES, newRules);
+                newJson.add("rules", newRules);
                 yield this.update(newJson, 2);
             }
             case 2 -> {
                 JsonObject newJson = new JsonObject();
                 newJson.addProperty(DataUpdater.DATA_VERSION, 2);
                 JsonObject newRules = new JsonObject();
-                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject(RuleConfig.RULES).entrySet()) {
+                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject("rules").entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue().getAsString();
                     if ("openShulkerBoxForcibly".equals(key)) {
@@ -174,8 +173,25 @@ public final class CarpetConfDataUpdater implements DataUpdater {
                         newRules.addProperty(key, value);
                     }
                 }
-                newJson.add(RuleConfig.RULES, newRules);
+                newJson.add("rules", newRules);
                 yield this.update(newJson, 3);
+            }
+            case 3 -> {
+                JsonObject newJson = new JsonObject();
+                newJson.addProperty(DataUpdater.DATA_VERSION, 3);
+                JsonObject newRules = new JsonObject();
+                for (Map.Entry<String, JsonElement> entry : oldJson.getAsJsonObject("rules").entrySet()) {
+                    String key = entry.getKey();
+                    String value = entry.getValue().getAsString();
+                    switch (key) {
+                        case "channelingIgnoreWeather" ->
+                                newRules.addProperty("channelingIgnoreConditions", "true".equals(value) ? "ignore_weather_and_sky" : value);
+                        case "riptideIgnoreWeather" -> newRules.addProperty("riptideIgnoreConditions", value);
+                        default -> newRules.addProperty(key, value);
+                    }
+                }
+                newJson.add("rules", newRules);
+                yield this.update(newJson, 4);
             }
             default -> oldJson;
         };

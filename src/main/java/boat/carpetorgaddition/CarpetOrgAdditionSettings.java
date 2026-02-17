@@ -40,6 +40,10 @@ public class CarpetOrgAdditionSettings {
      */
     public static final ScopedValue<ServerPlayer> BLOCK_BREAKER = ScopedValue.newInstance();
     /**
+     * 是否正在使用引雷三叉戟
+     */
+    public static final ScopedValue<Boolean> USE_CHANNELING_TRIDENT = ScopedValue.newInstance();
+    /**
      * 是否确认启用规则
      */
     public static final ScopedValue<Boolean> CONFIRM_ENABLE = ScopedValue.newInstance();
@@ -145,11 +149,10 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * 强化引雷
+     * 引雷忽略条件
      */
-    // TODO 添加忽略维度选项
-    public static final RuleAccessor<Boolean> channelingIgnoreWeather = register(
-            RuleFactory.create(Boolean.class, "channelingIgnoreWeather", false)
+    public static final RuleAccessor<IgnoreChannelingConditions> channelingIgnoreConditions = register(
+            RuleFactory.create(IgnoreChannelingConditions.class, "channelingIgnoreConditions", IgnoreChannelingConditions.FALSE)
                     .addCategories(RuleCategory.FEATURE)
                     .build()
     );
@@ -219,10 +222,10 @@ public class CarpetOrgAdditionSettings {
     );
 
     /**
-     * 强化激流
+     * 激流忽略条件
      */
-    public static final RuleAccessor<Boolean> riptideIgnoreWeather = register(
-            RuleFactory.create(Boolean.class, "riptideIgnoreWeather", false)
+    public static final RuleAccessor<Boolean> riptideIgnoreConditions = register(
+            RuleFactory.create(Boolean.class, "riptideIgnoreConditions", false)
                     .addCategories(RuleCategory.SURVIVAL)
                     .build()
     );

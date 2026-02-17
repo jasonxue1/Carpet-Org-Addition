@@ -31,6 +31,7 @@ import java.util.UUID;
 public class TextBuilder {
     private MutableComponent text;
 
+    // TODO 改为of方法
     private TextBuilder(MutableComponent text) {
         this.text = text;
     }

@@ -5,10 +5,12 @@ import boat.carpetorgaddition.network.event.CustomClickAction;
 import boat.carpetorgaddition.network.event.CustomClickEvents;
 import boat.carpetorgaddition.network.event.CustomClickKeys;
 import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MathUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.wheel.nbt.NbtWriter;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
+import boat.carpetorgaddition.wheel.text.TextJoiner;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -64,11 +66,17 @@ public class PagedCollection implements Iterable<Page> {
             ArrayList<Object> list = new ArrayList<>();
             list.add(new TextBuilder("  ======").setColor(ChatFormatting.DARK_GRAY));
             list.add(this.prevPageButton(pagination));
-            list.add(" [");
-            list.add(new TextBuilder(pagination).setColor(ChatFormatting.GOLD));
-            list.add("/");
-            list.add(new TextBuilder(this.totalPages()).setColor(ChatFormatting.GOLD));
-            list.add("] ");
+            list.add(" ");
+            TextJoiner joiner = new TextJoiner();
+            joiner.append("[");
+            joiner.append(new TextBuilder(pagination).setColor(ChatFormatting.GOLD).build());
+            joiner.append("/");
+            joiner.append(new TextBuilder(this.totalPages()).setColor(ChatFormatting.GOLD).build());
+            joiner.append("]");
+            list.add(new TextBuilder(joiner.join())
+                    .setHover(MathUtils.formatToMaxTwoDecimals(100 * (pagination / (double) this.totalPages())) + "%")
+            );
+            list.add(" ");
             list.add(this.nextPageButton(pagination));
             list.add(new TextBuilder("======").setColor(ChatFormatting.DARK_GRAY));
             Component pageTurningButton = TextBuilder.combineList(list);
