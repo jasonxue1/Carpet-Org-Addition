@@ -550,7 +550,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
     private int querySafeAfk(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         float threshold = ((FakePlayerSafeAfkInterface) fakePlayer).carpet_Org_Addition$getHealthThreshold();
-        LocalizationKey key = SAFE_AFK.then("list", "each");
+        LocalizationKey key = SAFE_AFK.then("list").then("each");
         MessageUtils.sendMessage(context, key.translate(fakePlayer.getDisplayName(), threshold));
         return (int) threshold;
     }
@@ -570,11 +570,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             if (threshold > 0) {
                 // 将玩家安全挂机阈值保存到配置文件
                 properties.setProperty(playerName, String.valueOf(threshold));
-                MessageUtils.sendMessage(context, SAFE_AFK.then("set", "persistence").translate(fakePlayer.getDisplayName(), threshold));
+                MessageUtils.sendMessage(context, SAFE_AFK.then("set").then("persistence").translate(fakePlayer.getDisplayName(), threshold));
             } else {
                 // 将玩家安全挂机阈值从配置文件中删除
                 properties.remove(playerName);
-                MessageUtils.sendMessage(context, SAFE_AFK.then("remove", "persistence").translate(fakePlayer.getDisplayName()));
+                MessageUtils.sendMessage(context, SAFE_AFK.then("remove").then("persistence").translate(fakePlayer.getDisplayName()));
             }
             BufferedWriter writer = IOUtils.toWriter(file);
             try (writer) {
@@ -612,7 +612,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     float threshold = Float.parseFloat(value);
                     safeAfk.carpet_Org_Addition$setHealthThreshold(threshold);
                     // 广播阈值设置的消息
-                    TextBuilder builder = TextBuilder.of(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
+                    TextBuilder builder = TextBuilder.of(SAFE_AFK.then("set").then("on_login").translate(player.getDisplayName(), threshold));
                     builder.setGrayItalic();
                     MessageUtils.sendMessage(ServerUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
@@ -798,12 +798,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             CarpetOrgAdditionSettings.playerSummoner.set(context.getSource().getPlayer());
             MinecraftServer server = context.getSource().getServer();
             if (ServerUtils.getPlayer(server, name).isPresent()) {
-                throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn", "player_exist").translate());
+                throw CommandUtils.createException(PlayerManagerCommand.KEY.then("spawn").then("player_exist").translate());
             }
             serializer.spawn(server, true);
         } catch (RuntimeException e) {
             // 尝试生成假玩家时出现意外问题
-            throw CommandUtils.createException(KEY.then("spawn", "fail").translate(), e);
+            throw CommandUtils.createException(KEY.then("spawn").then("fail").translate(), e);
         } finally {
             CarpetOrgAdditionSettings.playerSummoner.remove();
         }
@@ -888,7 +888,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             } else {
                 // 修改周期时间
                 optional.get().setInterval(interval);
-                MessageUtils.sendMessage(context, SCHEDULE.then("relogin", "modify").translate(name, interval));
+                MessageUtils.sendMessage(context, SCHEDULE.then("relogin").then("modify").translate(name, interval));
             }
             return interval;
         }
@@ -1063,7 +1063,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .setColor(ChatFormatting.AQUA)
                 .setHover(LocalizationKeys.Button.INPUT.translate(command))
                 .build();
-        MessageUtils.sendMessage(context, SCHEDULE.then("relogin", "prerequisite").translate(here));
+        MessageUtils.sendMessage(context, SCHEDULE.then("relogin").then("prerequisite").translate(here));
         return false;
     }
 
@@ -1077,7 +1077,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .findFirst();
         if (optional.isEmpty()) {
-            throw CommandUtils.createException(SCHEDULE.then("cancel", "fail").translate());
+            throw CommandUtils.createException(SCHEDULE.then("cancel").then("fail").translate());
         }
         optional.ifPresent(task -> task.onCancel(context));
         return 1;
@@ -1114,7 +1114,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             TextBuilder builder = TextBuilder.of(name);
             builder.setHover(task.getInfo());
             task.setDelayed(tick);
-            MessageUtils.sendMessage(context, SCHEDULE.then("login", "modify").translate(builder.build(), time));
+            MessageUtils.sendMessage(context, SCHEDULE.then("login").then("modify").translate(builder.build(), time));
         }
         return (int) tick;
     }
@@ -1155,7 +1155,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .filter(task -> Objects.equals(task.getPlayerName(), name))
                 .toList();
         if (list.isEmpty()) {
-            throw CommandUtils.createException(SCHEDULE.then("cancel", "fail").translate());
+            throw CommandUtils.createException(SCHEDULE.then("cancel").then("fail").translate());
         }
         list.forEach(task -> task.onCancel(context));
         return list.size();
@@ -1167,13 +1167,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         List<PlayerScheduleTask> list = manager.stream(PlayerScheduleTask.class).toList();
         if (list.isEmpty()) {
-            MessageUtils.sendMessage(context, SCHEDULE.then("list", "empty").translate());
+            MessageUtils.sendMessage(context, SCHEDULE.then("list").then("empty").translate());
         } else {
             list.forEach(task -> task.sendEachMessage(context.getSource()));
         }
         return list.size();
     }
-
 
     private PlayerSerializationManager getSerializationManager(MinecraftServer server) {
         ServerComponentCoordinator coordinator = ServerComponentCoordinator.getCoordinator(server);

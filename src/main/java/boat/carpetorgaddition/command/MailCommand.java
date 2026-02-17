@@ -162,7 +162,7 @@ public class MailCommand extends AbstractServerCommand {
         PlayerUtils.openScreenHandler(
                 player,
                 (i, inv, _) -> new SendParcelScreenHandler(i, inv, player, gameProfile, inventory),
-                SEND.then("multiple", "gui").translate()
+                SEND.then("multiple").then("gui").translate()
         );
         return 1;
     }

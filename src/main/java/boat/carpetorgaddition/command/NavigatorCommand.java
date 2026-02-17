@@ -2,7 +2,9 @@ package boat.carpetorgaddition.command;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
-import boat.carpetorgaddition.util.*;
+import boat.carpetorgaddition.util.CommandUtils;
+import boat.carpetorgaddition.util.MessageUtils;
+import boat.carpetorgaddition.util.ServerUtils;
 import boat.carpetorgaddition.wheel.Waypoint;
 import boat.carpetorgaddition.wheel.permission.PermissionLevel;
 import boat.carpetorgaddition.wheel.permission.PermissionManager;
@@ -112,7 +114,7 @@ public class NavigatorCommand extends AbstractServerCommand {
             PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(waypoint);
             MessageUtils.sendMessage(context, START_NAVIGATION.translate(player.getDisplayName(), "[" + waypointArgument + "]"));
         } catch (IOException | RuntimeException e) {
-            throw CommandUtils.createException(LocationsCommand.KEY.then("list", "unable_to_parse").translate(waypointArgument));
+            throw CommandUtils.createException(LocationsCommand.KEY.then("list").then("unable_to_parse").translate(waypointArgument));
         }
         return 1;
     }

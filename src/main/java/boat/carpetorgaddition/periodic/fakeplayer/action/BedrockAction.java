@@ -1107,7 +1107,7 @@ public class BedrockAction extends AbstractPlayerAction {
             case CUBOID -> {
                 Component from = TextProvider.blockPos(this.traverser.getMinBlockPos(), ChatFormatting.GREEN);
                 Component to = TextProvider.blockPos(this.traverser.getMaxBlockPos(), ChatFormatting.GREEN);
-                list.add(key.then("cuboid", "range").translate(from, to));
+                list.add(key.then("cuboid").then("range").translate(from, to));
             }
             case CYLINDER -> {
                 CylinderBlockPosTraverser iterator = (CylinderBlockPosTraverser) this.traverser;
@@ -1119,7 +1119,7 @@ public class BedrockAction extends AbstractPlayerAction {
             }
         }
         if (this.ai) {
-            list.add(key.then("ai", "enable").translate());
+            list.add(key.then("ai").then("enable").translate());
         }
         return list;
     }

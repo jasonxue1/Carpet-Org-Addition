@@ -131,7 +131,7 @@ public class LocationsCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         WorldFormat worldFormat = new WorldFormat(server, Waypoint.WAYPOINT);
         List<File> list = worldFormat.listFiles();
-        LocalizationKey key = KEY.then("list", "empty");
+        LocalizationKey key = KEY.then("list").then("empty");
         if (list.isEmpty()) {
             MessageUtils.sendMessage(context, key.translate());
             return 0;
@@ -195,7 +195,7 @@ public class LocationsCommand extends AbstractServerCommand {
         } catch (IOException | NullPointerException e) {
             //无法添加说明文本
             CarpetOrgAddition.LOGGER.error("Failed to add description text for waypoint [{}]", name, e);
-            throw CommandUtils.createException(key.then("add", "error").translate(name));
+            throw CommandUtils.createException(key.then("add").then("error").translate(name));
         }
         return 1;
     }
@@ -211,7 +211,7 @@ public class LocationsCommand extends AbstractServerCommand {
         MinecraftServer server = context.getSource().getServer();
         // 路径点的名称
         String name = StringArgumentType.getString(context, "name");
-        LocalizationKey key = KEY.then("another", "add");
+        LocalizationKey key = KEY.then("another").then("add");
         try {
             // 从文件中读取路径点对象
             Waypoint waypoint = Waypoint.load(server, name);
