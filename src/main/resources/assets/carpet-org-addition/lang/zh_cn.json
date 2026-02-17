@@ -237,6 +237,8 @@
   "carpet.rule.softNetherite.desc": "启用后远古残骸和下界合金块的硬度将被调整为原值的1/18",
   "carpet.rule.disableWindChargeEffect.name": "禁用风弹效果",
   "carpet.rule.disableWindChargeEffect.desc": "阻止玩家发射的风弹改变方块状态",
+  "carpet.rule.playerCommandSummonMannequin.name": "召唤玩家模型",
+  "carpet.rule.playerCommandSummonMannequin.desc": "为/player命令添加mannequin子命令用来召唤玩家模型",
   "carpet-org-addition.rule.message.disableRespawnBlocksExplode": "已禁用重生方块爆炸",
   "carpet-org-addition.rule.message.CCEUpdateSuppression": "你不能打开用于更新抑制的潜影盒",
   "carpet-org-addition.rule.message.displayPlayerSummoner": "↑由%s召唤",

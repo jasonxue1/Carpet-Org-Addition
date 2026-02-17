@@ -1077,6 +1077,16 @@ public class CarpetOrgAdditionSettings {
                     .build()
     );
 
+    /**
+     * /player命令召唤玩家模型
+     */
+    public static final RuleAccessor<String> playerCommandSummonMannequin = register(
+            RuleFactory.create(String.class, "playerCommandSummonMannequin", FALSE)
+                    .addCategories(RuleCategory.COMMAND)
+                    .addOptions(COMMAND_OPTIONS)
+                    .build()
+    );
+
     private static <T> RuleAccessor<T> register(RuleContext<T> context) {
         RULES.add(context);
         return new RuleAccessor<>(context);

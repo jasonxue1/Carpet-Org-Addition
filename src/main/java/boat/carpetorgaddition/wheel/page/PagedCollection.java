@@ -73,9 +73,8 @@ public class PagedCollection implements Iterable<Page> {
             joiner.append("/");
             joiner.append(TextBuilder.of(this.totalPages()).setColor(ChatFormatting.GOLD).build());
             joiner.append("]");
-            list.add(TextBuilder.of(joiner.join())
-                    .setHover(MathUtils.formatToMaxTwoDecimals(100 * (pagination / (double) this.totalPages())) + "%")
-            );
+            String percentage = MathUtils.formatToMaxTwoDecimals(100 * (pagination / (double) this.totalPages()));
+            list.add(TextBuilder.of(joiner.join()).setHover(percentage + "%"));
             list.add(" ");
             list.add(this.nextPageButton(pagination));
             list.add(TextBuilder.of("======").setColor(ChatFormatting.DARK_GRAY));

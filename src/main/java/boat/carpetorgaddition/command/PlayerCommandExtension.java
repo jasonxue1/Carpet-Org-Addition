@@ -27,13 +27,17 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.Mannequin;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.MenuConstructor;
+import net.minecraft.world.item.component.ResolvableProfile;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -44,7 +48,6 @@ public class PlayerCommandExtension {
     public static final LocalizationKey KEY = LocalizationKeys.COMMAND.then("player");
     public static final LocalizationKey INVENTORY = KEY.then("inventory");
 
-    // TODO 添加召唤玩家模型子命令
     public static RequiredArgumentBuilder<CommandSourceStack, ?> register(RequiredArgumentBuilder<CommandSourceStack, ?> builder) {
         return builder
                 .then(Commands.literal("inventory")
@@ -55,7 +58,10 @@ public class PlayerCommandExtension {
                         .executes(context -> openInventory(context, PlayerInventoryType.ENDER_CHEST)))
                 .then(Commands.literal("teleport")
                         .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.playerCommandTeleportFakePlayer))
-                        .executes(PlayerCommandExtension::fakePlayerTeleport));
+                        .executes(PlayerCommandExtension::fakePlayerTeleport))
+                .then(Commands.literal("mannequin")
+                        .requires(CommandUtils.canUseCommand(CarpetOrgAdditionSettings.playerCommandSummonMannequin))
+                        .executes(PlayerCommandExtension::summonMannequin));
     }
 
     private static int openInventory(CommandContext<CommandSourceStack> context, PlayerInventoryType type) throws CommandSyntaxException {
@@ -64,12 +70,12 @@ public class PlayerCommandExtension {
         String name = getPlayerName(context);
         MinecraftServer server = source.getServer();
         ServerPlayer interviewee = getPlayerNullable(name, server);
-        PlayerInventroyAccessor accessor = (interviewee == null ? new PlayerInventroyAccessor(server, name, visitor) : new PlayerInventroyAccessor(interviewee, visitor));
+        PlayerInventoryAccessor accessor = (interviewee == null ? new PlayerInventoryAccessor(server, name, visitor) : new PlayerInventoryAccessor(interviewee, visitor));
         return openInventory(visitor, type, accessor);
     }
 
     @NullMarked
-    public static int openInventory(ServerPlayer player, PlayerInventoryType type, PlayerInventroyAccessor accessor) throws CommandSyntaxException {
+    public static int openInventory(ServerPlayer player, PlayerInventoryType type, PlayerInventoryAccessor accessor) throws CommandSyntaxException {
         CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.value().checkPermission(player, accessor.getGameProfile());
         PlayerUtils.openScreenHandler(
                 player,
@@ -103,6 +109,20 @@ public class PlayerCommandExtension {
         return 1;
     }
 
+    /**
+     * 召唤玩家模型
+     */
+    private static int summonMannequin(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel world = ServerUtils.getWorld(context.getSource());
+        Mannequin mannequin = new Mannequin(EntityType.MANNEQUIN, world);
+        String name = getPlayerName(context);
+        mannequin.setProfile(ResolvableProfile.createUnresolved(name));
+        ServerPlayer player = CommandUtils.getSourcePlayer(context);
+        ServerUtils.teleport(mannequin, player);
+        world.addFreshEntity(mannequin);
+        return 1;
+    }
+
     private static ServerPlayer getPlayer(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = getPlayerNullable(getPlayerName(context), context.getSource().getServer());
         if (player == null) {
@@ -121,13 +141,13 @@ public class PlayerCommandExtension {
     }
 
     @NullMarked
-    public static class PlayerInventroyAccessor {
+    public static class PlayerInventoryAccessor {
         private final MenuConstructor inventory;
         private final MenuConstructor enderChest;
         private final Component displayName;
         private final GameProfile gameProfile;
 
-        public PlayerInventroyAccessor(ServerPlayer interviewee, ServerPlayer visitor) throws CommandSyntaxException {
+        public PlayerInventoryAccessor(ServerPlayer interviewee, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(interviewee);
             this.displayName = new TextJoiner()
                     .append(TextBuilder.ofPlayerAvatar(interviewee).setColor(ChatFormatting.WHITE).build())
@@ -145,7 +165,7 @@ public class PlayerCommandExtension {
             this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, GameProfile gameProfile, ServerPlayer visitor) throws CommandSyntaxException {
+        public PlayerInventoryAccessor(MinecraftServer server, GameProfile gameProfile, ServerPlayer visitor) throws CommandSyntaxException {
             this.gameProfile = gameProfile;
             ServerPlayer interviewee = server.getPlayerList().getPlayer(gameProfile.id());
             checkCanBeOpened(interviewee);
@@ -177,7 +197,7 @@ public class PlayerCommandExtension {
             }
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, String name, ServerPlayer visitor) throws CommandSyntaxException {
+        public PlayerInventoryAccessor(MinecraftServer server, String name, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(server.getPlayerList().getPlayer(name));
             Optional<GameProfile> optional = OfflinePlayerInventory.getGameProfile(name, server);
             if (optional.isEmpty()) {
@@ -186,7 +206,7 @@ public class PlayerCommandExtension {
             this(server, optional.get(), visitor);
         }
 
-        public PlayerInventroyAccessor(MinecraftServer server, UUID uuid, ServerPlayer visitor) throws CommandSyntaxException {
+        public PlayerInventoryAccessor(MinecraftServer server, UUID uuid, ServerPlayer visitor) throws CommandSyntaxException {
             checkCanBeOpened(server.getPlayerList().getPlayer(uuid));
             Optional<GameProfile> optional = OfflinePlayerInventory.getPlayerConfigEntry(uuid, server).map(entry -> new GameProfile(entry.id(), entry.name()));
             if (optional.isEmpty()) {
