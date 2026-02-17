@@ -341,12 +341,12 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         if (serializers.isEmpty()) {
             throw CommandUtils.createException(GROUP.then("non_existent").translate(group));
         }
-        Component login = new TextBuilder("[↑]")
+        Component login = TextBuilder.of("[↑]")
                 .setCommand(CommandProvider.playerManagerSpawnGroup(group))
                 .setHover(LocalizationKeys.Button.LOGIN.translate())
                 .setColor(ChatFormatting.GREEN)
                 .build();
-        Component logout = new TextBuilder("[↓]")
+        Component logout = TextBuilder.of("[↓]")
                 .setCommand(CommandProvider.playerManagerKillGroup(group))
                 .setHover(LocalizationKeys.Button.LOGOUT.translate())
                 .setColor(ChatFormatting.RED)
@@ -612,7 +612,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                     float threshold = Float.parseFloat(value);
                     safeAfk.carpet_Org_Addition$setHealthThreshold(threshold);
                     // 广播阈值设置的消息
-                    TextBuilder builder = new TextBuilder(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
+                    TextBuilder builder = TextBuilder.of(SAFE_AFK.then("set", "on_login").translate(player.getDisplayName(), threshold));
                     builder.setGrayItalic();
                     MessageUtils.sendMessage(ServerUtils.getServer(player), builder.build());
                 } catch (NumberFormatException e) {
@@ -652,11 +652,11 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             TextBuilder ungrouped = null;
             for (Map.Entry<@Nullable String, List<FakePlayerSerializer>> entry : map.entrySet()) {
                 if (entry.getKey() == null) {
-                    ungrouped = new TextBuilder(groupNameKey.then("ungrouped").translate());
+                    ungrouped = TextBuilder.of(groupNameKey.then("ungrouped").translate());
                     setStyle(ungrouped, entry.getValue().size(), CommandProvider.listUngroupedPlayer());
                     continue;
                 }
-                TextBuilder builder = new TextBuilder("[" + entry.getKey() + "]");
+                TextBuilder builder = TextBuilder.of("[" + entry.getKey() + "]");
                 setStyle(builder, entry.getValue().size(), CommandProvider.listGroupPlayer(entry.getKey()));
                 list.add(builder.build());
             }
@@ -664,7 +664,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 list.add(ungrouped.build());
             }
             // 包含所有玩家的组，在最后一个展示
-            TextBuilder builder = new TextBuilder(groupNameKey.then("all").translate());
+            TextBuilder builder = TextBuilder.of(groupNameKey.then("all").translate());
             setStyle(builder, manager.size(), CommandProvider.listAllPlayer());
             list.add(builder.build());
             Component message = TextBuilder.joinList(list, TextBuilder.create(" "));
@@ -1058,7 +1058,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         // 单击后输入的命令
         String command = CommandProvider.setCarpetRule("fakePlayerSpawnMemoryLeakFix", "true");
         // 文本内容：[这里]
-        Component here = new TextBuilder(LocalizationKeys.Button.HERE.translate())
+        Component here = TextBuilder.of(LocalizationKeys.Button.HERE.translate())
                 .setSuggest(command)
                 .setColor(ChatFormatting.AQUA)
                 .setHover(LocalizationKeys.Button.INPUT.translate(command))
@@ -1094,7 +1094,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                 .findFirst();
         // 等待时间
         long tick = unit.getDelayed(context);
-        Component time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Component time = TextBuilder.of(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         if (optional.isEmpty()) {
             // 添加上线任务
             FakePlayerSerializer serializer = getFakePlayerSerializer(context, name);
@@ -1111,7 +1111,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             // 修改上线时间
             DelayedLoginTask task = optional.get();
             // 为名称添加悬停文本
-            TextBuilder builder = new TextBuilder(name);
+            TextBuilder builder = TextBuilder.of(name);
             builder.setHover(task.getInfo());
             task.setDelayed(tick);
             MessageUtils.sendMessage(context, SCHEDULE.then("login", "modify").translate(builder.build(), time));
@@ -1126,7 +1126,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 获取假玩家延时下线游戏刻数
         long tick = unit.getDelayed(context);
-        Component time = new TextBuilder(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
+        Component time = TextBuilder.of(TextProvider.tickToTime(tick)).setHover(TextProvider.tickToRealTime(tick)).build();
         ServerTaskManager manager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
         Optional<DelayedLogoutTask> optional = manager.stream(DelayedLogoutTask.class)
                 .filter(task -> fakePlayer.equals(task.getFakePlayer()))

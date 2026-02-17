@@ -48,7 +48,7 @@ public class DelayedLoginTask extends PlayerScheduleTask {
 
     // 获取带有悬停提示的时间
     private @NotNull Component getDisplayTime() {
-        TextBuilder builder = new TextBuilder(TextProvider.tickToTime(this.delayed));
+        TextBuilder builder = TextBuilder.of(TextProvider.tickToTime(this.delayed));
         builder.setHover(TextProvider.tickToRealTime(this.delayed));
         return builder.build();
     }

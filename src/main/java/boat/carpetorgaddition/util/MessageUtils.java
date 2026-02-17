@@ -39,7 +39,7 @@ public class MessageUtils {
      */
     public static void sendErrorMessage(MinecraftServer server, Component component, Throwable e) {
         String error = CommandUtils.getExceptionString(e);
-        TextBuilder builder = new TextBuilder(component);
+        TextBuilder builder = TextBuilder.of(component);
         builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
         sendMessage(server, builder.build());
@@ -77,14 +77,14 @@ public class MessageUtils {
     }
 
     public static void sendErrorMessage(CommandSourceStack source, Component message) {
-        TextBuilder builder = new TextBuilder(message);
+        TextBuilder builder = TextBuilder.of(message);
         builder.setColor(ChatFormatting.RED);
         MessageUtils.sendMessage(source, builder.build());
     }
 
     public static void sendErrorMessage(CommandSourceStack source, Component message, Throwable e) {
         String error = CommandUtils.getExceptionString(e);
-        TextBuilder builder = new TextBuilder(message);
+        TextBuilder builder = TextBuilder.of(message);
         builder.setColor(ChatFormatting.RED);
         builder.setHover(error);
         MessageUtils.sendMessage(source, builder.build());
@@ -145,7 +145,7 @@ public class MessageUtils {
         if (player == null) {
             return;
         }
-        TextBuilder builder = new TextBuilder(e.getRawMessage());
+        TextBuilder builder = TextBuilder.of(e.getRawMessage());
         builder.setColor(ChatFormatting.RED);
         sendMessageToHud(player, builder.build());
     }

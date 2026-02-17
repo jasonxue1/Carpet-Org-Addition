@@ -23,7 +23,7 @@ public abstract class AbstractCustomSizeInventory implements Container {
 
     static {
         ItemStack itemStack = new ItemStack(Items.RED_STAINED_GLASS_PANE);
-        TextBuilder builder = new TextBuilder(LocalizationKeys.Item.PLACEHOLDER.translate());
+        TextBuilder builder = TextBuilder.of(LocalizationKeys.Item.PLACEHOLDER.translate());
         builder.setColor(ChatFormatting.RED);
         itemStack.set(DataComponents.CUSTOM_NAME, builder.build());
         PLACEHOLDER = itemStack;

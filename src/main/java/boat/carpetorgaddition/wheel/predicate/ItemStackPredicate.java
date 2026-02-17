@@ -158,19 +158,19 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
      */
     public Component getInitialUpperCase() {
         if (this.isEmpty()) {
-            TextBuilder builder = new TextBuilder("[A]");
+            TextBuilder builder = TextBuilder.of("[A]");
             builder.setColor(ChatFormatting.DARK_GRAY);
             builder.setHover(ServerUtils.getName(Items.AIR));
             return builder.build();
         }
         TextBuilder builder = null;
         if (this.input.startsWith("#")) {
-            builder = new TextBuilder("[#]");
+            builder = TextBuilder.of("[#]");
         } else if (this.input.startsWith("*")) {
-            builder = new TextBuilder("[*]");
+            builder = TextBuilder.of("[*]");
         } else if (this.input.contains("[")) {
             // 不会执行到这里
-            builder = new TextBuilder("[@]");
+            builder = TextBuilder.of("[@]");
         }
         if (builder != null) {
             return builder.setHover(this.input).build();
@@ -178,7 +178,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
         // 如果有命名空间，将“:”后的单词首字母取出，否则直接获取首字母
         String[] split = this.input.split(":");
         int index = split.length == 1 ? 0 : 1;
-        builder = new TextBuilder("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
+        builder = TextBuilder.of("[" + Character.toUpperCase(split[index].charAt(0)) + "]");
         Component name = ServerUtils.getName(BuiltInRegistries.ITEM.getValue(Identifier.parse(this.input)));
         return builder.setHover(name).build();
     }
@@ -203,7 +203,7 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
             String substring = this.input.substring(0, 30);
             Component ellipsis = TextBuilder.create("...");
             Component result = TextBuilder.combineAll(substring, ellipsis);
-            TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(this.input);
+            TextBuilder builder = TextBuilder.of(result).setGrayItalic().setHover(this.input);
             return builder.build();
         }
         return TextBuilder.create(this.input);
@@ -278,10 +278,10 @@ public class ItemStackPredicate implements Predicate<ItemStack> {
                 String substring = this.name.substring(0, 30);
                 Component ellipsis = TextBuilder.create("...");
                 Component result = TextBuilder.combineAll(substring, ellipsis);
-                TextBuilder builder = new TextBuilder(result).setGrayItalic().setHover(name);
+                TextBuilder builder = TextBuilder.of(result).setGrayItalic().setHover(name);
                 return builder.build();
             }
-            return new TextBuilder(this.name).setColor(ChatFormatting.GRAY).build();
+            return TextBuilder.of(this.name).setColor(ChatFormatting.GRAY).build();
         }
     }
 }

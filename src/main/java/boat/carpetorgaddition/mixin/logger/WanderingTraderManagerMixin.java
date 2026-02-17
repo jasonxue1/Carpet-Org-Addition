@@ -78,7 +78,7 @@ public abstract class WanderingTraderManagerMixin {
                 LocalizationKey key = WanderingTraderSpawnLogger.KEY;
                 if (CommandUtils.canUseCommand(player.createCommandSourceStack(), CarpetOrgAdditionSettings.commandNavigate)) {
                     // 带点击导航的消息
-                    Component button = new TextBuilder(LocalizationKeys.Button.NAVIGATE.translate())
+                    Component button = TextBuilder.of(LocalizationKeys.Button.NAVIGATE.translate())
                             .setCommand(CommandProvider.navigateToUuidEntity(trader.getUUID()))
                             .setHover(LocalizationKeys.Button.NAVIGATE_HOVER.translate(trader.getName()))
                             .setColor(ChatFormatting.AQUA)

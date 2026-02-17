@@ -227,7 +227,7 @@ public class FakePlayerUtils {
      */
     public static Component getWithCountHoverText(ItemStack itemStack) {
         if (itemStack.isEmpty()) {
-            return new TextBuilder("[A]").setHover(ServerUtils.getName(Items.AIR)).setColor(ChatFormatting.DARK_GRAY).build();
+            return TextBuilder.of("[A]").setHover(ServerUtils.getName(Items.AIR)).setColor(ChatFormatting.DARK_GRAY).build();
         }
         // 获取物品堆栈对应的物品ID的首字母，然后转为大写，再放进中括号里
         // 将物品名称的字符串切割为命名空间（如果有）和物品id
@@ -238,7 +238,7 @@ public class FakePlayerUtils {
         // 获取物品id的首字母，然后大写
         String capitalizeFirstLetter = "[" + Character.toUpperCase(split[index].charAt(0)) + "]";
         Component hover = TextBuilder.combineAll(ServerUtils.getDefaultName(itemStack), "*" + itemStack.getCount());
-        return new TextBuilder(capitalizeFirstLetter).setHover(hover).build();
+        return TextBuilder.of(capitalizeFirstLetter).setHover(hover).build();
     }
 
     /**

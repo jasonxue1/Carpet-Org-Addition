@@ -132,7 +132,7 @@ public class ParcelManager {
         for (Item item : counter) {
             list.add(TextBuilder.combineAll(ServerUtils.getName(item), "*", counter.getCount(item)));
         }
-        TextBuilder builder = new TextBuilder(MailCommand.NOTICE.then("collect").translate(player.getDisplayName()));
+        TextBuilder builder = TextBuilder.of(MailCommand.NOTICE.then("collect").translate(player.getDisplayName()));
         builder.setGrayItalic();
         builder.setHover(TextBuilder.joinList(list));
         return builder.build();

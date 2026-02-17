@@ -22,12 +22,12 @@ public class ClientMessageUtils {
      * 向客户端玩家发送一条红色的聊天消息
      */
     public static void sendErrorMessage(Component message) {
-        sendMessage(new TextBuilder(message).setColor(ChatFormatting.RED).build());
+        sendMessage(TextBuilder.of(message).setColor(ChatFormatting.RED).build());
     }
 
     public static void sendErrorMessage(Component component, Throwable e) {
         String error = CommandUtils.getExceptionString(e);
-        TextBuilder builder = new TextBuilder(component);
+        TextBuilder builder = TextBuilder.of(component);
         builder.setHover(error);
         builder.setColor(ChatFormatting.RED);
         sendErrorMessage(builder.build());

@@ -23,10 +23,6 @@ public class TextJoiner {
     public TextJoiner() {
     }
 
-    public static TextJoiner of() {
-        return new TextJoiner();
-    }
-
     /**
      * 换行
      */

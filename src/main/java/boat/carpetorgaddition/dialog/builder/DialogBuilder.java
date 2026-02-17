@@ -94,7 +94,7 @@ public abstract class DialogBuilder<C extends DialogBuilder<C, D>, D extends Dia
 
     public C addDialogBody(CommandSyntaxException exception) {
         return this.addDialogBody(
-                new TextBuilder(exception.getRawMessage())
+                TextBuilder.of(exception.getRawMessage())
                         .setColor(ChatFormatting.RED)
                         .build()
         );

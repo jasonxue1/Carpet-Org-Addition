@@ -218,7 +218,7 @@ public class ItemSearchTask extends ServerTask {
             // 为数量添加鼠标悬停效果
             itemCount = FinderCommand.showCount(optional.get().getDefaultInstance(), this.count, this.shulkerBox);
         } else {
-            TextBuilder builder = new TextBuilder(this.count);
+            TextBuilder builder = TextBuilder.of(this.count);
             if (this.shulkerBox) {
                 builder.setItalic();
             }

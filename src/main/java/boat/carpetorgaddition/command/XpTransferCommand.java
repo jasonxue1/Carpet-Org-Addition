@@ -78,7 +78,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int fromCurrentLevel = from.getLevel();
             int toCurrentLevel = to.getLevel();
-            TextBuilder builder = new TextBuilder(
+            TextBuilder builder = TextBuilder.of(
                     KEY.then("all").translate(
                             from.player().getDisplayName(),
                             number.toString(),
@@ -117,7 +117,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
             Component hover = getHover(to.player(), inputCurrentLevel, inputBeforeLevel, from.player(), outputBeforeLevel, outputCurrentLevel);
-            TextBuilder builder = new TextBuilder(
+            TextBuilder builder = TextBuilder.of(
                     KEY.then("half").translate(
                             from.player().getDisplayName(),
                             number.toString(),
@@ -219,7 +219,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             // 获取转移之后玩家的经验
             int outputCurrentLevel = from.getLevel();
             int inputCurrentLevel = to.getLevel();
-            TextBuilder builder = new TextBuilder(
+            TextBuilder builder = TextBuilder.of(
                     KEY.then("point").translate(
                             from.player().getDisplayName(),
                             count.toString(),
@@ -276,7 +276,7 @@ public class XpTransferCommand extends AbstractServerCommand {
             int outputCurrentLevel
     ) {
         return TextBuilder.combineAll(
-                new TextBuilder(
+                TextBuilder.of(
                         KEY.then("upgrade").translate(
                                 inputPlayer.getDisplayName(),
                                 inputCurrentLevel - inputBeforeLevel,
@@ -285,7 +285,7 @@ public class XpTransferCommand extends AbstractServerCommand {
                         )
                 ).setColor(ChatFormatting.GREEN).build(),
                 TextProvider.NEW_LINE,
-                new TextBuilder(
+                TextBuilder.of(
                         KEY.then("degrade").translate(
                                 outputPlayer.getDisplayName(),
                                 outputBeforeLevel - outputCurrentLevel,

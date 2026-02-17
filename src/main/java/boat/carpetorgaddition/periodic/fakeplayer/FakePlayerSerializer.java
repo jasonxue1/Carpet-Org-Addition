@@ -418,7 +418,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
 
     // 获取显示名称
     public Component getDisplayName() {
-        return new TextBuilder(this.name).setHover(this.info()).build();
+        return TextBuilder.of(this.name).setHover(this.info()).build();
     }
 
     /**
@@ -429,17 +429,17 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
             String name = this.getName();
             String logonCommand = CommandProvider.playerManagerSpawn(name);
             String logoutCommand = CommandProvider.killFakePlayer(name);
-            Component login = new TextBuilder("[↑]")
+            Component login = TextBuilder.of("[↑]")
                     .setCommand(logonCommand)
                     .setHover(LocalizationKeys.Button.LOGIN.translate())
                     .setColor(ChatFormatting.GREEN)
                     .build();
-            Component logout = new TextBuilder("[↓]")
+            Component logout = TextBuilder.of("[↓]")
                     .setCommand(logoutCommand)
                     .setHover(LocalizationKeys.Button.LOGOUT.translate())
                     .setColor(ChatFormatting.RED)
                     .build();
-            Component info = new TextBuilder("[?]")
+            Component info = TextBuilder.of("[?]")
                     .setHover(this.info())
                     .setColor(ChatFormatting.GRAY)
                     .build();
@@ -452,7 +452,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                     .space()
                     .append(name);
             if (!this.comment.isEmpty()) {
-                TextBuilder builder = new TextBuilder("    // " + this.getComment());
+                TextBuilder builder = TextBuilder.of("    // " + this.getComment());
                 builder.setGrayItalic();
                 joiner.append(builder.build());
             }

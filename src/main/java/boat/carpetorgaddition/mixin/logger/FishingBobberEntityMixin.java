@@ -51,7 +51,7 @@ public abstract class FishingBobberEntityMixin {
                     MessageUtils.sendMessageToHud(player, KEY.then("bite").translate(this.timeUntilHooked));
                 } else if (this.nibble > 0) {
                     // 鱼挣脱
-                    TextBuilder builder = new TextBuilder(KEY.then("break_free").translate(this.nibble));
+                    TextBuilder builder = TextBuilder.of(KEY.then("break_free").translate(this.nibble));
                     builder.setColor(ChatFormatting.GREEN);
                     MessageUtils.sendMessageToHud(player, builder.build());
                 }

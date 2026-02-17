@@ -464,7 +464,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         Component itemCount = getItemCount();
         Component numberOfPeople = getNumberOfPeople(resultCount);
         Component message = getFirstFeedback(numberOfPeople, itemCount);
-        TextBuilder builder = new TextBuilder(message);
+        TextBuilder builder = TextBuilder.of(message);
         builder.setHover(KEY.then("prompt").translate());
         MessageUtils.sendEmptyMessage(this.source);
         MessageUtils.sendMessage(this.source, builder.build());
@@ -486,7 +486,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         if (optional.isPresent()) {
             return FinderCommand.showCount(optional.get().getDefaultInstance(), this.itemCount.get(), this.shulkerBox.get());
         } else {
-            TextBuilder builder = new TextBuilder(this.itemCount);
+            TextBuilder builder = TextBuilder.of(this.itemCount);
             return this.shulkerBox.get() ? builder.setItalic().build() : builder.build();
         }
     }
@@ -499,14 +499,14 @@ public class OfflinePlayerSearchTask extends ServerTask {
         ArrayList<Component> peopleHover = new ArrayList<>();
         peopleHover.add(KEY.then("total").translate(this.total));
         peopleHover.add(KEY.then("found").translate(resultCount));
-        TextBuilder builder = new TextBuilder(resultCount);
+        TextBuilder builder = TextBuilder.of(resultCount);
         builder.setHover(TextBuilder.joinList(peopleHover));
         // 玩家总数文本
         return builder.build();
     }
 
     private Component getContainerName(PlayerInventoryType type) {
-        TextBuilder builder = new TextBuilder(type.getDisplayName());
+        TextBuilder builder = TextBuilder.of(type.getDisplayName());
         switch (type) {
             case INVENTORY -> builder.setColor(ChatFormatting.YELLOW);
             case ENDER_CHEST -> builder.setColor(ChatFormatting.DARK_PURPLE);
@@ -538,7 +538,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             writer.putUuid(CustomClickKeys.UUID, entry.id());
             writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.INVENTORY);
-            TextBuilder builder = new TextBuilder("[O]");
+            TextBuilder builder = TextBuilder.of("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
             builder.setHover(LocalizationKeys.Operation.OpenInventory.HOVER.translate(LocalizationKeys.Misc.INVENTORY.translate()));
             builder.setColor(ChatFormatting.GRAY);
@@ -553,7 +553,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             writer.putUuid(CustomClickKeys.UUID, entry.id());
             writer.putPlayerInventoryType(CustomClickKeys.INVENTORY_TYPE, PlayerInventoryType.ENDER_CHEST);
-            TextBuilder builder = new TextBuilder("[O]");
+            TextBuilder builder = TextBuilder.of("[O]");
             builder.setCustomEvent(CustomClickEvents.OPEN_INVENTORY, writer);
             builder.setHover(LocalizationKeys.Operation.OpenInventory.HOVER.translate(LocalizationKeys.Misc.ENDER_CHEST.translate()));
             builder.setColor(ChatFormatting.GRAY);
@@ -629,7 +629,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         // 获取玩家显示名称
         private TextBuilder getDisplayPlayerName(String name, String uuid, Component hover, Component count, PlayerInventoryType type) {
             boolean unknown = isUnknown();
-            TextBuilder builder = new TextBuilder(unknown ? name : "[" + name + "]");
+            TextBuilder builder = TextBuilder.of(unknown ? name : "[" + name + "]");
             if (unknown) {
                 builder.setStrikethrough()
                         .setCopyToClipboard(uuid, false)
@@ -653,7 +653,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         private Component createLoginButton() {
             if (CommandUtils.canUseCommand(source, CarpetSettings.commandPlayer)) {
                 String command = CommandProvider.spawnFakePlayer(playerConfigEntry().name());
-                TextBuilder builder = new TextBuilder(" [↑]");
+                TextBuilder builder = TextBuilder.of(" [↑]");
                 builder.setCommand(command);
                 builder.setHover(LocalizationKeys.Button.LOGIN.translate());
                 return builder.build();
@@ -670,8 +670,8 @@ public class OfflinePlayerSearchTask extends ServerTask {
             // 按钮的悬停提示
             ArrayList<Component> list = new ArrayList<>();
             list.add(LocalizationKeys.Operation.QueryPlayerName.Hover.FIRST.translate());
-            list.add(new TextBuilder(LocalizationKeys.Operation.QueryPlayerName.Hover.SECOND.translate()).setColor(ChatFormatting.RED).build());
-            TextBuilder button = new TextBuilder(" [\uD83D\uDD0D]");
+            list.add(TextBuilder.of(LocalizationKeys.Operation.QueryPlayerName.Hover.SECOND.translate()).setColor(ChatFormatting.RED).build());
+            TextBuilder button = TextBuilder.of(" [\uD83D\uDD0D]");
             NbtWriter writer = new NbtWriter(this.server, CustomClickAction.CURRENT_VERSION);
             // 设置单击查询玩家名称
             writer.putUuid(CustomClickKeys.UUID, playerConfigEntry().id());

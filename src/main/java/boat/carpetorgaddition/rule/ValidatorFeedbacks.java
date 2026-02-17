@@ -64,7 +64,7 @@ public class ValidatorFeedbacks {
     public static <T> Component validOptions(CarpetRule<T> rule) {
         ArrayList<TextBuilder> list = new ArrayList<>();
         for (String suggestion : rule.suggestions()) {
-            TextBuilder option = new TextBuilder(suggestion)
+            TextBuilder option = TextBuilder.of(suggestion)
                     .setHover(LocalizationKey.literal("carpet.settings.command.switch_to").translate(suggestion))
                     .setSuggestCommand(CommandProvider.setCarpetRule(rule.name(), suggestion));
             // 规则默认值设置为粗体

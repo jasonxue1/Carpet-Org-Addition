@@ -152,7 +152,7 @@ public class Waypoint {
 
     // 将路径点名称改为带有方括号和悬停样式的文本组件对象
     private Component formatName() {
-        TextBuilder builder = new TextBuilder("[" + this.name.split("\\.")[0] + "]");
+        TextBuilder builder = TextBuilder.of("[" + this.name.split("\\.")[0] + "]");
         if (this.comment.isEmpty()) {
             return builder.build();
         }

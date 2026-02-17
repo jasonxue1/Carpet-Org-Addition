@@ -68,7 +68,7 @@ public class CustomClickEvents {
             if (optional.isPresent()) {
                 // 如果本地存在，就不再从Mojang API获取
                 String playerName = optional.get();
-                TextBuilder builder = new TextBuilder("UUID");
+                TextBuilder builder = TextBuilder.of("UUID");
                 builder.setHover(uuid.toString());
                 sendQueryPlayerNameFeekback(player, builder.build(), playerName);
             } else {
@@ -110,7 +110,7 @@ public class CustomClickEvents {
      * 在独立线程查询玩家名称
      */
     private static void queryPlayerName(MinecraftServer server, ServerPlayer player, UUID uuid) {
-        TextBuilder builder = new TextBuilder("UUID");
+        TextBuilder builder = TextBuilder.of("UUID");
         builder.setHover(uuid.toString());
         Component displayUuid = builder.build();
         String name;
@@ -128,7 +128,7 @@ public class CustomClickEvents {
     }
 
     private static void sendQueryPlayerNameFeekback(ServerPlayer player, Component uuid, String playerName) {
-        Component name = new TextBuilder(playerName).setCopyToClipboard(playerName).setColor(ChatFormatting.GRAY).build();
+        Component name = TextBuilder.of(playerName).setCopyToClipboard(playerName).setColor(ChatFormatting.GRAY).build();
         MessageUtils.sendMessage(player, LocalizationKeys.Operation.QueryPlayerName.SUCCESS.translate(uuid, name));
     }
 

@@ -95,7 +95,7 @@ public class EnchantmentUtils {
      * @return 获取一个附魔的名字，不带等级
      */
     public static Component getName(Enchantment enchantment) {
-        TextBuilder builder = new TextBuilder(enchantment.description());
+        TextBuilder builder = TextBuilder.of(enchantment.description());
         Holder<Enchantment> entry = Holder.direct(enchantment);
         // 如果是诅咒附魔，设置为红色，否则，设置为灰色
         ChatFormatting color = entry.is(EnchantmentTags.CURSE) ? ChatFormatting.RED : ChatFormatting.GRAY;

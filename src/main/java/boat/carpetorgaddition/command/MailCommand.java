@@ -261,16 +261,16 @@ public class MailCommand extends AbstractServerCommand {
     private Component line(ServerPlayer player, Parcel parcel) {
         Parcel.Operation operation = parcel.getPlayerOperation(player);
         TextBuilder builder = switch (operation) {
-            case COLLECT -> new TextBuilder(LIST.then("collect").translate())
+            case COLLECT -> TextBuilder.of(LIST.then("collect").translate())
                     .setCommand(CommandProvider.collectParcel(parcel.getId(), false))
                     .setColor(ChatFormatting.AQUA);
-            case RECALL -> new TextBuilder(LIST.then("recall").translate())
+            case RECALL -> TextBuilder.of(LIST.then("recall").translate())
                     .setCommand(CommandProvider.recallParcel(parcel.getId(), false))
                     .setColor(ChatFormatting.AQUA);
-            case INTERCEPT -> new TextBuilder(LIST.then("intercept").translate())
+            case INTERCEPT -> TextBuilder.of(LIST.then("intercept").translate())
                     .setCommand(CommandProvider.interceptParcel(parcel.getId(), false))
                     .setColor(ChatFormatting.AQUA);
-            case VIEW -> new TextBuilder(LIST.then("view").translate())
+            case VIEW -> TextBuilder.of(LIST.then("view").translate())
                     .setColor(ChatFormatting.GRAY);
         };
         TextJoiner joiner = new TextJoiner();

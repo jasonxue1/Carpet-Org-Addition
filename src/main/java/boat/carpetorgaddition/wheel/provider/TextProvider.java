@@ -47,14 +47,14 @@ public class TextProvider {
      * @param color 文本的颜色，如果为null，不修改颜色
      */
     public static Component blockPos(BlockPos blockPos, @Nullable ChatFormatting color) {
-        TextBuilder builder = new TextBuilder(simpleBlockPos(blockPos));
+        TextBuilder builder = TextBuilder.of(simpleBlockPos(blockPos));
         // 添加单击事件，复制方块坐标
         builder.setCopyToClipboard(ServerUtils.toPosString(blockPos));
         switch (CarpetOrgAdditionSettings.canHighlightBlockPos.value()) {
-            case OMMC -> builder.append(new TextBuilder(" [H]")
+            case OMMC -> builder.append(TextBuilder.of(" [H]")
                     .setCommand(CommandProvider.highlightWaypointByOmmc(blockPos))
                     .setHover(LocalizationKey.literal("ommc.highlight_waypoint.tooltip").translate()));
-            case DEFAULT -> builder.append(new TextBuilder(" [H]")
+            case DEFAULT -> builder.append(TextBuilder.of(" [H]")
                     .setCommand(CommandProvider.highlightWaypoint(blockPos))
                     .setHover(LocalizationKeys.Button.HIGHLIGHT.translate()));
             default -> {
@@ -78,7 +78,7 @@ public class TextProvider {
      * @param command 要执行的命令
      */
     public static Component clickRun(String command) {
-        TextBuilder builder = new TextBuilder(LocalizationKeys.Button.HERE.translate());
+        TextBuilder builder = TextBuilder.of(LocalizationKeys.Button.HERE.translate());
         builder.setCommand(command);
         builder.setHover(LocalizationKeys.Button.RUN_COMMAND.translate(command));
         builder.setColor(ChatFormatting.AQUA);
@@ -95,7 +95,7 @@ public class TextProvider {
         int group = count / maxCount;
         // 计算物品余几个
         int remainder = count % maxCount;
-        TextBuilder builder = new TextBuilder(count);
+        TextBuilder builder = TextBuilder.of(count);
         // 为文本添加悬停提示
         if (group == 0) {
             builder.setHover(LocalizationKeys.Item.REMAINDER.translate(remainder));
@@ -112,7 +112,7 @@ public class TextProvider {
      * @return 获取物品栏中物品的名称和堆叠数量并用“*”连接，每个物品独占一行
      */
     public static Component inventory(Component base, Container inventory) {
-        TextBuilder builder = new TextBuilder(base);
+        TextBuilder builder = TextBuilder.of(base);
         ArrayList<Component> list = new ArrayList<>();
         for (int i = 0; i < inventory.getContainerSize(); i++) {
             ItemStack itemStack = inventory.getItem(i);

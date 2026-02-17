@@ -90,7 +90,7 @@ public class NavigatorCommand extends AbstractServerCommand {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         Entity entity = EntityArgument.getEntity(context, arguments);
         // 如果目标是玩家，广播消息
-        TextBuilder builder = new TextBuilder(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
+        TextBuilder builder = TextBuilder.of(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
         PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(entity, isContinue);
         if (shouldBeBroadcast(entity, player)) {
             // 设置为斜体淡灰色
@@ -129,7 +129,7 @@ public class NavigatorCommand extends AbstractServerCommand {
                 continue;
             }
             PlayerComponentCoordinator.getCoordinator(player).getNavigatorManager().setNavigator(entity, false);
-            TextBuilder builder = new TextBuilder(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
+            TextBuilder builder = TextBuilder.of(START_NAVIGATION.translate(player.getDisplayName(), entity.getDisplayName()));
             if (shouldBeBroadcast(entity, player)) {
                 // 将字体设置为灰色斜体
                 builder.setGrayItalic();

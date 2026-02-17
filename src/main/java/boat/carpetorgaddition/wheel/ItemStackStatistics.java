@@ -130,7 +130,7 @@ public class ItemStackStatistics {
             }
         }
         Component text = TextBuilder.create(this.getSum());
-        TextBuilder builder = new TextBuilder(text);
+        TextBuilder builder = TextBuilder.of(text);
         builder.setHover(TextBuilder.joinList(list));
         return this.nestingItem.isEmpty() ? builder.build() : builder.setItalic().build();
     }

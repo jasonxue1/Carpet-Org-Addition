@@ -64,28 +64,28 @@ public class PagedCollection implements Iterable<Page> {
         } else {
             getPage(pagination).print(this.source);
             ArrayList<Object> list = new ArrayList<>();
-            list.add(new TextBuilder("  ======").setColor(ChatFormatting.DARK_GRAY));
+            list.add(TextBuilder.of("  ======").setColor(ChatFormatting.DARK_GRAY));
             list.add(this.prevPageButton(pagination));
             list.add(" ");
             TextJoiner joiner = new TextJoiner();
             joiner.append("[");
-            joiner.append(new TextBuilder(pagination).setColor(ChatFormatting.GOLD).build());
+            joiner.append(TextBuilder.of(pagination).setColor(ChatFormatting.GOLD).build());
             joiner.append("/");
-            joiner.append(new TextBuilder(this.totalPages()).setColor(ChatFormatting.GOLD).build());
+            joiner.append(TextBuilder.of(this.totalPages()).setColor(ChatFormatting.GOLD).build());
             joiner.append("]");
-            list.add(new TextBuilder(joiner.join())
+            list.add(TextBuilder.of(joiner.join())
                     .setHover(MathUtils.formatToMaxTwoDecimals(100 * (pagination / (double) this.totalPages())) + "%")
             );
             list.add(" ");
             list.add(this.nextPageButton(pagination));
-            list.add(new TextBuilder("======").setColor(ChatFormatting.DARK_GRAY));
+            list.add(TextBuilder.of("======").setColor(ChatFormatting.DARK_GRAY));
             Component pageTurningButton = TextBuilder.combineList(list);
             MessageUtils.sendMessage(this.source, pageTurningButton);
         }
     }
 
     private Component prevPageButton(int pagination) {
-        TextBuilder builder = new TextBuilder(" <<< ");
+        TextBuilder builder = TextBuilder.of(" <<< ");
         if (pagination == 1) {
             // 已经是第一页，没有上一页了
             builder.setColor(ChatFormatting.GRAY);
@@ -101,7 +101,7 @@ public class PagedCollection implements Iterable<Page> {
     }
 
     private Component nextPageButton(int pagination) {
-        TextBuilder builder = new TextBuilder(" >>> ");
+        TextBuilder builder = TextBuilder.of(" >>> ");
         if (pagination == this.totalPages()) {
             // 已经是最后一页，没有下一页了
             builder.setColor(ChatFormatting.GRAY);

@@ -92,7 +92,7 @@ public class CommandUtils {
             case 0 -> throw GameProfileArgument.ERROR_UNKNOWN_PLAYER.create();
             case 1 -> collection.iterator().next();
             default -> {
-                TextBuilder builder = new TextBuilder(LocalizationKeys.Argument.Player.TOOMANY.translate());
+                TextBuilder builder = TextBuilder.of(LocalizationKeys.Argument.Player.TOOMANY.translate());
                 ArrayList<Component> list = new ArrayList<>();
                 for (GameProfile gameProfile : collection) {
                     TextJoiner joiner = new TextJoiner();
@@ -134,7 +134,7 @@ public class CommandUtils {
      */
     public static CommandSyntaxException createException(Component component, Throwable e) {
         String message = getExceptionString(e);
-        TextBuilder builder = new TextBuilder(component);
+        TextBuilder builder = TextBuilder.of(component);
         builder.setHover(message);
         return new SimpleCommandExceptionType(builder.build()).create();
     }

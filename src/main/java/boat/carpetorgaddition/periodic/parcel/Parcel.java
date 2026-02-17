@@ -150,7 +150,7 @@ public class Parcel implements Comparable<Parcel> {
         // 向快递接受者发送发出快递的消息
         Component receive = TextProvider.clickRun(CommandProvider.collectParcel(this.getId(), false));
         if (recipientPlayer == null) {
-            TextBuilder builder = new TextBuilder(key.then("offline").translate());
+            TextBuilder builder = TextBuilder.of(key.then("offline").translate());
             builder.setGrayItalic();
             MessageUtils.sendMessage(senderPlayer, builder.build());
         } else {
@@ -251,7 +251,7 @@ public class Parcel implements Comparable<Parcel> {
         }
         // 如果接收者存在，向接收者发送物品被撤回的消息
         MessageUtils.sendMessageIfPlayerOnline(this.server, this.recipient,
-                () -> new TextBuilder(MailCommand.NOTICE.then("recall")
+                () -> TextBuilder.of(MailCommand.NOTICE.then("recall")
                         .translate(player.getDisplayName()))
                         .setGrayItalic()
                         .build()
@@ -285,14 +285,14 @@ public class Parcel implements Comparable<Parcel> {
         LocalizationKey noticeKey = MailCommand.NOTICE.then("intercept");
         MessageUtils.sendMessageIfPlayerOnline(this.server, this.sender, player -> {
             Component text = getOperatorPlayerName(operator, player);
-            TextBuilder builder = new TextBuilder(noticeKey.then("sender").translate(text, this.recipient));
+            TextBuilder builder = TextBuilder.of(noticeKey.then("sender").translate(text, this.recipient));
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
         });
         MessageUtils.sendMessageIfPlayerOnline(this.server, this.recipient, player -> {
             Component text = getOperatorPlayerName(operator, player);
-            TextBuilder builder = new TextBuilder(noticeKey.then("recipient").translate(text, this.sender));
+            TextBuilder builder = TextBuilder.of(noticeKey.then("recipient").translate(text, this.sender));
             builder.setGrayItalic();
             builder.setHover(hover);
             return builder.build();
@@ -367,7 +367,7 @@ public class Parcel implements Comparable<Parcel> {
             return;
         }
         // 将消息设置为灰色斜体
-        Component message = new TextBuilder(MailCommand.SEND.then("permission").translate()).setGrayItalic().build();
+        Component message = TextBuilder.of(MailCommand.SEND.then("permission").translate()).setGrayItalic().build();
         MessageUtils.sendMessage(senderPlayer, message);
     }
 
@@ -492,7 +492,7 @@ public class Parcel implements Comparable<Parcel> {
         Container inventory = this.getParcels();
         int size = inventory.getContainerSize();
         if (size == 0) {
-            return new TextBuilder(ServerUtils.getName(Items.AIR)).build();
+            return TextBuilder.of(ServerUtils.getName(Items.AIR)).build();
         }
         ItemStack first = inventory.getItem(0);
         boolean exactlyTheSame = true;
@@ -516,7 +516,7 @@ public class Parcel implements Comparable<Parcel> {
         // 物品栏中所有物品类型都相同
         if (exactlyTheSame) {
             // 物品组件也完全相同
-            return new TextBuilder(name)
+            return TextBuilder.of(name)
                     .setColor(first.getRarity())
                     .setHover(first)
                     .build();

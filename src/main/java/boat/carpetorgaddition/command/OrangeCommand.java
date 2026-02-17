@@ -121,7 +121,7 @@ public class OrangeCommand extends AbstractServerCommand {
      */
     private int version(CommandContext<CommandSourceStack> context) {
         String name = CarpetOrgAddition.MOD_NAME;
-        Component version = new TextBuilder(CarpetOrgAddition.VERSION)
+        Component version = TextBuilder.of(CarpetOrgAddition.VERSION)
                 .setHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                 .build();
         MessageUtils.sendMessage(context, KEY.then("version").translate(name, version));
@@ -147,9 +147,9 @@ public class OrangeCommand extends AbstractServerCommand {
             Component playerName = (player == CommandUtils.getSourcePlayer(context) ? LocalizationKeys.Misc.SELF.translate() : player.getDisplayName());
             TextBuilder builder;
             if (value) {
-                builder = new TextBuilder(RULESELF.then("enable").translate(ruleName, playerName));
+                builder = TextBuilder.of(RULESELF.then("enable").translate(ruleName, playerName));
             } else {
-                builder = new TextBuilder(RULESELF.then("disable").translate(ruleName, playerName));
+                builder = TextBuilder.of(RULESELF.then("disable").translate(ruleName, playerName));
             }
             if (!control.allowCustomSwitch()) {
                 builder.setHover(RULESELF.then("invalid").translate());
@@ -179,7 +179,7 @@ public class OrangeCommand extends AbstractServerCommand {
             boolean enabled = valueManager.isEnabled(player, ruleString);
             Component displayName = RuleUtils.simpleTranslationName(entry.getRule());
             MessageUtils.sendMessage(context, key.then("rule").translate(displayName));
-            TextBuilder builder = new TextBuilder(key.then("enable").translate(TextProvider.getBoolean(enabled)));
+            TextBuilder builder = TextBuilder.of(key.then("enable").translate(TextProvider.getBoolean(enabled)));
             if (!control.allowCustomSwitch()) {
                 builder.setHover(RULESELF.then("invalid").translate());
                 builder.setStrikethrough();

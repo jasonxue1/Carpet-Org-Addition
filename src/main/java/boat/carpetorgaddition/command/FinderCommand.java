@@ -299,7 +299,7 @@ public class FinderCommand extends AbstractServerCommand {
      * 将物品数量转换为“多少组多少个”的形式
      */
     public static Component showCount(ItemStack itemStack, int count, boolean inTheShulkerBox) {
-        TextBuilder builder = new TextBuilder(TextProvider.itemCount(count, itemStack.getMaxStackSize()));
+        TextBuilder builder = TextBuilder.of(TextProvider.itemCount(count, itemStack.getMaxStackSize()));
         // 如果包含在潜影盒内找到的物品，在数量上添加斜体效果
         return inTheShulkerBox ? builder.setItalic().build() : builder.build();
     }

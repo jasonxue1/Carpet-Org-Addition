@@ -31,33 +31,28 @@ import java.util.UUID;
 public class TextBuilder {
     private MutableComponent text;
 
-    // TODO 改为of方法
     private TextBuilder(MutableComponent text) {
         this.text = text;
     }
 
-    public TextBuilder() {
-        this(empty());
+    public static TextBuilder of() {
+        return of(empty());
     }
 
-    public TextBuilder(Component text) {
-        this(text.copy());
+    public static TextBuilder of(Component text) {
+        return new TextBuilder(text.copy());
     }
 
-    public TextBuilder(String str) {
-        this(create(str));
+    public static TextBuilder of(String str) {
+        return of(create(str));
     }
 
-    public TextBuilder(Number number) {
-        this(number.toString());
+    public static TextBuilder of(Number number) {
+        return of(number.toString());
     }
 
-    public TextBuilder(Message message) {
-        this(create(message));
-    }
-
-    public static TextBuilder fromCombined(Object... args) {
-        return new TextBuilder(combineAll(args));
+    public static TextBuilder of(Message message) {
+        return of(create(message));
     }
 
     public static TextBuilder ofPlayerAvatar(Player player) {
@@ -73,6 +68,10 @@ public class TextBuilder {
     public static TextBuilder ofPlayerAvatar(UUID uuid) {
         ResolvableProfile profile = ResolvableProfile.createUnresolved(uuid);
         return new TextBuilder(Component.object(new PlayerSprite(profile, true)));
+    }
+
+    public static TextBuilder fromCombined(Object... args) {
+        return of(combineAll(args));
     }
 
     public static Component empty() {

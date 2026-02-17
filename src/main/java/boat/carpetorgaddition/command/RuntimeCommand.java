@@ -103,7 +103,7 @@ public class RuntimeCommand extends AbstractServerCommand {
         Component free = displayMemory(size);
         LocalizationKey key = KEY.then("gc");
         MessageUtils.sendMessage(context, key.translate(free));
-        Component prompt = new TextBuilder(key.then("prompt").translate()).setGrayItalic().build();
+        Component prompt = TextBuilder.of(key.then("prompt").translate()).setGrayItalic().build();
         MessageUtils.sendMessage(context.getSource(), prompt);
         return (int) size;
     }
@@ -119,7 +119,7 @@ public class RuntimeCommand extends AbstractServerCommand {
     private Component displayMemory(long size) {
         DecimalFormat format = new DecimalFormat("#.00");
         String mb = format.format(size / 1024.0 / 1024.0);
-        TextBuilder builder = new TextBuilder("%sMB".formatted(mb))
+        TextBuilder builder = TextBuilder.of("%sMB".formatted(mb))
                 .setHover("%sB".formatted(size))
                 .setColor(ChatFormatting.GRAY);
         return builder.build();

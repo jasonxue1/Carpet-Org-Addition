@@ -35,7 +35,7 @@ public abstract class ItemStackMixin {
                     .map(Identifier::toString)
                     .sorted()
                     .map("#%s"::formatted)
-                    .map(TextBuilder::new)
+                    .map(TextBuilder::of)
                     .map(text -> text.setColor(ChatFormatting.GRAY))
                     .map(TextBuilder::build)
                     .forEach(builder);

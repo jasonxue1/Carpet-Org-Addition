@@ -68,7 +68,7 @@ public abstract class AbstractNavigator {
             case 3 -> Map.entry("<<< ", "    ");
             default -> Map.entry("    ", "    ");
         };
-        TextBuilder builder = new TextBuilder();
+        TextBuilder builder = TextBuilder.of();
         builder.append(entry.getKey());
         builder.append(displayName);
         // 添加上下箭头

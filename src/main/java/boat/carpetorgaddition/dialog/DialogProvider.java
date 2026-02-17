@@ -41,7 +41,7 @@ public class DialogProvider {
     private void init() {
         // 对话框主屏幕
         dialogs.put(START, () -> {
-            Component version = new TextBuilder(CarpetOrgAddition.VERSION)
+            Component version = TextBuilder.of(CarpetOrgAddition.VERSION)
                     .setHover(CarpetOrgAddition.BUILD_TIMESTAMP)
                     .build();
             Component component = TextBuilder.create(CarpetOrgAddition.MOD_NAME);

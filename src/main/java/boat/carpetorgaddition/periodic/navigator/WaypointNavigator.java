@@ -62,7 +62,7 @@ public class WaypointNavigator extends AbstractNavigator {
         } else {
             if (this.canMapping(this.secondTarget)) {
                 // 玩家和路径点在不同的维度，但是两个世界的坐标可以互相转换
-                TextBuilder builder = new TextBuilder(TextProvider.simpleBlockPos(this.secondTarget));
+                TextBuilder builder = TextBuilder.of(TextProvider.simpleBlockPos(this.secondTarget));
                 // 将坐标设置为斜体
                 builder.setItalic();
                 Component in = IN.translate(waypoint.getName(), builder.build());

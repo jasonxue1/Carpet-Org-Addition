@@ -45,7 +45,7 @@ public class LocalizationKey {
     }
 
     public TextBuilder builder(Object... args) {
-        return new TextBuilder(this.translate(args));
+        return TextBuilder.of(this.translate(args));
     }
 
     @Override

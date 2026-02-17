@@ -40,7 +40,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
             filter = filter.substring(1, filter.length() - 1);
         }
         LocalizationKey key = LocalizationKey.literal("carpet.settings.command.mod_settings_matching");
-        Component text = new TextBuilder(key.translate("Carpet", filter))
+        Component text = TextBuilder.of(key.translate("Carpet", filter))
                 .setBold()
                 .build();
         MessageUtils.sendMessage(context.getSource(), text);
@@ -62,7 +62,7 @@ public class RuleSearchCommand extends AbstractServerCommand {
                     ruleCount.increment();
                 } else if (RuleHelper.translatedDescription(rule).contains(filter)) {
                     // 规则名中不包含字符串，但是规则描述中包含
-                    Component message = new TextBuilder(accessor.displayInteractiveSettings(rule)).setItalic().build();
+                    Component message = TextBuilder.of(accessor.displayInteractiveSettings(rule)).setItalic().build();
                     MessageUtils.sendMessage(context.getSource(), message);
                     ruleCount.increment();
                 }

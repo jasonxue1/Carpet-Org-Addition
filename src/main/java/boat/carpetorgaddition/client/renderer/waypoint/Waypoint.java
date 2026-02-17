@@ -236,7 +236,7 @@ public abstract class Waypoint {
         // 计算距离
         double distance = offset.length();
         String formatted = distance >= 1000 ? "%.1fkm".formatted(distance / 1000) : "%.1fm".formatted(distance);
-        TextBuilder builder = new TextBuilder(formatted);
+        TextBuilder builder = TextBuilder.of(formatted);
         // 如果玩家与路径点不在同一纬度，设置距离文本为斜体
         if (!this.registryKey.equals(ClientUtils.getWorld().dimension())) {
             builder.setItalic();
