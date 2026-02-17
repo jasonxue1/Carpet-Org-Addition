@@ -25,6 +25,10 @@ public class CustomClickAction {
     private static final Map<Identifier, CustomClickActionProcessor> ACTIONS = new HashMap<>();
     public static final NbtVersion CURRENT_VERSION = new NbtVersion(1, 0);
 
+    static {
+        CustomClickEvents.init();
+    }
+
     public static void register(Identifier identifier, CustomClickActionProcessor consumer) {
         CustomClickActionProcessor value = ACTIONS.put(identifier, consumer);
         if (value != null) {

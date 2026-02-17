@@ -146,4 +146,10 @@ public class CustomClickEvents {
         CustomClickAction.register(identifier, processor);
         return identifier;
     }
+
+    /**
+     * 空方法，用于触发类加载
+     */
+    public static void init() {
+    }
 }
