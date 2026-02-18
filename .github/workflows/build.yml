@@ -24,9 +24,4 @@ jobs:
         run: |
           chmod +x gradlew
           ./gradlew build -x test
-
-      - name: Upload mod
-        uses: actions/upload-artifact@v6
-        with:
-          name: mod-jar
-          path: build/libs
+  
