@@ -1,7 +1,6 @@
 package boat.carpetorgaddition.mixin.util.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
-import boat.carpetorgaddition.periodic.task.schedule.ReLoginTask;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
@@ -46,9 +45,9 @@ public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         boolean hiddenMessage = FakePlayerSpawner.SILENCE.orElse(false);
-        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> ScopedValue
-                .where(FakePlayerSpawner.SILENCE, hiddenMessage)
-                .run(() -> action.accept(value, throwable));
+        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) ->
+                ScopedValue.where(FakePlayerSpawner.SILENCE, hiddenMessage)
+                        .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
     }
 
@@ -74,17 +73,28 @@ public class EntityPlayerMPFakeMixin {
     }
 
     @WrapOperation(method = "createFake", at = @At(value = "INVOKE", target = "Ljava/util/concurrent/CompletableFuture;whenCompleteAsync(Ljava/util/function/BiConsumer;Ljava/util/concurrent/Executor;)Ljava/util/concurrent/CompletableFuture;"))
-    private static <T> CompletableFuture<T> homePositionSpawn(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
-        Boolean shouldHomePosition = ReLoginTask.HOME_POSITION.get();
-        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) -> {
-            try {
-                ReLoginTask.INTERNAL_HOME_POSITION.set(shouldHomePosition);
-                action.accept(value, throwable);
-            } finally {
-                ReLoginTask.INTERNAL_HOME_POSITION.set(false);
-            }
-        };
+    private static <T> CompletableFuture<T> originalPositionSpawn(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
+        Boolean originalPosition = FakePlayerSpawner.ORIGINAL_POSITION.orElse(false);
+        BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) ->
+                ScopedValue.where(FakePlayerSpawner.ORIGINAL_POSITION, originalPosition)
+                        .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
+    }
+
+    @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
+    private static boolean originalPositionSpawn(EntityPlayerMPFake instance, ServerLevel serverWorld, double x, double y, double z, Set<Relative> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
+        if (FakePlayerSpawner.ORIGINAL_POSITION.orElse(false)) {
+            return false;
+        }
+        return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
+    }
+
+    @WrapOperation(method = "lambda$createFake$1", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;snapTo(DDDFF)V"))
+    private static void originalPositionSpawn(EntityPlayerMPFake instance, double x, double y, double z, float yaw, float pitch, Operation<Void> original) {
+        if (FakePlayerSpawner.ORIGINAL_POSITION.orElse(false)) {
+            return;
+        }
+        original.call(instance, x, y, z, yaw, pitch);
     }
 
     @WrapOperation(method = "kill(Lnet/minecraft/network/chat/Component;)V", at = @At(value = "NEW", target = "(ILjava/lang/Runnable;)Lnet/minecraft/server/TickTask;"))
@@ -93,16 +103,8 @@ public class EntityPlayerMPFakeMixin {
         return original.call(tick, (Runnable) () -> ScopedValue.where(FakePlayerSpawner.SILENCE, silence).run(runnable));
     }
 
-    @WrapOperation(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;teleportTo(Lnet/minecraft/server/level/ServerLevel;DDDLjava/util/Set;FFZ)Z"))
-    private static boolean homePositionSpawn(EntityPlayerMPFake instance, ServerLevel serverWorld, double x, double y, double z, Set<Relative> set, float yaw, float pitch, boolean b, Operation<Boolean> original) {
-        if (ReLoginTask.INTERNAL_HOME_POSITION.get()) {
-            return false;
-        }
-        return original.call(instance, serverWorld, x, y, z, set, yaw, pitch, b);
-    }
-
     @WrapWithCondition(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;stopRiding()V"))
     private static boolean stopRiding(EntityPlayerMPFake instance) {
-        return !ReLoginTask.INTERNAL_HOME_POSITION.get();
+        return !FakePlayerSpawner.ORIGINAL_POSITION.orElse(false);
     }
 }

@@ -220,9 +220,13 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
      * @param message 是否显示登录消息
      */
     public boolean spawn(MinecraftServer server, boolean message) {
+        // 生成假玩家
+        return getSpawner(server).setSilence(!message).spawn();
+    }
+
+    public FakePlayerSpawner getSpawner(MinecraftServer server) {
         CommandSourceStack source = server.createCommandSourceStack();
         ServerTaskManager taskManager = ServerComponentCoordinator.getCoordinator(server).getServerTaskManager();
-        // 生成假玩家
         return FakePlayerSpawner.of(server, this.name)
                 .setPosition(this.playerPos)
                 .setYaw(this.yaw)
@@ -240,9 +244,7 @@ public class FakePlayerSerializer implements Comparable<FakePlayerSerializer> {
                         FakePlayerStartupActionTask task = new FakePlayerStartupActionTask(source, fakePlayer, entry.getKey(), entry.getValue());
                         CommandUtils.handlingException(() -> taskManager.addTask(task), source);
                     }
-                })
-                .setSilence(!message)
-                .spawn();
+                });
     }
 
     // 显示文本信息

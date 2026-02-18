@@ -1,6 +1,6 @@
 package boat.carpetorgaddition.wheel.text;
 
-public class LocalizationKeys {
+public final class LocalizationKeys {
     public static final LocalizationKey COMMAND = LocalizationKey.of("command");
     public static final LocalizationKey LOGGER = LocalizationKey.of("logger");
     private static final LocalizationKey OPERATION = LocalizationKey.of("operation");

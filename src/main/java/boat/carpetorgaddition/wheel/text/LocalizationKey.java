@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 @NullMarked
-public class LocalizationKey {
+public final class LocalizationKey {
     private static final String ROOT = CarpetOrgAddition.MOD_ID;
     private final String key;
 

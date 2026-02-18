@@ -25,8 +25,6 @@ import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Contract;
 
 public class ReLoginTask extends PlayerScheduleTask {
-    public static final ThreadLocal<Boolean> HOME_POSITION = ThreadLocal.withInitial(() -> false);
-    public static final ThreadLocal<Boolean> INTERNAL_HOME_POSITION = ThreadLocal.withInitial(() -> false);
     // 假玩家名
     private final FakePlayerSerializer serializer;
     // 重新上线的时间间隔
@@ -39,6 +37,7 @@ public class ReLoginTask extends PlayerScheduleTask {
     private boolean stop = false;
     // 假玩家重新上线的倒计时
     private int canSpawn = 2;
+    private final FakePlayerSpawner spawner;
     public static final LocalizationKey KEY = PlayerManagerCommand.SCHEDULE.then("relogin");
 
     public ReLoginTask(EntityPlayerMPFake fakePlayer, int interval, MinecraftServer server, CommandSourceStack source) {
@@ -48,6 +47,7 @@ public class ReLoginTask extends PlayerScheduleTask {
         this.remainingTick = this.interval;
         this.server = server;
         this.source = source;
+        this.spawner = this.serializer.getSpawner(this.server).setSilence(true).setPosition(null);
     }
 
     @Override
@@ -174,13 +174,7 @@ public class ReLoginTask extends PlayerScheduleTask {
      */
     private void loginPlayer() {
         try {
-            try {
-                // TODO 不再需要
-                HOME_POSITION.set(true);
-                this.serializer.spawn(this.server, false);
-            } finally {
-                HOME_POSITION.set(false);
-            }
+            this.spawner.spawn();
         } catch (RuntimeException e) {
             CarpetOrgAddition.LOGGER.warn("Fake player encounter unexpected errors while logging in", e);
             this.stop();

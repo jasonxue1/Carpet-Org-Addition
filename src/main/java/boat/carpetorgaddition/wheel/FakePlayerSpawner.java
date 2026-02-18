@@ -16,6 +16,18 @@ import java.util.function.Consumer;
 @NullMarked
 public class FakePlayerSpawner {
     /**
+     * 假玩家在上线或下线时，是否隐藏上下线的消息
+     */
+    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
+    /**
+     * 假玩家生成后执行的回调函数
+     */
+    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
+    /**
+     * 假玩家是否在上次下线的位置生成
+     */
+    public static final ScopedValue<Boolean> ORIGINAL_POSITION = ScopedValue.newInstance();
+    /**
      * 玩家的名称
      */
     private final String name;
@@ -23,6 +35,7 @@ public class FakePlayerSpawner {
     /**
      * 假玩家生成的位置
      */
+    @Nullable
     private Vec3 position;
     /**
      * 假玩家生成的维度
@@ -56,14 +69,6 @@ public class FakePlayerSpawner {
      * 是否隐藏登录消息
      */
     private boolean silence;
-    /**
-     * 假玩家在上线或下线时，是否隐藏上下线的消息
-     */
-    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
-    /**
-     * 假玩家生成后执行的回调函数
-     */
-    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
 
     private FakePlayerSpawner(MinecraftServer server, String name) {
         this.server = server;
@@ -77,7 +82,7 @@ public class FakePlayerSpawner {
         return new FakePlayerSpawner(server, name);
     }
 
-    public FakePlayerSpawner setPosition(Vec3 position) {
+    public FakePlayerSpawner setPosition(@Nullable Vec3 position) {
         this.position = position;
         return this;
     }
@@ -140,6 +145,16 @@ public class FakePlayerSpawner {
         }
         return ScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
-                .call(() -> EntityPlayerMPFake.createFake(this.name, this.server, this.position, this.yaw, this.pitch, this.dimension, this.gameMode, this.flying));
+                .where(ORIGINAL_POSITION, this.position == null)
+                .call(() -> EntityPlayerMPFake.createFake(
+                        this.name,
+                        this.server,
+                        this.position == null ? Vec3.ZERO : this.position,
+                        this.yaw,
+                        this.pitch,
+                        this.dimension,
+                        this.gameMode,
+                        this.flying
+                ));
     }
 }
