@@ -2,6 +2,7 @@ package boat.carpetorgaddition.mixin.util;
 
 import boat.carpetorgaddition.periodic.PeriodicTaskManagerInterface;
 import boat.carpetorgaddition.periodic.ServerComponentCoordinator;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -22,7 +23,7 @@ public class MinecraftServerMixin implements PeriodicTaskManagerInterface {
     @Inject(method = "<init>", at = @At("RETURN"))
     private void init(CallbackInfo ci) {
         // 在构造方法执行完毕后创建，因为在这之前服务器可能没有完成初始化
-        this.manager = ScopedValue.where(ServerComponentCoordinator.SERVER_INSTANCE, this.self)
+        this.manager = ThreadScopedValue.where(ServerComponentCoordinator.SERVER_INSTANCE, this.self)
                 .call(() -> new ServerComponentCoordinator(this.self));
     }
 

@@ -29,7 +29,7 @@ public class PlayerComponentCoordinator {
     public static PlayerComponentCoordinator of(ServerPlayer player) {
         return switch (player) {
             case EntityPlayerMPFake fakePlayer -> new FakePlayerComponentCoordinator(fakePlayer);
-            case ServerPlayer _ -> new PlayerComponentCoordinator(player);
+            case ServerPlayer ignore -> new PlayerComponentCoordinator(player);
             case null -> throw new NullPointerException("player may not be null");
         };
     }

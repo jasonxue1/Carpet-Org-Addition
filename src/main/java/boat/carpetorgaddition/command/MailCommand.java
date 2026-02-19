@@ -82,7 +82,7 @@ public class MailCommand extends AbstractServerCommand {
                         .then(Commands.argument(CommandUtils.PLAYER, GameProfileArgument.gameProfile())
                                 .executes(this::sendMultipleParcel)))
                 .then(Commands.literal("override")
-                        .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                        .requires(ignore -> CarpetOrgAddition.isDebugDevelopment())
                         .executes(this::override)));
     }
 
@@ -161,7 +161,7 @@ public class MailCommand extends AbstractServerCommand {
         SimpleContainer inventory = new SimpleContainer(27);
         PlayerUtils.openScreenHandler(
                 player,
-                (i, inv, _) -> new SendParcelScreenHandler(i, inv, player, gameProfile, inventory),
+                (i, inv, ignore0) -> new SendParcelScreenHandler(i, inv, player, gameProfile, inventory),
                 SEND.then("multiple").then("gui").translate()
         );
         return 1;

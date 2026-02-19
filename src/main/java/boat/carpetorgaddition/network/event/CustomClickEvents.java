@@ -9,6 +9,7 @@ import boat.carpetorgaddition.util.CommandUtils;
 import boat.carpetorgaddition.util.IdentifierUtils;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.wheel.GameProfileCache;
 import boat.carpetorgaddition.wheel.inventory.PlayerInventoryType;
 import boat.carpetorgaddition.wheel.nbt.NbtReader;
@@ -103,7 +104,7 @@ public class CustomClickEvents {
     public static final Identifier ENABLE_SHULKER_BOX_STACKABLE = register("enable_shulker_box_stackable", context -> {
         RuleAccessor<Boolean> accessor = CarpetOrgAdditionSettings.shulkerBoxStackable;
         CommandSourceStack source = context.getSource();
-        ScopedValue.where(CarpetOrgAdditionSettings.CONFIRM_ENABLE, true).run(() -> accessor.setRuleValue(source, true));
+        ThreadScopedValue.where(CarpetOrgAdditionSettings.CONFIRM_ENABLE, true).run(() -> accessor.setRuleValue(source, true));
     });
 
     /**

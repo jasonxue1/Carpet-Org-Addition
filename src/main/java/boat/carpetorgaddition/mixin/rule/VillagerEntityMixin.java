@@ -34,7 +34,7 @@ public abstract class VillagerEntityMixin extends AbstractVillager {
         if (CarpetOrgAdditionSettings.openVillagerInventory.value() && player.isShiftKeyDown()) {
             PlayerUtils.openScreenHandler(
                     player,
-                    (syncId, inventory, _) -> new VillagerScreenHandler(syncId, inventory, thisVillager),
+                    (syncId, inventory, ignore) -> new VillagerScreenHandler(syncId, inventory, thisVillager),
                     thisVillager.getName()
             );
             cir.setReturnValue(InteractionResult.SUCCESS);

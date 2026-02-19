@@ -53,7 +53,7 @@ public class PlayerUtils {
             return;
         }
         ContainerComponentInventory inventory = new ContainerComponentInventory(shulker);
-        MenuConstructor factory = (syncId, playerInventory, _) ->
+        MenuConstructor factory = (syncId, playerInventory, ignore) ->
                 new QuickShulkerScreenHandler(syncId, playerInventory, inventory, player, predicate, shulker);
         openScreenHandler(player, factory, shulker.getHoverName());
     }
@@ -134,7 +134,7 @@ public class PlayerUtils {
      * 在不显示退出消息的情况下退出
      */
     public static void silenceLogout(EntityPlayerMPFake fakePlayer) {
-        ScopedValue.where(FakePlayerSpawner.SILENCE, true).run(() -> logout(fakePlayer));
+        ThreadScopedValue.where(FakePlayerSpawner.SILENCE, true).run(() -> logout(fakePlayer));
     }
 
     public static void logout(EntityPlayerMPFake fakePlayer) {

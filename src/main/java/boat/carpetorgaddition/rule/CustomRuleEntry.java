@@ -22,7 +22,7 @@ public class CustomRuleEntry {
         if (name == null || rule == null || control == null) {
             return Optional.empty();
         }
-        return Optional.of(CACHE.computeIfAbsent(control, _ -> new CustomRuleEntry(name, rule, control)));
+        return Optional.of(CACHE.computeIfAbsent(control, ignore -> new CustomRuleEntry(name, rule, control)));
     }
 
     public String getName() {

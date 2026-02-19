@@ -49,7 +49,7 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点更新数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointUpdateS2CPacket.ID,
-                (payload, _) -> {
+                (payload, ignore) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     Vec3 target = payload.getTarget();
                     ResourceKey<Level> registryKey = payload.getWorldKey();
@@ -60,7 +60,7 @@ public class CarpetOrgAdditionClientRegister {
         // 注册路径点清除数据包
         ClientPlayNetworking.registerGlobalReceiver(
                 WaypointClearS2CPacket.ID,
-                (_, _) -> {
+                (ignore0, ignore1) -> {
                     WaypointRenderer instance = WaypointRenderer.getInstance();
                     instance.listRenderers(Waypoint.NAVIGATOR).forEach(instance::stop);
                 }
@@ -87,7 +87,7 @@ public class CarpetOrgAdditionClientRegister {
             }
         });
         // 记录器更新数据包
-        ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, _) -> ClientLogger.onPacketReceive(packet));
+        ClientPlayNetworking.registerGlobalReceiver(LoggerUpdateS2CPacket.ID, (packet, ignore2) -> ClientLogger.onPacketReceive(packet));
     }
 
     /**

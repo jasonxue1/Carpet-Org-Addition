@@ -8,7 +8,7 @@ public interface DataUpdater {
     @Deprecated(forRemoval = true)
     int VERSION = 3;
     int ZERO = 0;
-    DataUpdater UNCHANGED = (json, _) -> json;
+    DataUpdater UNCHANGED = (json, ignore) -> json;
 
     JsonObject update(JsonObject oldJson, int version);
 

@@ -32,13 +32,13 @@ public class WanderingTraderSpawnLogger {
                     // %s分%s秒
                     time = LocalizationKeys.Time.MINUTE_SECOND.translate(spawnCountdown / 60, spawnCountdown % 60);
                 }
-                Loggers.getWanderingTraderLogger().log((_, _) -> {
+                Loggers.getWanderingTraderLogger().log((ignore, ignore0) -> {
                     Component message = KEY.then("hud").translate(time, (String.format("%.1f", chance) + "%"));
                     return new Component[]{message};
                 });
             }
         } else {
-            Loggers.getWanderingTraderLogger().log((_, _) -> {
+            Loggers.getWanderingTraderLogger().log((ignore1, ignore2) -> {
                 Component gamerule = LocalizationKey.literal(GameRules.SPAWN_WANDERING_TRADERS.getDescriptionId()).translate();
                 return new Component[]{KEY.then("gamerule_not_enabled").translate(gamerule)};
             });

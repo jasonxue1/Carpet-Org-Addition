@@ -7,6 +7,7 @@ import boat.carpetorgaddition.periodic.parcel.ParcelManager;
 import boat.carpetorgaddition.periodic.task.ServerTaskManager;
 import boat.carpetorgaddition.rule.CustomRuleValueManager;
 import boat.carpetorgaddition.rule.RuleConfig;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.wheel.inventory.FabricPlayerAccessManager;
 import boat.carpetorgaddition.wheel.page.PageManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
@@ -18,7 +19,7 @@ import org.jspecify.annotations.NullMarked;
 public class ServerComponentCoordinator {
     static {
         // 注册服务器保存事件
-        ServerLifecycleEvents.AFTER_SAVE.register((server, _, _) -> getCoordinator(server).onServerSave());
+        ServerLifecycleEvents.AFTER_SAVE.register((server, ignore, ignore0) -> getCoordinator(server).onServerSave());
     }
 
     private final MinecraftServer server;
@@ -40,7 +41,7 @@ public class ServerComponentCoordinator {
     private final RuleConfig ruleConfig;
     private final DialogProvider dialogProvider;
     private final FakePlayerResidents fakePlayerResidents;
-    public static final ScopedValue<MinecraftServer> SERVER_INSTANCE = ScopedValue.newInstance();
+    public static final ThreadScopedValue<MinecraftServer> SERVER_INSTANCE = ThreadScopedValue.newInstance();
 
     public ServerComponentCoordinator(MinecraftServer server) {
         this.server = server;

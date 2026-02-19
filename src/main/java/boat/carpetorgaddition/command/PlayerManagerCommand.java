@@ -102,7 +102,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
             startupNode.then(Commands.literal(action.toString())
                     .executes(context -> this.addStartupFunction(context, action, 1))
                     .then(Commands.argument("delay", TimeArgument.time(1))
-                            .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
+                            .suggests((ignore, builder) -> SharedSuggestionProvider.suggest(new String[]{"1t", "3t", "5t"}, builder))
                             .executes(context -> this.addStartupFunction(context, action, IntegerArgumentType.getInteger(context, "delay"))))
                     .then(Commands.literal("clear")
                             .executes(context -> this.addStartupFunction(context, action, -1))));
@@ -183,7 +183,7 @@ public class PlayerManagerCommand extends AbstractServerCommand {
                                 .then(Commands.argument("name", StringArgumentType.string())
                                         .suggests(reLoginTaskSuggests())
                                         .then(Commands.argument("interval", IntegerArgumentType.integer(1))
-                                                .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"1", "3", "5"}, builder))
+                                                .suggests((ignore0, builder) -> SharedSuggestionProvider.suggest(new String[]{"1", "3", "5"}, builder))
                                                 .executes(this::setReLogin))
                                         .then(Commands.literal("stop")
                                                 .executes(this::stopReLogin))))

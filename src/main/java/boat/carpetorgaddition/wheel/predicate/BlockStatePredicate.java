@@ -75,7 +75,7 @@ public class BlockStatePredicate implements BiPredicate<Level, BlockPos> {
 
     private BlockStatePredicate() {
         this.content = IdentifierUtils.getIdAsString(Blocks.AIR);
-        this.biPredicate = (_, _) -> false;
+        this.biPredicate = (ignore, ignore0) -> false;
         this.block = Blocks.AIR;
     }
 

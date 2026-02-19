@@ -52,7 +52,7 @@ public class ClientFinderCommand extends AbstractClientCommand {
     }
 
     private SuggestionProvider<FabricClientCommandSource> suggestionDefaultDistance() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256", "512"}, builder);
+        return (ignore, builder) -> SharedSuggestionProvider.suggest(new String[]{"64", "128", "256", "512"}, builder);
     }
 
     private int searchItem(CommandContext<FabricClientCommandSource> context, int range) {

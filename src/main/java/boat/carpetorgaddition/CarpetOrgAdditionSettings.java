@@ -4,6 +4,7 @@ import boat.carpetorgaddition.periodic.PlayerComponentCoordinator;
 import boat.carpetorgaddition.periodic.navigator.AbstractNavigator;
 import boat.carpetorgaddition.periodic.navigator.NavigatorManager;
 import boat.carpetorgaddition.rule.*;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.rule.helper.CompatibilityDialogProvider;
 import boat.carpetorgaddition.rule.value.*;
 import boat.carpetorgaddition.util.PlayerUtils;
@@ -38,15 +39,15 @@ public class CarpetOrgAdditionSettings {
     /**
      * 当前方块的破坏者，启用{@link CarpetOrgAdditionSettings#blockDropsDirectlyEnterInventory}后，方块掉落物会直接进入玩家物品栏
      */
-    public static final ScopedValue<ServerPlayer> BLOCK_BREAKER = ScopedValue.newInstance();
+    public static final ThreadScopedValue<ServerPlayer> BLOCK_BREAKER = ThreadScopedValue.newInstance();
     /**
      * 是否正在使用引雷三叉戟
      */
-    public static final ScopedValue<Boolean> USE_CHANNELING_TRIDENT = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> USE_CHANNELING_TRIDENT = ThreadScopedValue.newInstance();
     /**
      * 是否确认启用规则，用于潜影盒可堆叠的兼容性警告对话框
      */
-    public static final ScopedValue<Boolean> CONFIRM_ENABLE = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> CONFIRM_ENABLE = ThreadScopedValue.newInstance();
     private static final Set<RuleContext<?>> RULES = new LinkedHashSet<>();
     public static final String OPS = "ops";
     public static final String TRUE = "true";

@@ -591,7 +591,7 @@ public class OfflinePlayerSearchTask extends ServerTask {
         return Thread.ofPlatform()
                 .daemon()
                 .name("OfflinePlayerItemSearch-Thread-" + CURRENT_THREAD_ID.getAndIncrement())
-                .uncaughtExceptionHandler((_, e) -> CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e))
+                .uncaughtExceptionHandler((ignore, e) -> CarpetOrgAddition.LOGGER.warn("An unexpected error occurred: ", e))
                 .unstarted(runnable);
     }
 

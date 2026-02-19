@@ -4,6 +4,7 @@ import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.mixin.accessor.DamageTrackerAccessor;
 import boat.carpetorgaddition.util.InventoryUtils;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.TextBuilder;
 import carpet.CarpetServer;
@@ -48,7 +49,7 @@ public class RuleUtils {
     /**
      * 是否正在打开箱子
      */
-    public static final ScopedValue<Boolean> OPENING_THE_CHEST = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> OPENING_THE_CHEST = ThreadScopedValue.newInstance();
 
     /**
      * 潜影盒是否可以触发更新抑制器

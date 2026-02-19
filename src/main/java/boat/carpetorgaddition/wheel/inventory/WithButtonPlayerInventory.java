@@ -86,7 +86,7 @@ public class WithButtonPlayerInventory implements Container {
     public WithButtonPlayerInventory(ServerPlayer player) {
         this.player = player;
         this.actionPack = PlayerUtils.getActionPack(this.player);
-        ButtonInventory stopAll = new StopButtonInventory(_ -> {
+        ButtonInventory stopAll = new StopButtonInventory(ignore -> {
             ItemStack itemStack = OFF_STACK.copy();
             Component first = LocalizationKeys.Button.Action.Stop.LEFT.builder()
                     .setItalic(false)
@@ -99,9 +99,9 @@ public class WithButtonPlayerInventory implements Container {
             itemStack.set(DataComponents.CUSTOM_NAME, first);
             itemStack.set(DataComponents.LORE, new ItemLore(List.of(second)));
             return Map.entry(itemStack, itemStack);
-        }, (_, pack) -> pack.stopAll());
+        }, (ignore0, pack) -> pack.stopAll());
         this.intervalAttack = new ButtonInventory(
-                _ -> {
+                ignore1 -> {
                     ItemStack on = ON_STACK.copy();
                     ItemStack off = OFF_STACK.copy();
                     LocalizationKey key = LocalizationKeys.Button.Action.Attack.INTERVAL;
@@ -110,12 +110,12 @@ public class WithButtonPlayerInventory implements Container {
                     return Map.entry(on, off);
                 },
                 Map.entry(
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.interval(ATTACK_INTERVAL)),
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.once())
+                        (ignore2, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.interval(ATTACK_INTERVAL)),
+                        (ignore3, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.once())
                 )
         );
         this.continuousAttack = new ButtonInventory(
-                _ -> {
+                ignore4 -> {
                     ItemStack on = ON_STACK.copy();
                     ItemStack off = OFF_STACK.copy();
                     LocalizationKey key = LocalizationKeys.Button.Action.Attack.CONTINUOUS;
@@ -124,12 +124,12 @@ public class WithButtonPlayerInventory implements Container {
                     return Map.entry(on, off);
                 },
                 Map.entry(
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.continuous()),
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.once())
+                        (ignore5, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.continuous()),
+                        (ignore6, pack) -> pack.start(EntityPlayerActionPack.ActionType.ATTACK, EntityPlayerActionPack.Action.once())
                 )
         );
         this.continuousUse = new ButtonInventory(
-                _ -> {
+                ignore7 -> {
                     ItemStack on = ON_STACK.copy();
                     ItemStack off = OFF_STACK.copy();
                     LocalizationKey key = LocalizationKeys.Button.Action.Use.CONTINUOUS;
@@ -138,8 +138,8 @@ public class WithButtonPlayerInventory implements Container {
                     return Map.entry(on, off);
                 },
                 Map.entry(
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.USE, EntityPlayerActionPack.Action.continuous()),
-                        (_, pack) -> pack.start(EntityPlayerActionPack.ActionType.USE, EntityPlayerActionPack.Action.once())
+                        (ignore8, pack) -> pack.start(EntityPlayerActionPack.ActionType.USE, EntityPlayerActionPack.Action.continuous()),
+                        (ignore9, pack) -> pack.start(EntityPlayerActionPack.ActionType.USE, EntityPlayerActionPack.Action.once())
                 )
         );
         this.hotbar = new HotbarButtonInventory(index -> {

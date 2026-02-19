@@ -155,14 +155,14 @@ public class PlayerCommandExtension {
                     .append(interviewee.getDisplayName())
                     .join();
             this.gameProfile = interviewee.getGameProfile();
-            this.inventory = (containerId, inventory, _) -> {
+            this.inventory = (containerId, inventory, ignore) -> {
                 if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.value()) {
                     return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
                 } else {
                     return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
                 }
             };
-            this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
+            this.enderChest = (containerId, inventory, ignore0) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
         }
 
         public PlayerInventoryAccessor(MinecraftServer server, GameProfile gameProfile, ServerPlayer visitor) throws CommandSyntaxException {
@@ -178,22 +178,22 @@ public class PlayerCommandExtension {
                         .append(" ")
                         .append(name)
                         .join();
-                this.inventory = (containerId, inventory, _) -> new OfflinePlayerInventoryScreenHandler(containerId, inventory, new OfflinePlayerInventory(accessor));
-                this.enderChest = (containerId, inventory, _) -> ChestMenu.threeRows(containerId, inventory, new OfflinePlayerEnderChestInventory(accessor));
+                this.inventory = (containerId, inventory, ignore1) -> new OfflinePlayerInventoryScreenHandler(containerId, inventory, new OfflinePlayerInventory(accessor));
+                this.enderChest = (containerId, inventory, ignore2) -> ChestMenu.threeRows(containerId, inventory, new OfflinePlayerEnderChestInventory(accessor));
             } else {
                 this.displayName = new TextJoiner()
                         .append(TextBuilder.ofPlayerAvatar(interviewee).setColor(ChatFormatting.WHITE).build())
                         .append(" ")
                         .append(interviewee.getDisplayName())
                         .join();
-                this.inventory = (containerId, inventory, _) -> {
+                this.inventory = (containerId, inventory, ignore3) -> {
                     if (CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryGcaStyle.value()) {
                         return new WithButtonPlayerInventoryScreenHandler(containerId, interviewee, visitor);
                     } else {
                         return new PlayerInventoryScreenHandler(containerId, inventory, interviewee);
                     }
                 };
-                this.enderChest = (containerId, inventory, _) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
+                this.enderChest = (containerId, inventory, ignore4) -> new PlayerEnderChestScreenHandler(containerId, inventory, interviewee);
             }
         }
 
@@ -237,13 +237,13 @@ public class PlayerCommandExtension {
         private static void checkCanBeOpened(@Nullable ServerPlayer player) throws CommandSyntaxException {
             OpenPlayerInventory option = CarpetOrgAdditionSettings.playerCommandOpenPlayerInventoryOption.value();
             switch (player) {
-                case EntityPlayerMPFake _ -> {
+                case EntityPlayerMPFake ignore5 -> {
                     if (option.canOpenFakePlayer()) {
                         return;
                     }
                     throw new IllegalStateException("Always allow opening fake player inventory");
                 }
-                case ServerPlayer _ -> {
+                case ServerPlayer ignore6 -> {
                     if (option.canOpenRealPlayer()) {
                         return;
                     }

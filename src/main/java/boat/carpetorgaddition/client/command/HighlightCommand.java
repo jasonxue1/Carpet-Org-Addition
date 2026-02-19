@@ -46,12 +46,12 @@ public class HighlightCommand extends AbstractClientCommand {
                 .then(ClientCommands.argument("blockPos", ClientBlockPosArgumentType.blockPos())
                         .executes(context -> highlight(context, 60 * 20L, !CarpetOrgAdditionClient.CLEAR_WAYPOINT.isUnbound()))
                         .then(ClientCommands.argument("second", IntegerArgumentType.integer(1))
-                                .suggests((_, builder) -> SharedSuggestionProvider.suggest(new String[]{"30", "60", "120"}, builder))
+                                .suggests((ignore, builder) -> SharedSuggestionProvider.suggest(new String[]{"30", "60", "120"}, builder))
                                 .executes(context -> highlight(context, IntegerArgumentType.getInteger(context, "second") * 20L, false)))
                         .then(ClientCommands.literal("continue")
                                 .executes(context -> highlight(context, 1L, true))))
                 .then(ClientCommands.literal("clear")
-                        .executes(_ -> clear())));
+                        .executes(ignore0 -> clear())));
     }
 
     // 高亮路径点

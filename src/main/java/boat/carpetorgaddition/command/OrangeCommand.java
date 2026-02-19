@@ -56,7 +56,7 @@ public class OrangeCommand extends AbstractServerCommand {
                         .then(Commands.argument("node", StringArgumentType.string())
                                 .suggests(suggestsNode())
                                 .then(Commands.argument("level", StringArgumentType.string())
-                                        .suggests((_, builder) -> SharedSuggestionProvider.suggest(PermissionLevel.listPermission(), builder))
+                                        .suggests((ignore, builder) -> SharedSuggestionProvider.suggest(PermissionLevel.listPermission(), builder))
                                         .executes(this::setLevel))))
                 .then(Commands.literal("version")
                         .executes(this::version))
@@ -72,11 +72,11 @@ public class OrangeCommand extends AbstractServerCommand {
     }
 
     private @NotNull SuggestionProvider<CommandSourceStack> suggestRule() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(CustomRuleValueManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
+        return (ignore0, builder) -> SharedSuggestionProvider.suggest(CustomRuleValueManager.NAME_TO_RULES.values().stream().map(CarpetRule::name), builder);
     }
 
     private SuggestionProvider<CommandSourceStack> suggestsNode() {
-        return (_, builder) -> SharedSuggestionProvider.suggest(
+        return (ignore1, builder) -> SharedSuggestionProvider.suggest(
                 PermissionManager.listNode().stream().map(StringArgumentType::escapeIfRequired),
                 builder
         );

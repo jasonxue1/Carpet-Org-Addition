@@ -27,9 +27,9 @@ public class WaypointRenderer {
 
     static {
         // 断开连接时清除路径点
-        ClientPlayConnectionEvents.DISCONNECT.register((_, _) -> destroy());
+        ClientPlayConnectionEvents.DISCONNECT.register((ignore, ignore0) -> destroy());
         // 清除不再需要的渲染器
-        ClientTickEvents.START_CLIENT_TICK.register(_ -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
+        ClientTickEvents.START_CLIENT_TICK.register(ignore1 -> getInstance().waypoints.values().removeIf(Waypoint::isDone));
     }
 
     private WaypointRenderer() {
@@ -70,7 +70,7 @@ public class WaypointRenderer {
     }
 
     public Waypoint addOrUpdate(Waypoint waypoint) {
-        return this.waypoints.computeIfAbsent(waypoint.getIcon(), _ -> waypoint);
+        return this.waypoints.computeIfAbsent(waypoint.getIcon(), ignore2 -> waypoint);
     }
 
     public Optional<Waypoint> addOrModify(Waypoint waypoint) {

@@ -120,12 +120,12 @@ public class PlayerActionCommand extends AbstractServerCommand {
                         .then(Commands.literal("fishing")
                                 .executes(this::setFishing))
                         .then(Commands.literal("plant")
-                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())
+                                .requires(ignore -> CarpetOrgAddition.isEnableHiddenFunction())
                                 .executes(this::setPlant))
                         .then(register(Commands.literal("bedrock")
-                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())))
+                                .requires(ignore0 -> CarpetOrgAddition.isEnableHiddenFunction())))
                         .then(Commands.literal("goto")
-                                .requires(_ -> CarpetOrgAddition.isEnableHiddenFunction())
+                                .requires(ignore1 -> CarpetOrgAddition.isEnableHiddenFunction())
                                 .then(Commands.literal("block")
                                         .then(Commands.argument("target", BlockPosArgument.blockPos())
                                                 .executes(this::setGotoBlockPos)))
@@ -133,7 +133,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
                                         .then(Commands.argument("target", EntityArgument.entity())
                                                 .executes(this::setGotoEntity))))
                         .then(Commands.literal("raise")
-                                .requires(_ -> CarpetOrgAddition.isDebugDevelopment())
+                                .requires(ignore2 -> CarpetOrgAddition.isDebugDevelopment())
                                 .executes(context -> this.raise(context, null))
                                 .then(Commands.argument("message", StringArgumentType.string())
                                         .executes(context -> this.raise(context, StringArgumentType.getString(context, "message")))))
@@ -340,7 +340,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
     private int useGuiSetStonecutting(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer player = CommandUtils.getSourcePlayer(context);
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
-        PlayerUtils.openScreenHandler(player, (syncId, inventory, _) -> new StonecutterSetRecipeScreenHandler(
+        PlayerUtils.openScreenHandler(player, (syncId, inventory, ignore3) -> new StonecutterSetRecipeScreenHandler(
                         syncId,
                         inventory,
                         ContainerLevelAccess.create(ServerUtils.getWorld(player), player.blockPosition()),
@@ -464,7 +464,7 @@ public class PlayerActionCommand extends AbstractServerCommand {
         EntityPlayerMPFake fakePlayer = CommandUtils.getArgumentFakePlayer(context);
         // 打开合成GUI
         PlayerUtils.openScreenHandler(player,
-                (syncId, playerInventory, _) -> new CraftingSetRecipeScreenHandler(
+                (syncId, playerInventory, ignore4) -> new CraftingSetRecipeScreenHandler(
                         syncId,
                         playerInventory,
                         fakePlayer,

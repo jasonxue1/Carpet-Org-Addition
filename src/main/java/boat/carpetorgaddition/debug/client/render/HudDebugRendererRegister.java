@@ -61,7 +61,7 @@ public class HudDebugRendererRegister {
 
     static {
         // 显示方块挖掘速度
-        renders.put(IdentifierUtils.ofIdentifier("block_destroy_speed"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("block_destroy_speed"), (context, ignore) -> {
             if (DebugSettings.showBlockBreakingSpeed.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -90,7 +90,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染比较器强度
-        renders.put(IdentifierUtils.ofIdentifier("comparator_level"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("comparator_level"), (context, ignore0) -> {
             if (DebugSettings.showComparatorLevel.get()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -115,7 +115,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染灵魂沙物品数量
-        renders.put(IdentifierUtils.ofIdentifier("soul_sand_item_count"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("soul_sand_item_count"), (context, ignore1) -> {
             if (showSoulSandItemCount()) {
                 HitResult hitResult = ClientUtils.getCrosshairTarget();
                 if (hitResult == null) {
@@ -173,7 +173,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.put(IdentifierUtils.ofIdentifier("hud_information_display"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("hud_information_display"), (context, ignore2) -> {
             if (DebugSettings.HUDInformationDisplay.get()) {
                 Minecraft client = ClientUtils.getClient();
                 Screen screen = ClientUtils.getCurrentScreen();
@@ -213,7 +213,7 @@ public class HudDebugRendererRegister {
             }
         });
         // 渲染当前HUD信息
-        renders.put(IdentifierUtils.ofIdentifier("show_player_experience"), (context, _) -> {
+        renders.put(IdentifierUtils.ofIdentifier("show_player_experience"), (context, ignore3) -> {
             if (DebugSettings.showPlayerExperience.get() && ClientUtils.getCrosshairTarget() instanceof EntityHitResult hitResult) {
                 Entity entity = hitResult.getEntity();
                 if (entity instanceof Player) {
@@ -235,10 +235,10 @@ public class HudDebugRendererRegister {
         for (Map.Entry<Identifier, HudElement> entry : renders.entrySet()) {
             HudElementRegistry.addLast(entry.getKey(), entry.getValue());
         }
-        ScreenEvents.AFTER_INIT.register((_, screen, _, _) -> {
+        ScreenEvents.AFTER_INIT.register((ignore4, screen, ignore5, ignore6) -> {
             if (DebugSettings.HUDInformationDisplay.get() && screen instanceof AbstractContainerScreen<?> handledScreen) {
                 NonNullList<Slot> slots = handledScreen.getMenu().slots;
-                slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, _, _, _) -> {
+                slots.forEach(slot -> ((ScreenAccessor) screen).putDrawable((context, ignore7, ignore8, ignore9) -> {
                     HandledScreenAccessor accessor = (HandledScreenAccessor) handledScreen;
                     int x = accessor.getX();
                     int y = accessor.getY();

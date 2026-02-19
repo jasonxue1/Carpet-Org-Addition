@@ -2,6 +2,7 @@ package boat.carpetorgaddition.mixin.rule.forceopencontainer;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
 import boat.carpetorgaddition.rule.RuleUtils;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.core.BlockPos;
@@ -19,7 +20,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ChestBlockMixin {
     @WrapOperation(method = "useWithoutItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/ChestBlock;getMenuProvider(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/MenuProvider;"))
     private static MenuProvider isChestBlockedAt(ChestBlock instance, BlockState state, Level level, BlockPos pos, Operation<MenuProvider> original) {
-        return ScopedValue.where(RuleUtils.OPENING_THE_CHEST, CarpetOrgAdditionSettings.forceOpenContainer.value().canOpenChest())
+        return ThreadScopedValue.where(RuleUtils.OPENING_THE_CHEST, CarpetOrgAdditionSettings.forceOpenContainer.value().canOpenChest())
                 .call(() -> original.call(instance, state, level, pos));
     }
 

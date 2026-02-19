@@ -2,6 +2,7 @@ package boat.carpetorgaddition.wheel;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import carpet.patches.EntityPlayerMPFake;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -18,15 +19,15 @@ public class FakePlayerSpawner {
     /**
      * 假玩家在上线或下线时，是否隐藏上下线的消息
      */
-    public static final ScopedValue<Boolean> SILENCE = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> SILENCE = ThreadScopedValue.newInstance();
     /**
      * 假玩家生成后执行的回调函数
      */
-    public static final ScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Consumer<EntityPlayerMPFake>> CALLBACK = ThreadScopedValue.newInstance();
     /**
      * 假玩家是否在上次下线的位置生成
      */
-    public static final ScopedValue<Boolean> ORIGINAL_POSITION = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> ORIGINAL_POSITION = ThreadScopedValue.newInstance();
     /**
      * 玩家的名称
      */
@@ -143,7 +144,7 @@ public class FakePlayerSpawner {
         if (this.sneaking) {
             this.callback = this.callback.andThen(fakePlayer -> fakePlayer.setShiftKeyDown(true));
         }
-        return ScopedValue.where(SILENCE, this.silence)
+        return ThreadScopedValue.where(SILENCE, this.silence)
                 .where(CALLBACK, this.callback)
                 .where(ORIGINAL_POSITION, this.position == null)
                 .call(() -> EntityPlayerMPFake.createFake(

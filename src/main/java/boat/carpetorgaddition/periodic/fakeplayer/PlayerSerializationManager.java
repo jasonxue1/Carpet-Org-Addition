@@ -121,7 +121,7 @@ public class PlayerSerializationManager {
         });
         Set<String> groups = serializer.getGroups();
         if (groups.isEmpty()) {
-            Set<FakePlayerSerializer> ungrouped = this.groups.computeIfAbsent(null, _ -> new HashSet<>());
+            Set<FakePlayerSerializer> ungrouped = this.groups.computeIfAbsent(null, ignore -> new HashSet<>());
             ungrouped.add(serializer);
         } else {
             for (String group : groups) {
@@ -147,7 +147,7 @@ public class PlayerSerializationManager {
     }
 
     private void addGroup(String group, FakePlayerSerializer serializer) {
-        Set<FakePlayerSerializer> set = this.groups.computeIfAbsent(group, _ -> new TreeSet<>());
+        Set<FakePlayerSerializer> set = this.groups.computeIfAbsent(group, ignore0 -> new TreeSet<>());
         Set<FakePlayerSerializer> ungrouped = this.groups.get(null);
         if (ungrouped != null) {
             ungrouped.remove(serializer);
@@ -162,7 +162,7 @@ public class PlayerSerializationManager {
         }
         set.remove(serializer);
         if (serializer.getGroups().isEmpty()) {
-            Set<FakePlayerSerializer> ungrouped = this.groups.computeIfAbsent(null, _ -> new HashSet<>());
+            Set<FakePlayerSerializer> ungrouped = this.groups.computeIfAbsent(null, ignore1 -> new HashSet<>());
             ungrouped.add(serializer);
         }
     }

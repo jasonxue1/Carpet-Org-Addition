@@ -87,7 +87,7 @@ public class OrgRule<T> implements CarpetRule<T> {
         }
         // 更改规则时将命令同步到客户端
         if (this.categories.contains(RuleCategory.COMMAND)) {
-            this.listeners.add((source, _) -> {
+            this.listeners.add((source, ignore) -> {
                 if (source != null) {
                     CommandHelper.notifyPlayersCommandsChanged(source.getServer());
                 }
@@ -98,13 +98,13 @@ public class OrgRule<T> implements CarpetRule<T> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private RuleValueParser<T> createParser() {
         Map.Entry<Component, Function<String, T>> entry = switch (this.defaultValue) {
-            case String _ -> Map.entry(Type.STRING.translate(), this.type::cast);
-            case Boolean _ -> Map.entry(Type.BOOLEAN.translate(), s -> this.type.cast(parseBoolean(s)));
-            case Integer _ -> Map.entry(Type.INTEGER.translate(), s -> this.type.cast(Integer.parseInt(s)));
-            case Long _ -> Map.entry(Type.LONG.translate(), s -> this.type.cast(Long.parseLong(s)));
-            case Double _ -> Map.entry(Type.DOUBLE.translate(), s -> this.type.cast(Double.parseDouble(s)));
-            case Float _ -> Map.entry(Type.FLOAT.translate(), s -> this.type.cast(Float.parseFloat(s)));
-            case Enum<?> _ -> Map.entry(Type.ENUM.translate(), s -> {
+            case String ignore0 -> Map.entry(Type.STRING.translate(), this.type::cast);
+            case Boolean ignore1 -> Map.entry(Type.BOOLEAN.translate(), s -> this.type.cast(parseBoolean(s)));
+            case Integer ignore2 -> Map.entry(Type.INTEGER.translate(), s -> this.type.cast(Integer.parseInt(s)));
+            case Long ignore3 -> Map.entry(Type.LONG.translate(), s -> this.type.cast(Long.parseLong(s)));
+            case Double ignore4 -> Map.entry(Type.DOUBLE.translate(), s -> this.type.cast(Double.parseDouble(s)));
+            case Float ignore5 -> Map.entry(Type.FLOAT.translate(), s -> this.type.cast(Float.parseFloat(s)));
+            case Enum<?> ignore6 -> Map.entry(Type.ENUM.translate(), s -> {
                 Class<? extends Enum> clazz = (Class<? extends Enum>) this.type;
                 // 只有枚举名称全部为大写时才能匹配
                 return (T) Enum.valueOf(clazz, s.toUpperCase(Locale.ROOT));

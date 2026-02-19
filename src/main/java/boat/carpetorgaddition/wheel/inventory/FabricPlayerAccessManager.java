@@ -56,7 +56,7 @@ public class FabricPlayerAccessManager {
     }
 
     public FabricPlayerAccessor getOrCreateBlocking(NameAndId gameProfile) {
-        return this.accessors.computeIfAbsent(gameProfile, _ -> {
+        return this.accessors.computeIfAbsent(gameProfile, ignore -> {
             // 在多个线程调用构造方法存在并发问题
             Supplier<FabricPlayerAccessor> supplier = () -> new FabricPlayerAccessor(this.server, gameProfile, this);
             FabricPlayerAccessorEntry entry = new FabricPlayerAccessorEntry(supplier);

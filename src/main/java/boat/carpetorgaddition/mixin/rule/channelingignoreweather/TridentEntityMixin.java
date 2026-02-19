@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.mixin.rule.channelingignoreweather;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.minecraft.server.level.ServerLevel;
@@ -32,14 +33,14 @@ public abstract class TridentEntityMixin extends AbstractArrow {
     // 击中实体
     @WrapOperation(method = "onHitEntity", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;doPostAttackEffectsWithItemSourceOnBreak(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/damagesource/DamageSource;Lnet/minecraft/world/item/ItemStack;Ljava/util/function/Consumer;)V"))
     private void onHitEntity(ServerLevel world, Entity target, DamageSource damageSource, ItemStack weapon, Consumer<Item> breakCallback, Operation<Void> original) {
-        ScopedValue.where(CarpetOrgAdditionSettings.USE_CHANNELING_TRIDENT, true)
+        ThreadScopedValue.where(CarpetOrgAdditionSettings.USE_CHANNELING_TRIDENT, true)
                 .call(() -> original.call(world, target, damageSource, weapon, breakCallback));
     }
 
     // 击中避雷针
     @WrapOperation(method = "hitBlockEnchantmentEffects", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;onHitBlock(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/ItemStack;Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/entity/EquipmentSlot;Lnet/minecraft/world/phys/Vec3;Lnet/minecraft/world/level/block/state/BlockState;Ljava/util/function/Consumer;)V"))
     private void onHitBlock(ServerLevel world, ItemStack weapon, @Nullable LivingEntity owner, Entity entity, @Nullable EquipmentSlot slot, Vec3 hitLocation, BlockState hitBlock, Consumer<Item> onBreak, Operation<Void> original) {
-        ScopedValue.where(CarpetOrgAdditionSettings.USE_CHANNELING_TRIDENT, true)
+        ThreadScopedValue.where(CarpetOrgAdditionSettings.USE_CHANNELING_TRIDENT, true)
                 .call(() -> original.call(world, weapon, owner, entity, slot, hitLocation, hitBlock, onBreak));
     }
 }

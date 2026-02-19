@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.mixin.util.carpet;
 
 import boat.carpetorgaddition.CarpetOrgAddition;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import carpet.patches.EntityPlayerMPFake;
 import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
@@ -33,7 +34,7 @@ public class EntityPlayerMPFakeMixin {
     private static <T> CompletableFuture<T> whenCompleteAsync(CompletableFuture<Optional<GameProfile>> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         if (FakePlayerSpawner.CALLBACK.isBound()) {
             Consumer<EntityPlayerMPFake> callback = FakePlayerSpawner.CALLBACK.get();
-            BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> ScopedValue
+            BiConsumer<? super T, Throwable> biConsumer = (value, throwable) -> ThreadScopedValue
                     .where(FakePlayerSpawner.CALLBACK, callback)
                     .run(() -> action.accept(value, throwable));
             return original.call(instance, biConsumer, executor);
@@ -46,7 +47,7 @@ public class EntityPlayerMPFakeMixin {
     private static <T> CompletableFuture<T> fakePlayerLoginMessage(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         boolean hiddenMessage = FakePlayerSpawner.SILENCE.orElse(false);
         BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) ->
-                ScopedValue.where(FakePlayerSpawner.SILENCE, hiddenMessage)
+                ThreadScopedValue.where(FakePlayerSpawner.SILENCE, hiddenMessage)
                         .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
     }
@@ -76,7 +77,7 @@ public class EntityPlayerMPFakeMixin {
     private static <T> CompletableFuture<T> originalPositionSpawn(CompletableFuture<T> instance, BiConsumer<? super T, ? super Throwable> action, Executor executor, Operation<CompletableFuture<T>> original) {
         Boolean originalPosition = FakePlayerSpawner.ORIGINAL_POSITION.orElse(false);
         BiConsumer<? super T, ? super Throwable> consumer = (value, throwable) ->
-                ScopedValue.where(FakePlayerSpawner.ORIGINAL_POSITION, originalPosition)
+                ThreadScopedValue.where(FakePlayerSpawner.ORIGINAL_POSITION, originalPosition)
                         .run(() -> action.accept(value, throwable));
         return original.call(instance, consumer, executor);
     }
@@ -100,7 +101,7 @@ public class EntityPlayerMPFakeMixin {
     @WrapOperation(method = "kill(Lnet/minecraft/network/chat/Component;)V", at = @At(value = "NEW", target = "(ILjava/lang/Runnable;)Lnet/minecraft/server/TickTask;"))
     private TickTask kill(int tick, Runnable runnable, Operation<TickTask> original) {
         boolean silence = FakePlayerSpawner.SILENCE.orElse(false);
-        return original.call(tick, (Runnable) () -> ScopedValue.where(FakePlayerSpawner.SILENCE, silence).run(runnable));
+        return original.call(tick, (Runnable) () -> ThreadScopedValue.where(FakePlayerSpawner.SILENCE, silence).run(runnable));
     }
 
     @WrapWithCondition(method = "lambda$createFake$0", at = @At(value = "INVOKE", target = "Lcarpet/patches/EntityPlayerMPFake;stopRiding()V"))

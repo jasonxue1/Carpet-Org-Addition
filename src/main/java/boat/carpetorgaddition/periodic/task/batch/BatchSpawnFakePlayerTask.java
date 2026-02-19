@@ -6,6 +6,7 @@ import boat.carpetorgaddition.periodic.task.ServerTask;
 import boat.carpetorgaddition.util.MessageUtils;
 import boat.carpetorgaddition.util.PlayerUtils;
 import boat.carpetorgaddition.util.ServerUtils;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import boat.carpetorgaddition.wheel.FakePlayerSpawner;
 import boat.carpetorgaddition.wheel.text.LocalizationKey;
 import boat.carpetorgaddition.wheel.text.LocalizationKeys;
@@ -53,7 +54,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
     /**
      * 是否正在预加载玩家档案，用于抑制{@code Couldn't find profile with name: {}}警告
      */
-    public static final ScopedValue<Boolean> REQUEST = ScopedValue.newInstance();
+    public static final ThreadScopedValue<Boolean> REQUEST = ThreadScopedValue.newInstance();
 
     public BatchSpawnFakePlayerTask(MinecraftServer server, CommandSourceStack source, Function<String, FakePlayerSpawner> spawner, List<String> names) {
         super(source);
@@ -65,7 +66,7 @@ public class BatchSpawnFakePlayerTask extends ServerTask {
                 .toList();
         for (String name : list) {
             Thread.ofVirtual().start(() -> {
-                Optional<NameAndId> optional = ScopedValue.where(REQUEST, true).call(() -> cache.get(name));
+                Optional<NameAndId> optional = ThreadScopedValue.where(REQUEST, true).call(() -> cache.get(name));
                 NameAndId gameProfile = optional.orElseGet(() -> new NameAndId(UUIDUtil.createOfflinePlayerUUID(name), name));
                 if (optional.isEmpty()) {
                     cache.add(gameProfile);

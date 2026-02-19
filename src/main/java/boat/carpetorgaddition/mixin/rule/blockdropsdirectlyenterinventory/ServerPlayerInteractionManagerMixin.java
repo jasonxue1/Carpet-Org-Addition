@@ -1,6 +1,7 @@
 package boat.carpetorgaddition.mixin.rule.blockdropsdirectlyenterinventory;
 
 import boat.carpetorgaddition.CarpetOrgAdditionSettings;
+import boat.carpetorgaddition.util.ThreadScopedValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.core.BlockPos;
@@ -18,6 +19,6 @@ public class ServerPlayerInteractionManagerMixin {
 
     @WrapMethod(method = "destroyBlock")
     private boolean tryBreakBlock(BlockPos pos, Operation<Boolean> original) {
-        return ScopedValue.where(CarpetOrgAdditionSettings.BLOCK_BREAKER, this.player).call(() -> original.call(pos));
+        return ThreadScopedValue.where(CarpetOrgAdditionSettings.BLOCK_BREAKER, this.player).call(() -> original.call(pos));
     }
 }
